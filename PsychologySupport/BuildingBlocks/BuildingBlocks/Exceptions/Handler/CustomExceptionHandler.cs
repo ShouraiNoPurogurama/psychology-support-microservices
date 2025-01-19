@@ -41,6 +41,11 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
                 exception.GetType().Name,
                 context.Response.StatusCode = StatusCodes.Status400BadRequest
             ),
+            ForbiddenException => (
+                exception.Message,
+                exception.GetType().Name,
+                context.Response.StatusCode = StatusCodes.Status403Forbidden
+            ),
             _ => (
                 exception.Message,
                 exception.GetType().Name,

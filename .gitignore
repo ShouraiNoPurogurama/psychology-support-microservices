@@ -404,3 +404,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+PsychologySupport/Services/Auth/Auth.API/appsettings.json

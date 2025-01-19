@@ -1,4 +1,6 @@
 ﻿using Auth.API.Data;
+using BuildingBlocks.Behaviors;
+using Carter;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
@@ -21,6 +23,14 @@ public static class ApplicationServiceExtensions
                     .AllowAnyMethod()
                     .AllowAnyHeader();
             });
+        });
+        
+        services.AddCarter();
+        services.AddMediatR(configuration =>
+        {
+            configuration.RegisterServicesFromAssembly(typeof(Program).Assembly);
+            configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            configuration.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
 
         services.AddSwaggerGen(option =>

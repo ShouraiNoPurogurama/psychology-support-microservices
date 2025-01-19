@@ -30,6 +30,11 @@ public static class IdentityServiceExtensions
             options.User.RequireUniqueEmail = true;
             options.SignIn.RequireConfirmedEmail = true;
         });
+
+        services.Configure<PasswordHasherOptions>(opt =>
+        {
+            opt.CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3;
+        });
         
         services.AddAuthentication();
         services.AddAuthorization();
