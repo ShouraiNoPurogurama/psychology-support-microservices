@@ -45,22 +45,22 @@ public class TokenService(UserManager<User> userManager, IConfiguration configur
     {
         if (!httpContext.Request.Headers.ContainsKey("Authorization"))
         {
-            throw new ForbiddenException("Authorization header is missing.");
+            throw new ForbiddenException("Thiếu header Authorization.");
         }
 
         var authorizationHeader = httpContext.Request.Headers["Authorization"].ToString();
 
         if (string.IsNullOrWhiteSpace(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
         {
-            throw new ForbiddenException("Invalid Authorization header format.");
+            throw new ForbiddenException("Định dạng header Authorization không hợp lệ.");
         }
 
-        var jwtToken = authorizationHeader["Bearer ".Length..]; //Slice the token to get the Payload
+        var jwtToken = authorizationHeader["Bearer ".Length..]; // Slice token to get Payload
 
         var tokenHandler = new JwtSecurityTokenHandler();
         if (!tokenHandler.CanReadToken(jwtToken))
         {
-            throw new ForbiddenException("Invalid JWT token format.");
+            throw new ForbiddenException("Định dạng JWT token không hợp lệ.");
         }
 
         try
@@ -70,16 +70,17 @@ public class TokenService(UserManager<User> userManager, IConfiguration configur
 
             if (userIdClaim is null || string.IsNullOrWhiteSpace(userIdClaim.Value))
             {
-                throw new ForbiddenException("User Id claim is missing in the token.");
+                throw new ForbiddenException("Thiếu thông tin User Id trong token.");
             }
 
             return Guid.Parse(userIdClaim.Value);
         }
         catch (Exception e)
         {
-            throw new InternalServerException($"Error parsing token: {e.Message}");
+            throw new InternalServerException($"Lỗi khi phân tích token: {e.Message}");
         }
     }
+
 
     public bool VerifyPassword(string providedPassword, string hashedPassword, User user)
     {
@@ -127,7 +128,7 @@ public class TokenService(UserManager<User> userManager, IConfiguration configur
 
         if (!isValidRefreshToken)
         {
-            throw new ForbiddenException("Invalid Refresh Token.");
+            throw new ForbiddenException("Refresh Token không hợp lệ.");
         }
 
         var newJwtToken = await GenerateJWTToken(user);
@@ -136,5 +137,28 @@ public class TokenService(UserManager<User> userManager, IConfiguration configur
         await SaveRefreshToken(user, newRefreshToken);
 
         return (newJwtToken: newJwtToken, newRefreshToken: newRefreshToken);
+    }
+
+    public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+    {
+        var tokenValidationParameters = new TokenValidationParameters()
+        {
+            ValidateAudience = false, //you might want to validate the audience and issuer depending on your use case
+            ValidateIssuer = false,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jtw:Key"]!)),
+            ValidateLifetime = false //here we are saying that we don't care about the token's expiration date
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        SecurityToken securityToken;
+
+        var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
+
+        var jwtSecurityToken = securityToken as JwtSecurityToken;
+        if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha512, StringComparison.InvariantCultureIgnoreCase))
+            throw new SecurityTokenException("Token không hợp lệ");
+
+        return principal;
     }
 }

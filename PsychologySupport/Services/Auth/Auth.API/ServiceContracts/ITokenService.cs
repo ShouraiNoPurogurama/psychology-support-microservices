@@ -1,4 +1,5 @@
-﻿using Auth.API.Models;
+﻿using System.Security.Claims;
+using Auth.API.Models;
 
 namespace Auth.API.ServiceContracts;
 
@@ -20,4 +21,6 @@ public interface ITokenService
     Task<bool> ValidateRefreshToken(User user, string refreshToken);
 
     Task<(string newJwtToken, string newRefreshToken)> RefreshToken(User user, string refreshToken);
+
+    ClaimsPrincipal GetPrincipalFromExpiredToken(string token);
 }
