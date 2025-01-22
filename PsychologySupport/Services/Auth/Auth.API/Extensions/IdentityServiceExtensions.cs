@@ -1,6 +1,9 @@
-﻿using Auth.API.Data;
+﻿using System.Text;
+using Auth.API.Data;
 using Auth.API.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Auth.API.Extensions;
 
@@ -36,7 +39,30 @@ public static class IdentityServiceExtensions
             opt.CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3;
         });
         
-        services.AddAuthentication();
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        //Currently just authenticate requests from localhost:5000
+        .AddJwtBearer(options =>
+        {
+            options.SaveToken = true;
+            options.RequireHttpsMetadata = false;
+            options.TokenValidationParameters = new TokenValidationParameters()
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ClockSkew = TimeSpan.Zero,
+
+                ValidAudience = config["Jwt:ValidAudience"],
+                ValidIssuer = config["Jwt:ValidIssuer"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!))
+            };
+        });
         services.AddAuthorization();
 
         return services;

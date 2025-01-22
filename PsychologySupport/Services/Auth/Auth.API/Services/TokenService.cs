@@ -25,9 +25,9 @@ public class TokenService(UserManager<User> userManager, IConfiguration configur
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Email!), //Subject
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), //JwtId
-            new Claim("userid", user.Id.ToString()),
+            new Claim("userId", user.Id.ToString()),
             new Claim(ClaimTypes.Role, string.Join(",", roles)),
-            new Claim("name", user.FullName),
+            new Claim(ClaimTypes.Name, user.UserName!),
         };
 
         var token = new JwtSecurityToken(
@@ -117,7 +117,7 @@ public class TokenService(UserManager<User> userManager, IConfiguration configur
     public async Task<bool> ValidateRefreshToken(User user, string refreshToken)
     {
         var storedToken = await userManager.GetAuthenticationTokenAsync(user, "PsychologySupport", "RefreshToken");
-
+        
         return storedToken is not null && storedToken == refreshToken;
     }
 

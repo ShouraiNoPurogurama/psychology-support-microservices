@@ -122,12 +122,27 @@ public class AuthService(
     }
 
     //TODO Double check this in production env
-    public async Task<LoginResponse> Refresh(TokenApiRequest request)
+    public async Task<LoginResponse> Refresh(TokenApiRequest tokenApiRequest)
     {
-        // var accessToken = request.Token;
-        // var refreshToken = request.RefreshToken;
-        //
-        // var principal = 
-        throw new NotImplementedException();
+        var accessToken = tokenApiRequest.Token;
+        var refreshToken = tokenApiRequest.RefreshToken;
+
+        var principal = tokenService.GetPrincipalFromExpiredToken(accessToken)
+                        ?? throw new BadRequestException("Access token không hợp lệ");
+
+        var userId = principal.Claims.First(c => c.Type == "userId").Value;
+
+        var user = await _userManager.FindByIdAsync(userId)
+            ?? throw new UserNotFoundException(userId);
+
+        if (!await tokenService.ValidateRefreshToken(user, refreshToken))
+        {
+            throw new BadRequestException("Refresh token không hợp lệ");
+        }
+
+        var newAccessToken = await tokenService.GenerateJWTToken(user);
+        var newRefreshToken = tokenService.GenerateRefreshToken();
+
+        return new LoginResponse(newAccessToken, newRefreshToken);
     }
 }
