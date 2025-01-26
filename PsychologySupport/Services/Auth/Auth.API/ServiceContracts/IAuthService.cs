@@ -5,11 +5,11 @@ namespace Auth.API.ServiceContracts;
 
 public interface IAuthService
 {
-    Task<bool> Register(RegisterRequest registerRequest);
+    Task<bool> RegisterAsync(RegisterRequest registerRequest);
     Task<bool> ConfirmEmailAsync(string token, string email);
-    Task<LoginResponse> Login(LoginRequest loginRequest);
+    Task<LoginResponse> LoginAsync(LoginRequest loginRequest);
     Task<bool> UnlockAccountAsync(string email);
     Task<bool> ForgotPasswordAsync(string email);
     Task<bool> ResetPasswordAsync(ResetPasswordRequest request);
-    Task<LoginResponse> Refresh(TokenApiRequest TokenApiRequest);
+    Task<LoginResponse> RefreshAsync(TokenApiRequest TokenApiRequest);
 }

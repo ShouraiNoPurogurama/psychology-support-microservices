@@ -16,9 +16,18 @@ services.AddIdentityServices(builder.Configuration);
 // Configure the HTTP request pipeline
 var app = builder.Build();
 
+app.UseStaticFiles();
+
 if (app.Environment.IsDevelopment())
 {
-    app.InitializeDatabaseAsync();
+    app.InitializeDatabaseAsync();    
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
+
+// Apply CORS policy
+app.UseCors();
+
+app.MapControllers();
 
 app.Run();

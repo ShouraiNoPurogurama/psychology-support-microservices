@@ -1,4 +1,5 @@
-﻿using Auth.API.Models;
+﻿using System.Reflection;
+using Auth.API.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,8 +15,10 @@ public class AuthDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<User> Users { get; set; }
     public DbSet<Role> Roles { get; set; }
     
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(modelBuilder);
+        Console.WriteLine($"***************** Executing assembly: {Assembly.GetExecutingAssembly().FullName} **************");
+        builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        base.OnModelCreating(builder);
     }
 }

@@ -3,8 +3,10 @@ using Auth.API.Dtos.Responses;
 using Auth.API.Exceptions;
 using Auth.API.Models;
 using Auth.API.ServiceContracts;
+using BuildingBlocks.Constants;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Utils;
+using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,25 +14,71 @@ namespace Auth.API.Services;
 
 public class AuthService(
     UserManager<User> _userManager,
-    IConfiguration config,
+    IConfiguration configuration,
     ITokenService tokenService) : IAuthService
 {
     private const int LockoutTimeInMinutes = 15;
 
-    public Task<bool> Register(RegisterRequest registerRequest)
+    public async Task<bool> RegisterAsync(RegisterRequest registerRequest)
     {
-        throw new NotImplementedException();
+        var existingUser = await _userManager.FindByEmailAsync(registerRequest.Email);
+        existingUser ??= await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == registerRequest.PhoneNumber);
+
+        if (existingUser is not null)
+        {
+            throw new InvalidDataException("Email hoặc số điện thoại đã tồn tại trong hệ thống");
+        }
+
+        var user = registerRequest.Adapt<User>();
+        user.Email = user.UserName = registerRequest.Email;
+        user.EmailConfirmed = false;
+        user.PhoneNumberConfirmed = false;
+
+        var result = await _userManager.CreateAsync(user, registerRequest.Password);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(ie => ie.Description));
+            throw new InvalidDataException($"Đăng ký thất bại: {errors}");
+        }
+
+        var roleResult = await _userManager.AddToRoleAsync(user, Roles.UserRole);
+        if (!roleResult.Succeeded)
+        {
+            throw new InvalidDataException("Gán vai trò thất bại");
+        }
+
+        // var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        // var confirmationUrlTemplate = configuration["Mail:ConfirmationUrl"];
+        // var callbackUrl = string.Format(confirmationUrlTemplate, token, registerRequest.Email);
+        // await _sendMail.SendConfirmationEmailAsync(registerRequest.Email, callbackUrl);
+
+        return true;
     }
 
-    public async Task<LoginResponse> Login(LoginRequest loginRequest)
+    public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
     {
-        var user = await _userManager.Users
+        User user;
+        if (!string.IsNullOrWhiteSpace(loginRequest.Email))
+        {
+            user = await _userManager.Users
                        .FirstOrDefaultAsync(u => u.Email == loginRequest.Email && !u.LockoutEnabled)
                    ?? throw new UserNotFoundException(loginRequest.Email);
 
-        if (!user.EmailConfirmed)
+            if (!user.EmailConfirmed)
+            {
+                throw new ForbiddenException("Tài khoản chưa được xác nhận. Vui lòng kiểm tra email để xác nhận tài khoản.");
+            }
+        }
+        else
         {
-            throw new ForbiddenException("Tài khoản chưa được xác nhận. Vui lòng kiểm tra email để xác nhận tài khoản.");
+            user = await _userManager.Users.FirstOrDefaultAsync(u =>
+                u.PhoneNumber == loginRequest.PhoneNumber&& !u.LockoutEnabled)
+                   ?? throw new UserNotFoundException(loginRequest.PhoneNumber);
+            
+            if (!user.PhoneNumberConfirmed)
+            {
+                throw new ForbiddenException("Tài khoản chưa được xác nhận. Vui lòng kiểm tra tin nhắn SMS để xác nhận tài khoản.");
+            }
         }
 
         var currentTime = CoreUtils.SystemTimeNow;
@@ -104,7 +152,7 @@ public class AuthService(
                    ?? throw new UserNotFoundException(email);
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-        var resetUrlTemplate = config["Mail:PasswordResetUrl"]!;
+        var resetUrlTemplate = configuration["Mail:PasswordResetUrl"]!;
         var callbackUrl = string.Format(resetUrlTemplate, token, email);
 
         // await _sendMail.SendForgotPasswordEmailAsync(email, callbackUrl);
@@ -116,13 +164,13 @@ public class AuthService(
     {
         var user = await _userManager.FindByEmailAsync(request.Email)
                    ?? throw new UserNotFoundException(request.Email);
-        
+
         var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
         return result.Succeeded;
     }
 
     //TODO Double check this in production env
-    public async Task<LoginResponse> Refresh(TokenApiRequest tokenApiRequest)
+    public async Task<LoginResponse> RefreshAsync(TokenApiRequest tokenApiRequest)
     {
         var accessToken = tokenApiRequest.Token;
         var refreshToken = tokenApiRequest.RefreshToken;
@@ -133,7 +181,7 @@ public class AuthService(
         var userId = principal.Claims.First(c => c.Type == "userId").Value;
 
         var user = await _userManager.FindByIdAsync(userId)
-            ?? throw new UserNotFoundException(userId);
+                   ?? throw new UserNotFoundException(userId);
 
         if (!await tokenService.ValidateRefreshToken(user, refreshToken))
         {

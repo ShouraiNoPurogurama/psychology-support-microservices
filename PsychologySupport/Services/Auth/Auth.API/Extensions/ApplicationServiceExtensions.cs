@@ -1,4 +1,6 @@
 ﻿using Auth.API.Data;
+using Auth.API.ServiceContracts;
+using Auth.API.Services;
 using BuildingBlocks.Behaviors;
 using Carter;
 using Microsoft.EntityFrameworkCore;
@@ -64,10 +66,18 @@ public static class ApplicationServiceExtensions
         });
 
         AddDatabase(services, config);
-
+        
+        AddServiceDependencies(services);
+        
         return services;
     }
 
+    private static void AddServiceDependencies(IServiceCollection services)
+    {
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ITokenService, TokenService>();
+    }
+    
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
     {
         var connectionString = config.GetConnectionString("AuthDb");
@@ -78,4 +88,5 @@ public static class ApplicationServiceExtensions
             opt.UseNpgsql(connectionString);
         });
     }
+    
 }

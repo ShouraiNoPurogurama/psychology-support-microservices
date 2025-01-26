@@ -17,7 +17,7 @@ public class TokenService(UserManager<User> userManager, IConfiguration configur
 
     public async Task<string> GenerateJWTToken(User user)
     {
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jtw:Key"]!));
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha512);
         var roles = await userManager.GetRolesAsync(user);
 

@@ -1,3 +1,5 @@
-﻿namespace Auth.API.Dtos.Requests;
+﻿using Auth.API.Enums;
 
-public record RegisterRequest(string Name, string Email, string PhoneNumber, string Password, string ConfirmPassword);
+namespace Auth.API.Dtos.Requests;
+
+public record RegisterRequest(string FullName, UserGender Gender, string Email, string PhoneNumber, string Password, string ConfirmPassword);
