@@ -4,3 +4,15 @@
     build:
       context: .
       dockerfile: Services/Auth/Auth.API/Dockerfile
+
+  profile.api:
+    image: profile.api
+    build:
+      context: .
+      dockerfile: Services/Profile.API/Profile.API/Dockerfile
+
+  profile.api-1:
+    image: profile.api-1
+    build:
+      context: .
+      dockerfile: Services/Profile/Profile.API/Dockerfile
