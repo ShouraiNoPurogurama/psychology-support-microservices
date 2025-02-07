@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BuildingBlocks.Behaviors;
 
-public class LoggingBehavior<TRequest, TResponse>(ILogger logger)
+public class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
