@@ -33,6 +33,5 @@ if (app.Environment.IsDevelopment())
 
 // Apply CORS policy
 app.UseCors();
-app.UseHttpsRedirection();
 
 app.Run();
