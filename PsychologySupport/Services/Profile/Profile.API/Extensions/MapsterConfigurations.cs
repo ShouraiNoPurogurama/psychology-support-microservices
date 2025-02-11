@@ -13,5 +13,7 @@ public static class MapsterConfiguration
         
         TypeAdapterConfig<DoctorProfileDto, DoctorProfile>.NewConfig()
             .IgnoreNullValues(true);
+        TypeAdapterConfig<PatientProfileDto, PatientProfile>.NewConfig()
+           .IgnoreNullValues(true);
     }
 }

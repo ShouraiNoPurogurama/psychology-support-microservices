@@ -12,7 +12,6 @@ public class ProfileDbContext : DbContext
     public DbSet<PatientProfile> PatientProfiles => Set<PatientProfile>();
     public DbSet<DoctorProfile> DoctorProfiles => Set<DoctorProfile>();
 
-
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.HasDefaultSchema("public");
