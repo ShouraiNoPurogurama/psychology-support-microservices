@@ -1,4 +1,4 @@
-﻿namespace Pricing.API.Modules
+﻿namespace Pricing.API.Models
 {
     public enum AcademicLevel
     {

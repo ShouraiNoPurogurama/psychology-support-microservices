@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using Pricing.API.Data;
-using Pricing.API.Modules;
+using Pricing.API.Models;
 
 namespace Pricing.API.Features.AcademicLevelSalaryRatios.CreateAcademicLevelSalaryRatio;
 

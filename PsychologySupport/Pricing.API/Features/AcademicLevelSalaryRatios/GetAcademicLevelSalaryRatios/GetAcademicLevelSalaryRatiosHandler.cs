@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.CQRS;
 using Microsoft.EntityFrameworkCore;
 using Pricing.API.Data;
-using Pricing.API.Modules;
+using Pricing.API.Models;
 
 namespace Pricing.API.Features.AcademicLevelSalaryRatios.GetAcademicLevelSalaryRatios;
 

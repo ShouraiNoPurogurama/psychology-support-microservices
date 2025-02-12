@@ -2,7 +2,7 @@
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Pricing.API.Modules;
+using Pricing.API.Models;
 
 namespace Pricing.API.Features.ExperiencePriceRanges.GetExperiencePriceRanges;
 

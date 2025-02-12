@@ -21,7 +21,6 @@ namespace Subscription.API.Models
 
         public DateTime EndDate { get; set; }
 
-        [Required]
         public SubscriptionStatus Status { get; set; }
 
         public DateTime CreatedAt { get; set; }

@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Pricing.API.Modules;
+using Pricing.API.Models;
 
 namespace Pricing.API.Data
 {

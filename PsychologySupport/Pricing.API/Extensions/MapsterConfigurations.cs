@@ -1,6 +1,6 @@
 ﻿using Mapster;
 using Pricing.API.Dtos;
-using Pricing.API.Modules;
+using Pricing.API.Models;
 using System.Reflection;
 
 namespace Pricing.API.Extensions

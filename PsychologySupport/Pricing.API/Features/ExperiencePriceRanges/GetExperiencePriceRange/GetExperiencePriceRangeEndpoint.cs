@@ -1,7 +1,7 @@
 ﻿using Carter;
 using Mapster;
 using MediatR;
-using Pricing.API.Modules;
+using Pricing.API.Models;
 
 namespace Pricing.API.Features.ExperiencePriceRanges.GetExperiencePriceRange;
 

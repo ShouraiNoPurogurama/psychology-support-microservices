@@ -2,7 +2,7 @@
 using FluentValidation;
 using Pricing.API.Data;
 using Pricing.API.Exceptions;
-using Pricing.API.Modules;
+using Pricing.API.Models;
 
 namespace Pricing.API.Features.AcademicLevelSalaryRatios.GetAcademicLevelSalaryRatio
 {
