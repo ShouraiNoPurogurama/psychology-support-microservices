@@ -25,6 +25,7 @@ public class UpdateUserSubscriptionHandler : ICommandHandler<UpdateUserSubscript
                                        ?? throw new SubscriptionNotFoundException("User Subscription", request.UserSubscription.Id);
 
         existingSubscription = request.UserSubscription.Adapt(existingSubscription);
+        existingSubscription.LastModified = DateTime.UtcNow;
 
         _context.Update(existingSubscription);
 

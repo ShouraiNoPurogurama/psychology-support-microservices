@@ -25,6 +25,7 @@ public class UpdateExperiencePriceRangeHandler : ICommandHandler<UpdateExperienc
                             ?? throw new PricingNotFoundException("Experience Price Range", request.ExperiencePriceRange.Id);
 
         existingRange = request.ExperiencePriceRange.Adapt(existingRange);
+        existingRange.LastModified = DateTime.UtcNow;
 
         _context.Update(existingRange);
 

@@ -1,9 +1,9 @@
-﻿namespace Profile.API.Models;
+﻿using BuildingBlocks.DDD;
 
-public class DoctorProfile
+namespace Profile.API.Models;
+
+public class DoctorProfile : Entity<Guid>
 {
-    public Guid Id { get; set; }
-
     public Guid UserId { get; set; }
 
     public string Specialty { get; set; } = default!;
@@ -20,7 +20,4 @@ public class DoctorProfile
 
     public int TotalReviews { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
 }

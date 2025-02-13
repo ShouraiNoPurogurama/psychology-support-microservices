@@ -25,7 +25,7 @@ namespace Profile.API.Features.PatientProfiles.UpdatePatientProfile
                                   ?? throw new ProfileNotFoundException("Patient Profile", request.PatientProfile.Id);
 
             existingProfile = request.PatientProfile.Adapt(existingProfile);
-            existingProfile.UpdatedAt = DateTime.UtcNow;
+            existingProfile.LastModified = DateTime.UtcNow;
 
             _context.Update(existingProfile);
 

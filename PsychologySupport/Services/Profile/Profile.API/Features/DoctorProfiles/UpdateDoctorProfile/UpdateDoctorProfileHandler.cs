@@ -26,6 +26,7 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
                               ?? throw new ProfileNotFoundException("Doctor Profile", request.DoctorProfile.Id);
 
         existingProfile = request.DoctorProfile.Adapt(existingProfile);
+        existingProfile.LastModified = DateTime.UtcNow;
 
         _context.Update(existingProfile);
 

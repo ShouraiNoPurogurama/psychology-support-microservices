@@ -1,19 +1,15 @@
-﻿using Newtonsoft.Json;
+﻿using BuildingBlocks.DDD;
+using Newtonsoft.Json;
 
 namespace Feedback.API.Models
 { 
-    public class AIRecommendation
+    public class AIRecommendation : Entity<Guid>
     {
-        public Guid Id { get; set; }
-
         public Guid TestResultId { get; set; }
 
         public Guid ScheduleId { get; set; }
 
         public string Recommendation { get; set; } 
-        public DateTimeOffset CreatedAt { get; set; }
-
-        public DateTimeOffset UpdatedAt { get; set; } 
 
         // Convert JSON to Object
         public RecommendationDetails? GetRecommendation()

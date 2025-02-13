@@ -26,6 +26,7 @@ public class UpdateAcademicLevelSalaryRatioHandler : ICommandHandler<UpdateAcade
                              ?? throw new PricingNotFoundException("Academic Level Salary Ratio", request.AcademicLevelSalaryRatio.Id);
 
         existingRatio = request.AcademicLevelSalaryRatio.Adapt(existingRatio);
+        existingRatio.LastModified = DateTime.UtcNow;
 
         _context.Update(existingRatio);
 

@@ -12,7 +12,7 @@ using Pricing.API.Data;
 namespace Pricing.API.Data.Migrations
 {
     [DbContext(typeof(PricingDbContext))]
-    [Migration("20250211154621_InitialCreate")]
+    [Migration("20250213063839_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -26,7 +26,7 @@ namespace Pricing.API.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Pricing.API.Modules.AcademicLevelSalaryRatio", b =>
+            modelBuilder.Entity("Pricing.API.Models.AcademicLevelSalaryRatio", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -35,35 +35,42 @@ namespace Pricing.API.Data.Migrations
                     b.Property<int>("AcademicLevel")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<decimal>("FeeMultiplier")
                         .HasColumnType("numeric");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTime?>("LastModified")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.ToTable("AcademicLevelSalaryRatios", "public");
                 });
 
-            modelBuilder.Entity("Pricing.API.Modules.ExperiencePriceRange", b =>
+            modelBuilder.Entity("Pricing.API.Models.ExperiencePriceRange", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
-                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
                         .HasColumnType("text");
 
                     b.Property<int>("MaxYearsOfExperience")
@@ -77,9 +84,6 @@ namespace Pricing.API.Data.Migrations
 
                     b.Property<decimal>("PricePerSession")
                         .HasColumnType("numeric");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

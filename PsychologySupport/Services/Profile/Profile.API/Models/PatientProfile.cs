@@ -1,9 +1,9 @@
-﻿namespace Profile.API.Models;
+﻿using BuildingBlocks.DDD;
 
-public class PatientProfile
+namespace Profile.API.Models;
+
+public class PatientProfile : Entity<Guid>
 {
-    public Guid Id { get; set; }
-
     public Guid UserId { get; set; }
 
     public string? Allergies { get; set; }
@@ -16,7 +16,4 @@ public class PatientProfile
 
     public string? EmergencyContact { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
 }

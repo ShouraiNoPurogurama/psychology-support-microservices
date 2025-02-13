@@ -1,4 +1,6 @@
-﻿namespace Pricing.API.Models
+﻿using BuildingBlocks.DDD;
+
+namespace Pricing.API.Models
 {
     public enum AcademicLevel
     {
@@ -7,17 +9,11 @@
         Postdoctoral
     }
 
-    public class AcademicLevelSalaryRatio
+    public class AcademicLevelSalaryRatio : Entity<Guid>
     {
-        public Guid Id { get; set; } 
-
         public AcademicLevel AcademicLevel { get; set; }
 
         public decimal FeeMultiplier { get; set; }
 
-        public DateTime CreatedAt { get; set; } 
-        public DateTime UpdatedAt { get; set; }
-
-        public string CreatedBy { get; set; }
     }
 }

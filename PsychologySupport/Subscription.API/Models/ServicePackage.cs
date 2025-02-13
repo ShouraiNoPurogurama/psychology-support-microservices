@@ -1,12 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using BuildingBlocks.DDD;
 
 namespace Subscription.API.Models
 {
-        public class ServicePackage
+        public class ServicePackage : Entity<Guid>
         {
-            public Guid Id { get; set; }
-
             public string Name { get; set; } 
 
             public string Description { get; set; } 
@@ -14,12 +11,6 @@ namespace Subscription.API.Models
             public decimal Price { get; set; }
 
             public int DurationDays { get; set; }
-
-            public DateTime CreatedAt { get; set; }
-
-            public DateTime UpdatedAt { get; set; }
-
-            public string CreatedBy { get; set; } 
         }
  }
 

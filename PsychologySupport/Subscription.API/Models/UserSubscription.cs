@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using BuildingBlocks.DDD;
 
 namespace Subscription.API.Models
 {
@@ -9,10 +8,8 @@ namespace Subscription.API.Models
         Expired,
         Cancelled
     }
-    public class UserSubscription
+    public class UserSubscription : Entity<Guid>
     {
-        public Guid Id { get; set; }
-
         public Guid UserId { get; set; }
 
         public Guid ServicePackageId { get; set; }
@@ -22,11 +19,5 @@ namespace Subscription.API.Models
         public DateTime EndDate { get; set; }
 
         public SubscriptionStatus Status { get; set; }
-
-        public DateTime CreatedAt { get; set; }
-
-        public DateTime UpdatedAt { get; set; }
-
-        public string CreatedBy { get; set; } = default!;
     }
 }

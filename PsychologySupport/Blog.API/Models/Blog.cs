@@ -2,10 +2,8 @@
 
 namespace Blog.API.Models
 {
-    public class Blog 
+    public class Blog : Entity<Guid>
     {
-        public Guid Id { get; set; }
-
         public Guid AuthorId { get; set; } // ManagerId
 
         public string Title { get; set; }
@@ -13,11 +11,5 @@ namespace Blog.API.Models
         public string Content { get; set; }
 
         public string VideoLink { get; set; }
-
-        public DateTime CreatedAt { get; set; }
-
-        public DateTime UpdatedAt { get; set; }
-
-        public string CreatedBy { get; set; }
     }
 }
