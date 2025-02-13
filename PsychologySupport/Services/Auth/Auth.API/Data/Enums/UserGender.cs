@@ -1,4 +1,4 @@
-﻿namespace Auth.API.Enums;
+﻿namespace Auth.API.Data.Enums;
 
 public enum UserGender
 {

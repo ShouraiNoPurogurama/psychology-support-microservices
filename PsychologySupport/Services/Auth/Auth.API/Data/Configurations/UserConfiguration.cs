@@ -1,4 +1,4 @@
-﻿using Auth.API.Enums;
+﻿using Auth.API.Data.Enums;
 using Auth.API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
