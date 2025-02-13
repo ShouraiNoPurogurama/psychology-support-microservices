@@ -1,10 +1,12 @@
-﻿namespace Blog.API.Models
+﻿using BuildingBlocks.DDD;
+
+namespace Blog.API.Models
 {
-    public class Blog
+    public class Blog 
     {
         public Guid Id { get; set; }
 
-        public Guid AuthorId { get; set; } // UserId
+        public Guid AuthorId { get; set; } // ManagerId
 
         public string Title { get; set; }
 
