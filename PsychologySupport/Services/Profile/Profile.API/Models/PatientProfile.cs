@@ -1,22 +1,29 @@
-﻿namespace Profile.API.Models;
+﻿using System.Text.Json.Serialization;
+using BuildingBlocks.DDD;
 
-public class PatientProfile
+namespace Profile.API.Models;
+
+public class PatientProfile : Entity<Guid>
 {
-    public Guid Id { get; set; }
-
     public Guid UserId { get; set; }
-
+    
+    public string? Gender { get; set; }
+    
     public string? Allergies { get; set; }
-
-    public string? MedicalHistory { get; set; } // Can be stored as JSON
-
+    
+    public PersonalityTrait PersonalityTraits { get; set; }
+    
+    public Guid MedicalHistoryId { get; set; }
+    
     public string? Address { get; set; }
+    
+    public string? PhoneNumber { get; set; }
+    
+    public string? Email { get; set; }
+    
+    [JsonIgnore]
+    public virtual MedicalHistory MedicalHistory { get; set; }
+    
+    public ICollection<MedicalRecord> MedicalRecords { get; set; } = new List<MedicalRecord>();
 
-    public string PhoneNumber { get; set; } = default!;
-
-    public string? EmergencyContact { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
 }

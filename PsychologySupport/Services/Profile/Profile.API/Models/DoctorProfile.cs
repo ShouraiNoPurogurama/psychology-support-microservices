@@ -1,26 +1,30 @@
-﻿namespace Profile.API.Models;
+﻿using BuildingBlocks.DDD;
 
-public class DoctorProfile
+namespace Profile.API.Models;
+
+public class DoctorProfile : Entity<Guid>
 {
-    public Guid Id { get; set; }
-
     public Guid UserId { get; set; }
+    
+    public string? Gender { get; set; }
+    
+    public string? Address { get; set; }
+    
+    public string? PhoneNumber { get; set; }
+    
+    public string? Email { get; set; }
 
-    public string Specialty { get; set; } = default!;
-
-    public string Qualifications { get; set; } = default!;
-
+    public string Specialty { get; set; }
+    
+    public string Qualifications { get; set; }
+    
     public int YearsOfExperience { get; set; }
-
-    public string Bio { get; set; } = default!;
-
-    public string? ProfilePicture { get; set; }
-
+    
+    public string Bio { get; set; }
+    
     public float Rating { get; set; }
-
+    
     public int TotalReviews { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
+    
+    public ICollection<MedicalRecord> MedicalRecords { get; set; }
 }

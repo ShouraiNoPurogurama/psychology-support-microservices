@@ -11,7 +11,5 @@ public static class MapsterConfiguration
     {
         TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
         
-        TypeAdapterConfig<DoctorProfileDto, DoctorProfile>.NewConfig()
-            .IgnoreNullValues(true);
     }
 }
