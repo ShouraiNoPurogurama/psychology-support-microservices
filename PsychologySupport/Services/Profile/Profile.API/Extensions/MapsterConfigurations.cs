@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using Mapster;
 using Profile.API.Dtos;
-using Profile.API.Models;
 
 namespace Profile.API.Extensions;
 

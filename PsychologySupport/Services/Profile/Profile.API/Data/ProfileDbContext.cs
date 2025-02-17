@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Profile.API.Models;
+using Profile.API.DoctorProfiles.Models;
+using Profile.API.MentalDisorders.Models;
+using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.Data;
 
@@ -22,11 +24,36 @@ public class ProfileDbContext : DbContext
     {
         builder.HasDefaultSchema("public");
 
-        builder.Entity<PatientProfile>()
-            .HasOne(p => p.MedicalHistory)
-            .WithOne(m => m.PatientProfile)
-            .HasForeignKey<MedicalHistory>(m => m.PatientId);
+        builder.Entity<PatientProfile>(typeBuilder =>
+        {
+            typeBuilder.HasOne(p => p.MedicalHistory)
+                .WithOne(m => m.PatientProfile)
+                .HasForeignKey<MedicalHistory>(m => m.PatientId);
+
+            typeBuilder.ComplexProperty(p => p.ContactInfo, contactInfoBuilder =>
+            {
+                contactInfoBuilder.Property(c => c.Address)
+                    .HasColumnName("Address");
+                contactInfoBuilder.Property(c => c.Email)
+                    .HasColumnName("Email");
+                contactInfoBuilder.Property(c => c.PhoneNumber)
+                    .HasColumnName("PhoneNumber");
+            });
+        });
+            
         
+        builder.Entity<DoctorProfile>(typeBuilder =>
+        {
+            typeBuilder.ComplexProperty(d => d.ContactInfo, contactInfoBuilder =>
+            {
+                contactInfoBuilder.Property(c => c.Address)
+                    .HasColumnName("Address");
+                contactInfoBuilder.Property(c => c.Email)
+                    .HasColumnName("Email");
+                contactInfoBuilder.Property(c => c.PhoneNumber)
+                    .HasColumnName("PhoneNumber");
+            });
+        });
         base.OnModelCreating(builder);
     }
 }

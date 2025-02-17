@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Profile.API.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class InitalCreate : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,15 +22,15 @@ namespace Profile.API.Data.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Gender = table.Column<string>(type: "text", nullable: true),
-                    Address = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
-                    Email = table.Column<string>(type: "text", nullable: true),
                     Specialty = table.Column<string>(type: "text", nullable: false),
                     Qualifications = table.Column<string>(type: "text", nullable: false),
                     YearsOfExperience = table.Column<int>(type: "integer", nullable: false),
                     Bio = table.Column<string>(type: "text", nullable: false),
                     Rating = table.Column<float>(type: "real", nullable: false),
                     TotalReviews = table.Column<int>(type: "integer", nullable: false),
+                    Address = table.Column<string>(type: "text", nullable: true),
+                    Email = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
                     LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -48,7 +48,11 @@ namespace Profile.API.Data.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false)
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CreatedBy = table.Column<string>(type: "text", nullable: true),
+                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LastModifiedBy = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -65,10 +69,10 @@ namespace Profile.API.Data.Migrations
                     Gender = table.Column<string>(type: "text", nullable: true),
                     Allergies = table.Column<string>(type: "text", nullable: true),
                     PersonalityTraits = table.Column<int>(type: "integer", nullable: false),
-                    MedicalHistoryId = table.Column<Guid>(type: "uuid", nullable: false),
+                    MedicalHistoryId = table.Column<Guid>(type: "uuid", nullable: true),
                     Address = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
                     Email = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
                     LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -142,42 +146,6 @@ namespace Profile.API.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MedicalRecords",
-                schema: "public",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    PatientId = table.Column<Guid>(type: "uuid", nullable: false),
-                    DoctorId = table.Column<Guid>(type: "uuid", nullable: false),
-                    MedicalHistoryId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Notes = table.Column<string>(type: "text", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    PatientProfileId = table.Column<Guid>(type: "uuid", nullable: false),
-                    DoctorProfileId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    CreatedBy = table.Column<string>(type: "text", nullable: true),
-                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    LastModifiedBy = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MedicalRecords", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_MedicalRecords_DoctorProfiles_DoctorProfileId",
-                        column: x => x.DoctorProfileId,
-                        principalSchema: "public",
-                        principalTable: "DoctorProfiles",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_MedicalRecords_PatientProfiles_PatientProfileId",
-                        column: x => x.PatientProfileId,
-                        principalSchema: "public",
-                        principalTable: "PatientProfiles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "MedicalHistoryPhysicalSymptom",
                 schema: "public",
                 columns: table => new
@@ -227,6 +195,47 @@ namespace Profile.API.Data.Migrations
                         column: x => x.SpecificMentalDisordersId,
                         principalSchema: "public",
                         principalTable: "SpecificMentalDisorders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MedicalRecords",
+                schema: "public",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    PatientProfileId = table.Column<Guid>(type: "uuid", nullable: false),
+                    DoctorProfileId = table.Column<Guid>(type: "uuid", nullable: false),
+                    MedicalHistoryId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Notes = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CreatedBy = table.Column<string>(type: "text", nullable: true),
+                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LastModifiedBy = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MedicalRecords", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MedicalRecords_DoctorProfiles_DoctorProfileId",
+                        column: x => x.DoctorProfileId,
+                        principalSchema: "public",
+                        principalTable: "DoctorProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MedicalRecords_MedicalHistories_MedicalHistoryId",
+                        column: x => x.MedicalHistoryId,
+                        principalSchema: "public",
+                        principalTable: "MedicalHistories",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_MedicalRecords_PatientProfiles_PatientProfileId",
+                        column: x => x.PatientProfileId,
+                        principalSchema: "public",
+                        principalTable: "PatientProfiles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -284,6 +293,12 @@ namespace Profile.API.Data.Migrations
                 column: "DoctorProfileId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_MedicalRecords_MedicalHistoryId",
+                schema: "public",
+                table: "MedicalRecords",
+                column: "MedicalHistoryId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MedicalRecords_PatientProfileId",
                 schema: "public",
                 table: "MedicalRecords",
@@ -322,10 +337,6 @@ namespace Profile.API.Data.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "MedicalHistories",
-                schema: "public");
-
-            migrationBuilder.DropTable(
                 name: "MedicalRecords",
                 schema: "public");
 
@@ -338,11 +349,15 @@ namespace Profile.API.Data.Migrations
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "PatientProfiles",
+                name: "MedicalHistories",
                 schema: "public");
 
             migrationBuilder.DropTable(
                 name: "MentalDisorders",
+                schema: "public");
+
+            migrationBuilder.DropTable(
+                name: "PatientProfiles",
                 schema: "public");
         }
     }

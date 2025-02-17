@@ -1,4 +1,4 @@
-﻿namespace Profile.API.Models;
+﻿namespace Profile.API.PatientProfiles.ValueObjects;
 
 public enum PersonalityTrait
 {

@@ -1,18 +1,15 @@
 ﻿using BuildingBlocks.DDD;
+using Profile.API.Common.ValueObjects;
+using Profile.API.PatientProfiles.Models;
 
-namespace Profile.API.Models;
+namespace Profile.API.DoctorProfiles.Models;
 
-public class DoctorProfile : Entity<Guid>
+public class DoctorProfile : Aggregate<Guid>
 {
     public Guid UserId { get; set; }
     
     public string? Gender { get; set; }
-    
-    public string? Address { get; set; }
-    
-    public string? PhoneNumber { get; set; }
-    
-    public string? Email { get; set; }
+    public ContactInfo ContactInfo { get; set; } = default!;
 
     public string Specialty { get; set; }
     
@@ -25,6 +22,5 @@ public class DoctorProfile : Entity<Guid>
     public float Rating { get; set; }
     
     public int TotalReviews { get; set; }
-    
     public ICollection<MedicalRecord> MedicalRecords { get; set; }
 }
