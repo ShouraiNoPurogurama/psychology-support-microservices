@@ -1,4 +1,4 @@
-﻿using Auth.API.Enums;
+﻿using Auth.API.Data.Enums;
 using Microsoft.AspNetCore.Identity;
 
 namespace Auth.API.Models;

@@ -1,4 +1,4 @@
-﻿using Auth.API.Enums;
+﻿using Auth.API.Data.Enums;
 
 namespace Auth.API.Dtos.Requests;
 

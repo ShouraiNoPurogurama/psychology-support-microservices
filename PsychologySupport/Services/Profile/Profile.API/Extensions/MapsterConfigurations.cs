@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using Mapster;
 using Profile.API.Dtos;
-using Profile.API.Models;
 
 namespace Profile.API.Extensions;
 
@@ -13,7 +12,5 @@ public static class MapsterConfiguration
         
         TypeAdapterConfig<DoctorProfileDto, DoctorProfile>.NewConfig()
             .IgnoreNullValues(true);
-        TypeAdapterConfig<PatientProfileDto, PatientProfile>.NewConfig()
-           .IgnoreNullValues(true);
     }
 }

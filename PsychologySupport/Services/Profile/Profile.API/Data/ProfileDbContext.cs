@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Profile.API.Models;
+using Profile.API.DoctorProfiles.Models;
+using Profile.API.MentalDisorders.Models;
+using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.Data;
 
@@ -11,11 +13,46 @@ public class ProfileDbContext : DbContext
 
     public DbSet<PatientProfile> PatientProfiles => Set<PatientProfile>();
     public DbSet<DoctorProfile> DoctorProfiles => Set<DoctorProfile>();
+    public DbSet<MedicalHistory> MedicalHistories => Set<MedicalHistory>();
+    public DbSet<MedicalRecord> MedicalRecords => Set<MedicalRecord>();
+    public DbSet<MentalDisorder> MentalDisorders => Set<MentalDisorder>();
+    public DbSet<SpecificMentalDisorder> SpecificMentalDisorders => Set<SpecificMentalDisorder>();
+    public DbSet<PhysicalSymptom> PhysicalSymptoms => Set<PhysicalSymptom>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.HasDefaultSchema("public");
 
+        builder.Entity<PatientProfile>(typeBuilder =>
+        {
+            typeBuilder.HasOne(p => p.MedicalHistory)
+                .WithOne(m => m.PatientProfile)
+                .HasForeignKey<MedicalHistory>(m => m.PatientId);
+
+            typeBuilder.ComplexProperty(p => p.ContactInfo, contactInfoBuilder =>
+            {
+                contactInfoBuilder.Property(c => c.Address)
+                    .HasColumnName("Address");
+                contactInfoBuilder.Property(c => c.Email)
+                    .HasColumnName("Email");
+                contactInfoBuilder.Property(c => c.PhoneNumber)
+                    .HasColumnName("PhoneNumber");
+            });
+        });
+            
+        
+        builder.Entity<DoctorProfile>(typeBuilder =>
+        {
+            typeBuilder.ComplexProperty(d => d.ContactInfo, contactInfoBuilder =>
+            {
+                contactInfoBuilder.Property(c => c.Address)
+                    .HasColumnName("Address");
+                contactInfoBuilder.Property(c => c.Email)
+                    .HasColumnName("Email");
+                contactInfoBuilder.Property(c => c.PhoneNumber)
+                    .HasColumnName("PhoneNumber");
+            });
+        });
         base.OnModelCreating(builder);
     }
 }

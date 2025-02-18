@@ -1,0 +1,36 @@
+﻿using BuildingBlocks.CQRS;
+using Microsoft.EntityFrameworkCore;
+using Profile.API.Data;
+using Profile.API.Exceptions;
+using Profile.API.PatientProfiles.Models;
+
+namespace Profile.API.DoctorProfiles.Features;
+
+public record AddMedicalRecordCommand(MedicalRecord MedicalRecord) 
+    : ICommand<AddMedicalRecordResult>;
+
+public record AddMedicalRecordResult(bool IsSuccess);
+
+public class AddMedicalRecordHandler : ICommandHandler<AddMedicalRecordCommand, AddMedicalRecordResult>
+{
+    private readonly ProfileDbContext _context;
+
+    public AddMedicalRecordHandler(ProfileDbContext context)
+    {
+        _context = context;
+    }
+    
+    public async Task<AddMedicalRecordResult> Handle(AddMedicalRecordCommand request, CancellationToken cancellationToken)
+    {
+        var doctorProfile = await _context.DoctorProfiles.AsNoTracking()
+                                .Include(d => d.MedicalRecords)
+                                .FirstOrDefaultAsync(d => d.Id.Equals(request.MedicalRecord.DoctorProfileId), cancellationToken)
+            ?? throw new ProfileNotFoundException("Doctor Profile", request.MedicalRecord.DoctorProfileId);
+        
+        doctorProfile.MedicalRecords.Add(request.MedicalRecord);
+
+        var result = await _context.SaveChangesAsync(cancellationToken);
+
+        return new AddMedicalRecordResult(result > 0);
+    }
+}

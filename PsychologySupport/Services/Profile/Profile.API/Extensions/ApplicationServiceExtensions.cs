@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Behaviors;
+using BuildingBlocks.Data.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
@@ -46,7 +47,8 @@ public static class ApplicationServiceExtensions
 
     private static void AddServiceDependencies(IServiceCollection services)
     {
-
+        services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+        services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
