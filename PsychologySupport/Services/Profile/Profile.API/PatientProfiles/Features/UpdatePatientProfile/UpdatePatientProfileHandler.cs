@@ -1,12 +1,11 @@
 ﻿using BuildingBlocks.CQRS;
 using Mapster;
 using Profile.API.Data;
-using Profile.API.Dtos;
 using Profile.API.Exceptions;
 
-namespace Profile.API.Features.PatientProfiles.UpdatePatientProfile
+namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile
 {
-    public record UpdatePatientProfileCommand(PatientProfileDto PatientProfile) : ICommand<UpdatePatientProfileResult>;
+   /* public record UpdatePatientProfileCommand(PatientProfileDto PatientProfile) : ICommand<UpdatePatientProfileResult>;
 
     public record UpdatePatientProfileResult(bool IsSuccess);
 
@@ -33,5 +32,5 @@ namespace Profile.API.Features.PatientProfiles.UpdatePatientProfile
 
             return new UpdatePatientProfileResult(result);
         }
-    }
+    }*/
 }

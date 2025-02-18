@@ -2,12 +2,13 @@
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Profile.API.Models;
+using Profile.API.PatientProfiles.Dtos;
 
-namespace Profile.API.Features.PatientProfiles.CreatePatientProfile
+namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
 {
-    public record CreatePatientProfileRequest(PatientProfile PatientProfile);
+    public record CreatePatientProfileRequest(PatientProfileCreate PatientProfileDto);
     public record CreatePatientProfileResponse(Guid Id);
+
     public class CreatePatientProfileEndpoint : ICarterModule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
@@ -20,7 +21,7 @@ namespace Profile.API.Features.PatientProfiles.CreatePatientProfile
 
                 var response = result.Adapt<CreatePatientProfileResponse>();
 
-                return Results.Created($"/patient-profiles/{response.Id}",response);
+                return Results.Created($"/patient-profiles/{response.Id}", response);
             })
             .WithName("CreatePatientProfile")
             .Produces<CreatePatientProfileResponse>()

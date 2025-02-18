@@ -25,6 +25,8 @@ public class PatientProfile : Aggregate<Guid>
     public virtual MedicalHistory? MedicalHistory { get; set; }
     
     private readonly List<MedicalRecord> _medicalRecords = [];
+
+
     public IReadOnlyList<MedicalRecord> MedicalRecords => _medicalRecords.AsReadOnly();
 
     public MedicalRecord AddMedicalRecord(Guid patientId, Guid doctorId, Guid? medicalHistoryId,

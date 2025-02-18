@@ -2,11 +2,11 @@
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Profile.API.Dtos;
 
-namespace Profile.API.Features.PatientProfiles.UpdatePatientProfile
+
+namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile
 {
-    public record UpdatePatientProfileRequest(PatientProfileDto PatientProfile);
+   /* public record UpdatePatientProfileRequest(PatientProfileDto PatientProfile);
     public record UpdatePatientProfileResponse(bool IsSuccess);
 
     public class UpdatePatientProfileEndpoint : ICarterModule
@@ -27,6 +27,6 @@ namespace Profile.API.Features.PatientProfiles.UpdatePatientProfile
                 .WithDescription("Update Patient Profile")
                 .WithSummary("Update Patient Profile");
         }
-    }
+    }*/
 }
 

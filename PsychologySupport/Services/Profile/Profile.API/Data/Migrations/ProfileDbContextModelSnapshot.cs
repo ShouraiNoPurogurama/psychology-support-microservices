@@ -79,25 +79,12 @@ namespace Profile.API.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-<<<<<<< HEAD
-                    b.Property<DateTime?>("CreatedAt")
-=======
                     b.Property<DateTimeOffset?>("CreatedAt")
->>>>>>> be975e2d5bbc75845f86a1da729c3a197003352b
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-<<<<<<< HEAD
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProfilePicture")
-=======
                     b.Property<string>("Gender")
                         .HasColumnType("text");
 
@@ -105,7 +92,6 @@ namespace Profile.API.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("LastModifiedBy")
->>>>>>> be975e2d5bbc75845f86a1da729c3a197003352b
                         .HasColumnType("text");
 
                     b.Property<string>("Qualifications")
@@ -295,30 +281,6 @@ namespace Profile.API.Data.Migrations
                     b.Property<string>("Allergies")
                         .HasColumnType("text");
 
-<<<<<<< HEAD
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("EmergencyContact")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("MedicalHistory")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-=======
                     b.Property<DateTimeOffset?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -340,7 +302,6 @@ namespace Profile.API.Data.Migrations
                     b.Property<int>("PersonalityTraits")
                         .HasColumnType("integer");
 
->>>>>>> be975e2d5bbc75845f86a1da729c3a197003352b
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
