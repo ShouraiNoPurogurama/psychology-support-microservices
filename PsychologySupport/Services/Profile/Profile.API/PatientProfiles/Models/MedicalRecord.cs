@@ -8,17 +8,20 @@ namespace Profile.API.PatientProfiles.Models;
 
 public class MedicalRecord : Entity<Guid>
 {
+    [JsonIgnore]
     public Guid PatientProfileId { get; set; }
 
+    [JsonIgnore]
     public Guid DoctorProfileId { get; set; }
 
+    [JsonIgnore]
     public Guid? MedicalHistoryId { get; set; }
 
     public string Notes { get; set; } = default!;
 
     public MedicalRecordStatus Status { get; set; }
     
-    
+    [JsonIgnore]
     public MedicalHistory? MedicalHistory { get; set; }
 
     [JsonIgnore]

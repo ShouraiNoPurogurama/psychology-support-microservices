@@ -1,4 +1,4 @@
-﻿namespace Profile.API.Dtos;
+﻿namespace Profile.API.DoctorProfiles.Dtos;
 
 public record DoctorProfileDto(
     Guid Id,

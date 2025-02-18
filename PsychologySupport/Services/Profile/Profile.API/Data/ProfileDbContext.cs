@@ -27,7 +27,7 @@ public class ProfileDbContext : DbContext
         builder.Entity<PatientProfile>(typeBuilder =>
         {
             typeBuilder.HasOne(p => p.MedicalHistory)
-                .WithOne(m => m.PatientProfile)
+                .WithOne()
                 .HasForeignKey<MedicalHistory>(m => m.PatientId);
 
             typeBuilder.ComplexProperty(p => p.ContactInfo, contactInfoBuilder =>

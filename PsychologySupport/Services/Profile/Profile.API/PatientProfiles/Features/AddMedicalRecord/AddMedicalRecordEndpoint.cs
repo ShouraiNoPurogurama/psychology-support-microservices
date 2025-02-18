@@ -9,7 +9,6 @@ namespace Profile.API.PatientProfiles.Features.AddMedicalRecord;
 public record AddMedicalRecordRequest(
     Guid PatientProfileId,
     Guid DoctorId,
-    Guid? MedicalHistoryId,
     string Notes,
     MedicalRecordStatus Status,
     List<Guid> ExistingDisorderIds);
