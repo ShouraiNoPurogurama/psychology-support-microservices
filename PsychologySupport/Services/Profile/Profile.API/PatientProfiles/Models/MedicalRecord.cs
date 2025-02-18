@@ -8,29 +8,22 @@ namespace Profile.API.PatientProfiles.Models;
 
 public class MedicalRecord : Entity<Guid>
 {
-    [JsonIgnore]
     public Guid PatientProfileId { get; set; }
 
-    [JsonIgnore]
     public Guid DoctorProfileId { get; set; }
 
-    [JsonIgnore]
     public Guid? MedicalHistoryId { get; set; }
 
     public string Notes { get; set; } = default!;
 
     public MedicalRecordStatus Status { get; set; }
     
-    [JsonIgnore]
     public MedicalHistory? MedicalHistory { get; set; }
 
-    [JsonIgnore]
     public virtual PatientProfile PatientProfile { get; set; }
     
-    [JsonIgnore]
     public virtual DoctorProfile DoctorProfile { get; set; }
     
-    [JsonIgnore]
     private readonly List<SpecificMentalDisorder> _specificMentalDisorders = [];
 
     public IReadOnlyList<SpecificMentalDisorder> SpecificMentalDisorders => _specificMentalDisorders.AsReadOnly();

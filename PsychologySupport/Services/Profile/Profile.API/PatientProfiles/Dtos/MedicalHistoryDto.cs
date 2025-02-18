@@ -1,11 +1,10 @@
-﻿using Profile.API.MentalDisorders.Models;
-using Profile.API.PatientProfiles.Models;
+﻿using Profile.API.MentalDisorders.Dtos;
 
 namespace Profile.API.PatientProfiles.Dtos;
 
 public record MedicalHistoryDto(
     string Description,
     DateTimeOffset DiagnosedAt,
-    IReadOnlyList<SpecificMentalDisorder> SpecificMentalDisorders,
-    IReadOnlyList<PhysicalSymptom> PhysicalSymptoms
+    IReadOnlyList<SpecificMentalDisorderDto> SpecificMentalDisorders,
+    IReadOnlyList<PhysicalSymptomDto> PhysicalSymptoms
 );

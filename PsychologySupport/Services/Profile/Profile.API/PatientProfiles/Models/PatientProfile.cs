@@ -14,8 +14,6 @@ public class PatientProfile : Aggregate<Guid>
     public PersonalityTrait PersonalityTraits { get;  set; }
     public ContactInfo ContactInfo { get;  set; } = default!;
     public Guid? MedicalHistoryId { get;  set; }
-
-    [JsonIgnore]
     public MedicalHistory? MedicalHistory { get;  set; }
 
     private readonly List<MedicalRecord> _medicalRecords = [];
