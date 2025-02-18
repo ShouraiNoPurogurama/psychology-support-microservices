@@ -9,6 +9,7 @@ namespace Profile.API.PatientProfiles.Models;
 public class PatientProfile : Aggregate<Guid>
 {
     public Guid UserId { get;  set; }
+    public string FullName { get; set; }
     public string? Gender { get;  set; }
     public string? Allergies { get;  set; }
     public PersonalityTrait PersonalityTraits { get;  set; }
