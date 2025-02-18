@@ -8,7 +8,6 @@ namespace Profile.API.PatientProfiles.Features.AddMedicalRecord
     public record AddMedicalRecordCommand(
         Guid PatientProfileId,
         Guid DoctorId,
-        Guid? MedicalHistoryId,
         string Notes,
         MedicalRecordStatus Status,
         List<Guid> ExistingDisorderIds) : ICommand<AddMedicalRecordResult>;
@@ -36,9 +35,7 @@ namespace Profile.API.PatientProfiles.Features.AddMedicalRecord
                 .ToListAsync(cancellationToken);
             
             var medicalRecord = patientProfile.AddMedicalRecord(
-                request.PatientProfileId,
                 request.DoctorId,
-                request.MedicalHistoryId,
                 request.Notes,
                 request.Status,
                 existingDisorders

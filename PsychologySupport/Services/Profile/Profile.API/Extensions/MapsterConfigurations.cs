@@ -11,12 +11,6 @@ public static class MapsterConfiguration
     {
         // Scan the assembly for other mappings
         TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
-
-        // Mapping for CreatePatientProfileDto to PatientProfile
-        TypeAdapterConfig<PatientProfileCreate, PatientProfile>
-            .NewConfig()
-            .Map(dest => dest.ContactInfo, src => src.ContactInfo)
-            .Map(dest => dest.PersonalityTraits, src => src.PersonalityTraits)
-            .IgnoreNullValues(true);
+        
     }
 }

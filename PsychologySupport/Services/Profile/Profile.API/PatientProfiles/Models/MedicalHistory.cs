@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using BuildingBlocks.DDD;
+﻿using BuildingBlocks.DDD;
 using Profile.API.MentalDisorders.Models;
 
 namespace Profile.API.PatientProfiles.Models;
@@ -12,14 +11,46 @@ public class MedicalHistory : Entity<Guid>
 
     public DateTimeOffset DiagnosedAt { get; set; } = DateTimeOffset.UtcNow;
 
-    [JsonIgnore]
-    public PatientProfile PatientProfile { get; set; }
+    private readonly List<SpecificMentalDisorder> _specificMentalDisorders = [];
 
-    [JsonIgnore]
-    public ICollection<SpecificMentalDisorder> SpecificMentalDisorders { get; set; } = [];
+    public IReadOnlyList<SpecificMentalDisorder> SpecificMentalDisorders => _specificMentalDisorders.AsReadOnly();
 
-    [JsonIgnore]
-    public ICollection<PhysicalSymptom> PhysicalSymptoms { get; set; } = [];
-    
-    
+    private readonly List<PhysicalSymptom> _physicalSymptoms = [];
+
+    public IReadOnlyList<PhysicalSymptom> PhysicalSymptoms => _physicalSymptoms.AsReadOnly();
+
+    private MedicalHistory(Guid patientId, string description, DateTimeOffset diagnosedAt,
+        List<SpecificMentalDisorder> specificMentalDisorders, List<PhysicalSymptom> physicalSymptoms)
+    {
+        Id = Guid.NewGuid();
+        PatientId = patientId;
+        Description = description;
+        DiagnosedAt = diagnosedAt;
+        _specificMentalDisorders = specificMentalDisorders;
+        _physicalSymptoms = physicalSymptoms;
+    }
+
+    public MedicalHistory()
+    {
+        
+    }
+
+    internal static MedicalHistory Create(Guid patientId, string description, DateTimeOffset diagnosedAt,
+        List<SpecificMentalDisorder> specificMentalDisorders, List<PhysicalSymptom> physicalSymptoms)
+    {
+        if (patientId == Guid.Empty)
+            throw new ArgumentException("Patient ID cannot be empty.", nameof(patientId));
+
+        if (diagnosedAt > DateTimeOffset.UtcNow)
+        {
+            throw new ArgumentException("Diagnose time must be before current time.", nameof(diagnosedAt));
+        }
+
+        if (specificMentalDisorders.Count == 0 && physicalSymptoms.Count == 0)
+        {
+            throw new ArgumentException("Specific mental disorders and Physical symptoms cannot be both empty", nameof(specificMentalDisorders) + ", " + nameof(physicalSymptoms));
+        }
+
+        return new MedicalHistory(patientId, description, diagnosedAt, specificMentalDisorders, physicalSymptoms);
+    }
 }

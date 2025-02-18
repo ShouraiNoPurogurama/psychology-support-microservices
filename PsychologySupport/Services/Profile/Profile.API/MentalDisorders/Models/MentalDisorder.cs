@@ -8,5 +8,5 @@ public class MentalDisorder : Aggregate<Guid>
     
     public string Description { get; set; }
     
-    public ICollection<SpecificMentalDisorder> SpecificMentalDisorders { get; set; }
+    // public ICollection<SpecificMentalDisorder> SpecificMentalDisorders { get; set; }
 }
