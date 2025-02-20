@@ -1,4 +1,7 @@
-﻿namespace Profile.API.Extensions;
+﻿using Microsoft.EntityFrameworkCore;
+using Notification.API.Data;
+
+namespace Notification.API.Extensions;
 
 public static class DatabaseExtensions
 {
@@ -6,7 +9,7 @@ public static class DatabaseExtensions
     {
         using var scope = app.Services.CreateScope();
 
-        var context = scope.ServiceProvider.GetRequiredService<ProfileDbContext>();
+        var context = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
 
         context.Database.MigrateAsync().GetAwaiter().GetResult();
 

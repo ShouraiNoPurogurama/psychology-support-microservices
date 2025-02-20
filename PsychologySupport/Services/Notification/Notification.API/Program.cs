@@ -1,20 +1,22 @@
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
-using Profile.API.Extensions;
+using Notification.API;
+using Notification.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
 
-services.AddCarter();
+services.Configure<AppSettings>(builder.Configuration);
+
+// services.AddCarter();
 
 services.AddApplicationServices(builder.Configuration);
 
+services.ConfigureEmailFeature(builder.Configuration);
+
 services.AddExceptionHandler<CustomExceptionHandler>();
 
-services.RegisterMapsterConfiguration();
-
-// Configure the HTTP request pipeline
 var app = builder.Build();
 
 app.UseExceptionHandler(options => {});
@@ -33,7 +35,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Apply CORS policy
 app.UseCors();
 
 app.Run();

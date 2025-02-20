@@ -1,8 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
-using Profile.API.Data;
 using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.GetAllPatientProfiles;
