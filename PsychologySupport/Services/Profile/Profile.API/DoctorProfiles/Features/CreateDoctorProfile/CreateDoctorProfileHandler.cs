@@ -10,7 +10,7 @@ using Profile.API.DoctorProfiles.Models;
 
 namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
 {
-    public record CreateDoctorProfileCommand(DoctorProfileCreate DoctorProfile) : ICommand<CreateDoctorProfileResult>;
+    public record CreateDoctorProfileCommand(CreateDoctorProfileDto DoctorProfile) : ICommand<CreateDoctorProfileResult>;
 
     public record CreateDoctorProfileResult(Guid Id);
 
@@ -51,10 +51,9 @@ namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
 
             var doctorProfileCreatedEvent = new DoctorProfileCreatedEvent(
                 doctorProfile.UserId,
-                doctorProfile.Gender,
+                doctorProfile.Gender.ToString(),
                 doctorProfile.ContactInfo.Email,
                 doctorProfile.ContactInfo.PhoneNumber,
-                doctorProfile.Specialty,
                 doctorProfile.CreatedAt
             );
 

@@ -38,16 +38,17 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
         request.DoctorProfileDto.Bio,
         request.DoctorProfileDto.Rating,
         request.DoctorProfileDto.TotalReviews
-    );
+        );
 
+        doctorProfile.LastModified = DateTimeOffset.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         var doctorProfileUpdatedEvent = new DoctorProfileUpdatedEvent(
-            doctorProfile.Id,
-            doctorProfile.Specialty,
-            doctorProfile.Qualifications,
-            doctorProfile.YearsOfExperience,
-            doctorProfile.Bio
+            doctorProfile.UserId,
+            doctorProfile.Gender.ToString(),
+            doctorProfile.ContactInfo.Email,
+            doctorProfile.ContactInfo.PhoneNumber,
+            doctorProfile.LastModified
         );
 
         await _mediator.Publish(doctorProfileUpdatedEvent, cancellationToken);

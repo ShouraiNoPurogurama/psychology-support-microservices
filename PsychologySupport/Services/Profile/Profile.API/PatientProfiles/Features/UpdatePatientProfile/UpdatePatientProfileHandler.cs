@@ -8,7 +8,7 @@ using Profile.API.PatientProfiles.Events;
 
 namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile
 {
-    public record UpdatePatientProfileCommand(Guid Id, PatientProfileUpdate PatientProfileUpdate) : ICommand<UpdatePatientProfileResult>;
+    public record UpdatePatientProfileCommand(Guid Id, UpdatePatientProfileDto PatientProfileUpdate) : ICommand<UpdatePatientProfileResult>;
 
     public record UpdatePatientProfileResult(Guid Id);
 
@@ -40,10 +40,9 @@ namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile
             var patientProfileUpdatedEvent = new PatientProfileUpdatedEvent(
                 patientProfile.UserId,
                 patientProfile.FullName,
-                patientProfile.Gender,
+                patientProfile.Gender.ToString(),
                 patientProfile.ContactInfo.Email,
                 patientProfile.ContactInfo.PhoneNumber,
-                patientProfile.Allergies,
                 patientProfile.LastModified
             );
 

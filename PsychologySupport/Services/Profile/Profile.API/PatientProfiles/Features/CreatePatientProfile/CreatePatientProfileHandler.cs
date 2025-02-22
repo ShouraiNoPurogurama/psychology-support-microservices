@@ -8,7 +8,7 @@ using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
 {
-    public record CreatePatientProfileCommand(PatientProfileCreate PatientProfileCreate) : ICommand<CreatePatientProfileResult>;
+    public record CreatePatientProfileCommand(CreatePatientProfileDto PatientProfileCreate) : ICommand<CreatePatientProfileResult>;
 
     public record CreatePatientProfileResult(Guid Id);
 
@@ -45,10 +45,9 @@ namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
                 var patientProfileCreatedEvent = new PatientProfileCreatedEvent(
                     patientProfile.UserId,
                     patientProfile.FullName,
-                    patientProfile.Gender,
+                    patientProfile.Gender.ToString(),
                     patientProfile.ContactInfo.Email,
                     patientProfile.ContactInfo.PhoneNumber,
-                    patientProfile.Allergies,
                     patientProfile.CreatedAt
                 );
 

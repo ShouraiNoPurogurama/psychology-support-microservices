@@ -1,30 +1,30 @@
 ﻿using Carter;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
-using Profile.API.PatientProfiles.Models;
-using System;
-using System.Threading.Tasks;
+using Mapster;
+using Profile.API.PatientProfiles.Dtos;
 
-public class GetMedicalHistoryEndpoint : ICarterModule
+
+
+public record GetMedicalHistoryRequest(Guid PatientId);
+
+public record GetMedicalHistoryResponse(MedicalHistoryDto History);
+
+namespace Profile.API.PatientProfiles.Features.GetMedicalHistory
 {
-    public void AddRoutes(IEndpointRouteBuilder app)
+    public class GetMedicalHistoryEndpoint : ICarterModule
     {
-        app.MapGet("/patients/{patientId}/medical-history", async (
-            [FromRoute] Guid patientId,
-            ISender sender) =>
+        public void AddRoutes(IEndpointRouteBuilder app)
         {
-            var query = new GetMedicalHistoryQuery(patientId);
-            var result = await sender.Send(query);
-
-            if (result is null)
+            app.MapGet("/patients/{patientId:guid}/medical-history", async (Guid patientId, ISender sender) =>
             {
-                return Results.NotFound("Medical history not found.");
-            }
-
-            return Results.Ok(result);
-        })
-        .WithName("GetMedicalHistoryByPatientId")
-        .Produces<MedicalHistory>()
-        .ProducesProblem(StatusCodes.Status404NotFound);
+                var query = new GetMedicalHistoryQuery(patientId);
+                var result = await sender.Send(query);
+                var response = result.Adapt<GetMedicalHistoryResponse>();
+                return Results.Ok(response);
+            })
+                .WithName("GetMedicalHistoryByPatientId")
+                .Produces<GetMedicalHistoryResponse>()
+                .ProducesProblem(StatusCodes.Status404NotFound);
+        }
     }
 }

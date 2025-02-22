@@ -4,8 +4,8 @@ namespace Profile.API.DoctorProfiles.Dtos;
 
 public record DoctorProfileDto(
     Guid Id,
-    string? FullName,
-    string? Gender,
+    string FullName,
+    string Gender,
     ContactInfo ContactInfo,
     string Specialty,
     string Qualifications,

@@ -13,6 +13,7 @@ services.AddApplicationServices(builder.Configuration);
 services.AddIdentityServices(builder.Configuration);
 
 
+
 // Configure the HTTP request pipeline
 var app = builder.Build();
 

@@ -8,7 +8,6 @@ namespace Profile.API.PatientProfiles.Events
         string? Gender,
         string? Email,
         string? PhoneNumber,
-        string? Allergies,
         DateTimeOffset? LastModified
     ) : IDomainEvent;
 }

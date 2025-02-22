@@ -1,20 +1,25 @@
-﻿using System.Text.Json.Serialization;
-using Profile.API.PatientProfiles.Models;
+﻿using Profile.API.PatientProfiles.Models;
+using System;
+using System.Collections.Generic;
 
-namespace Profile.API.MentalDisorders.Models;
-
-public class SpecificMentalDisorder
+namespace Profile.API.MentalDisorders.Models
 {
-    public Guid Id { get; set; }
-    
-    public Guid MentalDisorderId { get; set; }
-    
-    public string Name { get; set; }
-    
-    public string Description { get; set; }
-    
-    public MentalDisorder MentalDisorder { get; set; }
-    
-    public ICollection<MedicalHistory> MedicalHistories { get; set; } = [];
-    public ICollection<MedicalRecord> MedicalRecords { get; set; } = [];
+    public class SpecificMentalDisorder
+    {
+        private readonly List<MedicalHistory> _medicalHistories = [];
+        private readonly List<MedicalRecord> _medicalRecords = [];
+
+        public Guid Id { get; init; }
+
+        public Guid MentalDisorderId { get; init; }
+
+        public string Name { get; init; } = string.Empty;
+
+        public string Description { get; init; } = string.Empty;
+
+        public MentalDisorder MentalDisorder { get; init; } = null!;
+
+        public IReadOnlyList<MedicalHistory> MedicalHistories => _medicalHistories.AsReadOnly();
+        public IReadOnlyList<MedicalRecord> MedicalRecords => _medicalRecords.AsReadOnly();
+    }
 }

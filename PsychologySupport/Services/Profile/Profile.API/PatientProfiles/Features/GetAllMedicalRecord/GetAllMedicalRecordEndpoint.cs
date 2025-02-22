@@ -2,12 +2,13 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Profile.API.PatientProfiles.Dtos;
 using Profile.API.PatientProfiles.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-public record GetAllMedicalRecordsResponse(IEnumerable<MedicalRecord> MedicalRecords, int TotalRecords);
+public record GetAllMedicalRecordsResponse(IEnumerable<MedicalRecordDto> MedicalRecords, int TotalRecords);
 
 public class GetAllMedicalRecordsEndpoint : ICarterModule
 {
