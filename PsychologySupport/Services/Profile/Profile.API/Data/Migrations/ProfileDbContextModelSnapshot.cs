@@ -85,6 +85,10 @@ namespace Profile.API.Data.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Gender")
                         .HasColumnType("text");
 
@@ -287,6 +291,10 @@ namespace Profile.API.Data.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Gender")
                         .HasColumnType("text");
 
@@ -404,13 +412,11 @@ namespace Profile.API.Data.Migrations
 
             modelBuilder.Entity("Profile.API.PatientProfiles.Models.MedicalHistory", b =>
                 {
-                    b.HasOne("Profile.API.PatientProfiles.Models.PatientProfile", "PatientProfile")
+                    b.HasOne("Profile.API.PatientProfiles.Models.PatientProfile", null)
                         .WithOne("MedicalHistory")
                         .HasForeignKey("Profile.API.PatientProfiles.Models.MedicalHistory", "PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("PatientProfile");
                 });
 
             modelBuilder.Entity("Profile.API.PatientProfiles.Models.MedicalRecord", b =>

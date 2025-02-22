@@ -11,5 +11,5 @@ public record GetPatientProfileDto(
     PersonalityTrait PersonalityTraits,
     ContactInfo ContactInfo,
     MedicalHistoryDto? MedicalHistory,
-    IEnumerable<MedicalRecord> MedicalRecords
+    IEnumerable<MedicalRecordDto> MedicalRecords
 );

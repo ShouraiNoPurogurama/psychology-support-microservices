@@ -1,6 +1,4 @@
 ﻿using BuildingBlocks.CQRS;
-using Microsoft.EntityFrameworkCore;
-using Profile.API.Data;
 using Profile.API.Exceptions;
 using Profile.API.PatientProfiles.Models;
 
@@ -27,7 +25,7 @@ public class AddMedicalRecordHandler : ICommandHandler<AddMedicalRecordCommand, 
                                 .FirstOrDefaultAsync(d => d.Id.Equals(request.MedicalRecord.DoctorProfileId), cancellationToken)
             ?? throw new ProfileNotFoundException("Doctor Profile", request.MedicalRecord.DoctorProfileId);
         
-        doctorProfile.MedicalRecords.Add(request.MedicalRecord);
+        doctorProfile.AddMedicalRecord(request.MedicalRecord);
 
         var result = await _context.SaveChangesAsync(cancellationToken);
 

@@ -1,7 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
-using Profile.API.Data;
 using Profile.API.Exceptions;
 using Profile.API.PatientProfiles.Dtos;
 

@@ -1,6 +1,4 @@
 ﻿using BuildingBlocks.CQRS;
-using Microsoft.EntityFrameworkCore;
-using Profile.API.Data;
 using Profile.API.PatientProfiles.ValueObjects;
 
 namespace Profile.API.PatientProfiles.Features.AddMedicalRecord

@@ -16,3 +16,9 @@
     build:
       context: .
       dockerfile: Services/Profile/Profile.API/Dockerfile
+
+  notification.api:
+    image: notification.api
+    build:
+      context: .
+      dockerfile: Services/Notification/Notification.API/Dockerfile

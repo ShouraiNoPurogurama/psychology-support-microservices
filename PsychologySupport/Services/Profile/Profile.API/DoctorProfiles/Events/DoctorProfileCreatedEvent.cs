@@ -7,7 +7,7 @@ namespace Profile.API.DoctorProfiles.Events
         string? Gender,
         string? Email,
         string? PhoneNumber,
-        string Specialty,
+        string? Specialty,
         DateTimeOffset? CreatedAt
     ) : IDomainEvent;
 

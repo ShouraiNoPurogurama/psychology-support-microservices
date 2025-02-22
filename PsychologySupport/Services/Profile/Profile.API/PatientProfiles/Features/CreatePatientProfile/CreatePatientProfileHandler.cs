@@ -8,7 +8,7 @@ using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
 {
-    public record CreatePatientProfileCommand(PatientProfileCreate PatientProfileDto) : ICommand<CreatePatientProfileResult>;
+    public record CreatePatientProfileCommand(PatientProfileCreate PatientProfileCreate) : ICommand<CreatePatientProfileResult>;
 
     public record CreatePatientProfileResult(Guid Id);
 
@@ -25,27 +25,41 @@ namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
 
         public async Task<CreatePatientProfileResult> Handle(CreatePatientProfileCommand request, CancellationToken cancellationToken)
         {
-            var patientProfile = request.PatientProfileDto.Adapt<PatientProfile>();
+            try
+            {
+                var dto = request.PatientProfileCreate;
 
-            patientProfile.CreatedAt = DateTimeOffset.UtcNow;
+                var patientProfile = PatientProfile.Create(
+                    dto.UserId,
+                    dto.FullName,
+                    dto.Gender,
+                    dto.Allergies,
+                    dto.PersonalityTraits,
+                    dto.ContactInfo
+                );
+                patientProfile.CreatedAt = DateTimeOffset.UtcNow;
 
+                _context.PatientProfiles.Add(patientProfile);
+                await _context.SaveChangesAsync(cancellationToken);
 
-            _context.PatientProfiles.Add(patientProfile);
+                var patientProfileCreatedEvent = new PatientProfileCreatedEvent(
+                    patientProfile.UserId,
+                    patientProfile.FullName,
+                    patientProfile.Gender,
+                    patientProfile.ContactInfo.Email,
+                    patientProfile.ContactInfo.PhoneNumber,
+                    patientProfile.Allergies,
+                    patientProfile.CreatedAt
+                );
 
-            await _context.SaveChangesAsync(cancellationToken);
+                await _mediator.Publish(patientProfileCreatedEvent, cancellationToken);
 
-            var patientProfileCreatedEvent = new PatientProfileCreatedEvent(
-                patientProfile.UserId,
-                patientProfile.Gender,
-                patientProfile.ContactInfo.Email,
-                patientProfile.ContactInfo.PhoneNumber,
-                patientProfile.Allergies,
-                patientProfile.CreatedAt
-            );
-
-            await _mediator.Publish(patientProfileCreatedEvent, cancellationToken);
-
-            return new CreatePatientProfileResult(patientProfile.Id);
+                return new CreatePatientProfileResult(patientProfile.Id);
+            }
+            catch (DbUpdateException ex)
+            {
+                throw new Exception($"Database error: {ex.InnerException?.Message}", ex);
+            }
         }
 
     }

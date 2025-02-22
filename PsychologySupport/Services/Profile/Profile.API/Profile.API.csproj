@@ -25,4 +25,11 @@
       </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="MentalDisorders\Features\MentalDisorder\GetAllMentalDisorder\" />
+      <Folder Include="MentalDisorders\Features\MentalDisorder\GetMentalDisorder\" />
+      <Folder Include="MentalDisorders\Features\SpecificMentalDisorder\GetSpecificMentalDisorder\" />
+      <Folder Include="MentalDisorders\Features\SpecificMentalDisorder\GetAllSpecificMentalDisorder\" />
+    </ItemGroup>
+
 </Project>

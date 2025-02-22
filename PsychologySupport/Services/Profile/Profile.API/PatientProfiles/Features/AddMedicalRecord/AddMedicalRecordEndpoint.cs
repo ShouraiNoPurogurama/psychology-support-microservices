@@ -19,16 +19,16 @@ public class AddMedicalRecordEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/patients", async ([FromBody] AddMedicalRecordRequest request, ISender sender) =>
-            {
-                var command = request.Adapt<AddMedicalRecordCommand>();
+        app.MapPost("/patients/medical-record", async ([FromBody] AddMedicalRecordRequest request, ISender sender) =>
+        {
+            var command = request.Adapt<AddMedicalRecordCommand>();
 
-                var result = await sender.Send(command);
+            var result = await sender.Send(command);
 
-                var response = result.Adapt<AddMedicalRecordResponse>();
+            var response = result.Adapt<AddMedicalRecordResponse>();
 
-                return Results.Ok(response);
-            })
+            return Results.Ok(response);
+        })
             .WithName("AddMedicalRecord")
             .Produces<AddMedicalRecordResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest);

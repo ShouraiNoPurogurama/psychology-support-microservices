@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Profile.API.DoctorProfiles.Models;
+﻿using Profile.API.DoctorProfiles.Models;
 using Profile.API.MentalDisorders.Models;
 using Profile.API.PatientProfiles.Models;
 

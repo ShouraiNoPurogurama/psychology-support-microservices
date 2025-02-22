@@ -1,7 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
-using Microsoft.EntityFrameworkCore;
-using Profile.API.Data;
 using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.PatientProfiles.Features.AddMedicalHistory;

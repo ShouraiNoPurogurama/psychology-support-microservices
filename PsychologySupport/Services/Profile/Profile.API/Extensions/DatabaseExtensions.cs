@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Profile.API.Data;
-
-namespace Profile.API.Extensions;
+﻿namespace Profile.API.Extensions;
 
 public static class DatabaseExtensions
 {

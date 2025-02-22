@@ -8,3 +8,12 @@ public interface IDomainEvent : INotification
     
     public string EventType => GetType().AssemblyQualifiedName!;
 }
+
+public abstract record DomainEvent(Guid EventId) : IDomainEvent
+{
+    public DomainEvent() : this(Guid.NewGuid()) { }
+
+    public DateTime OccurredOn => DateTime.Now;
+    
+    public string EventType => GetType().AssemblyQualifiedName!;
+}
