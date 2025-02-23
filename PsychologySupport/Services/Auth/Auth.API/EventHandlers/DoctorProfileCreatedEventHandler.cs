@@ -21,7 +21,7 @@ public class DoctorProfileCreatedEventHandler : IConsumer<DoctorProfileCreatedEv
         var user = await _context.Users.FindAsync(message.UserId);
         if (user != null)
         {
-            user.Gender = message.Gender == "Male" ? UserGender.Male : UserGender.Female;
+            user.Gender = message.Gender.Equals("Male") ? UserGender.Male : UserGender.Female;
             user.Email = message.Email;
             user.PhoneNumber = message.PhoneNumber;
 
