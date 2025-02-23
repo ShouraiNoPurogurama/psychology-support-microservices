@@ -1,8 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
-using Mapster;
-using MediatR;
+using MassTransit;
 using Profile.API.Common.ValueObjects;
-using Profile.API.Data;
 using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.DoctorProfiles.Events;
 using Profile.API.DoctorProfiles.Models;
@@ -17,12 +15,11 @@ namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
     public class CreateDoctorProfileHandler : ICommandHandler<CreateDoctorProfileCommand, CreateDoctorProfileResult>
     {
         private readonly ProfileDbContext _context;
-        private readonly IMediator _mediator;
-
-        public CreateDoctorProfileHandler(ProfileDbContext context, IMediator mediator)
+        private readonly IPublishEndpoint _publishEndpoint;
+        public CreateDoctorProfileHandler(ProfileDbContext context,IPublishEndpoint publishEndpoint)
         {
             _context = context;
-            _mediator = mediator;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task<CreateDoctorProfileResult> Handle(CreateDoctorProfileCommand request, CancellationToken cancellationToken)
@@ -57,7 +54,7 @@ namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
                 doctorProfile.CreatedAt
             );
 
-            await _mediator.Publish(doctorProfileCreatedEvent, cancellationToken);
+            await _publishEndpoint.Publish(doctorProfileCreatedEvent, cancellationToken);
 
             return new CreateDoctorProfileResult(doctorProfile.Id);
         }

@@ -4,10 +4,10 @@ namespace Profile.API.PatientProfiles.Events
 {
     public record PatientProfileUpdatedEvent(
         Guid UserId,
-        string? FullName,
-        string? Gender,
-        string? Email,
-        string? PhoneNumber,
+        string FullName,
+        string Gender,
+        string Email,
+        string PhoneNumber,
         DateTimeOffset? LastModified
-    ) : IDomainEvent;
+    );
 }

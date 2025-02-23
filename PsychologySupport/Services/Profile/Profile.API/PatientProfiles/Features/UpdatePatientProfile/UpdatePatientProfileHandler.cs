@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using Mapster;
+using MassTransit;
 using MediatR;
 using Profile.API.Data;
 using Profile.API.Exceptions;
@@ -16,11 +17,13 @@ namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile
     {
         private readonly ProfileDbContext _context;
         private readonly IMediator _mediator;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public UpdatePatientProfileHandler(ProfileDbContext context, IMediator mediator)
+        public UpdatePatientProfileHandler(ProfileDbContext context, IMediator mediator,IPublishEndpoint publishEndpoint)
         {
             _context = context;
             _mediator = mediator;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task<UpdatePatientProfileResult> Handle(UpdatePatientProfileCommand request, CancellationToken cancellationToken)
@@ -47,6 +50,7 @@ namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile
             );
 
             await _mediator.Publish(patientProfileUpdatedEvent, cancellationToken);
+            await _publishEndpoint.Publish(patientProfileUpdatedEvent, cancellationToken);
 
             return new UpdatePatientProfileResult(patientProfile.Id);
         }

@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.DDD;
+using MediatR;
 
 namespace Profile.API.DoctorProfiles.Events;
 
@@ -8,4 +9,4 @@ public record DoctorProfileUpdatedEvent(
     string Email,
     string PhoneNumber,
     DateTimeOffset? LastModified
-) : IDomainEvent;
+);

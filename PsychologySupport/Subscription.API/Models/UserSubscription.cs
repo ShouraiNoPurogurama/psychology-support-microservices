@@ -1,13 +1,8 @@
 ﻿using BuildingBlocks.DDD;
+using Subscription.API.Data.Common;
 
 namespace Subscription.API.Models
 {
-    public enum SubscriptionStatus
-    {
-        Active,
-        Expired,
-        Cancelled
-    }
     public class UserSubscription : Entity<Guid>
     {
         public Guid UserId { get; set; }
@@ -18,6 +13,6 @@ namespace Subscription.API.Models
 
         public DateTime EndDate { get; set; }
 
-        public SubscriptionStatus Status { get; set; }
+        public SubscriptionStatusEnum Status { get; set; }
     }
 }

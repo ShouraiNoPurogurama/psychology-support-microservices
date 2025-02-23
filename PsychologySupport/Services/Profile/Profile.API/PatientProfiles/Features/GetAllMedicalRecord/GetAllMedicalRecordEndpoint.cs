@@ -1,4 +1,5 @@
-﻿using Carter;
+﻿using BuildingBlocks.Pagination;
+using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,12 +16,11 @@ public class GetAllMedicalRecordsEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapGet("/patients/{patientId}/medical-records", async (
-        [FromRoute] Guid patientId,  
-        [FromQuery] int? pageNumber,  
-        [FromQuery] int? pageSize,
+        [FromRoute] Guid patientId,
+        [AsParameters] PaginationRequest request,
         ISender sender) =>
         {
-            var query = new GetAllMedicalRecordsQuery(patientId, pageNumber ?? 1, pageSize ?? 10);
+            var query = new GetAllMedicalRecordsQuery(patientId, request);
             var result = await sender.Send(query);
 
             var response = new GetAllMedicalRecordsResponse(result.MedicalRecords, result.TotalRecords);

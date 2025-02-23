@@ -1,5 +1,7 @@
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
+using MassTransit;
+using Microsoft.Extensions.Configuration;
 using Profile.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +15,22 @@ services.AddApplicationServices(builder.Configuration);
 services.AddExceptionHandler<CustomExceptionHandler>();
 
 services.RegisterMapsterConfiguration();
+
+//RabbitMQ
+services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("rabbitmq", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+
+        cfg.PrefetchCount = 10;
+    });
+});
+
 
 // Configure the HTTP request pipeline
 var app = builder.Build();
@@ -32,6 +50,7 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Profile API v1");
     });
 }
+
 
 // Apply CORS policy
 app.UseCors();

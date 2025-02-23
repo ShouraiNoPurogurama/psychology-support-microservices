@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
+using MassTransit;
 using MediatR;
 using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.DoctorProfiles.Events;
@@ -15,11 +16,13 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
 {
     private readonly ProfileDbContext _context;
     private readonly IMediator _mediator;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public UpdateDoctorProfileHandler(ProfileDbContext context, IMediator mediator)
+    public UpdateDoctorProfileHandler(ProfileDbContext context, IMediator mediator,IPublishEndpoint publishEndpoint)
     {
         _context = context;
         _mediator = mediator;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task<UpdateDoctorProfileResult> Handle(UpdateDoctorProfileCommand request, CancellationToken cancellationToken)
@@ -52,6 +55,7 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
         );
 
         await _mediator.Publish(doctorProfileUpdatedEvent, cancellationToken);
+        await _publishEndpoint.Publish(doctorProfileUpdatedEvent, cancellationToken);
 
         return new UpdateDoctorProfileResult(doctorProfile.Id);
     }
