@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.CQRS;
 using FluentValidation;
 using Subscription.API.Data;
+using Subscription.API.Dtos;
 using Subscription.API.Exceptions;
 using Subscription.API.Models;
 
@@ -8,13 +9,13 @@ namespace Subscription.API.Features.UserSubscriptions.GetUserSubscription;
 
 public record GetUserSubscriptionQuery(Guid Id) : IQuery<GetUserSubscriptionResult>;
 
-public record GetUserSubscriptionResult(UserSubscription UserSubscription);
+public record GetUserSubscriptionResult(GetUserSubscriptionDto UserSubscription);
 
 public class GetUserSubscriptionQueryValidator : AbstractValidator<GetUserSubscriptionQuery>
 {
     public GetUserSubscriptionQueryValidator()
     {
-        RuleFor(q => q.Id).NotEmpty().WithMessage("Id subscription không được để trống");
+        RuleFor(q => q.Id).NotEmpty().WithMessage("Id Not Null");
     }
 }
 
@@ -30,8 +31,18 @@ public class GetUserSubscriptionHandler : IQueryHandler<GetUserSubscriptionQuery
     public async Task<GetUserSubscriptionResult> Handle(GetUserSubscriptionQuery query, CancellationToken cancellationToken)
     {
         var userSubscription = await _context.UserSubscriptions.FindAsync(query.Id)
-                                ?? throw new SubscriptionNotFoundException(query.Id.ToString());
+                                    ?? throw new SubscriptionNotFoundException(query.Id.ToString());
 
-        return new GetUserSubscriptionResult(userSubscription);
+        var userSubscriptionDto = new GetUserSubscriptionDto(
+            userSubscription.Id,
+            userSubscription.PatientId,
+            userSubscription.ServicePackageId,
+            userSubscription.StartDate,
+            userSubscription.EndDate,
+            userSubscription.Status.ToString()
+        );
+
+        return new GetUserSubscriptionResult(userSubscriptionDto);
     }
+
 }

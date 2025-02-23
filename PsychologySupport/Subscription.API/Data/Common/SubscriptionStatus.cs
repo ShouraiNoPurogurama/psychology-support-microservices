@@ -1,6 +1,6 @@
 ﻿namespace Subscription.API.Data.Common
 {
-    public enum SubscriptionStatusEnum
+    public enum SubscriptionStatus
     {
         Active,
         Expired,

@@ -111,8 +111,8 @@ public class DoctorProfile : Aggregate<Guid>
     }
 
     public void Update(
-    string? fullName,
-    string? gender,
+    string fullName,
+    string gender,
     ContactInfo contactInfo,
     string specialty,
     string qualifications,

@@ -6,7 +6,15 @@ using Subscription.API.Models;
 
 namespace Subscription.API.Features.ServicePackages.CreateServicePackage;
 
-public record CreateServicePackageRequest(ServicePackage ServicePackage);
+public record CreateServicePackageRequest(
+    string Name,
+    string Description,
+    decimal Price,
+    int DurationDays,
+    Guid ImageId,
+    bool IsActive
+);
+
 
 public record CreateServicePackageResponse(Guid Id);
 

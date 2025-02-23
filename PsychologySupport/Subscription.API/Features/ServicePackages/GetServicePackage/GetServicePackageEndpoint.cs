@@ -1,11 +1,11 @@
 ﻿using Carter;
 using Mapster;
 using MediatR;
-using Subscription.API.Models;
+using Subscription.API.Dtos;
 
 namespace Subscription.API.Features.ServicePackages.GetServicePackage;
 
-public record GetServicePackageResponse(ServicePackage ServicePackage);
+public record GetServicePackageResponse(ServicePackageDto ServicePackage);
 
 public class GetServicePackageEndpoint : ICarterModule
 {

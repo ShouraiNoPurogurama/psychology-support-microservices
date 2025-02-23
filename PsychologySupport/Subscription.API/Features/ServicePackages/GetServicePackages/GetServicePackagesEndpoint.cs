@@ -2,13 +2,13 @@
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Subscription.API.Models;
+using Subscription.API.Dtos;
 
 namespace Subscription.API.Features.ServicePackages.GetServicePackages;
 
 public record GetServicePackagesRequest(int PageNumber, int PageSize);
 
-public record GetServicePackagesResponse(IEnumerable<ServicePackage> ServicePackages, int TotalCount);
+public record GetServicePackagesResponse(IEnumerable<ServicePackageDto> ServicePackages, int TotalCount);
 
 public class GetServicePackagesEndpoint : ICarterModule
 {

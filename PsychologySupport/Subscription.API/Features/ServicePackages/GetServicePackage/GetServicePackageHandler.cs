@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.CQRS;
 using FluentValidation;
 using Subscription.API.Data;
+using Subscription.API.Dtos;
 using Subscription.API.Exceptions;
 using Subscription.API.Models;
 
@@ -8,7 +9,7 @@ namespace Subscription.API.Features.ServicePackages.GetServicePackage;
 
 public record GetServicePackageQuery(Guid Id) : IQuery<GetServicePackageResult>;
 
-public record GetServicePackageResult(ServicePackage ServicePackage);
+public record GetServicePackageResult(ServicePackageDto ServicePackage);
 
 public class GetServicePackageQueryValidator : AbstractValidator<GetServicePackageQuery>
 {
@@ -32,6 +33,15 @@ public class GetServicePackageHandler : IQueryHandler<GetServicePackageQuery, Ge
         var servicePackage = await _context.ServicePackages.FindAsync(query.Id)
                               ?? throw new SubscriptionNotFoundException("Service Package", query.Id);
 
-        return new GetServicePackageResult(servicePackage);
+        return new GetServicePackageResult(new ServicePackageDto(
+         servicePackage.Id,
+         servicePackage.Name,
+         servicePackage.Description,
+         servicePackage.Price,
+         servicePackage.DurationDays,
+         servicePackage.ImageId,
+         servicePackage.IsActive
+     ));
     }
+
 }

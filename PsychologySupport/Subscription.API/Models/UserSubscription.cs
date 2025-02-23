@@ -5,7 +5,7 @@ namespace Subscription.API.Models
 {
     public class UserSubscription : Entity<Guid>
     {
-        public Guid UserId { get; set; }
+        public Guid PatientId { get; set; }
 
         public Guid ServicePackageId { get; set; }
 
@@ -13,6 +13,7 @@ namespace Subscription.API.Models
 
         public DateTime EndDate { get; set; }
 
-        public SubscriptionStatusEnum Status { get; set; }
+        public SubscriptionStatus Status { get; set; }
+
     }
 }

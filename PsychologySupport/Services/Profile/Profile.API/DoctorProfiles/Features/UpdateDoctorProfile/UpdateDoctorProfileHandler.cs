@@ -33,7 +33,7 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
 
         doctorProfile.Update(
         request.DoctorProfileDto.FullName,
-        request.DoctorProfileDto.Gender,
+        request.DoctorProfileDto.Gender.ToString(),
         request.DoctorProfileDto.ContactInfo,
         request.DoctorProfileDto.Specialty,
         request.DoctorProfileDto.Qualifications,

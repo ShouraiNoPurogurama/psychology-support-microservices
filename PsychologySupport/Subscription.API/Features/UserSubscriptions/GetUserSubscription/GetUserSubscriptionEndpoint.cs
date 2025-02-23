@@ -1,11 +1,12 @@
 ﻿using Carter;
 using Mapster;
 using MediatR;
+using Subscription.API.Dtos;
 using Subscription.API.Models;
 
 namespace Subscription.API.Features.UserSubscriptions.GetUserSubscription;
 
-public record GetUserSubscriptionResponse(UserSubscription UserSubscription);
+public record GetUserSubscriptionResponse(GetUserSubscriptionDto UserSubscription);
 
 public class GetUserSubscriptionEndpoint : ICarterModule
 {

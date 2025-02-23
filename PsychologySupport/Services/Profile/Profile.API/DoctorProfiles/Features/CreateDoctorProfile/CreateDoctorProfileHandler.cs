@@ -29,7 +29,7 @@ namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
             var doctorProfile = DoctorProfile.Create(
                 doctorProfileCreate.UserId,
                 doctorProfileCreate.FullName,
-                doctorProfileCreate.Gender,
+                doctorProfileCreate.Gender.ToString(),
                 new ContactInfo(
                     doctorProfileCreate.ContactInfo.Email,
                     doctorProfileCreate.ContactInfo.PhoneNumber,
@@ -48,7 +48,7 @@ namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
 
             var doctorProfileCreatedEvent = new DoctorProfileCreatedEvent(
                 doctorProfile.UserId,
-                doctorProfile.Gender.ToString(),
+                doctorProfile.Gender,
                 doctorProfile.ContactInfo.Email,
                 doctorProfile.ContactInfo.PhoneNumber,
                 doctorProfile.CreatedAt

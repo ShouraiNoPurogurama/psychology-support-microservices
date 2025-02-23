@@ -1,13 +1,13 @@
 ﻿using BuildingBlocks.CQRS;
 using Microsoft.EntityFrameworkCore;
 using Subscription.API.Data;
-using Subscription.API.Models;
+using Subscription.API.Dtos;
 
 namespace Subscription.API.Features.ServicePackages.GetServicePackages;
 
 public record GetServicePackagesQuery(int PageNumber, int PageSize) : IQuery<GetServicePackagesResult>;
 
-public record GetServicePackagesResult(IEnumerable<ServicePackage> ServicePackages, int TotalCount);
+public record GetServicePackagesResult(IEnumerable<ServicePackageDto> ServicePackages, int TotalCount);
 
 public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, GetServicePackagesResult>
 {
@@ -27,8 +27,18 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
         var servicePackages = await _dbContext.ServicePackages
             .Skip(skip)
             .Take(request.PageSize)
+            .Select(sp => new ServicePackageDto(
+                sp.Id,
+                sp.Name,
+                sp.Description,
+                sp.Price,
+                sp.DurationDays,
+                sp.ImageId,
+                sp.IsActive
+            ))
             .ToListAsync(cancellationToken);
 
         return new GetServicePackagesResult(servicePackages, totalCount);
     }
+
 }

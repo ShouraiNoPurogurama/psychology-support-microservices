@@ -1,23 +1,28 @@
-﻿using Carter;
+﻿using BuildingBlocks.Pagination;
+using Carter;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Subscription.API.Models;
+using Subscription.API.Dtos;
 
 namespace Subscription.API.Features.UserSubscriptions.GetUserSubscriptions;
-public record GetUserSubscriptionsRequest(int PageNumber, int PageSize);
 
-public record GetUserSubscriptionsResponse(IEnumerable<UserSubscription> UserSubscriptions, int TotalCount);
+public record GetUserSubscriptionsRequest(PaginationRequest PaginationRequest);
+
+public record GetUserSubscriptionsResponse(IEnumerable<GetUserSubscriptionDto> UserSubscriptions, int TotalCount);
 
 public class GetUserSubscriptionsEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/user-subscriptions", async ([FromQuery] int pageNumber, [FromQuery] int pageSize, ISender sender) =>
+        app.MapGet("/user-subscriptions", async ([FromQuery] int pageIndex, [FromQuery] int pageSize, ISender sender) =>
         {
-            var query = new GetUserSubscriptionsQuery(pageNumber, pageSize);
+            var paginationRequest = new PaginationRequest(pageIndex, pageSize);
+            var query = new GetUserSubscriptionsQuery(paginationRequest);
+
             var result = await sender.Send(query);
             var response = result.Adapt<GetUserSubscriptionsResponse>();
+
             return Results.Ok(response);
         })
         .WithName("GetUserSubscriptions")
