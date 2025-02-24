@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.CQRS;
-using Mapster;
+﻿using Mapster;
 using Profile.API.Exceptions;
 using Profile.API.PatientProfiles.Dtos;
 

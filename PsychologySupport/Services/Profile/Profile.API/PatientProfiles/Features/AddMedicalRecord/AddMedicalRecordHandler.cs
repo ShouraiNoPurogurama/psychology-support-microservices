@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.CQRS;
-using Profile.API.PatientProfiles.ValueObjects;
+﻿using Profile.API.PatientProfiles.ValueObjects;
 
 namespace Profile.API.PatientProfiles.Features.AddMedicalRecord
 {

@@ -50,7 +50,7 @@ public class ProfileDbContext : DbContext
             typeBuilder.Property(d => d.Gender)
                 .HasConversion<string>() 
                 .HasMaxLength(10)
-                .HasColumnName("gender");
+                .HasColumnName("Gender");
 
             typeBuilder.ComplexProperty(d => d.ContactInfo, contactInfoBuilder =>
             {

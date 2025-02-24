@@ -1,8 +1,6 @@
 ﻿using BuildingBlocks.Messaging.Events;
 using BuildingBlocks.Messaging.Events.Notification;
 using Mapster;
-using MassTransit;
-using MediatR;
 using Profile.API.DoctorProfiles.Features;
 using Profile.API.PatientProfiles.Events;
 

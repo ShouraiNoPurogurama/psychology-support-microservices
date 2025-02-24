@@ -1,13 +1,12 @@
 ﻿using BuildingBlocks.Data.Enums;
-using BuildingBlocks.DDD;
 
-namespace Profile.API.DoctorProfiles.Events
+namespace BuildingBlocks.Messaging.Events.Auth
 {
-    public record DoctorProfileCreatedEvent(
+    public record DoctorProfileCreatedIntegrationEvent(
         Guid UserId,
         UserGender Gender,
         string Email,
         string PhoneNumber,
         DateTimeOffset? CreatedAt
-    ) : IDomainEvent;
+    ) : IntegrationEvents;
 }

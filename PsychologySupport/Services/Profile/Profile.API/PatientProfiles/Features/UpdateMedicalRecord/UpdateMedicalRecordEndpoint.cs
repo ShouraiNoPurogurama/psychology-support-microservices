@@ -1,6 +1,5 @@
 ﻿using Carter;
 using Mapster;
-using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Profile.API.PatientProfiles.ValueObjects;

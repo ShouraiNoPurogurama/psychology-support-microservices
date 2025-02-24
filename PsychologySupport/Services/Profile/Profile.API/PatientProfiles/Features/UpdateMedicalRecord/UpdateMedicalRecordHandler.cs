@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.CQRS;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Profile.API.PatientProfiles.ValueObjects;
 
 namespace Profile.API.PatientProfiles.Features.UpdateMedicalRecord;

@@ -1,6 +1,5 @@
 ﻿using Carter;
 using Mapster;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Profile.API.PatientProfiles.Features.UpdateMedicalHistory;

@@ -1,11 +1,4 @@
-﻿using BuildingBlocks.CQRS;
-using Mapster;
-using MassTransit;
-using MediatR;
-using Profile.API.Data;
-using Profile.API.DoctorProfiles.Events;
-using Profile.API.PatientProfiles.Dtos;
-using Profile.API.PatientProfiles.Events;
+﻿using Profile.API.PatientProfiles.Dtos;
 using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
@@ -46,10 +39,10 @@ namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
                 _context.PatientProfiles.Add(patientProfile);
                 await _context.SaveChangesAsync(cancellationToken);
 
-                var patientProfileCreatedEvent = new PatientProfileCreatedEvent(
+                var patientProfileCreatedEvent = new PatientProfileCreatedIntegrationEvent(
                     patientProfile.UserId,
                     patientProfile.FullName,
-                    patientProfile.Gender.ToString(),
+                    patientProfile.Gender,
                     patientProfile.ContactInfo.Email,
                     patientProfile.ContactInfo.PhoneNumber,
                     patientProfile.CreatedAt

@@ -1,11 +1,10 @@
 ﻿using MassTransit;
 using Auth.API.Data;
-using Profile.API.PatientProfiles.Events;
-using Auth.API.Data.Enums;
+using BuildingBlocks.Messaging.Events.Auth;
 
 namespace Auth.API.EventHandlers;
 
-public class PatientProfileUpdatedEventHandler : IConsumer<PatientProfileUpdatedEvent>
+public class PatientProfileUpdatedEventHandler : IConsumer<PatientProfileUpdatedIntegrationEvent>
 {
     private readonly AuthDbContext _context;
 
@@ -14,7 +13,7 @@ public class PatientProfileUpdatedEventHandler : IConsumer<PatientProfileUpdated
         _context = context;
     }
 
-    public async Task Consume(ConsumeContext<PatientProfileUpdatedEvent> context)
+    public async Task Consume(ConsumeContext<PatientProfileUpdatedIntegrationEvent> context)
     {
         var message = context.Message;
 
@@ -22,7 +21,7 @@ public class PatientProfileUpdatedEventHandler : IConsumer<PatientProfileUpdated
         if (user != null)
         {
             user.FullName = message.FullName;
-            user.Gender = message.Gender == "Male" ? UserGender.Male : UserGender.Female;
+            user.Gender = message.Gender;
             user.Email = message.Email;
             user.PhoneNumber = message.PhoneNumber;
 

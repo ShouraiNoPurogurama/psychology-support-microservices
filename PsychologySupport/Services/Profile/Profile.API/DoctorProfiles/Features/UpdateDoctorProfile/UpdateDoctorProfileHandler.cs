@@ -1,8 +1,4 @@
-﻿using BuildingBlocks.CQRS;
-using MassTransit;
-using MediatR;
-using Profile.API.DoctorProfiles.Dtos;
-using Profile.API.DoctorProfiles.Events;
+﻿using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.Exceptions;
 
 
@@ -46,9 +42,9 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
         doctorProfile.LastModified = DateTimeOffset.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
-        var doctorProfileUpdatedEvent = new DoctorProfileUpdatedEvent(
+        var doctorProfileUpdatedEvent = new DoctorProfileUpdatedIntegrationEvent(
             doctorProfile.UserId,
-            doctorProfile.Gender.ToString(),
+            doctorProfile.Gender,
             doctorProfile.ContactInfo.Email,
             doctorProfile.ContactInfo.PhoneNumber,
             doctorProfile.LastModified

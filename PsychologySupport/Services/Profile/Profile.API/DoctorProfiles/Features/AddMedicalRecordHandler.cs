@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.CQRS;
-using Profile.API.Exceptions;
+﻿using Profile.API.Exceptions;
 using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.DoctorProfiles.Features;

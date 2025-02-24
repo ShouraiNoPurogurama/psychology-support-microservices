@@ -1,8 +1,5 @@
-﻿using BuildingBlocks.CQRS;
-using MassTransit;
-using Profile.API.Common.ValueObjects;
+﻿using Profile.API.Common.ValueObjects;
 using Profile.API.DoctorProfiles.Dtos;
-using Profile.API.DoctorProfiles.Events;
 using Profile.API.DoctorProfiles.Models;
 
 
@@ -31,9 +28,9 @@ namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
                 doctorProfileCreate.FullName,
                 doctorProfileCreate.Gender.ToString(),
                 new ContactInfo(
-                    doctorProfileCreate.ContactInfo.Email,
+                    doctorProfileCreate.ContactInfo.Address,
                     doctorProfileCreate.ContactInfo.PhoneNumber,
-                    doctorProfileCreate.ContactInfo.Address
+                    doctorProfileCreate.ContactInfo.Email
                 ),
                 doctorProfileCreate.Specialty,
                 doctorProfileCreate.Qualifications,
@@ -46,7 +43,7 @@ namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
             _context.DoctorProfiles.Add(doctorProfile);
             await _context.SaveChangesAsync(cancellationToken);
 
-            var doctorProfileCreatedEvent = new DoctorProfileCreatedEvent(
+            var doctorProfileCreatedEvent = new DoctorProfileCreatedIntegrationEvent(
                 doctorProfile.UserId,
                 doctorProfile.Gender,
                 doctorProfile.ContactInfo.Email,
