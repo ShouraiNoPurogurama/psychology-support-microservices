@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore.Diagnostics;
 using Notification.API.Data;
 using Notification.API.Emails.ServiceContracts;
 using Notification.API.Emails.Services;
@@ -13,7 +13,7 @@ public static class EmailFeatureExtensions
 
         var appSettings = config.Get<AppSettings>();
 
-        services.AddDbContext<NotificationDbContext>(options =>
+        services.AddDbContext<NotificationDbContext>((sp, opts) =>
         {
             if (appSettings is null)
             {
@@ -21,8 +21,8 @@ public static class EmailFeatureExtensions
             }
 
             var dbContextConfig = appSettings.ServiceDbContext;
-            
-            options.UseNpgsql(dbContextConfig.NotificationDb);
+            opts.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());            
+            opts.UseNpgsql(dbContextConfig.NotificationDb);
         });
         return services;
     }

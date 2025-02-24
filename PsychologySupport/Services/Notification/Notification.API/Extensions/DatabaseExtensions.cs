@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Notification.API.Data;
+﻿using Notification.API.Data;
 
 namespace Notification.API.Extensions;
 

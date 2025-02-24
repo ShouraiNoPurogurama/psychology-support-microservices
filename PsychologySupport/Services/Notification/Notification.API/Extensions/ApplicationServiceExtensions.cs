@@ -1,9 +1,12 @@
 ﻿using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
+using BuildingBlocks.Messaging.Masstransit;
 using Carter;
 using MassTransit;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
+using Notification.API.Data.Processors;
+using Notification.API.Outbox.Services;
 
 namespace Notification.API.Extensions;
 
@@ -23,6 +26,8 @@ public static class ApplicationServiceExtensions
         
         AddServiceDependencies(services);
 
+        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+        
         return services;
     }
 
@@ -54,7 +59,7 @@ public static class ApplicationServiceExtensions
     {
         services.AddMediatR(configuration =>
         {
-            configuration.RegisterServicesFromAssembly(typeof(Program).Assembly);
+            configuration.RegisterServicesFromAssembly(typeof(IAssemblyMarker).Assembly);
             configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
             configuration.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
@@ -64,47 +69,9 @@ public static class ApplicationServiceExtensions
     {
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        services.AddScoped<OutboxProcessor>();
+        services.AddScoped<OutboxService>();
+        services.AddHostedService<OutboxProcessor>();
     }
     
-    private static IServiceCollection AddMessageBroker(IServiceCollection services, IConfiguration config)
-    {
-        var appSettings = config.Get<AppSettings>();
-
-        var assemblyMarker = typeof(IAssemblyMarker).Assembly;
-
-        services.AddMassTransit(configure =>
-        {
-            if (appSettings is null)
-            {
-                throw new ArgumentException(nameof(appSettings));
-            }
-
-            var brokerConfig = appSettings.BrokerConfiguration;
-
-            #region Configure attributes
-
-            configure.SetKebabCaseEndpointNameFormatter();
-            configure.SetInMemorySagaRepositoryProvider();
-            configure.AddConsumers(assemblyMarker);
-            configure.AddSagaStateMachines(assemblyMarker);
-            configure.AddSagas(assemblyMarker);
-            configure.AddActivities(assemblyMarker);
-
-            #endregion
-
-            configure.UsingRabbitMq((context, configurator) =>
-            {
-                configurator.UseRawJsonDeserializer();
-
-                configurator.Host(brokerConfig.Host, hostConfigure =>
-                {
-                    hostConfigure.Username(brokerConfig.Username);
-                    hostConfigure.Password(brokerConfig.Password);
-                });
-                configurator.ConfigureEndpoints(context);
-            });
-        });
-
-        return services;
-    }
 }
