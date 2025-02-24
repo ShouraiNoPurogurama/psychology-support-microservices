@@ -4,7 +4,7 @@ using Notification.API.Emails.ServiceContracts;
 
 namespace Notification.API.Emails.EventHandlers;
 
-public class SendEmailHandler(IEmailService emailService) : INotificationHandler<SendEmailEvent>
+public class SendEmailEventHandler(IEmailService emailService) : INotificationHandler<SendEmailEvent>
 {
     public Task Handle(SendEmailEvent notification, CancellationToken cancellationToken)
     {

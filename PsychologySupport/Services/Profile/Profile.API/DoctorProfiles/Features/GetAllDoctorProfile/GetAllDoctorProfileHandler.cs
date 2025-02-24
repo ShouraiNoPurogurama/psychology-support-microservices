@@ -3,8 +3,7 @@ using BuildingBlocks.Pagination;
 using Mapster;
 using Profile.API.DoctorProfiles.Dtos;
 
-
-namespace Profile.API.DoctorProfiles.Features.GetAllDoctorProfiles;
+namespace Profile.API.DoctorProfiles.Features.GetAllDoctorProfile;
 
 public record GetAllDoctorProfilesQuery(PaginationRequest PaginationRequest) : IQuery<GetAllDoctorProfilesResult>;
 

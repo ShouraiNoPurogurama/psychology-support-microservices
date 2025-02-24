@@ -2,23 +2,24 @@
 
 public class AppSettings
 {
-    public ServiceDbContextConfiguraion ServiceDbContext { get; set; } = null!;
-    public BrokerConfiguration BrokerConfiguration { get; set; } = null!;
+    public ServiceDbContextConfiguration ServiceDbContext { get; set; } = null!;
+    
+    // public BrokerConfiguration BrokerConfiguration { get; set; } = null!;
     public FeatureConfiguration Features { get; set; } = null!;
     public string BaseUrl { get; set; } = null!;
 }
 
-public class ServiceDbContextConfiguraion
+public class ServiceDbContextConfiguration
 {
     public required string NotificationDb { get; set; }
 }
 
-public class BrokerConfiguration
-{
-    public required string Host { get; set; }
-    public required string Username { get; set; }
-    public required string Password { get; set; }
-}
+// public class BrokerConfiguration
+// {
+//     public required string Host { get; set; }
+//     public required string Username { get; set; }
+//     public required string Password { get; set; }
+// }
 
 
 /// <summary>

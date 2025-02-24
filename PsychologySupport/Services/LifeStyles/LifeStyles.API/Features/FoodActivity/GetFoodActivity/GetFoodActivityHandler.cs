@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
+using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,11 +1,9 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
 using Profile.API.PatientProfiles.Dtos;
-using Profile.API.PatientProfiles.Models;
-using System.Threading;
-using System.Threading.Tasks;
+
+namespace Profile.API.PatientProfiles.Features.GetAllMedicalRecord;
 
 public record GetAllMedicalRecordsQuery(Guid PatientId, PaginationRequest PaginationRequest) : IQuery<GetAllMedicalRecordsResult>;
 
@@ -23,7 +21,7 @@ public class GetAllMedicalRecordsHandler : IQueryHandler<GetAllMedicalRecordsQue
     {
         var patient = await _context.PatientProfiles
             .Include(p => p.MedicalRecords)
-                .ThenInclude(m => m.SpecificMentalDisorders)
+            .ThenInclude(m => m.SpecificMentalDisorders)
             .FirstOrDefaultAsync(p => p.Id == request.PatientId, cancellationToken);
 
         if (patient is null)

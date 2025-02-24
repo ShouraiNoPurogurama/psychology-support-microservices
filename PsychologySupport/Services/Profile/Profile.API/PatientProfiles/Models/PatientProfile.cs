@@ -3,11 +3,12 @@ using BuildingBlocks.Data.Enums;
 using BuildingBlocks.DDD;
 using Profile.API.Common.ValueObjects;
 using Profile.API.MentalDisorders.Models;
+using Profile.API.PatientProfiles.Events;
 using Profile.API.PatientProfiles.ValueObjects;
 
 namespace Profile.API.PatientProfiles.Models;
 
-public class PatientProfile : Aggregate<Guid>
+public class PatientProfile : AggregateRoot<Guid>
 {
     public Guid UserId { get;  set; }
     public string FullName { get; set; }
@@ -43,7 +44,11 @@ public class PatientProfile : Aggregate<Guid>
     public MedicalRecord AddMedicalRecord(Guid doctorId, string notes, MedicalRecordStatus status, List<SpecificMentalDisorder> existingDisorders)
     {
         var medicalRecord = MedicalRecord.Create(Id, doctorId, MedicalHistoryId, notes, status, existingDisorders);
+        
         _medicalRecords.Add(medicalRecord);
+        
+        AddDomainEvent(new MedicalRecordAddedEvent(medicalRecord));
+        
         return medicalRecord;
     }
 

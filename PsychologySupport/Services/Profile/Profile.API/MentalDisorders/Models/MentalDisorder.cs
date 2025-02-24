@@ -2,7 +2,7 @@
 
 namespace Profile.API.MentalDisorders.Models;
 
-public class MentalDisorder : Aggregate<Guid>
+public class MentalDisorder : AggregateRoot<Guid>
 {
     public string Name { get; set; }
     

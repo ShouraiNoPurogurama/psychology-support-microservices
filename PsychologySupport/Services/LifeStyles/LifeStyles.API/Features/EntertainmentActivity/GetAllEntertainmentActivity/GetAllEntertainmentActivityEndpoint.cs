@@ -1,10 +1,10 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
+using LifeStyles.API.Dtos;
 using Mapster;
 using MediatR;
-using LifeStyles.API.Dtos;
 
-namespace LifeStyles.API.Features.EntertainmentActivities.GetAllEntertainmentActivity;
+namespace LifeStyles.API.Features.EntertainmentActivity.GetAllEntertainmentActivity;
 
 public record GetAllEntertainmentActivitiesResponse(IEnumerable<EntertainmentActivityDto> EntertainmentActivities);
 

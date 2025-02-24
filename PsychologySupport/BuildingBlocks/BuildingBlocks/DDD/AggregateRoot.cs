@@ -1,6 +1,6 @@
 ﻿namespace BuildingBlocks.DDD;
 
-public abstract class Aggregate<TId> : Entity<TId>, IAggregate<TId>
+public abstract class AggregateRoot<TId> : Entity<TId>, IAggregateRoot<TId>
 {
     private readonly List<IDomainEvent> _domainEvents = new();
 

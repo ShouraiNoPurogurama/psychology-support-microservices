@@ -1,6 +1,4 @@
-﻿using BuildingBlocks.DDD;
-
-namespace Notification.API.Emails.Events;
+﻿namespace Notification.API.Emails.Events;
 
 public record SendEmailEvent(
     Guid EventId,

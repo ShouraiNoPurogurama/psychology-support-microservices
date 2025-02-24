@@ -13,8 +13,8 @@ using Profile.API.Data;
 namespace Profile.API.Data.Migrations
 {
     [DbContext(typeof(ProfileDbContext))]
-    [Migration("20250218151804_UpdateProfileEntity")]
-    partial class UpdateProfileEntity
+    [Migration("20250224130902_FixDoctorProfileErrors")]
+    partial class FixDoctorProfileErrors
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -79,7 +79,6 @@ namespace Profile.API.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Bio")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("CreatedAt")
@@ -89,7 +88,6 @@ namespace Profile.API.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("FullName")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Gender")
@@ -102,14 +100,12 @@ namespace Profile.API.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Qualifications")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<float>("Rating")
                         .HasColumnType("real");
 
                     b.Property<string>("Specialty")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("TotalReviews")
@@ -295,7 +291,6 @@ namespace Profile.API.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("FullName")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Gender")

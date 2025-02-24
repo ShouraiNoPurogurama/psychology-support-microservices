@@ -4,16 +4,22 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Notification.API.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Subscription.API.Data;
 
 #nullable disable
 
-namespace Subscription.API.Data.Migrations
+namespace Notification.API.Data.Migrations
 {
+<<<<<<<< HEAD:PsychologySupport/Services/Notification/Notification.API/Data/Migrations/20250224072345_AddOutboxMessageModel.Designer.cs
+    [DbContext(typeof(NotificationDbContext))]
+    [Migration("20250224072345_AddOutboxMessageModel")]
+    partial class AddOutboxMessageModel
+========
     [DbContext(typeof(SubscriptionDbContext))]
     [Migration("20250223080010_InitialCreate")]
     partial class InitialCreate
+>>>>>>>> BE_CanhTan:PsychologySupport/Services/Subscription/Data/Migrations/20250223080010_InitialCreate.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -26,12 +32,19 @@ namespace Subscription.API.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Subscription.API.Models.ServicePackage", b =>
+            modelBuilder.Entity("Notification.API.Emails.Models.EmailTrace", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+<<<<<<<< HEAD:PsychologySupport/Services/Notification/Notification.API/Data/Migrations/20250224072345_AddOutboxMessageModel.Designer.cs
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+========
                     b.Property<DateTimeOffset?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -52,29 +65,28 @@ namespace Subscription.API.Data.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LastModified")
+>>>>>>>> BE_CanhTan:PsychologySupport/Services/Subscription/Data/Migrations/20250223080010_InitialCreate.Designer.cs
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text");
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("Name")
+<<<<<<<< HEAD:PsychologySupport/Services/Notification/Notification.API/Data/Migrations/20250224072345_AddOutboxMessageModel.Designer.cs
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Subject")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("numeric");
+                    b.Property<string>("To")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasKey("Id");
-
-                    b.ToTable("ServicePackages", "public");
-                });
-
-            modelBuilder.Entity("Subscription.API.Models.UserSubscription", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
+                    b.Property<string>("TrackerId")
+                        .IsRequired()
+                        .HasColumnType("text");
+========
                     b.Property<DateTimeOffset?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -102,10 +114,48 @@ namespace Subscription.API.Data.Migrations
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("VARCHAR(20)");
+>>>>>>>> BE_CanhTan:PsychologySupport/Services/Subscription/Data/Migrations/20250223080010_InitialCreate.Designer.cs
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserSubscriptions", "public");
+                    b.ToTable("EmailTraces", "public");
+                });
+
+            modelBuilder.Entity("Notification.API.Outbox.Models.OutboxMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("OccuredOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ProcessedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OutboxMessages", "public");
                 });
 #pragma warning restore 612, 618
         }

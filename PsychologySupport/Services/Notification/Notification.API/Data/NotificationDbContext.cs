@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Notification.API.Outbox.Models;
 
 namespace Notification.API.Data;
 
@@ -9,7 +9,8 @@ public class NotificationDbContext : DbContext
     }
 
     public DbSet<EmailTrace> EmailTraces => Set<EmailTrace>();
-
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.HasDefaultSchema("public");
