@@ -1,10 +1,7 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
-using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
-using Mapster;
 using Microsoft.EntityFrameworkCore;
-using Subscription.API.Dtos;
 
 namespace LifeStyles.API.Features.FoodActivity.GetAllFoodActivity;
 

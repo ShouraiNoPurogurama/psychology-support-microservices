@@ -24,7 +24,9 @@ namespace Profile.API.PatientProfiles.Features.GetMedicalHistory
             })
                 .WithName("GetMedicalHistoryByPatientId")
                 .Produces<GetMedicalHistoryResponse>()
-                .ProducesProblem(StatusCodes.Status404NotFound);
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .WithDescription("Get MedicalHistory By PatientId")
+                .WithSummary("Get MedicalHistory By PatientId");
         }
     }
 }

@@ -13,7 +13,7 @@ public class UpdateDoctorProfileEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPut("/doctor-profiles/{id:guid}", async ([FromRoute] Guid id, [FromBody] UpdateDoctorProfileRequest request, ISender sender) =>
+        app.MapPut("/doctors/{id:guid}", async ([FromRoute] Guid id, [FromBody] UpdateDoctorProfileRequest request, ISender sender) =>
         {
             var command = new UpdateDoctorProfileCommand(id, request.DoctorProfileUpdate);
             var result = await sender.Send(command);

@@ -30,6 +30,10 @@ public class GetAllMedicalRecordsEndpoint : ICarterModule
         .WithName("GetAllMedicalRecordsByPatientId")
         .Produces<GetAllMedicalRecordsResponse>()
         .ProducesProblem(StatusCodes.Status400BadRequest)
-        .ProducesProblem(StatusCodes.Status404NotFound);
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .WithDescription("GetAll MedicalRecords By PatientId")
+        .WithSummary("GetAll MedicalRecords By PatientId");
+
+
     }
 }

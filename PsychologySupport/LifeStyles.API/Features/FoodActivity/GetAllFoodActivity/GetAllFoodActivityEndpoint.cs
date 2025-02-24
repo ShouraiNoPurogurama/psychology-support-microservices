@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
+using LifeStyles.API.Dtos;
 using Mapster;
 using MediatR;
-using Subscription.API.Dtos;
 
 namespace LifeStyles.API.Features.FoodActivity.GetAllFoodActivity;
 
