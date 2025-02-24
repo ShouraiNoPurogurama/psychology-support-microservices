@@ -14,6 +14,13 @@ public static class Extensions
         {
             config.SetKebabCaseEndpointNameFormatter();
 
+            config.SetInMemorySagaRepositoryProvider();
+
+            config.AddConsumers(assembly);
+            config.AddSagaStateMachines(assembly);
+            config.AddSagas(assembly);
+            config.AddActivities(assembly);
+
             if (assembly is not null) config.AddConsumers(assembly);
 
             config.UsingRabbitMq((context, configurator) =>
