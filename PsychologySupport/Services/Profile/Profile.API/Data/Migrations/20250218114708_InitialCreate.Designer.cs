@@ -13,8 +13,8 @@ using Profile.API.Data;
 namespace Profile.API.Data.Migrations
 {
     [DbContext(typeof(ProfileDbContext))]
-    [Migration("20250217154416_Refactor")]
-    partial class Refactor
+    [Migration("20250218114708_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

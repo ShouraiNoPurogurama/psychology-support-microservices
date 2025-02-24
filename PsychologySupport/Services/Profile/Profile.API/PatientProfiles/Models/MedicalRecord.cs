@@ -62,4 +62,30 @@ public class MedicalRecord : Entity<Guid>
 
         return new MedicalRecord(Guid.NewGuid(), patientId, doctorId, medicalHistoryId, notes, status, disorders);
     }
+
+    public void Update(Guid patientId, Guid doctorId, Guid? medicalHistoryId,
+        string notes, MedicalRecordStatus status, List<SpecificMentalDisorder> disorders)
+    {
+        if (patientId == Guid.Empty)
+            throw new ArgumentException("Patient ID cannot be empty.", nameof(patientId));
+
+        if (doctorId == Guid.Empty)
+            throw new ArgumentException("Doctor ID cannot be empty.", nameof(doctorId));
+
+        if (medicalHistoryId == Guid.Empty)
+            throw new ArgumentException("Medical history ID cannot be empty.", nameof(medicalHistoryId));
+
+        if (string.IsNullOrWhiteSpace(notes))
+            throw new ArgumentException("Notes cannot be empty.", nameof(notes));
+
+        PatientProfileId = patientId;
+        DoctorProfileId = doctorId;
+        MedicalHistoryId = medicalHistoryId;
+        Notes = notes;
+        Status = status;
+
+        _specificMentalDisorders.Clear();
+        _specificMentalDisorders.AddRange(disorders);
+
+    }
 }
