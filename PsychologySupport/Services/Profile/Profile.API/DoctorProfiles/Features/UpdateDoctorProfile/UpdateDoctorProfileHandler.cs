@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
+using MassTransit;
 using MediatR;
 using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.DoctorProfiles.Events;
@@ -15,11 +16,13 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
 {
     private readonly ProfileDbContext _context;
     private readonly IMediator _mediator;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public UpdateDoctorProfileHandler(ProfileDbContext context, IMediator mediator)
+    public UpdateDoctorProfileHandler(ProfileDbContext context, IMediator mediator,IPublishEndpoint publishEndpoint)
     {
         _context = context;
         _mediator = mediator;
+        _publishEndpoint = publishEndpoint;
     }
 
     public async Task<UpdateDoctorProfileResult> Handle(UpdateDoctorProfileCommand request, CancellationToken cancellationToken)
@@ -30,7 +33,7 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
 
         doctorProfile.Update(
         request.DoctorProfileDto.FullName,
-        request.DoctorProfileDto.Gender,
+        request.DoctorProfileDto.Gender.ToString(),
         request.DoctorProfileDto.ContactInfo,
         request.DoctorProfileDto.Specialty,
         request.DoctorProfileDto.Qualifications,
@@ -38,19 +41,21 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
         request.DoctorProfileDto.Bio,
         request.DoctorProfileDto.Rating,
         request.DoctorProfileDto.TotalReviews
-    );
+        );
 
+        doctorProfile.LastModified = DateTimeOffset.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         var doctorProfileUpdatedEvent = new DoctorProfileUpdatedEvent(
-            doctorProfile.Id,
-            doctorProfile.Specialty,
-            doctorProfile.Qualifications,
-            doctorProfile.YearsOfExperience,
-            doctorProfile.Bio
+            doctorProfile.UserId,
+            doctorProfile.Gender.ToString(),
+            doctorProfile.ContactInfo.Email,
+            doctorProfile.ContactInfo.PhoneNumber,
+            doctorProfile.LastModified
         );
 
         await _mediator.Publish(doctorProfileUpdatedEvent, cancellationToken);
+        await _publishEndpoint.Publish(doctorProfileUpdatedEvent, cancellationToken);
 
         return new UpdateDoctorProfileResult(doctorProfile.Id);
     }

@@ -1,14 +1,16 @@
 ﻿using BuildingBlocks.CQRS;
 using Mapster;
+using MassTransit;
 using MediatR;
 using Profile.API.Data;
+using Profile.API.DoctorProfiles.Events;
 using Profile.API.PatientProfiles.Dtos;
 using Profile.API.PatientProfiles.Events;
 using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
 {
-    public record CreatePatientProfileCommand(PatientProfileCreate PatientProfileCreate) : ICommand<CreatePatientProfileResult>;
+    public record CreatePatientProfileCommand(CreatePatientProfileDto PatientProfileCreate) : ICommand<CreatePatientProfileResult>;
 
     public record CreatePatientProfileResult(Guid Id);
 
@@ -16,11 +18,13 @@ namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
     {
         private readonly ProfileDbContext _context;
         private readonly IMediator _mediator;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public CreatePatientProfileHandler(ProfileDbContext context, IMediator mediator)
+        public CreatePatientProfileHandler(ProfileDbContext context, IMediator mediator,IPublishEndpoint publishEndpoint)
         {
             _context = context;
             _mediator = mediator;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task<CreatePatientProfileResult> Handle(CreatePatientProfileCommand request, CancellationToken cancellationToken)
@@ -45,14 +49,14 @@ namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
                 var patientProfileCreatedEvent = new PatientProfileCreatedEvent(
                     patientProfile.UserId,
                     patientProfile.FullName,
-                    patientProfile.Gender,
+                    patientProfile.Gender.ToString(),
                     patientProfile.ContactInfo.Email,
                     patientProfile.ContactInfo.PhoneNumber,
-                    patientProfile.Allergies,
                     patientProfile.CreatedAt
                 );
 
                 await _mediator.Publish(patientProfileCreatedEvent, cancellationToken);
+                await _publishEndpoint.Publish(patientProfileCreatedEvent, cancellationToken);
 
                 return new CreatePatientProfileResult(patientProfile.Id);
             }

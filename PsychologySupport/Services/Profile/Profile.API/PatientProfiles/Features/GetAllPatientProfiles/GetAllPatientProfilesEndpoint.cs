@@ -26,6 +26,8 @@ public class GetAllPatientProfilesEndpoint : ICarterModule
             .WithName("GetAllPatientProfiles") 
             .Produces<GetAllPatientProfilesResponse>() 
             .ProducesProblem(StatusCodes.Status400BadRequest) 
-            .ProducesProblem(StatusCodes.Status404NotFound); 
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .WithDescription("Get All Patient Profiles")
+            .WithSummary("Get All Patient Profiles");
     }
 }

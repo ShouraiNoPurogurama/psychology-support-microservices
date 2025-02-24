@@ -27,6 +27,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
+      <ProjectReference Include="..\..\Profile\Profile.API\Profile.API.csproj" />
     </ItemGroup>
 
     <ItemGroup>

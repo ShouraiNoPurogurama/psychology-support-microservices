@@ -22,7 +22,7 @@ public class GetAllDoctorProfilesHandler : IQueryHandler<GetAllDoctorProfilesQue
     public async Task<GetAllDoctorProfilesResult> Handle(GetAllDoctorProfilesQuery request, CancellationToken cancellationToken)
     {
         var pageSize = request.PaginationRequest.PageSize;
-        var pageIndex = request.PaginationRequest.PageIndex;
+        var pageIndex = Math.Max(1, request.PaginationRequest.PageIndex);
 
         var doctorProfiles = await _context.DoctorProfiles
             .OrderByDescending(d => d.FullName)

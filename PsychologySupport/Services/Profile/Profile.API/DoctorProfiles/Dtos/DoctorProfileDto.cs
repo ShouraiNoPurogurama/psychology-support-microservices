@@ -1,11 +1,12 @@
-﻿using Profile.API.Common.ValueObjects;
+﻿using BuildingBlocks.Data.Enums;
+using Profile.API.Common.ValueObjects;
 
 namespace Profile.API.DoctorProfiles.Dtos;
 
 public record DoctorProfileDto(
     Guid Id,
-    string? FullName,
-    string? Gender,
+    string FullName,
+    string Gender,
     ContactInfo ContactInfo,
     string Specialty,
     string Qualifications,

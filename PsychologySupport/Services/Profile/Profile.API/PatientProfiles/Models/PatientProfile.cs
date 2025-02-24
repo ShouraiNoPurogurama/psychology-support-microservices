@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using BuildingBlocks.Data.Enums;
 using BuildingBlocks.DDD;
 using Profile.API.Common.ValueObjects;
 using Profile.API.MentalDisorders.Models;
@@ -10,9 +11,9 @@ namespace Profile.API.PatientProfiles.Models;
 public class PatientProfile : AggregateRoot<Guid>
 {
     public Guid UserId { get;  set; }
-    public string? FullName { get; set; }
-    public string? Gender { get;  set; }
-    public string? Allergies { get;  set; }
+    public string FullName { get; set; }
+    public UserGender Gender { get;  set; }
+    public string Allergies { get;  set; }
     public PersonalityTrait PersonalityTraits { get;  set; }
     public ContactInfo ContactInfo { get;  set; } = default!;
     public Guid? MedicalHistoryId { get;  set; }
@@ -29,7 +30,12 @@ public class PatientProfile : AggregateRoot<Guid>
     {
         UserId = userId;
         FullName = fullName;
-        Gender = gender;
+
+        if (!Enum.TryParse<UserGender>(gender, true, out var parsedGender))
+            throw new ArgumentException("Invalid gender value. Allowed: Male, Female, Else.", nameof(gender));
+
+        Gender = parsedGender; 
+
         Allergies = allergies;
         PersonalityTraits = personalityTraits;
         ContactInfo = contactInfo;
@@ -85,7 +91,12 @@ public class PatientProfile : AggregateRoot<Guid>
     public void Update(string? fullName, string? gender, string? allergies, PersonalityTrait personalityTraits, ContactInfo contactInfo)
     {
         FullName = fullName;
-        Gender = gender;
+
+        if (!Enum.TryParse<UserGender>(gender, true, out var parsedGender))
+            throw new ArgumentException("Invalid gender value. Allowed: Male, Female, Else.", nameof(gender));
+
+        Gender = parsedGender; 
+
         Allergies = allergies;
         PersonalityTraits = personalityTraits;
         ContactInfo = contactInfo;
@@ -112,23 +123,4 @@ public class PatientProfile : AggregateRoot<Guid>
 
         MedicalHistory.Update(description, diagnosedAt, specificMentalDisorders, physicalSymptoms);
     }
-
-    public IReadOnlyList<MedicalRecord> GetAllMedicalRecords(Guid patientId)
-    {
-        if (Id != patientId)
-        {
-            throw new ArgumentException("Invalid patient ID.", nameof(patientId));
-        }
-        return _medicalRecords.AsReadOnly();
-    }
-
-    public MedicalHistory? GetMedicalHistory(Guid patientId)
-    {
-        if (Id != patientId)
-        {
-            throw new ArgumentException("Invalid patient ID.", nameof(patientId));
-        }
-        return MedicalHistory;
-    }
-
 }

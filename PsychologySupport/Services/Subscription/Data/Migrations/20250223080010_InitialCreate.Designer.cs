@@ -11,9 +11,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Notification.API.Data.Migrations
 {
+<<<<<<<< HEAD:PsychologySupport/Services/Notification/Notification.API/Data/Migrations/20250224072345_AddOutboxMessageModel.Designer.cs
     [DbContext(typeof(NotificationDbContext))]
     [Migration("20250224072345_AddOutboxMessageModel")]
     partial class AddOutboxMessageModel
+========
+    [DbContext(typeof(SubscriptionDbContext))]
+    [Migration("20250223080010_InitialCreate")]
+    partial class InitialCreate
+>>>>>>>> BE_CanhTan:PsychologySupport/Services/Subscription/Data/Migrations/20250223080010_InitialCreate.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,16 +38,40 @@ namespace Notification.API.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+<<<<<<<< HEAD:PsychologySupport/Services/Notification/Notification.API/Data/Migrations/20250224072345_AddOutboxMessageModel.Designer.cs
                     b.Property<string>("Body")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
+========
+                    b.Property<DateTimeOffset?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("DurationDays")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ImageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LastModified")
+>>>>>>>> BE_CanhTan:PsychologySupport/Services/Subscription/Data/Migrations/20250223080010_InitialCreate.Designer.cs
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("MessageId")
                         .HasColumnType("uuid");
 
+<<<<<<<< HEAD:PsychologySupport/Services/Notification/Notification.API/Data/Migrations/20250224072345_AddOutboxMessageModel.Designer.cs
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -56,6 +86,35 @@ namespace Notification.API.Data.Migrations
                     b.Property<string>("TrackerId")
                         .IsRequired()
                         .HasColumnType("text");
+========
+                    b.Property<DateTimeOffset?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ServicePackageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(20)");
+>>>>>>>> BE_CanhTan:PsychologySupport/Services/Subscription/Data/Migrations/20250223080010_InitialCreate.Designer.cs
 
                     b.HasKey("Id");
 

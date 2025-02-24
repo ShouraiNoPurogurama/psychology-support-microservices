@@ -1,11 +1,12 @@
 ﻿using BuildingBlocks.DDD;
+using MediatR;
 
 namespace Profile.API.DoctorProfiles.Events;
 
 public record DoctorProfileUpdatedEvent(
-    Guid Id,
-    string? Specialty,
-    string? Qualifications,
-    int YearsOfExperience,
-    string? Bio
-) : IDomainEvent;
+    Guid UserId,
+    string Gender,
+    string Email,
+    string PhoneNumber,
+    DateTimeOffset? LastModified
+);

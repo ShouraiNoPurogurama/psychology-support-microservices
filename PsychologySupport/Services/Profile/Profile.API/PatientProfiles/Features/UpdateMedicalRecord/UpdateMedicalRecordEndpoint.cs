@@ -30,7 +30,7 @@ public class UpdateMedicalRecordEndpoint : ICarterModule
             var result = await sender.Send(command);
             var response = result.Adapt<UpdateMedicalRecordResponse>();
 
-            return response.IsSuccess ? Results.Ok(response) : Results.Problem();
+            return Results.Ok(response);
         })
         .WithName("UpdateMedicalRecord")
         .Produces<UpdateMedicalRecordResponse>(StatusCodes.Status200OK)

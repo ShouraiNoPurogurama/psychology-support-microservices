@@ -1,13 +1,15 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Pagination;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Profile.API.PatientProfiles.Dtos;
 using Profile.API.PatientProfiles.Models;
 using System.Threading;
 using System.Threading.Tasks;
 
-public record GetAllMedicalRecordsQuery(Guid PatientId, int PageNumber, int PageSize) : IQuery<GetAllMedicalRecordsResult>;
+public record GetAllMedicalRecordsQuery(Guid PatientId, PaginationRequest PaginationRequest) : IQuery<GetAllMedicalRecordsResult>;
 
-public record GetAllMedicalRecordsResult(IEnumerable<MedicalRecord> MedicalRecords, int TotalRecords);
+public record GetAllMedicalRecordsResult(IEnumerable<MedicalRecordDto> MedicalRecords, int TotalRecords);
 public class GetAllMedicalRecordsHandler : IQueryHandler<GetAllMedicalRecordsQuery, GetAllMedicalRecordsResult>
 {
     private readonly ProfileDbContext _context;
@@ -29,11 +31,15 @@ public class GetAllMedicalRecordsHandler : IQueryHandler<GetAllMedicalRecordsQue
             throw new KeyNotFoundException("Patient not found.");
         }
 
+        var pageSize = request.PaginationRequest.PageSize;
+        var pageIndex = Math.Max(1, request.PaginationRequest.PageIndex);
+
         var totalRecords = patient.MedicalRecords.Count;
         var medicalRecords = patient.MedicalRecords
-            .Skip((request.PageNumber - 1) * request.PageSize)
-            .Take(request.PageSize)
-            .Adapt<IEnumerable<MedicalRecord>>();
+            .Skip((pageIndex - 1) * pageSize)  
+            .Take(pageSize)
+            .Adapt<IEnumerable<MedicalRecordDto>>();
+
 
         return new GetAllMedicalRecordsResult(medicalRecords, totalRecords);
     }

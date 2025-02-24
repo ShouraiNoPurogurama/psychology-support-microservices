@@ -31,6 +31,8 @@ public class AddMedicalRecordEndpoint : ICarterModule
         })
             .WithName("AddMedicalRecord")
             .Produces<AddMedicalRecordResponse>()
-            .ProducesProblem(StatusCodes.Status400BadRequest);
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .WithDescription("Add Medical Record")
+            .WithSummary("Add Medical Record");
     }
 }

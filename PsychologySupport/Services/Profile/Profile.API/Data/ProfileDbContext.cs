@@ -24,6 +24,11 @@ public class ProfileDbContext : DbContext
 
         builder.Entity<PatientProfile>(typeBuilder =>
         {
+             typeBuilder.Property(d => d.Gender)
+                .HasConversion<string>()  
+                .HasMaxLength(10)
+                .HasColumnName("Gender");
+
             typeBuilder.HasOne(p => p.MedicalHistory)
                 .WithOne()
                 .HasForeignKey<MedicalHistory>(m => m.PatientId);
@@ -42,6 +47,11 @@ public class ProfileDbContext : DbContext
         
         builder.Entity<DoctorProfile>(typeBuilder =>
         {
+            typeBuilder.Property(d => d.Gender)
+                .HasConversion<string>() 
+                .HasMaxLength(10)
+                .HasColumnName("gender");
+
             typeBuilder.ComplexProperty(d => d.ContactInfo, contactInfoBuilder =>
             {
                 contactInfoBuilder.Property(c => c.Address)

@@ -7,7 +7,7 @@ using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile
 {
-    public record UpdatePatientProfileRequest(PatientProfileUpdate PatientProfileUpdate);
+    public record UpdatePatientProfileRequest(UpdatePatientProfileDto PatientProfileUpdate);
     public record UpdatePatientProfileResponse(Guid Id);
 
     public class UpdatePatientProfileEndpoint : ICarterModule

@@ -22,3 +22,21 @@
     build:
       context: .
       dockerfile: Services/Notification/Notification.API/Dockerfile
+
+  webapplication1:
+    image: webapplication1
+    build:
+      context: .
+      dockerfile: Services/LifeStyles/WebApplication1/Dockerfile
+
+  lifestyles.api:
+    image: lifestyles.api
+    build:
+      context: .
+      dockerfile: Services/LifeStyles/LifeStyles.API/Dockerfile
+
+  subscription.api:
+    image: subscription.api
+    build:
+      context: .
+      dockerfile: Services/Subscription/Subscription.API/Dockerfile

@@ -6,7 +6,7 @@ using Profile.API.DoctorProfiles.Dtos;
 
 namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
 {
-    public record CreateDoctorProfileRequest(DoctorProfileCreate DoctorProfile);
+    public record CreateDoctorProfileRequest(CreateDoctorProfileDto DoctorProfile);
     public record CreateDoctorProfileResponse(Guid Id);
 
     public class CreateDoctorProfileEndpoint : ICarterModule
