@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using BuildingBlocks.CQRS;
 using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.PatientProfiles.Features.UpdateMedicalHistory;

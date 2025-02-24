@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.CQRS;
-using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Pagination;
 using Mapster;
 using Profile.API.PatientProfiles.Dtos;
 

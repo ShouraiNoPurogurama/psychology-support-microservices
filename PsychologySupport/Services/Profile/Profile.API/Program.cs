@@ -1,6 +1,5 @@
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
-using MassTransit;
 using Profile.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,21 +13,6 @@ services.AddApplicationServices(builder.Configuration);
 services.AddExceptionHandler<CustomExceptionHandler>();
 
 services.RegisterMapsterConfiguration();
-
-//RabbitMQ
-services.AddMassTransit(x =>
-{
-    x.UsingRabbitMq((context, cfg) =>
-    {
-        cfg.Host("rabbitmq", h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
-
-        cfg.PrefetchCount = 10;
-    });
-});
 
 
 // Configure the HTTP request pipeline

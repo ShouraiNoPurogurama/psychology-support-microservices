@@ -1,4 +1,5 @@
-﻿using Auth.API.Data.Enums;
+﻿
+using BuildingBlocks.Data.Enums;
 
 namespace Auth.API.Dtos.Requests;
 

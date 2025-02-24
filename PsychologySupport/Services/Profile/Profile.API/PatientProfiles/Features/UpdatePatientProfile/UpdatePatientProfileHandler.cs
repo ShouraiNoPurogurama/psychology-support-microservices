@@ -1,11 +1,4 @@
-﻿using BuildingBlocks.CQRS;
-using Mapster;
-using MassTransit;
-using MediatR;
-using Profile.API.Data;
-using Profile.API.Exceptions;
-using Profile.API.PatientProfiles.Dtos;
-using Profile.API.PatientProfiles.Events;
+﻿using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile
 {
@@ -40,10 +33,10 @@ namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            var patientProfileUpdatedEvent = new PatientProfileUpdatedEvent(
+            var patientProfileUpdatedEvent = new PatientProfileUpdatedIntegrationEvent(
                 patientProfile.UserId,
                 patientProfile.FullName,
-                patientProfile.Gender.ToString(),
+                patientProfile.Gender,
                 patientProfile.ContactInfo.Email,
                 patientProfile.ContactInfo.PhoneNumber,
                 patientProfile.LastModified

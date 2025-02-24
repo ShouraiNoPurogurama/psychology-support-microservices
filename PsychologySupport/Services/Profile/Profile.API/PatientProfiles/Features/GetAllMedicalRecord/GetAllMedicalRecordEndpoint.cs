@@ -1,6 +1,5 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Profile.API.PatientProfiles.Dtos;
 

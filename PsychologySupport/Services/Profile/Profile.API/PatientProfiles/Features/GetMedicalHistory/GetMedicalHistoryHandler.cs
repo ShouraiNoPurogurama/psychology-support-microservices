@@ -1,6 +1,4 @@
-﻿using BuildingBlocks.CQRS;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Profile.API.MentalDisorders.Dtos;
 using Profile.API.PatientProfiles.Dtos;
 using Profile.API.PatientProfiles.Models;
