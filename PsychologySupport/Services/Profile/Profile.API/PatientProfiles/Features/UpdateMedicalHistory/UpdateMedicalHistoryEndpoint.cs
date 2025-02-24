@@ -2,7 +2,8 @@
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Profile.API.PatientProfiles.Features.UpdateMedicalHistory;
+
+namespace Profile.API.PatientProfiles.Features.UpdateMedicalHistory;
 
 public record UpdateMedicalHistoryRequest(
     Guid PatientProfileId,
@@ -18,21 +19,21 @@ public class UpdateMedicalHistoryEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapPut("/patients/medical-history", async ([FromBody] UpdateMedicalHistoryRequest request, ISender sender) =>
-        {
-            if (request == null)
-                return Results.BadRequest("Invalid request payload.");
+            {
+                if (request == null)
+                    return Results.BadRequest("Invalid request payload.");
 
-            var command = request.Adapt<UpdateMedicalHistoryCommand>();
-            var result = await sender.Send(command);
-            var response = result.Adapt<UpdateMedicalHistoryResponse>();
+                var command = request.Adapt<UpdateMedicalHistoryCommand>();
+                var result = await sender.Send(command);
+                var response = result.Adapt<UpdateMedicalHistoryResponse>();
 
-            return response.IsSuccess ? Results.Ok(response) : Results.Problem();
-        })
-        .WithName("UpdateMedicalHistory")
-        .Produces<UpdateMedicalHistoryResponse>(StatusCodes.Status200OK)
-        .ProducesProblem(StatusCodes.Status400BadRequest)
-        .ProducesProblem(StatusCodes.Status404NotFound)
-        .WithDescription("Update Medical History")
-        .WithSummary("Update Medical History");
+                return response.IsSuccess ? Results.Ok(response) : Results.Problem();
+            })
+            .WithName("UpdateMedicalHistory")
+            .Produces<UpdateMedicalHistoryResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .WithDescription("Update Medical History")
+            .WithSummary("Update Medical History");
     }
 }

@@ -1,10 +1,10 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
+using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
-using Mapster;
 using Microsoft.EntityFrameworkCore;
 
-namespace LifeStyles.API.Features.TherapeuticActivity.GetAllTherapeuticActivity;
+namespace LifeStyles.API.Features.TherapeuticActivity.GetALTherapeuticActivity;
 
 public record GetAllTherapeuticActivitiesQuery(PaginationRequest PaginationRequest) : IQuery<GetAllTherapeuticActivitiesResult>;
 

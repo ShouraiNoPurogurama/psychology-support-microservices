@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
+using LifeStyles.API.Data;
 using LifeStyles.API.Exceptions;
 using Mapster;
 using Microsoft.EntityFrameworkCore;

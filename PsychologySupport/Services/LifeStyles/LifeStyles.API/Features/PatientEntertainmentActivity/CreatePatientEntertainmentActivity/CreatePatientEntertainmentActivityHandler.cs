@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
+using LifeStyles.API.Data;
 using LifeStyles.API.Events;
 using LifeStyles.API.Exceptions;
 using MassTransit;

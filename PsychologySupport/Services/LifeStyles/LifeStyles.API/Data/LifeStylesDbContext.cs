@@ -3,6 +3,8 @@ using LifeStyles.API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
+namespace LifeStyles.API.Data;
+
 public class LifeStylesDbContext : DbContext
 {
     public LifeStylesDbContext(DbContextOptions<LifeStylesDbContext> options) : base(options) { }
@@ -83,16 +85,16 @@ public class LifeStylesDbContext : DbContext
             .WithMany()
             .HasForeignKey(e => e.TherapeuticTypeId);
 
-       /* // Configure FoodActivity's foreign keys
-        builder.Entity<FoodActivity>()
-            .HasOne(e => e.FoodCategories)
-            .WithMany()
-            .HasForeignKey(e => e.Id);
+        /* // Configure FoodActivity's foreign keys
+    builder.Entity<FoodActivity>()
+        .HasOne(e => e.FoodCategories)
+        .WithMany()
+        .HasForeignKey(e => e.Id);
 
-        builder.Entity<FoodActivity>()
-            .HasOne(e => e.FoodNutrients)
-            .WithMany()
-            .HasForeignKey(e => e.Id);*/
+    builder.Entity<FoodActivity>()
+        .HasOne(e => e.FoodNutrients)
+        .WithMany()
+        .HasForeignKey(e => e.Id);*/
 
         // Add additional configurations for other entities if necessary
         base.OnModelCreating(builder);
