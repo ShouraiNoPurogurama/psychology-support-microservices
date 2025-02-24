@@ -1,20 +1,24 @@
-﻿namespace Profile.API.Extensions;
+﻿using BuildingBlocks.Messaging.Masstransit;
+
+namespace Profile.API.Extensions;
 
 public static class ApplicationServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
         services.AddEndpointsApiExplorer();
-        
+
         ConfigureSwagger(services);
-        
+
         ConfigureCors(services);
-        
+
         ConfigureMediatR(services);
 
         AddDatabase(services, config);
 
         AddServiceDependencies(services);
+
+        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
         return services;
     }
@@ -24,7 +28,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
     }
-    
+
     private static void ConfigureMediatR(IServiceCollection services)
     {
         services.AddMediatR(configuration =>

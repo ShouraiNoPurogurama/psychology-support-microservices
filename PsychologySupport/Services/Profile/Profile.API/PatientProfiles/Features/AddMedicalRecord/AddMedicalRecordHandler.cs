@@ -21,6 +21,7 @@ namespace Profile.API.PatientProfiles.Features.AddMedicalRecord
             _context = context;
         }
 
+        //TODO apply Outbox & Saga pattern here
         public async Task<AddMedicalRecordResult> Handle(AddMedicalRecordCommand request, CancellationToken cancellationToken)
         {
             var patientProfile = await _context.PatientProfiles.FindAsync(request.PatientProfileId);

@@ -4,7 +4,7 @@ using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.DoctorProfiles.Models;
 
-public class DoctorProfile : Aggregate<Guid>
+public class DoctorProfile : AggregateRoot<Guid>
 {
     public Guid UserId { get; set; }
     

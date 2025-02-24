@@ -19,7 +19,7 @@ public class AddMedicalRecordEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/patients", async ([FromBody] AddMedicalRecordRequest request, ISender sender) =>
+        app.MapPost("/patients/medical-records", async ([FromBody] AddMedicalRecordRequest request, ISender sender) =>
             {
                 var command = request.Adapt<AddMedicalRecordCommand>();
 

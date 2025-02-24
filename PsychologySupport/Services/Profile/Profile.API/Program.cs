@@ -1,4 +1,5 @@
 using BuildingBlocks.Exceptions.Handler;
+using BuildingBlocks.Messaging.Masstransit;
 using Carter;
 using Profile.API.Extensions;
 
@@ -13,6 +14,7 @@ services.AddApplicationServices(builder.Configuration);
 services.AddExceptionHandler<CustomExceptionHandler>();
 
 services.RegisterMapsterConfiguration();
+
 
 // Configure the HTTP request pipeline
 var app = builder.Build();
