@@ -76,7 +76,6 @@ namespace Profile.API.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Bio")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("CreatedAt")
@@ -86,7 +85,6 @@ namespace Profile.API.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("FullName")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Gender")
@@ -292,7 +290,6 @@ namespace Profile.API.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("FullName")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Gender")

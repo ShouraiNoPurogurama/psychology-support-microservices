@@ -23,9 +23,9 @@ public class GetAllPatientProfilesEndpoint : ICarterModule
 
                 return Results.Ok(response);
             })
-            .WithName("GetAllPatientProfiles") // Endpoint name
-            .Produces<GetAllPatientProfilesResponse>() // Successful response type
-            .ProducesProblem(StatusCodes.Status400BadRequest) // Handle bad request
-            .ProducesProblem(StatusCodes.Status404NotFound); // Handle not found
+            .WithName("GetAllPatientProfiles") 
+            .Produces<GetAllPatientProfilesResponse>() 
+            .ProducesProblem(StatusCodes.Status400BadRequest) 
+            .ProducesProblem(StatusCodes.Status404NotFound); 
     }
 }

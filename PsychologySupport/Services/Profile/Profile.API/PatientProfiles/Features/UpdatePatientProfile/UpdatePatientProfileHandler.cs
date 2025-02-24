@@ -1,0 +1,55 @@
+﻿using BuildingBlocks.CQRS;
+using Mapster;
+using MediatR;
+using Profile.API.Data;
+using Profile.API.Exceptions;
+using Profile.API.PatientProfiles.Dtos;
+using Profile.API.PatientProfiles.Events;
+
+namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile
+{
+    public record UpdatePatientProfileCommand(Guid Id, PatientProfileUpdate PatientProfileUpdate) : ICommand<UpdatePatientProfileResult>;
+
+    public record UpdatePatientProfileResult(Guid Id);
+
+    public class UpdatePatientProfileHandler : ICommandHandler<UpdatePatientProfileCommand, UpdatePatientProfileResult>
+    {
+        private readonly ProfileDbContext _context;
+        private readonly IMediator _mediator;
+
+        public UpdatePatientProfileHandler(ProfileDbContext context, IMediator mediator)
+        {
+            _context = context;
+            _mediator = mediator;
+        }
+
+        public async Task<UpdatePatientProfileResult> Handle(UpdatePatientProfileCommand request, CancellationToken cancellationToken)
+        {
+            var patientProfile = await _context.PatientProfiles.FindAsync(new object[] { request.Id }, cancellationToken);
+            if (patientProfile is null)
+            {
+                throw new KeyNotFoundException("Patient profile not found.");
+            }
+
+            var dto = request.PatientProfileUpdate;
+            patientProfile.Update(dto.FullName, dto.Gender, dto.Allergies, dto.PersonalityTraits, dto.ContactInfo);
+            patientProfile.LastModified = DateTimeOffset.UtcNow;
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            var patientProfileUpdatedEvent = new PatientProfileUpdatedEvent(
+                patientProfile.UserId,
+                patientProfile.FullName,
+                patientProfile.Gender,
+                patientProfile.ContactInfo.Email,
+                patientProfile.ContactInfo.PhoneNumber,
+                patientProfile.Allergies,
+                patientProfile.LastModified
+            );
+
+            await _mediator.Publish(patientProfileUpdatedEvent, cancellationToken);
+
+            return new UpdatePatientProfileResult(patientProfile.Id);
+        }
+    }
+}

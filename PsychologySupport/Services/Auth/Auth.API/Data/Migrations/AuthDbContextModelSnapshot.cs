@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Auth.API.Migrations
+namespace Auth.API.Data.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
     partial class AuthDbContextModelSnapshot : ModelSnapshot
@@ -75,7 +75,9 @@ namespace Auth.API.Migrations
 
                     b.Property<string>("Gender")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Else");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");

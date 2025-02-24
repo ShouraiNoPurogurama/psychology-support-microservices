@@ -7,4 +7,16 @@ public record ContactInfo
     public string? PhoneNumber { get; set; }
 
     public string? Email { get; set; }
+
+    public ContactInfo()
+    {
+        
+    }
+
+    public ContactInfo(string? email, string? phoneNumber, string? address)
+    {
+        Email = email;
+        PhoneNumber = phoneNumber;
+        Address = address;
+    }
 }

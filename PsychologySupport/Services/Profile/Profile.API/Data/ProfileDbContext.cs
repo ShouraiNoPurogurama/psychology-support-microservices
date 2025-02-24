@@ -18,7 +18,6 @@ public class ProfileDbContext : DbContext
     public DbSet<SpecificMentalDisorder> SpecificMentalDisorders => Set<SpecificMentalDisorder>();
     public DbSet<PhysicalSymptom> PhysicalSymptoms => Set<PhysicalSymptom>();
 
-
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.HasDefaultSchema("public");

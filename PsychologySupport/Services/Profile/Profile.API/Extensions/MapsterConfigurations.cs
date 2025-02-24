@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using Mapster;
-using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.PatientProfiles.Dtos;
 using Profile.API.PatientProfiles.Models;
 
@@ -10,6 +9,8 @@ public static class MapsterConfiguration
 {
     public static void RegisterMapsterConfiguration(this IServiceCollection services)
     {
+        // Scan the assembly for other mappings
         TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
+        
     }
 }
