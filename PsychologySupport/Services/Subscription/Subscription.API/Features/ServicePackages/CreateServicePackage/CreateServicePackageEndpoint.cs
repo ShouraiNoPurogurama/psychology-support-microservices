@@ -1,8 +1,7 @@
 ﻿using Carter;
-using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Subscription.API.Models;
+using Subscription.API.Services;
 
 namespace Subscription.API.Features.ServicePackages.CreateServicePackage;
 
@@ -11,10 +10,8 @@ public record CreateServicePackageRequest(
     string Description,
     decimal Price,
     int DurationDays,
-    Guid ImageId,
-    bool IsActive
+    IFormFile ImageData
 );
-
 
 public record CreateServicePackageResponse(Guid Id);
 
@@ -22,21 +19,54 @@ public class CreateServicePackageEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("service-packages", async ([FromBody] CreateServicePackageRequest request, ISender sender) =>
+        app.MapPost("service-packages", async (
+            [FromServices] IImageService imageService,
+            [FromForm] CreateServicePackageRequest request,
+            ISender sender) =>
         {
-            var command = request.Adapt<CreateServicePackageCommand>();
+            if (request.ImageData is null)
+            {
+                return Results.Problem("Image is required", statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            if (!request.ImageData.ContentType.StartsWith("image/"))
+            {
+                return Results.Problem("Invalid image format", statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            if (request.ImageData.Length > 2 * 1024 * 1024) // 2MB limit
+            {
+                return Results.Problem("Image size exceeds 2MB", statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            var servicePackageId = Guid.NewGuid();
+
+            Guid imageId = await imageService.UploadImageAsync(request.ImageData, "Service", servicePackageId);
+
+            var command = new CreateServicePackageCommand(
+                servicePackageId,
+                request.Name,
+                request.Description,
+                request.Price,
+                request.DurationDays,
+                imageId
+            );
 
             var result = await sender.Send(command);
 
-            var response = result.Adapt<CreateServicePackageResponse>();
+            if (result is null)
+            {
+                return Results.Problem("Failed to create service package", statusCode: StatusCodes.Status400BadRequest);
+            }
 
+            var response = new CreateServicePackageResponse(result.Id);
             return Results.Created($"/service-packages/{response.Id}", response);
-        }
-        )
+        })
         .WithName("CreateServicePackage")
         .Produces<CreateServicePackageResponse>()
         .ProducesProblem(StatusCodes.Status400BadRequest)
-        .WithDescription("Create Service Package")
-        .WithSummary("Create Service Package");
+        .WithDescription("Create a new service package")
+        .WithSummary("Create Service Package")
+        .WithMetadata(new IgnoreAntiforgeryTokenAttribute());
     }
 }

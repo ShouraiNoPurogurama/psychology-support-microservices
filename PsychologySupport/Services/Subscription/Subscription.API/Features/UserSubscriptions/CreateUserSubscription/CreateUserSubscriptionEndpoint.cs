@@ -2,11 +2,11 @@
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Subscription.API.Models;
+using Subscription.API.Dtos;
 
 namespace Subscription.API.Features.UserSubscriptions.CreateUserSubscription;
 
-public record CreateUserSubscriptionRequest(UserSubscription UserSubscription);
+public record CreateUserSubscriptionRequest(UserSubscriptionDto UserSubscription);
 
 public record CreateUserSubscriptionResponse(Guid Id);
 

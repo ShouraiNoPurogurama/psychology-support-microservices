@@ -5,8 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LifeStyles.API.Features.PatientEntertainmentActivity.CreatePatientEntertainmentActivity
 {
-    public record CreatePatientEntertainmentActivityRequest(Guid PatientProfileId, Guid EntertainmentActivityId, PreferenceLevel PreferenceLevel);
-    public record CreatePatientEntertainmentActivityResponse(Guid PatientProfileId, Guid EntertainmentActivityId, PreferenceLevel PreferenceLevel);
+    public record CreatePatientEntertainmentActivityRequest(Guid PatientProfileId, List<ActivityPreference> Activities);
+    public record ActivityPreference(Guid EntertainmentActivityId, PreferenceLevel PreferenceLevel);
+    public record CreatePatientEntertainmentActivityResponse(Guid PatientProfileId, List<ActivityPreference> Activities);
 
     public class CreatePatientEntertainmentActivityEndpoint : ICarterModule
     {
@@ -15,30 +16,25 @@ namespace LifeStyles.API.Features.PatientEntertainmentActivity.CreatePatientEnte
             app.MapPost("patient-entertainment-activities", async ([FromBody] CreatePatientEntertainmentActivityRequest request, ISender sender) =>
             {
                 var command = new CreatePatientEntertainmentActivityCommand(
-                     new Models.PatientEntertainmentActivity
-                     {
-                         PatientProfileId = request.PatientProfileId,
-                         EntertainmentActivityId = request.EntertainmentActivityId,
-                         PreferenceLevel = request.PreferenceLevel
-                     }
- );
-
+                    request.PatientProfileId,
+                    request.Activities.Select(a => (a.EntertainmentActivityId, a.PreferenceLevel)).ToList()
+                );
 
                 await sender.Send(command);
 
                 var response = new CreatePatientEntertainmentActivityResponse(
                     request.PatientProfileId,
-                    request.EntertainmentActivityId,
-                    request.PreferenceLevel
+                    request.Activities
                 );
 
-                return Results.Created($"/patient-entertainment-activities/{request.PatientProfileId}/{request.EntertainmentActivityId}", response);
+                return Results.Created($"/patient-entertainment-activities/{request.PatientProfileId}", response);
             })
-            .WithName("CreatePatientEntertainmentActivity")
+            .WithName("CreatePatientEntertainmentActivities")
             .Produces<CreatePatientEntertainmentActivityResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .WithDescription("Create Patient Entertainment Activity")
-            .WithSummary("Create Patient Entertainment Activity");
+            .WithDescription("Create multiple Patient Entertainment Activities with preferences")
+            .WithSummary("Create multiple Patient Entertainment Activities with preferences");
         }
     }
+
 }

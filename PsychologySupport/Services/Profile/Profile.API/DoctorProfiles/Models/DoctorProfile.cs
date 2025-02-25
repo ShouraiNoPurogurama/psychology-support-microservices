@@ -9,7 +9,7 @@ public class DoctorProfile : AggregateRoot<Guid>
 {
     public Guid UserId { get; set; }
     
-    public string? FullName { get; set; }
+    public string FullName { get; set; }
     
     public UserGender Gender { get; set; }
     public ContactInfo ContactInfo { get; set; } = default!;

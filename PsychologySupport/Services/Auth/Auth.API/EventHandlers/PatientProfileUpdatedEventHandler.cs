@@ -1,16 +1,20 @@
 ﻿using MassTransit;
 using Auth.API.Data;
 using BuildingBlocks.Messaging.Events.Auth;
+using Microsoft.AspNetCore.Identity;
+using Auth.API.Models;
 
 namespace Auth.API.EventHandlers;
 
 public class PatientProfileUpdatedEventHandler : IConsumer<PatientProfileUpdatedIntegrationEvent>
 {
     private readonly AuthDbContext _context;
+    private readonly UserManager<User> _userManager;
 
-    public PatientProfileUpdatedEventHandler(AuthDbContext context)
+    public PatientProfileUpdatedEventHandler(AuthDbContext context,UserManager<User> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     public async Task Consume(ConsumeContext<PatientProfileUpdatedIntegrationEvent> context)
@@ -22,8 +26,8 @@ public class PatientProfileUpdatedEventHandler : IConsumer<PatientProfileUpdated
         {
             user.FullName = message.FullName;
             user.Gender = message.Gender;
-            user.Email = message.Email;
-            user.PhoneNumber = message.PhoneNumber;
+            await _userManager.SetEmailAsync(user, message.Email);
+            await _userManager.SetPhoneNumberAsync(user, message.PhoneNumber);
 
             await _context.SaveChangesAsync();
         }

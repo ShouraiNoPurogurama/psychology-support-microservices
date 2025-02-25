@@ -22,7 +22,14 @@ namespace Subscription.API.Data
             builder.Entity<UserSubscription>()
                 .Property(e => e.Status)
                 .HasConversion(new EnumToStringConverter<SubscriptionStatus>())
-                .HasColumnType("VARCHAR(20)"); 
+                .HasColumnType("VARCHAR(20)");
+
+            builder.Entity<UserSubscription>()
+                .HasOne(us => us.servicePackage)
+                .WithMany()
+                .HasForeignKey(us => us.ServicePackageId)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             base.OnModelCreating(builder);
         }

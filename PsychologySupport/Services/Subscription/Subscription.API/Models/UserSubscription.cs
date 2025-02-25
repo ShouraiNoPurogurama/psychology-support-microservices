@@ -13,7 +13,11 @@ namespace Subscription.API.Models
 
         public DateTime EndDate { get; set; }
 
+        public Guid? PromoCodeId { get; set; }
+        public Guid? GiftId { get; set; } 
+
         public SubscriptionStatus Status { get; set; }
 
+        public ServicePackage servicePackage { get; set; }
     }
 }

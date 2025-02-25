@@ -35,6 +35,8 @@ public class GetUserSubscriptionsHandler : IQueryHandler<GetUserSubscriptionsQue
                 us.ServicePackageId,
                 us.StartDate,
                 us.EndDate,
+                us.PromoCodeId,
+                us.GiftId,
                 us.Status.ToString()
             ))
             .ToListAsync(cancellationToken);

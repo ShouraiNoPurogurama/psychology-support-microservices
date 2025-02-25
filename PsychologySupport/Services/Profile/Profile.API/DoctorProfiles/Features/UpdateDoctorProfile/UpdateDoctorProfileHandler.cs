@@ -44,6 +44,7 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
 
         var doctorProfileUpdatedEvent = new DoctorProfileUpdatedIntegrationEvent(
             doctorProfile.UserId,
+            doctorProfile.FullName,
             doctorProfile.Gender,
             doctorProfile.ContactInfo.Email,
             doctorProfile.ContactInfo.PhoneNumber,

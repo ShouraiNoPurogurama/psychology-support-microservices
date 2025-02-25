@@ -6,8 +6,10 @@ namespace Subscription.API.Dtos
         Guid Id,
         Guid PatientId,  
         Guid ServicePackageId,
+        Guid? PromotionCodeId,
+        Guid? GiftId,
         DateTime StartDate,
         DateTime EndDate,
-        SubscriptionStatus Status 
+        SubscriptionStatus? Status 
     );
 }

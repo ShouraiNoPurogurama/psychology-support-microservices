@@ -4,10 +4,13 @@ using Subscription.API.Data;
 using Subscription.API.Models;
 using Subscription.API.Events;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Components.Forms;
+using Subscription.API.Dtos;
+using Subscription.API.Data.Common;
 
 namespace Subscription.API.Features.UserSubscriptions.CreateUserSubscription;
 
-public record CreateUserSubscriptionCommand(UserSubscription UserSubscription) : ICommand<CreateUserSubscriptionResult>;
+public record CreateUserSubscriptionCommand(UserSubscriptionDto UserSubscription) : ICommand<CreateUserSubscriptionResult>;
 
 public record CreateUserSubscriptionResult(Guid Id);
 
@@ -26,14 +29,36 @@ public class CreateUserSubscriptionHandler : ICommandHandler<CreateUserSubscript
     {
         try
         {
-            _context.UserSubscriptions.Add(request.UserSubscription);
+            var userSubscription = new UserSubscription
+            {
+                Id = request.UserSubscription.Id,
+                PatientId = request.UserSubscription.PatientId,
+                ServicePackageId = request.UserSubscription.ServicePackageId,
+                StartDate = request.UserSubscription.StartDate,
+                EndDate = request.UserSubscription.EndDate,
+                Status = request.UserSubscription.Status ?? SubscriptionStatus.Active
+            };
+
+            _context.UserSubscriptions.Add(userSubscription);
             await _context.SaveChangesAsync(cancellationToken);
 
+            var servicePackage = await _context.ServicePackages
+           .Where(sp => sp.Id == request.UserSubscription.ServicePackageId)
+           .FirstOrDefaultAsync(cancellationToken);
+
+            if (servicePackage == null)
+            {
+                throw new Exception("Service Package not found");
+            }
+
             // Publish event to Payment 
-            var subscriptionCreatedEvent = new UserSubscriptionCreatedEvent(
+            var subscriptionCreatedEvent = new UserSubscriptionCreatedIntegrationEvent(
                 request.UserSubscription.Id,
                 request.UserSubscription.PatientId,
                 request.UserSubscription.ServicePackageId,
+                servicePackage.Price,
+                request.UserSubscription.PromotionCodeId,
+                request.UserSubscription.GiftId,
                 request.UserSubscription.StartDate,
                 request.UserSubscription.EndDate
             );

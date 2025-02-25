@@ -39,6 +39,8 @@ public class GetUserSubscriptionHandler : IQueryHandler<GetUserSubscriptionQuery
             userSubscription.ServicePackageId,
             userSubscription.StartDate,
             userSubscription.EndDate,
+            userSubscription.PromoCodeId,
+            userSubscription.GiftId,
             userSubscription.Status.ToString()
         );
 

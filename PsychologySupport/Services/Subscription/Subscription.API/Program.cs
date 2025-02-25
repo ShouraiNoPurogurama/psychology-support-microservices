@@ -28,7 +28,6 @@ builder.Services.AddMassTransit(config =>
 });
 
 
-
 // Configure the HTTP request pipeline
 var app = builder.Build();
 
@@ -37,6 +36,7 @@ app.UseExceptionHandler(options => { });
 app.UseStaticFiles();
 
 app.MapCarter();
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -47,6 +47,8 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Subscription API v1");
     });
 }
+
+
 
 // Apply CORS policy
 app.UseCors();

@@ -9,7 +9,7 @@ namespace Subscription.API.Models
         public decimal Price { get; private set; }
         public int DurationDays { get; private set; }
         public Guid ImageId { get; private set; }
-        public bool IsActive { get; private set; }
+        public bool IsActive { get; private set; } = true;
 
         public ServicePackage(Guid id, string name, string description, decimal price, int durationDays, Guid imageId, bool isActive)
         {
