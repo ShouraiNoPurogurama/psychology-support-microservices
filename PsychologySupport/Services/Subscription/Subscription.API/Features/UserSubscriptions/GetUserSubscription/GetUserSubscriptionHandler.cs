@@ -30,7 +30,7 @@ public class GetUserSubscriptionHandler : IQueryHandler<GetUserSubscriptionQuery
 
     public async Task<GetUserSubscriptionResult> Handle(GetUserSubscriptionQuery query, CancellationToken cancellationToken)
     {
-        var userSubscription = await _context.UserSubscriptions.FindAsync(query.Id)
+        var userSubscription = await _context.UserSubscriptions.FindAsync(query.Id, cancellationToken)
                                     ?? throw new SubscriptionNotFoundException(query.Id.ToString());
 
         var userSubscriptionDto = new GetUserSubscriptionDto(
@@ -39,6 +39,8 @@ public class GetUserSubscriptionHandler : IQueryHandler<GetUserSubscriptionQuery
             userSubscription.ServicePackageId,
             userSubscription.StartDate,
             userSubscription.EndDate,
+            userSubscription.PromoCodeId,
+            userSubscription.GiftId,
             userSubscription.Status.ToString()
         );
 

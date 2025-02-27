@@ -1,9 +1,17 @@
 ﻿namespace BuildingBlocks.Pagination;
 
-public class PaginatedResult<TEntity>(int pageIndex, int pageSize, long count, IEnumerable<TEntity> data)
+public record PaginatedResult<TEntity>(
+    int PageIndex,
+    int PageSize,
+    long TotalCount,
+    IEnumerable<TEntity> Data)
 {
-    public int PageIndex { get; } = pageIndex;
-    public int PageSize { get; } = pageSize;
-    public long Count { get; } = count;
-    public IEnumerable<TEntity> Data { get; } = data;
+    public PaginatedResult() : this(0, 0, 0, Enumerable.Empty<TEntity>())
+    {
+        PageIndex = 0;
+        PageSize = 0;
+        TotalCount = 0;
+        Data = new List<TEntity>();
+    }
+    public int TotalPages => PageSize > 0 ? (int)Math.Ceiling((double)TotalCount / PageSize) : 0;
 }

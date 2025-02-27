@@ -22,13 +22,13 @@ public class UpdateServicePackageHandler : ICommandHandler<UpdateServicePackageC
 
     public async Task<UpdateServicePackageResult> Handle(UpdateServicePackageCommand request, CancellationToken cancellationToken)
     {
-        var existingPackage = await _context.ServicePackages.FindAsync(request.ServicePackage.Id)
+        var existingPackage = await _context.ServicePackages.FindAsync(request.ServicePackage.Id, cancellationToken)
                                ?? throw new SubscriptionNotFoundException("Service Package",request.ServicePackage.Id);
 
         existingPackage = request.ServicePackage.Adapt(existingPackage);
-        existingPackage.LastModified = DateTime.UtcNow;
 
         _context.Update(existingPackage);
+        
         var result = await _context.SaveChangesAsync(cancellationToken) > 0;
 
         return new UpdateServicePackageResult(result);

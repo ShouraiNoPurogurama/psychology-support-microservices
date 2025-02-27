@@ -7,6 +7,8 @@
         Guid ServicePackageId,
         DateTime StartDate,
         DateTime EndDate,
+        Guid? PromotionId,
+        Guid? GiftId,
         string Status
     );
 }

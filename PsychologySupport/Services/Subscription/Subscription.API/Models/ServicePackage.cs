@@ -2,14 +2,14 @@
 
 namespace Subscription.API.Models
 {
-    public class ServicePackage : AggregateRoot<Guid>
+    public class ServicePackage : Entity<Guid>
     {
         public string Name { get; private set; }
         public string Description { get; private set; }
         public decimal Price { get; private set; }
         public int DurationDays { get; private set; }
         public Guid ImageId { get; private set; }
-        public bool IsActive { get; private set; }
+        public bool IsActive { get; private set; } = true;
 
         public ServicePackage(Guid id, string name, string description, decimal price, int durationDays, Guid imageId, bool isActive)
         {

@@ -1,8 +1,10 @@
 ﻿using BuildingBlocks.Behaviors;
+using BuildingBlocks.Data.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using Subscription.API.Data;
+using Subscription.API.Services;
 
 namespace Subscription.API.Extensions
 {
@@ -46,7 +48,9 @@ namespace Subscription.API.Extensions
 
         private static void AddServiceDependencies(IServiceCollection services)
         {
-
+            services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+            services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+            services.AddScoped<IImageService, ImageService>();
         }
 
         private static void AddDatabase(IServiceCollection services, IConfiguration config)

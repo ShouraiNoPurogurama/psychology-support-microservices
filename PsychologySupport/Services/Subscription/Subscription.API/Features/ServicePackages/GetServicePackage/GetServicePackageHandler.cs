@@ -30,7 +30,7 @@ public class GetServicePackageHandler : IQueryHandler<GetServicePackageQuery, Ge
 
     public async Task<GetServicePackageResult> Handle(GetServicePackageQuery query, CancellationToken cancellationToken)
     {
-        var servicePackage = await _context.ServicePackages.FindAsync(query.Id)
+        var servicePackage = await _context.ServicePackages.FindAsync(query.Id, cancellationToken)
                               ?? throw new SubscriptionNotFoundException("Service Package", query.Id);
 
         return new GetServicePackageResult(new ServicePackageDto(

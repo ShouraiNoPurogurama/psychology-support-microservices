@@ -9,7 +9,7 @@ namespace Subscription.API.Features.UserSubscriptions.GetUserSubscriptions;
 
 public record GetUserSubscriptionsQuery(PaginationRequest PaginationRequest) : IQuery<GetUserSubscriptionsResult>;
 
-public record GetUserSubscriptionsResult(IEnumerable<GetUserSubscriptionDto> UserSubscriptions, int TotalCount);
+public record GetUserSubscriptionsResult(PaginatedResult<GetUserSubscriptionDto> UserSubscriptions);
 
 public class GetUserSubscriptionsHandler : IQueryHandler<GetUserSubscriptionsQuery, GetUserSubscriptionsResult>
 {
@@ -24,7 +24,7 @@ public class GetUserSubscriptionsHandler : IQueryHandler<GetUserSubscriptionsQue
     {
         var skip = (request.PaginationRequest.PageIndex - 1) * request.PaginationRequest.PageSize;
 
-        var totalCount = await _context.UserSubscriptions.CountAsync(cancellationToken);
+        var totalCount = await _context.UserSubscriptions.LongCountAsync(cancellationToken);
 
         var subscriptions = await _context.UserSubscriptions
             .Skip(skip)
@@ -35,10 +35,13 @@ public class GetUserSubscriptionsHandler : IQueryHandler<GetUserSubscriptionsQue
                 us.ServicePackageId,
                 us.StartDate,
                 us.EndDate,
+                us.PromoCodeId,
+                us.GiftId,
                 us.Status.ToString()
             ))
             .ToListAsync(cancellationToken);
 
-        return new GetUserSubscriptionsResult(subscriptions, totalCount);
+        return new GetUserSubscriptionsResult(new PaginatedResult<GetUserSubscriptionDto>(request.PaginationRequest.PageIndex,
+            request.PaginationRequest.PageSize, totalCount, subscriptions));
     }
 }

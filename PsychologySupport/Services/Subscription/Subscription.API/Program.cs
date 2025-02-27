@@ -28,11 +28,13 @@ builder.Services.AddMassTransit(config =>
 });
 
 
-
 // Configure the HTTP request pipeline
 var app = builder.Build();
 
 app.UseExceptionHandler(options => { });
+
+// Apply CORS policy
+app.UseCors();
 
 app.UseStaticFiles();
 
@@ -48,7 +50,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Apply CORS policy
-app.UseCors();
+app.UseRouting();
 
 app.Run();

@@ -1,13 +1,16 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.Payment;
 using MassTransit;
 using Subscription.API.Data;
 using Subscription.API.Models;
-using Subscription.API.Events;
 using Microsoft.EntityFrameworkCore;
+using Subscription.API.Dtos;
+using Subscription.API.Data.Common;
 
 namespace Subscription.API.Features.UserSubscriptions.CreateUserSubscription;
 
-public record CreateUserSubscriptionCommand(UserSubscription UserSubscription) : ICommand<CreateUserSubscriptionResult>;
+public record CreateUserSubscriptionCommand(CreateUserSubscriptionDto UserSubscription) : ICommand<CreateUserSubscriptionResult>;
 
 public record CreateUserSubscriptionResult(Guid Id);
 
@@ -22,29 +25,43 @@ public class CreateUserSubscriptionHandler : ICommandHandler<CreateUserSubscript
         _publishEndpoint = publishEndpoint;
     }
 
-    public async Task<CreateUserSubscriptionResult> Handle(CreateUserSubscriptionCommand request, CancellationToken cancellationToken)
+    public async Task<CreateUserSubscriptionResult> Handle(CreateUserSubscriptionCommand request,
+        CancellationToken cancellationToken)
     {
-        try
+        var userSubscription = new UserSubscription
         {
-            _context.UserSubscriptions.Add(request.UserSubscription);
-            await _context.SaveChangesAsync(cancellationToken);
+            Id = Guid.NewGuid(),
+            PatientId = request.UserSubscription.PatientId,
+            ServicePackageId = request.UserSubscription.ServicePackageId,
+            PromoCodeId = request.UserSubscription.PromotionCodeId,
+            GiftId = request.UserSubscription.GiftId,
+            StartDate = request.UserSubscription.StartDate,
+            EndDate = request.UserSubscription.EndDate,
+            Status = SubscriptionStatus.Active
+        };
 
-            // Publish event to Payment 
-            var subscriptionCreatedEvent = new UserSubscriptionCreatedEvent(
-                request.UserSubscription.Id,
-                request.UserSubscription.PatientId,
-                request.UserSubscription.ServicePackageId,
-                request.UserSubscription.StartDate,
-                request.UserSubscription.EndDate
-            );
+        _context.UserSubscriptions.Add(userSubscription);
+        await _context.SaveChangesAsync(cancellationToken);
 
-            await _publishEndpoint.Publish(subscriptionCreatedEvent, cancellationToken);
+        var servicePackage = await _context.ServicePackages
+                                 .Where(sp => sp.Id == request.UserSubscription.ServicePackageId)
+                                 .FirstOrDefaultAsync(cancellationToken) ??
+                             throw new NotFoundException(nameof(ServicePackage), request.UserSubscription.ServicePackageId);
 
-            return new CreateUserSubscriptionResult(request.UserSubscription.Id);
-        }
-        catch (DbUpdateException ex)
-        {
-            throw new Exception($"Database error: {ex.InnerException?.Message}", ex);
-        }
+        // Publish event to Payment 
+        var subscriptionCreatedEvent = new UserSubscriptionCreatedIntegrationEvent(
+            userSubscription.Id,
+            request.UserSubscription.PatientId,
+            request.UserSubscription.ServicePackageId,
+            servicePackage.Price,
+            request.UserSubscription.PromotionCodeId,
+            request.UserSubscription.GiftId,
+            request.UserSubscription.StartDate,
+            request.UserSubscription.EndDate
+        );
+
+        await _publishEndpoint.Publish(subscriptionCreatedEvent, cancellationToken);
+
+        return new CreateUserSubscriptionResult(userSubscription.Id);
     }
 }

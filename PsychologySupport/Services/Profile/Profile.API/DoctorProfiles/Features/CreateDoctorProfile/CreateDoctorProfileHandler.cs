@@ -45,6 +45,7 @@ namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
 
             var doctorProfileCreatedEvent = new DoctorProfileCreatedIntegrationEvent(
                 doctorProfile.UserId,
+                doctorProfile.FullName,
                 doctorProfile.Gender,
                 doctorProfile.ContactInfo.Email,
                 doctorProfile.ContactInfo.PhoneNumber,
