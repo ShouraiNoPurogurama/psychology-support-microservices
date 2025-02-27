@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LifeStyles.API.Features.PatientEntertainmentActivity.CreatePatientEntertainmentActivity
 {
-    public record CreatePatientEntertainmentActivityRequest(Guid PatientProfileId, List<ActivityPreference> Activities);
-    public record ActivityPreference(Guid EntertainmentActivityId, PreferenceLevel PreferenceLevel);
-    public record CreatePatientEntertainmentActivityResponse(Guid PatientProfileId, List<ActivityPreference> Activities);
+    public record CreatePatientEntertainmentActivityRequest(Guid PatientProfileId, List<EntertainmentPreference> Activities);
+    public record EntertainmentPreference(Guid EntertainmentActivityId, PreferenceLevel PreferenceLevel);
+    public record CreatePatientEntertainmentActivityResponse(Guid PatientProfileId, List<EntertainmentPreference> Activities);
 
     public class CreatePatientEntertainmentActivityEndpoint : ICarterModule
     {

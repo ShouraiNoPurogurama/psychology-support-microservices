@@ -7,14 +7,14 @@ namespace LifeStyles.API.Features.PatientPhysicalActivity.CreatePatientPhysicalA
 {
     public record CreatePatientPhysicalActivityRequest(
         Guid PatientProfileId,
-        List<ActivityPreference> Activities
+        List<PhysicalPreference> Activities
     );
 
-    public record ActivityPreference(Guid PhysicalActivityId, PreferenceLevel PreferenceLevel);
+    public record PhysicalPreference(Guid PhysicalActivityId, PreferenceLevel PreferenceLevel);
 
     public record CreatePatientPhysicalActivityResponse(
         Guid PatientProfileId,
-        List<ActivityPreference> Activities
+        List<PhysicalPreference> Activities
     );
 
     public class CreatePatientPhysicalActivityEndpoint : ICarterModule

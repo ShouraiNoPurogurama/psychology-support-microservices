@@ -36,7 +36,7 @@ namespace LifeStyles.API.Features.PatientPhysicalActivity.CreatePatientPhysicalA
             CreatePatientPhysicalActivityCommand request,
             CancellationToken cancellationToken)
         {
-            // 1️⃣ Kiểm tra xem PatientProfile có tồn tại không
+         
             var response = await _client.GetResponse<CheckPatientProfileExistenceResponseEvent>(
                 new CheckPatientProfileExistenceEvent(request.PatientProfileId), cancellationToken);
 
@@ -45,7 +45,7 @@ namespace LifeStyles.API.Features.PatientPhysicalActivity.CreatePatientPhysicalA
                 throw new LifeStylesNotFoundException("PatientProfile", request.PatientProfileId);
             }
 
-            // 2️⃣ Thêm danh sách hoạt động thể chất vào database
+           
             var activities = request.Activities.Select(a => new Models.PatientPhysicalActivity
             {
                 PatientProfileId = request.PatientProfileId,
