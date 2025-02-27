@@ -24,8 +24,6 @@ public class CreateServicePackageHandler : ICommandHandler<CreateServicePackageC
 
     public async Task<CreateServicePackageResult> Handle(CreateServicePackageCommand request, CancellationToken cancellationToken)
     {
-
-
         var servicePackage = new ServicePackage(
             request.Id,
             request.Name,

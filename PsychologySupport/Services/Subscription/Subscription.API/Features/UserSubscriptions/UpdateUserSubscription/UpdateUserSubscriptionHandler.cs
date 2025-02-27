@@ -6,6 +6,7 @@ using Subscription.API.Exceptions;
 
 namespace Subscription.API.Features.UserSubscriptions.UpdateUserSubscription;
 
+//TODO Only status of subscription can be updated
 public record UpdateUserSubscriptionCommand(UserSubscriptionDto UserSubscription) : ICommand<UpdateUserSubscriptionResult>;
 
 public record UpdateUserSubscriptionResult(bool IsSuccess);
@@ -21,11 +22,10 @@ public class UpdateUserSubscriptionHandler : ICommandHandler<UpdateUserSubscript
 
     public async Task<UpdateUserSubscriptionResult> Handle(UpdateUserSubscriptionCommand request, CancellationToken cancellationToken)
     {
-        var existingSubscription = await _context.UserSubscriptions.FindAsync(request.UserSubscription.Id)
+        var existingSubscription = await _context.UserSubscriptions.FindAsync(request.UserSubscription.Id, cancellationToken)
                                        ?? throw new SubscriptionNotFoundException("User Subscription", request.UserSubscription.Id);
 
         existingSubscription = request.UserSubscription.Adapt(existingSubscription);
-        existingSubscription.LastModified = DateTime.UtcNow;
 
         _context.Update(existingSubscription);
 

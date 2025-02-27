@@ -1,4 +1,4 @@
-﻿namespace Subscription.API.Events
+﻿namespace BuildingBlocks.Messaging.Events.Payment
 {
     public record UserSubscriptionCreatedIntegrationEvent(
        Guid SubscriptionId,

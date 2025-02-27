@@ -13,7 +13,6 @@ namespace Subscription.API.Extensions
 
             TypeAdapterConfig<ServicePackageDto, ServicePackage>.NewConfig()
                 .IgnoreNullValues(true);
-
         }
     }
 }

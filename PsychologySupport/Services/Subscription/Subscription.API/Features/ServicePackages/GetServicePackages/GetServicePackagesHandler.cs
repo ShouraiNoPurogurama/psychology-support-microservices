@@ -1,13 +1,14 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Subscription.API.Data;
 using Subscription.API.Dtos;
 
 namespace Subscription.API.Features.ServicePackages.GetServicePackages;
 
-public record GetServicePackagesQuery(int PageNumber, int PageSize) : IQuery<GetServicePackagesResult>;
+public record GetServicePackagesQuery(PaginationRequest PaginationRequest) : IQuery<GetServicePackagesResult>;
 
-public record GetServicePackagesResult(IEnumerable<ServicePackageDto> ServicePackages, int TotalCount);
+public record GetServicePackagesResult(PaginatedResult<ServicePackageDto> ServicePackages);
 
 public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, GetServicePackagesResult>
 {
@@ -20,13 +21,15 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
 
     public async Task<GetServicePackagesResult> Handle(GetServicePackagesQuery request, CancellationToken cancellationToken)
     {
-        var skip = (request.PageNumber - 1) * request.PageSize;
+        var pageSize= request.PaginationRequest.PageSize;
+        var pageIndex= request.PaginationRequest.PageIndex;
+        var skip = (pageIndex - 1) * pageSize;
 
-        var totalCount = await _dbContext.ServicePackages.CountAsync(cancellationToken);
+        var totalCount = await _dbContext.ServicePackages.LongCountAsync(cancellationToken);
 
         var servicePackages = await _dbContext.ServicePackages
             .Skip(skip)
-            .Take(request.PageSize)
+            .Take(pageSize)
             .Select(sp => new ServicePackageDto(
                 sp.Id,
                 sp.Name,
@@ -38,7 +41,7 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
             ))
             .ToListAsync(cancellationToken);
 
-        return new GetServicePackagesResult(servicePackages, totalCount);
+        return new GetServicePackagesResult(new PaginatedResult<ServicePackageDto>(pageIndex, pageSize, totalCount, servicePackages));
     }
 
 }

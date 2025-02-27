@@ -6,7 +6,7 @@ using Subscription.API.Dtos;
 
 namespace Subscription.API.Features.UserSubscriptions.CreateUserSubscription;
 
-public record CreateUserSubscriptionRequest(UserSubscriptionDto UserSubscription);
+public record CreateUserSubscriptionRequest(CreateUserSubscriptionDto UserSubscription);
 
 public record CreateUserSubscriptionResponse(Guid Id);
 

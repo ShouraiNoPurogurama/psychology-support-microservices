@@ -24,8 +24,6 @@ namespace LifeStyles.API.Features.PatientEntertainmentActivity.CreatePatientEnte
             CreatePatientEntertainmentActivityCommand request,
             CancellationToken cancellationToken)
         {
-          
-
             var activities = request.Activities
                 .Select(activity => new Models.PatientEntertainmentActivity
                 {
