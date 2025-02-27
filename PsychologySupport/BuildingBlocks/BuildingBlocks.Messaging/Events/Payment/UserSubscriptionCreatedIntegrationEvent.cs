@@ -6,8 +6,6 @@
        Guid ServicePackageId,
        decimal Price,
        Guid? PromoCodeId,
-       Guid? GiftId,
-       DateTime StartDate,
-       DateTime EndDate
+       Guid? GiftId
    );
 }

@@ -55,9 +55,7 @@ public class CreateUserSubscriptionHandler : ICommandHandler<CreateUserSubscript
             request.UserSubscription.ServicePackageId,
             servicePackage.Price,
             request.UserSubscription.PromotionCodeId,
-            request.UserSubscription.GiftId,
-            request.UserSubscription.StartDate,
-            request.UserSubscription.EndDate
+            request.UserSubscription.GiftId
         );
 
         await _publishEndpoint.Publish(subscriptionCreatedEvent, cancellationToken);

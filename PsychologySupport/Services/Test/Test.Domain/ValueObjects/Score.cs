@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Test.Domain.ValueObjects
+﻿namespace Test.Domain.ValueObjects
 {
     public record Score
     {
@@ -12,7 +6,7 @@ namespace Test.Domain.ValueObjects
 
         public Score(int value)
         {
-            if (value < 0 || value > 80)
+            if (value is < 0 or > 80)
                 throw new ArgumentException("Score must be between 0 and 100.");
 
             Value = value;
