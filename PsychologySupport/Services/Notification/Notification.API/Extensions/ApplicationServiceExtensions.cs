@@ -2,6 +2,8 @@
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Messaging.Masstransit;
 using Carter;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using MassTransit;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
@@ -29,6 +31,14 @@ public static class ApplicationServiceExtensions
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
         
         return services;
+    }
+
+    private static void ConfigureFirebase(IServiceCollection services)
+    {
+        FirebaseApp.Create(new AppOptions()
+        {
+            Credential = GoogleCredential.FromFile("firebase_notification_key.json")
+        });
     }
 
     private static void ConfigureSwagger(IServiceCollection services)

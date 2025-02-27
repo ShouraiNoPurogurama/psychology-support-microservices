@@ -12,7 +12,7 @@ namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPost("patient-profiles", async ([FromBody] CreatePatientProfileRequest request, ISender sender) =>
+            app.MapPost("patients", async ([FromBody] CreatePatientProfileRequest request, ISender sender) =>
             {
                 var command = request.Adapt<CreatePatientProfileCommand>();
 

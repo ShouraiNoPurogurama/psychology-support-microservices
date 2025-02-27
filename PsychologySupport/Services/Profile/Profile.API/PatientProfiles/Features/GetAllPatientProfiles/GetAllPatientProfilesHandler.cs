@@ -6,7 +6,7 @@ namespace Profile.API.PatientProfiles.Features.GetAllPatientProfiles;
 
 public record GetAllPatientProfilesQuery(PaginationRequest PaginationRequest) : IQuery<GetAllPatientProfilesResult>;
 
-public record GetAllPatientProfilesResult(IEnumerable<GetPatientProfileDto> PatientProfileDtos);
+public record GetAllPatientProfilesResult(PaginatedResult<GetPatientProfileDto> PaginatedResult);
 
 public class GetAllPatientProfilesHandler : IQueryHandler<GetAllPatientProfilesQuery, GetAllPatientProfilesResult>
 {
@@ -34,7 +34,9 @@ public class GetAllPatientProfilesHandler : IQueryHandler<GetAllPatientProfilesQ
                 .ThenInclude(m => m.PhysicalSymptoms)
             .ToListAsync(cancellationToken);
 
-        var result = patientProfiles.Adapt<IEnumerable<GetPatientProfileDto>>();
+        var totalCount = await _context.PatientProfiles.LongCountAsync(cancellationToken);
+        
+        var result = new PaginatedResult<GetPatientProfileDto>(pageIndex, pageSize, totalCount, patientProfiles.Adapt<IEnumerable<GetPatientProfileDto>>());
 
         return new GetAllPatientProfilesResult(result);
     }

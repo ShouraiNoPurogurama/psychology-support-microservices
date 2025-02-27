@@ -1,4 +1,5 @@
-﻿using Profile.API.DoctorProfiles.Dtos;
+﻿using Profile.API.Common.ValueObjects;
+using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.Exceptions;
 
 
@@ -23,22 +24,22 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
 
     public async Task<UpdateDoctorProfileResult> Handle(UpdateDoctorProfileCommand request, CancellationToken cancellationToken)
     {
-        var doctorProfile = await _context.DoctorProfiles
-            .FirstOrDefaultAsync(d => d.Id == request.Id, cancellationToken)
+        var doctorProfile = await _context.DoctorProfiles.Include(doctorProfile => doctorProfile.ContactInfo)
+                                .FirstOrDefaultAsync(d => d.Id == request.Id, cancellationToken)
             ?? throw new ProfileNotFoundException("Doctor profile", request.Id);
 
         doctorProfile.Update(
-        request.DoctorProfileDto.FullName,
-        request.DoctorProfileDto.Gender.ToString(),
-        request.DoctorProfileDto.ContactInfo,
-        request.DoctorProfileDto.Specialty,
-        request.DoctorProfileDto.Qualifications,
-        request.DoctorProfileDto.YearsOfExperience,
-        request.DoctorProfileDto.Bio,
-        request.DoctorProfileDto.Rating,
-        request.DoctorProfileDto.TotalReviews
+            request.DoctorProfileDto.FullName,
+            request.DoctorProfileDto.Gender,
+            request.DoctorProfileDto.ContactInfo,
+            request.DoctorProfileDto.Specialty,
+            request.DoctorProfileDto.Qualifications,
+            request.DoctorProfileDto.YearsOfExperience,
+            request.DoctorProfileDto.Bio,
+            request.DoctorProfileDto.Rating,
+            request.DoctorProfileDto.TotalReviews
         );
-
+        
         doctorProfile.LastModified = DateTimeOffset.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 

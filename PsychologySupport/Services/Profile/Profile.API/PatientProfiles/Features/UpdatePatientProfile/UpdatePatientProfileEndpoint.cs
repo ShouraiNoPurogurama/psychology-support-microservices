@@ -13,7 +13,7 @@ namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPut("patient-profiles/{id:guid}", async ([FromRoute] Guid id, [FromBody] UpdatePatientProfileRequest request, ISender sender) =>
+            app.MapPut("patients/{id:guid}", async ([FromRoute] Guid id, [FromBody] UpdatePatientProfileRequest request, ISender sender) =>
             {
                 var command = new UpdatePatientProfileCommand(id, request.PatientProfileUpdate);
                 var result = await sender.Send(command);

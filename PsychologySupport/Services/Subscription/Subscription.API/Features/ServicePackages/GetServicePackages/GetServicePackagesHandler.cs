@@ -25,6 +25,7 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
         var totalCount = await _dbContext.ServicePackages.CountAsync(cancellationToken);
 
         var servicePackages = await _dbContext.ServicePackages
+            .OrderByDescending(sp => sp.CreatedAt)
             .Skip(skip)
             .Take(request.PageSize)
             .Select(sp => new ServicePackageDto(

@@ -12,11 +12,12 @@ public class SendEmailEventHandler(IEmailService emailService) : INotificationHa
 
         return emailService.SendEmailAsync(emailMessageDto, cancellationToken);
     }
- 
+
     private EmailMessageDto CreateEmailMessageDto(SendEmailEvent notification)
         => new EmailMessageDto(
             notification.EventId,
             notification.To,
             notification.Subject,
-            notification.Body);
+            notification.Body
+        );
 }
