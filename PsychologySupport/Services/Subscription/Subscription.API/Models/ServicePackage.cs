@@ -2,7 +2,7 @@
 
 namespace Subscription.API.Models
 {
-    public class ServicePackage : AggregateRoot<Guid>
+    public class ServicePackage : Entity<Guid>
     {
         public string Name { get; private set; }
         public string Description { get; private set; }
