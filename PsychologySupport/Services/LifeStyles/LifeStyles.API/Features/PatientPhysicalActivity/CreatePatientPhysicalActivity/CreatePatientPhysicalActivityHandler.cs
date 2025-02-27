@@ -1,10 +1,10 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Messaging.Events.Profile;
 using LifeStyles.API.Data;
 using LifeStyles.API.Data.Common;
 using LifeStyles.API.Events;
 using LifeStyles.API.Exceptions;
 using MassTransit;
-using MediatR;
 
 namespace LifeStyles.API.Features.PatientPhysicalActivity.CreatePatientPhysicalActivity
 {
@@ -19,10 +19,10 @@ namespace LifeStyles.API.Features.PatientPhysicalActivity.CreatePatientPhysicalA
         CreatePatientPhysicalActivityResult>
     {
         private readonly LifeStylesDbContext _context;
-        private readonly IRequestClient<CheckPatientProfileExistenceEvent> _client;
+        private readonly IRequestClient<CheckPatientProfileExistenceIntegrationEvent> _client;
 
         public CreatePatientPhysicalActivityHandler(LifeStylesDbContext context,
-            IRequestClient<CheckPatientProfileExistenceEvent> client)
+            IRequestClient<CheckPatientProfileExistenceIntegrationEvent> client)
         {
             _context = context;
             _client = client;
@@ -31,7 +31,7 @@ namespace LifeStyles.API.Features.PatientPhysicalActivity.CreatePatientPhysicalA
         public async Task<CreatePatientPhysicalActivityResult> Handle(CreatePatientPhysicalActivityCommand request,
             CancellationToken cancellationToken)
         {
-            var response = await _client.GetResponse<CheckPatientProfileExistenceResponseEvent>(new CheckPatientProfileExistenceEvent(request.PatientProfileId), cancellationToken);
+            var response = await _client.GetResponse<CheckPatientProfileExistenceResponseEvent>(new CheckPatientProfileExistenceIntegrationEvent(request.PatientProfileId), cancellationToken);
 
             if (!response.Message.Exists)
             {

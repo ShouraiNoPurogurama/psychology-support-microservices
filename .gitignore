@@ -406,3 +406,6 @@ FodyWeavers.xsd
 *.sln.iml
 PsychologySupport/Services/Auth/Auth.API/appsettings.json
 PsychologySupport/Services/Notification/Notification.API/appsettings.json
+
+# Ignore all appsettings.json files
+appsettings.json

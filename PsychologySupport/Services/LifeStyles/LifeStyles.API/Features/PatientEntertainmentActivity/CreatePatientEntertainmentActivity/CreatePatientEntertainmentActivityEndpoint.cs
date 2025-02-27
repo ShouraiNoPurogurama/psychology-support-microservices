@@ -32,8 +32,8 @@ namespace LifeStyles.API.Features.PatientEntertainmentActivity.CreatePatientEnte
             .WithName("CreatePatientEntertainmentActivities")
             .Produces<CreatePatientEntertainmentActivityResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .WithDescription("Create multiple Patient Entertainment Activities with preferences")
-            .WithSummary("Create multiple Patient Entertainment Activities with preferences");
+            .WithDescription("Create Patient Entertainment Activities")
+            .WithSummary("Create Patient Entertainment Activities");
         }
     }
 

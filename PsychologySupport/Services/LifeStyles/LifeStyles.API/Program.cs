@@ -1,4 +1,5 @@
 using BuildingBlocks.Exceptions.Handler;
+using BuildingBlocks.Messaging.Events.Profile;
 using Carter;
 using LifeStyles.API.Events;
 using LifeStyles.API.Extensions;
@@ -24,7 +25,7 @@ builder.Services.AddMassTransit(x =>
         cfg.Host("rabbitmq://localhost");
     });
 
-    x.AddRequestClient<CheckPatientProfileExistenceEvent>();
+    x.AddRequestClient<CheckPatientProfileExistenceIntegrationEvent>();
 });
 
 
