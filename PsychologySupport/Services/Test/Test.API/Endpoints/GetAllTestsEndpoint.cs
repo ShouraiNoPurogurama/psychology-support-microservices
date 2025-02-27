@@ -7,7 +7,8 @@ using Test.Application.Tests.Queries;
 
 namespace Test.API.Endpoints
 {
-    public record GetAllTestsResponse(IEnumerable<TestDto> Tests);
+    public record GetAllTestsResponse(PaginatedResult<TestDto> Tests);
+
     public class GetAllTestsEndpoint : ICarterModule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
@@ -23,8 +24,8 @@ namespace Test.API.Endpoints
             .WithName("GetAllTests")
             .Produces<GetAllTestsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .WithDescription("Get All Tests")
-            .WithSummary("Get All Tests");
+            .WithDescription("Get all tests with pagination")
+            .WithSummary("Get Paginated Tests");
         }
     }
 }

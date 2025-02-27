@@ -8,6 +8,13 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Remove="DoctorProfiles\Events\**" />
+      <Content Remove="DoctorProfiles\Events\**" />
+      <EmbeddedResource Remove="DoctorProfiles\Events\**" />
+      <None Remove="DoctorProfiles\Events\**" />
+    </ItemGroup>
+
+    <ItemGroup>
       <Content Include="..\..\..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
@@ -24,10 +31,6 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="DoctorProfiles\Events\" />
     </ItemGroup>
 
 </Project>

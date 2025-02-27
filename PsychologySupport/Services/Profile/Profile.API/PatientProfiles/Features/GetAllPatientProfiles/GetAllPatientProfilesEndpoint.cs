@@ -1,7 +1,6 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
-using Microsoft.AspNetCore.Mvc;
 using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.GetAllPatientProfiles;

@@ -6,8 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Test.Application.Tests.Queries
 {
-    public record GetAllTestsQuery(PaginationRequest PaginationRequest) : IQuery<GetAllTestsResult>;
-    public record GetAllTestsResult(IEnumerable<TestDto> Tests);
+    public record GetAllTestsQuery(PaginationRequest PaginationRequest)
+        : IQuery<GetAllTestsResult>;
+
+    public record GetAllTestsResult(PaginatedResult<TestDto> Tests);
 
     public class GetAllTestsHandler : IQueryHandler<GetAllTestsQuery, GetAllTestsResult>
     {
@@ -18,25 +20,38 @@ namespace Test.Application.Tests.Queries
             _context = context;
         }
 
-        public async Task<GetAllTestsResult> Handle(GetAllTestsQuery request, CancellationToken cancellationToken)
+        public async Task<GetAllTestsResult> Handle(
+            GetAllTestsQuery request, CancellationToken cancellationToken)
         {
             var pageSize = request.PaginationRequest.PageSize;
-            var pageIndex = request.PaginationRequest.PageIndex;
+            var pageIndex = Math.Max(0, request.PaginationRequest.PageIndex - 1);
 
-            var tests = await _context.Tests
-                .Join(_context.Categories,  
-                    test => test.CategoryId,  
-                    category => category.Id,  
+            var query = _context.Tests
+                .AsNoTracking()
+                .Join(_context.Categories,
+                    test => test.CategoryId,
+                    category => category.Id,
                     (test, category) => new TestDto(
                         test.Id,
                         category.Description,
                         category.Name
-                    ))
-                .Skip((pageIndex - 1) * pageSize)
+                    ));
+
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            var tests = await query
+                .Skip(pageIndex * pageSize)
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);
 
-            return new GetAllTestsResult(tests);
+            var paginatedResult = new PaginatedResult<TestDto>(
+                pageIndex + 1,
+                pageSize,
+                totalCount,
+                tests
+            );
+
+            return new GetAllTestsResult(paginatedResult);
         }
     }
 }

@@ -2,7 +2,7 @@
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Test.Application.TestResults.Commands;
+using Test.Application.TestOutput.Commands;
 
 namespace Test.API.Endpoints
 {
