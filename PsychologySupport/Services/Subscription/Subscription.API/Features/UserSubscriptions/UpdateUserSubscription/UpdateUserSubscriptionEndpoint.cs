@@ -4,17 +4,17 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Subscription.API.Dtos;
 
-namespace Subscription.API.Features.UserSubscriptions.UpdateUserSubscription
+namespace Subscription.API.Features.UserSubscriptions.UpdateUserSubscription;
+
+public record UpdateUserSubscriptionRequest(UserSubscriptionDto UserSubscription);
+
+public record UpdateUserSubscriptionResponse(bool IsSuccess);
+
+public class UpdateUserSubscriptionEndpoint : ICarterModule
 {
-    public record UpdateUserSubscriptionRequest(UserSubscriptionDto UserSubscription);
-
-    public record UpdateUserSubscriptionResponse(bool IsSuccess);
-
-    public class UpdateUserSubscriptionEndpoint : ICarterModule
+    public void AddRoutes(IEndpointRouteBuilder app)
     {
-        public void AddRoutes(IEndpointRouteBuilder app)
-        {
-            app.MapPut("/user-subscription", async ([FromBody] UpdateUserSubscriptionRequest request, ISender sender) =>
+        app.MapPut("/user-subscription", async ([FromBody] UpdateUserSubscriptionRequest request, ISender sender) =>
             {
                 var command = request.Adapt<UpdateUserSubscriptionCommand>();
 
@@ -30,6 +30,5 @@ namespace Subscription.API.Features.UserSubscriptions.UpdateUserSubscription
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Update User Subscription")
             .WithSummary("Update User Subscription");
-        }
     }
 }

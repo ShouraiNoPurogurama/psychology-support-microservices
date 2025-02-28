@@ -7,15 +7,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
-      <ProjectReference Include="..\Payment.Application\Payment.Application.csproj" />
-      <ProjectReference Include="..\Payment.Domain\Payment.Domain.csproj" />
+        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj"/>
+        <ProjectReference Include="..\Payment.Application\Payment.Application.csproj"/>
+        <ProjectReference Include="..\Payment.Domain\Payment.Domain.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Integrations\" />
-      <Folder Include="Repositories\" />
-      <Folder Include="Services\" />
+        <Folder Include="Integrations\"/>
+        <Folder Include="Repositories\"/>
+        <Folder Include="Services\"/>
     </ItemGroup>
 
 </Project>

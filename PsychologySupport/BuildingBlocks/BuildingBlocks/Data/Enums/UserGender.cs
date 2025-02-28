@@ -1,5 +1,8 @@
-﻿namespace BuildingBlocks.Data.Enums
+﻿using System.Text.Json.Serialization;
+
+namespace BuildingBlocks.Data.Enums
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum UserGender
     {
         Male = 1,

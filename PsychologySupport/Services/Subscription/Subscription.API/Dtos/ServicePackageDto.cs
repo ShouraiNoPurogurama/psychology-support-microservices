@@ -1,6 +1,6 @@
-﻿namespace Subscription.API.Dtos
-{
-    public record ServicePackageDto(
+﻿namespace Subscription.API.Dtos;
+
+public record ServicePackageDto(
     Guid Id,
     string Name,
     string Description,
@@ -9,5 +9,3 @@
     Guid ImageId,
     bool IsActive
 );
-
-}

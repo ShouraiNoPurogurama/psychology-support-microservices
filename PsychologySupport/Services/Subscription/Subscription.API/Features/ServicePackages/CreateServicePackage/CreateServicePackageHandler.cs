@@ -3,6 +3,7 @@ using Subscription.API.Data;
 using Subscription.API.Models;
 
 namespace Subscription.API.Features.ServicePackages.CreateServicePackage;
+
 public record CreateServicePackageCommand(
     Guid Id,
     string Name,
@@ -13,6 +14,7 @@ public record CreateServicePackageCommand(
 ) : ICommand<CreateServicePackageResult>;
 
 public record CreateServicePackageResult(Guid Id);
+
 public class CreateServicePackageHandler : ICommandHandler<CreateServicePackageCommand, CreateServicePackageResult>
 {
     private readonly SubscriptionDbContext _context;

@@ -29,7 +29,5 @@ public class GetAllMedicalRecordsEndpoint : ICarterModule
             .ProducesProblem(StatusCodes.Status404NotFound)
             .WithDescription("GetAll MedicalRecords By PatientId")
             .WithSummary("GetAll MedicalRecords By PatientId");
-
-
     }
 }

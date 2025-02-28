@@ -1,6 +1,5 @@
 ﻿using Carter;
 using Mapster;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Profile.API.PatientProfiles.ValueObjects;
 
@@ -21,21 +20,21 @@ public class UpdateMedicalRecordEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapPut("/patients/medical-record", async ([FromBody] UpdateMedicalRecordRequest request, ISender sender) =>
-        {
-            if (request == null)
-                return Results.BadRequest("Invalid request payload.");
+            {
+                if (request == null)
+                    return Results.BadRequest("Invalid request payload.");
 
-            var command = request.Adapt<UpdateMedicalRecordCommand>();
-            var result = await sender.Send(command);
-            var response = result.Adapt<UpdateMedicalRecordResponse>();
+                var command = request.Adapt<UpdateMedicalRecordCommand>();
+                var result = await sender.Send(command);
+                var response = result.Adapt<UpdateMedicalRecordResponse>();
 
-            return Results.Ok(response);
-        })
-        .WithName("UpdateMedicalRecord")
-        .Produces<UpdateMedicalRecordResponse>(StatusCodes.Status200OK)
-        .ProducesProblem(StatusCodes.Status400BadRequest)
-        .ProducesProblem(StatusCodes.Status404NotFound)
-        .WithDescription("Update Medical Record")
-        .WithSummary("Update Medical Record");
+                return Results.Ok(response);
+            })
+            .WithName("UpdateMedicalRecord")
+            .Produces<UpdateMedicalRecordResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .WithDescription("Update Medical Record")
+            .WithSummary("Update Medical Record");
     }
 }

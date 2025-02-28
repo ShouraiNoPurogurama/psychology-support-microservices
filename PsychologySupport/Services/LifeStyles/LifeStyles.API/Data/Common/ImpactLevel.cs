@@ -1,10 +1,9 @@
-﻿namespace LifeStyles.API.Data.Common
+﻿namespace LifeStyles.API.Data.Common;
+
+public enum ImpactLevel
 {
-    public enum ImpactLevel
-    {
-        Low,
-        Medium,
-        High,
-        VeryHigh
-    }
+    Low,
+    Medium,
+    High,
+    VeryHigh
 }

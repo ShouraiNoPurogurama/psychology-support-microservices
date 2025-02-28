@@ -17,8 +17,8 @@ public class GetPhysicalActivityHandler(LifeStylesDbContext context)
     public async Task<GetPhysicalActivityResult> Handle(GetPhysicalActivityQuery request, CancellationToken cancellationToken)
     {
         var activity = await context.PhysicalActivities
-            .FirstOrDefaultAsync(pa => pa.Id == request.Id, cancellationToken)
-            ?? throw new NotFoundException("Physical Activity", request.Id);
+                           .FirstOrDefaultAsync(pa => pa.Id == request.Id, cancellationToken)
+                       ?? throw new NotFoundException("Physical Activity", request.Id);
 
         var activityDto = activity.Adapt<PhysicalActivityDto>();
 

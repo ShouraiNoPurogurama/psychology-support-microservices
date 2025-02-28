@@ -18,7 +18,7 @@ public class GetServicePackagesEndpoint : ICarterModule
                 var result = await sender.Send(query);
 
                 var response = result.Adapt<GetServicePackagesResponse>();
-                
+
                 return Results.Ok(response);
             })
             .WithName("GetServicePackages")

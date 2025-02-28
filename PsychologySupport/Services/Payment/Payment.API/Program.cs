@@ -26,10 +26,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-if (app.Environment.IsDevelopment())
-{
-    await app.InitializeDatabaseAsync();
-}
+if (app.Environment.IsDevelopment()) await app.InitializeDatabaseAsync();
 
 app.UseExceptionHandler(options => { });
 

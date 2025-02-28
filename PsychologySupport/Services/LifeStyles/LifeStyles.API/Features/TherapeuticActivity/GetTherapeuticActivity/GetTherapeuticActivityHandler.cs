@@ -14,12 +14,13 @@ public record GetTherapeuticActivityResult(TherapeuticActivityDto TherapeuticAct
 public class GetTherapeuticActivityHandler(LifeStylesDbContext context)
     : IQueryHandler<GetTherapeuticActivityQuery, GetTherapeuticActivityResult>
 {
-    public async Task<GetTherapeuticActivityResult> Handle(GetTherapeuticActivityQuery request, CancellationToken cancellationToken)
+    public async Task<GetTherapeuticActivityResult> Handle(GetTherapeuticActivityQuery request,
+        CancellationToken cancellationToken)
     {
         var activity = await context.TherapeuticActivities
-            .Include(ta => ta.TherapeuticType) // Load TherapeuticType để lấy Name
-            .FirstOrDefaultAsync(ta => ta.Id == request.Id, cancellationToken)
-            ?? throw new NotFoundException("Therapeutic Activity", request.Id);
+                           .Include(ta => ta.TherapeuticType) // Load TherapeuticType để lấy Name
+                           .FirstOrDefaultAsync(ta => ta.Id == request.Id, cancellationToken)
+                       ?? throw new NotFoundException("Therapeutic Activity", request.Id);
 
         var activityDto = activity.Adapt<TherapeuticActivityDto>();
 

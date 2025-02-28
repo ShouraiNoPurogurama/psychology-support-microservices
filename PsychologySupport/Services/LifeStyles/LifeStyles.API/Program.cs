@@ -25,10 +25,7 @@ if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "LifeStyles API v1");
-    });
+    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "LifeStyles API v1"); });
 }
 
 app.Run();

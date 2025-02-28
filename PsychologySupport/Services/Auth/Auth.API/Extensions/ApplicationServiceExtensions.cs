@@ -17,19 +17,19 @@ public static class ApplicationServiceExtensions
         services.AddCarter();
         services.AddControllers();
         services.AddEndpointsApiExplorer();
-        
+
         ConfigureSwagger(services);
-        
+
         ConfigureCors(services);
-        
+
         ConfigureMediatR(services);
 
         AddDatabase(services, config);
-        
+
         AddServiceDependencies(services);
-        
+
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
-        
+
         return services;
     }
 
@@ -71,7 +71,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, TokenService>();
     }
-    
+
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
     {
         var connectionString = config.GetConnectionString("AuthDb");
@@ -82,5 +82,4 @@ public static class ApplicationServiceExtensions
             opt.UseNpgsql(connectionString);
         });
     }
-    
 }

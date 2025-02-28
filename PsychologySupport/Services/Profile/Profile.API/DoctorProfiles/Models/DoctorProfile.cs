@@ -6,27 +6,7 @@ namespace Profile.API.DoctorProfiles.Models;
 
 public class DoctorProfile : AggregateRoot<Guid>
 {
-    public Guid UserId { get; set; }
-
-    public string FullName { get; set; } = default!;
-
-    public UserGender Gender { get; set; }
-    public ContactInfo ContactInfo { get; set; } = default!;
-
-    public string? Specialty { get; set; }
-
-    public string? Qualifications { get; set; }
-
-    public int YearsOfExperience { get; set; }
-
-    public string? Bio { get; set; }
-
-    public float Rating { get; set; }
-
-    public int TotalReviews { get; set; }
-
     private readonly List<MedicalRecord> _medicalRecords = [];
-    public IReadOnlyList<MedicalRecord> MedicalRecords => _medicalRecords.AsReadOnly();
 
     public DoctorProfile()
     {
@@ -35,9 +15,9 @@ public class DoctorProfile : AggregateRoot<Guid>
     public DoctorProfile(
         Guid userId,
         string fullName,
-        string gender,
+        UserGender gender,
         ContactInfo contactInfo,
-        string specialty,
+        List<Specialty> specialties,
         string qualifications,
         int yearsOfExperience,
         string? bio,
@@ -47,14 +27,9 @@ public class DoctorProfile : AggregateRoot<Guid>
     {
         UserId = userId;
         FullName = fullName;
-
-        if (!Enum.TryParse<UserGender>(gender, true, out var parsedGender))
-            throw new ArgumentException("Invalid gender value. Allowed: Male, Female, Else.", nameof(gender));
-
-        Gender = parsedGender;
-
+        Gender = gender;
         ContactInfo = contactInfo;
-        Specialty = specialty;
+        Specialties = specialties;
         Qualifications = qualifications;
         YearsOfExperience = yearsOfExperience;
         Bio = bio;
@@ -62,12 +37,30 @@ public class DoctorProfile : AggregateRoot<Guid>
         TotalReviews = totalReviews;
     }
 
+    public Guid UserId { get; set; }
+
+    public string FullName { get; set; } = default!;
+
+    public UserGender Gender { get; set; }
+    public ContactInfo ContactInfo { get; set; } = default!;
+    public string? Qualifications { get; set; }
+
+    public int YearsOfExperience { get; set; }
+
+    public string? Bio { get; set; }
+
+    public float Rating { get; set; }
+
+    public int TotalReviews { get; set; }
+    public ICollection<Specialty> Specialties { get; set; } = [];
+    public IReadOnlyList<MedicalRecord> MedicalRecords => _medicalRecords.AsReadOnly();
+
     public static DoctorProfile Create(
         Guid userId,
         string fullName,
-        string gender,
+        UserGender gender,
         ContactInfo contactInfo,
-        string specialty,
+        List<Specialty> specialties,
         string qualifications,
         int yearsOfExperience,
         string? bio,
@@ -83,15 +76,12 @@ public class DoctorProfile : AggregateRoot<Guid>
         if (contactInfo == null)
             throw new ArgumentNullException(nameof(contactInfo), "Contact info cannot be null.");
 
-        if (!Enum.TryParse<UserGender>(gender, true, out var parsedGender))
-            throw new ArgumentException("Invalid gender value. Allowed: Male, Female, Else.", nameof(gender));
-
         return new DoctorProfile(
             userId,
             fullName,
             gender,
             contactInfo,
-            specialty,
+            specialties,
             qualifications,
             yearsOfExperience,
             bio,
@@ -110,27 +100,17 @@ public class DoctorProfile : AggregateRoot<Guid>
 
     public void Update(
         string fullName,
-        string gender,
+        UserGender gender,
         ContactInfo contactInfo,
-        string specialty,
+        List<Specialty> specialties,
         string qualifications,
         int yearsOfExperience,
         string bio)
     {
-        if (!Enum.TryParse<UserGender>(gender, true, out var parsedGender))
-            throw new ArgumentException("Invalid gender value. Allowed: Male, Female, Else.", nameof(gender));
-
-        if (string.IsNullOrWhiteSpace(contactInfo.PhoneNumber) 
-            || string.IsNullOrWhiteSpace(contactInfo.Email) 
-            || string.IsNullOrEmpty(contactInfo.Address))
-        {
-            throw new ArgumentException("Phone Number, Email, and Address cannot be empty.");
-        }
-        
         FullName = fullName;
-        Gender = parsedGender;
+        Gender = gender;
         ContactInfo = contactInfo;
-        Specialty = specialty;
+        Specialties = specialties;
         Qualifications = qualifications;
         YearsOfExperience = yearsOfExperience;
         Bio = bio;

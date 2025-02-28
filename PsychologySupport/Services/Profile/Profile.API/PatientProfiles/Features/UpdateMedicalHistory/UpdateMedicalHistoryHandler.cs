@@ -8,6 +8,7 @@ public record UpdateMedicalHistoryCommand(
     List<Guid> PhysicalSymptomIds) : ICommand<UpdateMedicalHistoryResult>;
 
 public record UpdateMedicalHistoryResult(bool IsSuccess);
+
 public class UpdateMedicalHistoryHandler : ICommandHandler<UpdateMedicalHistoryCommand, UpdateMedicalHistoryResult>
 {
     private readonly ProfileDbContext _context;
@@ -23,10 +24,7 @@ public class UpdateMedicalHistoryHandler : ICommandHandler<UpdateMedicalHistoryC
             .Include(pp => pp.MedicalHistory)
             .FirstOrDefaultAsync(pp => pp.Id == request.PatientProfileId, cancellationToken);
 
-        if (patientProfile == null)
-        {
-            return new UpdateMedicalHistoryResult(false); 
-        }
+        if (patientProfile == null) return new UpdateMedicalHistoryResult(false);
 
         var disorders = await _context.SpecificMentalDisorders
             .Where(d => request.DisorderIds.Contains(d.Id))
@@ -39,6 +37,5 @@ public class UpdateMedicalHistoryHandler : ICommandHandler<UpdateMedicalHistoryC
         patientProfile.UpdateMedicalHistory(request.Description, request.DiagnosedAt, disorders, symptoms);
         await _context.SaveChangesAsync(cancellationToken);
         return new UpdateMedicalHistoryResult(true);
-       
     }
 }

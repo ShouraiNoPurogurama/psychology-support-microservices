@@ -21,7 +21,7 @@ builder.Services.AddMassTransit(config =>
     {
         cfg.Host("rabbitmq://localhost", h =>
         {
-            h.Username("guest"); 
+            h.Username("guest");
             h.Password("guest");
         });
     });
@@ -44,10 +44,7 @@ if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Subscription API v1");
-    });
+    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Subscription API v1"); });
 }
 
 app.UseRouting();

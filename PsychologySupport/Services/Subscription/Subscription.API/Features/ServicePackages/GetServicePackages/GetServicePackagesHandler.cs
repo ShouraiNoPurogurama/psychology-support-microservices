@@ -21,8 +21,8 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
 
     public async Task<GetServicePackagesResult> Handle(GetServicePackagesQuery request, CancellationToken cancellationToken)
     {
-        var pageSize= request.PaginationRequest.PageSize;
-        var pageIndex= request.PaginationRequest.PageIndex;
+        var pageSize = request.PaginationRequest.PageSize;
+        var pageIndex = request.PaginationRequest.PageIndex;
         var skip = (pageIndex - 1) * pageSize;
 
         var totalCount = await _dbContext.ServicePackages.LongCountAsync(cancellationToken);
@@ -42,7 +42,7 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
             ))
             .ToListAsync(cancellationToken);
 
-        return new GetServicePackagesResult(new PaginatedResult<ServicePackageDto>(pageIndex, pageSize, totalCount, servicePackages));
+        return new GetServicePackagesResult(
+            new PaginatedResult<ServicePackageDto>(pageIndex, pageSize, totalCount, servicePackages));
     }
-
 }

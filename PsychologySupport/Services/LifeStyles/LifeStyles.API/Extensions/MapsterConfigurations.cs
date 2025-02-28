@@ -1,16 +1,12 @@
-﻿using Mapster;
-using System.Reflection;
+﻿using System.Reflection;
+using Mapster;
 
-namespace LifeStyles.API.Extensions
+namespace LifeStyles.API.Extensions;
+
+public static class MapsterConfigurations
 {
-    public static class MapsterConfigurations
+    public static void RegisterMapsterConfiguration(this IServiceCollection services)
     {
-        public static void RegisterMapsterConfiguration(this IServiceCollection services)
-        {
-            TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
-
-            
-
-        }
+        TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
     }
 }

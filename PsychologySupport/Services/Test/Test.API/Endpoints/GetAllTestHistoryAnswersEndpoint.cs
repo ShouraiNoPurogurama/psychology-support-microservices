@@ -4,15 +4,15 @@ using MediatR;
 using Test.Application.TestOutput.Queries;
 using Test.Domain.Models;
 
-namespace Test.API.Endpoints
-{
-    public record GetAllTestHistoryAnswersResponse(PaginatedResult<TestHistoryAnswer> Answers);
+namespace Test.API.Endpoints;
 
-    public class GetAllTestHistoryAnswersEndpoint : ICarterModule
+public record GetAllTestHistoryAnswersResponse(PaginatedResult<TestHistoryAnswer> Answers);
+
+public class GetAllTestHistoryAnswersEndpoint : ICarterModule
+{
+    public void AddRoutes(IEndpointRouteBuilder app)
     {
-        public void AddRoutes(IEndpointRouteBuilder app)
-        {
-            app.MapGet("/test-history-answers/{testResultId:guid}", async (
+        app.MapGet("/test-history-answers/{testResultId:guid}", async (
                 Guid testResultId,
                 [AsParameters] PaginationRequest request,
                 ISender sender) =>
@@ -28,6 +28,5 @@ namespace Test.API.Endpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get paginated Test History Answers")
             .WithSummary("Get paginated Test History Answers");
-        }
     }
 }

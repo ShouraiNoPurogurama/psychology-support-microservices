@@ -27,16 +27,17 @@ public class GetAllPatientProfilesHandler : IQueryHandler<GetAllPatientProfilesQ
             .Skip(pageIndex - 1)
             .Take(pageSize)
             .Include(p => p.MedicalRecords)
-                .ThenInclude(m => m.SpecificMentalDisorders)
+            .ThenInclude(m => m.SpecificMentalDisorders)
             .Include(p => p.MedicalHistory)
-                .ThenInclude(m => m.SpecificMentalDisorders)
+            .ThenInclude(m => m.SpecificMentalDisorders)
             .Include(p => p.MedicalHistory)
-                .ThenInclude(m => m.PhysicalSymptoms)
+            .ThenInclude(m => m.PhysicalSymptoms)
             .ToListAsync(cancellationToken);
 
         var totalCount = await _context.PatientProfiles.LongCountAsync(cancellationToken);
-        
-        var result = new PaginatedResult<GetPatientProfileDto>(pageIndex, pageSize, totalCount, patientProfiles.Adapt<IEnumerable<GetPatientProfileDto>>());
+
+        var result = new PaginatedResult<GetPatientProfileDto>(pageIndex, pageSize, totalCount,
+            patientProfiles.Adapt<IEnumerable<GetPatientProfileDto>>());
 
         return new GetAllPatientProfilesResult(result);
     }

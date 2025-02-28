@@ -1,7 +1,5 @@
-using Auth.API.EventHandlers;
 using Auth.API.Extensions;
 using BuildingBlocks.Exceptions.Handler;
-using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +18,7 @@ app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())
 {
-    app.InitializeDatabaseAsync();    
+    app.InitializeDatabaseAsync();
     app.UseSwagger();
     app.UseSwaggerUI();
 }

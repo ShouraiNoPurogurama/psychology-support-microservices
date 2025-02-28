@@ -4,15 +4,15 @@ using MediatR;
 using Test.Application.Tests.Queries;
 using Test.Domain.Models;
 
-namespace Test.API.Endpoints
-{
-    public record GetAllQuestionOptionsResponse(PaginatedResult<QuestionOption> QuestionOptions);
+namespace Test.API.Endpoints;
 
-    public class GetAllQuestionOptionsEndpoint : ICarterModule
+public record GetAllQuestionOptionsResponse(PaginatedResult<QuestionOption> QuestionOptions);
+
+public class GetAllQuestionOptionsEndpoint : ICarterModule
+{
+    public void AddRoutes(IEndpointRouteBuilder app)
     {
-        public void AddRoutes(IEndpointRouteBuilder app)
-        {
-            app.MapGet("/question-options/{questionId:guid}", async (
+        app.MapGet("/question-options/{questionId:guid}", async (
                 Guid questionId,
                 [AsParameters] PaginationRequest request,
                 ISender sender) =>
@@ -28,6 +28,5 @@ namespace Test.API.Endpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get paginated Question Options")
             .WithSummary("Get paginated Question Options");
-        }
     }
 }

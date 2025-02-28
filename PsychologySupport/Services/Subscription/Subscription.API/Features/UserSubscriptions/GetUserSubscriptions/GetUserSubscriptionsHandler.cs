@@ -1,9 +1,8 @@
 ﻿using BuildingBlocks.CQRS;
-using Subscription.API.Data;
-using Subscription.API.Models;
-using Microsoft.EntityFrameworkCore;
-using Subscription.API.Dtos;
 using BuildingBlocks.Pagination;
+using Microsoft.EntityFrameworkCore;
+using Subscription.API.Data;
+using Subscription.API.Dtos;
 
 namespace Subscription.API.Features.UserSubscriptions.GetUserSubscriptions;
 

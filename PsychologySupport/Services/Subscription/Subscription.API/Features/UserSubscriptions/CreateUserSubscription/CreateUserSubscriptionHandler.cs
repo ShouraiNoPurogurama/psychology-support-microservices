@@ -2,11 +2,11 @@
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Payment;
 using MassTransit;
-using Subscription.API.Data;
-using Subscription.API.Models;
 using Microsoft.EntityFrameworkCore;
-using Subscription.API.Dtos;
+using Subscription.API.Data;
 using Subscription.API.Data.Common;
+using Subscription.API.Dtos;
+using Subscription.API.Models;
 
 namespace Subscription.API.Features.UserSubscriptions.CreateUserSubscription;
 

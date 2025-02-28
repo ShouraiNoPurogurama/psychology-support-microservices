@@ -1,10 +1,9 @@
-﻿namespace LifeStyles.API.Data.Common
+﻿namespace LifeStyles.API.Data.Common;
+
+public enum IntensityLevel
 {
-    public enum IntensityLevel
-    {
-        Low,
-        Medium,
-        High,
-        VeryHigh
-    }
+    Low,
+    Medium,
+    High,
+    VeryHigh
 }

@@ -18,7 +18,7 @@ services.RegisterMapsterConfiguration();
 // Configure the HTTP request pipeline
 var app = builder.Build();
 
-app.UseExceptionHandler(options => {});
+app.UseExceptionHandler(options => { });
 
 app.UseStaticFiles();
 
@@ -26,12 +26,9 @@ app.MapCarter();
 
 if (app.Environment.IsDevelopment())
 {
-    app.InitializeDatabaseAsync();    
+    app.InitializeDatabaseAsync();
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Profile API v1");
-    });
+    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Profile API v1"); });
 }
 
 

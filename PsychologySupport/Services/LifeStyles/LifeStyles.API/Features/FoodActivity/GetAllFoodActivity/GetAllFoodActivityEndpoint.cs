@@ -13,17 +13,17 @@ public class GetAllFoodActivityEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapGet("/food-activities", async ([AsParameters] PaginationRequest request, ISender sender) =>
-        {
-            var query = new GetAllFoodActivitiesQuery(request);
-            var result = await sender.Send(query);
-            var response = result.Adapt<GetAllFoodActivitiesResponse>();
+            {
+                var query = new GetAllFoodActivitiesQuery(request);
+                var result = await sender.Send(query);
+                var response = result.Adapt<GetAllFoodActivitiesResponse>();
 
-            return Results.Ok(response);
-        })
-        .WithName("GetAllFoodActivities")
-        .Produces<GetAllFoodActivitiesResponse>()
-        .ProducesProblem(StatusCodes.Status400BadRequest)
-        .WithDescription("Get All Food Activities")
-        .WithSummary("Get All Food Activities");
+                return Results.Ok(response);
+            })
+            .WithName("GetAllFoodActivities")
+            .Produces<GetAllFoodActivitiesResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .WithDescription("Get All Food Activities")
+            .WithSummary("Get All Food Activities");
     }
 }

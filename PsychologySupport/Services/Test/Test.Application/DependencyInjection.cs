@@ -1,29 +1,26 @@
-﻿using BuildingBlocks.Behaviors;
+﻿using System.Reflection;
+using BuildingBlocks.Behaviors;
 using BuildingBlocks.Messaging.Masstransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
-using System.Reflection;
 
+namespace Test.Application;
 
-namespace Test.Application
+public static class DependencyInjection
 {
-    public static class DependencyInjection
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
+        services.AddMediatR(config =>
         {
-            services.AddMediatR(config =>
-            {
-                config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-                config.AddOpenBehavior(typeof(ValidationBehavior<,>));
-                config.AddOpenBehavior(typeof(LoggingBehavior<,>));
-            });
+            config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+            config.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            config.AddOpenBehavior(typeof(LoggingBehavior<,>));
+        });
 
-            services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
-            services.AddFeatureManagement();
+        services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
+        services.AddFeatureManagement();
 
-            return services;
-        }
+        return services;
     }
 }
-

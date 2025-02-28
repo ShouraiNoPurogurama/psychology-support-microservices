@@ -1,7 +1,4 @@
-﻿using Auth.API.Data;
-using Microsoft.EntityFrameworkCore;
-
-namespace Auth.API.Extensions;
+﻿namespace Auth.API.Extensions;
 
 public static class DatabaseExtensions
 {

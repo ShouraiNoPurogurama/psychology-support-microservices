@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.CQRS;
+using Mapster;
 using Subscription.API.Data;
 using Subscription.API.Dtos;
-using Mapster;
 using Subscription.API.Exceptions;
 
 namespace Subscription.API.Features.UserSubscriptions.UpdateUserSubscription;
@@ -20,10 +20,11 @@ public class UpdateUserSubscriptionHandler : ICommandHandler<UpdateUserSubscript
         _context = context;
     }
 
-    public async Task<UpdateUserSubscriptionResult> Handle(UpdateUserSubscriptionCommand request, CancellationToken cancellationToken)
+    public async Task<UpdateUserSubscriptionResult> Handle(UpdateUserSubscriptionCommand request,
+        CancellationToken cancellationToken)
     {
         var existingSubscription = await _context.UserSubscriptions.FindAsync(request.UserSubscription.Id, cancellationToken)
-                                       ?? throw new SubscriptionNotFoundException("User Subscription", request.UserSubscription.Id);
+                                   ?? throw new SubscriptionNotFoundException("User Subscription", request.UserSubscription.Id);
 
         existingSubscription = request.UserSubscription.Adapt(existingSubscription);
 

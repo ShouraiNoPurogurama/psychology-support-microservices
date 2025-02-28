@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Test.Domain.Exceptions;
 
-namespace Test.Domain.Exceptions
+public class DomainException : Exception
 {
-    public class DomainException : Exception
+    public DomainException(string message) : base($"Domain Exception: \"{message}\" throws from Domain layer.")
     {
-        public DomainException(string message) : base($"Domain Exception: \"{message}\" throws from Domain layer.")
-        {
-        }
     }
 }

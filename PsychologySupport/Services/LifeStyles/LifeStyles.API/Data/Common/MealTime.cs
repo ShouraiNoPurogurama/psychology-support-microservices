@@ -1,10 +1,9 @@
-﻿namespace LifeStyles.API.Data.Common
+﻿namespace LifeStyles.API.Data.Common;
+
+public enum MealTime
 {
-    public enum MealTime
-    {
-        Breakfast,
-        Lunch,
-        Dinner,
-        Snack
-    }
+    Breakfast,
+    Lunch,
+    Dinner,
+    Snack
 }

@@ -8,27 +8,27 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Carter" Version="8.1.0" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
+        <PackageReference Include="Carter" Version="8.1.0"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\..\..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Endpoints\" />
+        <Folder Include="Endpoints\"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
-      <ProjectReference Include="..\Payment.Application\Payment.Application.csproj" />
-      <ProjectReference Include="..\Payment.Infrastructure\Payment.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj"/>
+        <ProjectReference Include="..\Payment.Application\Payment.Application.csproj"/>
+        <ProjectReference Include="..\Payment.Infrastructure\Payment.Infrastructure.csproj"/>
     </ItemGroup>
 
 </Project>

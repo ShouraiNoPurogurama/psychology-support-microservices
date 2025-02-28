@@ -5,15 +5,15 @@ using MediatR;
 using Test.Application.Dtos;
 using Test.Application.Tests.Queries;
 
-namespace Test.API.Endpoints
-{
-    public record GetAllTestsResponse(PaginatedResult<TestDto> Tests);
+namespace Test.API.Endpoints;
 
-    public class GetAllTestsEndpoint : ICarterModule
+public record GetAllTestsResponse(PaginatedResult<TestDto> Tests);
+
+public class GetAllTestsEndpoint : ICarterModule
+{
+    public void AddRoutes(IEndpointRouteBuilder app)
     {
-        public void AddRoutes(IEndpointRouteBuilder app)
-        {
-            app.MapGet("/tests", async ([AsParameters] PaginationRequest request, ISender sender) =>
+        app.MapGet("/tests", async ([AsParameters] PaginationRequest request, ISender sender) =>
             {
                 var query = new GetAllTestsQuery(request);
                 var result = await sender.Send(query);
@@ -26,7 +26,5 @@ namespace Test.API.Endpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get all tests with pagination")
             .WithSummary("Get Paginated Tests");
-        }
     }
 }
-

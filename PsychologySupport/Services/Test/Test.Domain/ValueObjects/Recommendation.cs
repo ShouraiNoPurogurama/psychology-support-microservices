@@ -1,26 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Test.Domain.ValueObjects;
 
-namespace Test.Domain.ValueObjects
+public record Recommendation
 {
-    public record Recommendation
+    public Recommendation(string value)
     {
-        public string Value { get; }
+        if (string.IsNullOrWhiteSpace(value))
+            throw new ArgumentException("Recommendation cannot be empty.");
 
-        public Recommendation(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("Recommendation cannot be empty.");
+        if (value.Length > 1000)
+            throw new ArgumentException("Recommendation cannot exceed 1000 characters.");
 
-            if (value.Length > 1000)
-                throw new ArgumentException("Recommendation cannot exceed 1000 characters.");
+        Value = value;
+    }
 
-            Value = value;
-        }
+    public string Value { get; }
 
-        public override string ToString() => Value;
+    public override string ToString()
+    {
+        return Value;
     }
 }

@@ -7,13 +7,13 @@ namespace Payment.Infrastructure.Data;
 
 public class PaymentDbContext : DbContext, IPaymentDbContext
 {
-    public DbSet<Domain.Models.Payment> Payments => Set<Domain.Models.Payment>();
-    public DbSet<PaymentDetail> PaymentDetails => Set<PaymentDetail>();
-    public DbSet<PaymentMethod> PaymentMethods => Set<PaymentMethod>();
-
     public PaymentDbContext(DbContextOptions<PaymentDbContext> options) : base(options)
     {
     }
+
+    public DbSet<Domain.Models.Payment> Payments => Set<Domain.Models.Payment>();
+    public DbSet<PaymentDetail> PaymentDetails => Set<PaymentDetail>();
+    public DbSet<PaymentMethod> PaymentMethods => Set<PaymentMethod>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

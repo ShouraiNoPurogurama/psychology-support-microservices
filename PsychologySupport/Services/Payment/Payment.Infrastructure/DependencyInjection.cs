@@ -17,7 +17,7 @@ public static class DependencyInjection
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
         services.AddScoped<IPaymentDbContext, PaymentDbContext>();
-        
+
         services.AddDbContext<PaymentDbContext>((serviceProvider, options) =>
         {
             options.AddInterceptors(serviceProvider.GetServices<ISaveChangesInterceptor>());
@@ -25,7 +25,7 @@ public static class DependencyInjection
         });
 
         // services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
-        
+
         return services;
     }
 }

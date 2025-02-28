@@ -1,10 +1,9 @@
 ﻿using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.Exceptions;
 
-
 namespace Profile.API.DoctorProfiles.Features.UpdateDoctorProfile;
 
-public record UpdateDoctorProfileCommand(Guid Id, DoctorProfileDto DoctorProfileDto) : ICommand<UpdateDoctorProfileResult>;
+public record UpdateDoctorProfileCommand(Guid Id, UpdateDoctorProfileDto DoctorProfileDto) : ICommand<UpdateDoctorProfileResult>;
 
 public record UpdateDoctorProfileResult(Guid Id);
 
@@ -23,18 +22,22 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
     {
         var doctorProfile = await _context.DoctorProfiles.Include(doctorProfile => doctorProfile.ContactInfo)
                                 .FirstOrDefaultAsync(d => d.Id == request.Id, cancellationToken)
-            ?? throw new ProfileNotFoundException("Doctor profile", request.Id);
+                            ?? throw new ProfileNotFoundException("Doctor profile", request.Id);
+
+        var specialties = await _context.Specialties
+            .Where(s => request.DoctorProfileDto.SpecialtyIds.Contains(s.Id))
+            .ToListAsync(cancellationToken);
 
         doctorProfile.Update(
-            request.DoctorProfileDto.FullName,
-            request.DoctorProfileDto.Gender,
-            request.DoctorProfileDto.ContactInfo,
-            request.DoctorProfileDto.Specialty,
-            request.DoctorProfileDto.Qualifications,
-            request.DoctorProfileDto.YearsOfExperience,
-            request.DoctorProfileDto.Bio
+            request.DoctorProfileDto.FullName ?? doctorProfile.FullName,
+            request.DoctorProfileDto.Gender ?? doctorProfile.Gender,
+            request.DoctorProfileDto.ContactInfo ?? doctorProfile.ContactInfo,
+            specialties,
+            request.DoctorProfileDto.Qualifications ?? doctorProfile.Qualifications,
+            request.DoctorProfileDto.YearsOfExperience ?? doctorProfile.YearsOfExperience,
+            request.DoctorProfileDto.Bio ?? doctorProfile.Bio
         );
-        
+
         await _context.SaveChangesAsync(cancellationToken);
 
         var doctorProfileUpdatedEvent = new DoctorProfileUpdatedIntegrationEvent(

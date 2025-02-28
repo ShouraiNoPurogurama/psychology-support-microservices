@@ -1,7 +1,7 @@
 using Test.API;
 using Test.Application;
-using Test.Infrastructure.Data.Extensions;
 using Test.Infrastructure;
+using Test.Infrastructure.Data.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
@@ -23,10 +23,7 @@ if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API v1");
-    });
+    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API v1"); });
 }
 
 

@@ -1,7 +1,7 @@
-﻿using MassTransit;
-using Auth.API.Data;
+﻿using Auth.API.Data;
 using Auth.API.Models;
 using BuildingBlocks.Messaging.Events.Auth;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 
 namespace Auth.API.EventHandlers;
@@ -26,9 +26,9 @@ public class DoctorProfileCreatedEventHandler : IConsumer<DoctorProfileCreatedIn
         {
             user.FullName = message.FullName;
             user.Gender = message.Gender;
-            await _userManager.SetEmailAsync(user,message.Email);
-            await _userManager.SetPhoneNumberAsync(user,message.PhoneNumber);
-            
+            await _userManager.SetEmailAsync(user, message.Email);
+            await _userManager.SetPhoneNumberAsync(user, message.PhoneNumber);
+
             await _context.SaveChangesAsync();
         }
     }

@@ -1,8 +1,8 @@
-﻿using MassTransit;
-using Auth.API.Data;
-using BuildingBlocks.Messaging.Events.Auth;
-using Microsoft.AspNetCore.Identity;
+﻿using Auth.API.Data;
 using Auth.API.Models;
+using BuildingBlocks.Messaging.Events.Auth;
+using MassTransit;
+using Microsoft.AspNetCore.Identity;
 
 namespace Auth.API.EventHandlers;
 

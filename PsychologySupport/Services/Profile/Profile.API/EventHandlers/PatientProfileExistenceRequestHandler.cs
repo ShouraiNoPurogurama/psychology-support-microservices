@@ -1,24 +1,23 @@
-﻿using BuildingBlocks.Messaging.Events.Profile; 
+﻿using BuildingBlocks.Messaging.Events.Profile;
 
-namespace Profile.API.EventHandlers
+namespace Profile.API.EventHandlers;
+
+public class PatientProfileExistenceRequestHandler : IConsumer<PatientProfileExistenceRequest>
 {
-    public class PatientProfileExistenceRequestHandler : IConsumer<PatientProfileExistenceRequest>
+    private readonly ProfileDbContext _context;
+
+    public PatientProfileExistenceRequestHandler(ProfileDbContext context)
     {
-        private readonly ProfileDbContext _context;
+        _context = context;
+    }
 
-        public PatientProfileExistenceRequestHandler(ProfileDbContext context)
-        {
-            _context = context;
-        }
+    public async Task Consume(ConsumeContext<PatientProfileExistenceRequest> context)
+    {
+        var message = context.Message;
 
-        public async Task Consume(ConsumeContext<PatientProfileExistenceRequest> context)
-        {
-            var message = context.Message;
+        var patientProfile = await _context.PatientProfiles
+            .FindAsync(message.PatientProfileId);
 
-            var patientProfile = await _context.PatientProfiles
-                .FindAsync(message.PatientProfileId);
-
-            await context.RespondAsync(new PatientProfileExistenceResponse(patientProfile is not null));
-        }
+        await context.RespondAsync(new PatientProfileExistenceResponse(patientProfile is not null));
     }
 }

@@ -26,7 +26,7 @@ public class CreateServicePackageEndpoint : ICarterModule
             {
                 var servicePackageId = Guid.NewGuid();
 
-                Guid imageId = await imageService.UploadImageAsync(request.ImageData, "Service", servicePackageId);
+                var imageId = await imageService.UploadImageAsync(request.ImageData, "Service", servicePackageId);
 
                 var command = new CreateServicePackageCommand(
                     servicePackageId,

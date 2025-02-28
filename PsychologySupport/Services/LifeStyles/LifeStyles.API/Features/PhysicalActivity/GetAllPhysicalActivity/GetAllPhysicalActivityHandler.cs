@@ -20,7 +20,8 @@ public class GetAllPhysicalActivityHandler : IQueryHandler<GetAllPhysicalActivit
         _context = context;
     }
 
-    public async Task<GetAllPhysicalActivitiesResult> Handle(GetAllPhysicalActivitiesQuery request, CancellationToken cancellationToken)
+    public async Task<GetAllPhysicalActivitiesResult> Handle(GetAllPhysicalActivitiesQuery request,
+        CancellationToken cancellationToken)
     {
         var pageSize = request.PaginationRequest.PageSize;
         var pageIndex = request.PaginationRequest.PageIndex;

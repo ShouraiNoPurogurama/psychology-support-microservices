@@ -7,7 +7,9 @@ namespace LifeStyles.API.Data;
 
 public class LifeStylesDbContext : DbContext
 {
-    public LifeStylesDbContext(DbContextOptions<LifeStylesDbContext> options) : base(options) { }
+    public LifeStylesDbContext(DbContextOptions<LifeStylesDbContext> options) : base(options)
+    {
+    }
 
     public DbSet<PatientPhysicalActivity> PatientPhysicalActivities { get; set; }
     public DbSet<EntertainmentActivity> EntertainmentActivities { get; set; }
@@ -23,7 +25,7 @@ public class LifeStylesDbContext : DbContext
     {
         builder.HasDefaultSchema("public");
 
-     
+
         builder.Entity<PatientPhysicalActivity>()
             .Property(e => e.PreferenceLevel)
             .HasConversion(new EnumToStringConverter<PreferenceLevel>())

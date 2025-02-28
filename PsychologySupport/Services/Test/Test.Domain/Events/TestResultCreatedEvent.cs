@@ -1,7 +1,5 @@
 ﻿using BuildingBlocks.DDD;
 
+namespace Test.Domain.Events;
 
-namespace Test.Domain.Events
-{
-    public record TestResultCreatedEvent(Guid TestResultId, List<Guid> SelectedOptionIds) : IDomainEvent;
-}
+public record TestResultCreatedEvent(Guid TestResultId, List<Guid> SelectedOptionIds) : IDomainEvent;

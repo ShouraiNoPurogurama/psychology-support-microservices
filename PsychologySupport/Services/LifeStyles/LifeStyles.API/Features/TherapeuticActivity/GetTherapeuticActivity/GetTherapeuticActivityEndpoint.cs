@@ -6,6 +6,7 @@ using MediatR;
 namespace LifeStyles.API.Features.TherapeuticActivity.GetTherapeuticActivity;
 
 public record GetTherapeuticActivityRequest(Guid Id);
+
 public record GetTherapeuticActivityResponse(TherapeuticActivityDto TherapeuticActivity);
 
 public class GetTherapeuticActivityEndpoint : ICarterModule
@@ -13,13 +14,13 @@ public class GetTherapeuticActivityEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapGet("/therapeutic-activities/{id:guid}", async (Guid id, ISender sender) =>
-        {
-            var query = new GetTherapeuticActivityQuery(id);
-            var result = await sender.Send(query);
-            var response = result.Adapt<GetTherapeuticActivityResponse>();
+            {
+                var query = new GetTherapeuticActivityQuery(id);
+                var result = await sender.Send(query);
+                var response = result.Adapt<GetTherapeuticActivityResponse>();
 
-            return Results.Ok(response);
-        })
+                return Results.Ok(response);
+            })
             .WithName("GetTherapeuticActivity")
             .Produces<GetTherapeuticActivityResponse>()
             .ProducesProblem(StatusCodes.Status404NotFound)

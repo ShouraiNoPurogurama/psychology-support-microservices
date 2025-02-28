@@ -2,7 +2,6 @@
 using Carter;
 using Mapster;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Subscription.API.Dtos;
 
 namespace Subscription.API.Features.UserSubscriptions.GetUserSubscriptions;

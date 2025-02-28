@@ -1,19 +1,18 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Subscription.API.Data;
 
-namespace Subscription.API.Extensions
+namespace Subscription.API.Extensions;
+
+public static class DatabaseExtensions
 {
-    public static class DatabaseExtensions
+    public static void InitializeDatabaseAsync(this WebApplication app)
     {
-        public static void InitializeDatabaseAsync(this WebApplication app)
-        {
-            using var scope = app.Services.CreateScope();
+        using var scope = app.Services.CreateScope();
 
-            var context = scope.ServiceProvider.GetRequiredService<SubscriptionDbContext>();
+        var context = scope.ServiceProvider.GetRequiredService<SubscriptionDbContext>();
 
-            context.Database.MigrateAsync().GetAwaiter().GetResult();
+        context.Database.MigrateAsync().GetAwaiter().GetResult();
 
-            // await SeedAsync(context);
-        }
+        // await SeedAsync(context);
     }
 }

@@ -1,8 +1,8 @@
-﻿using MassTransit;
-using Auth.API.Data;
-using BuildingBlocks.Messaging.Events.Auth;
-using Microsoft.AspNetCore.Identity;
+﻿using Auth.API.Data;
 using Auth.API.Models;
+using BuildingBlocks.Messaging.Events.Auth;
+using MassTransit;
+using Microsoft.AspNetCore.Identity;
 
 namespace Auth.API.EventHandlers;
 
@@ -11,7 +11,7 @@ public class PatientProfileUpdatedEventHandler : IConsumer<PatientProfileUpdated
     private readonly AuthDbContext _context;
     private readonly UserManager<User> _userManager;
 
-    public PatientProfileUpdatedEventHandler(AuthDbContext context,UserManager<User> userManager)
+    public PatientProfileUpdatedEventHandler(AuthDbContext context, UserManager<User> userManager)
     {
         _context = context;
         _userManager = userManager;

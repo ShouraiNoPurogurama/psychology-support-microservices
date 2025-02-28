@@ -3,7 +3,6 @@ using FluentValidation;
 using Subscription.API.Data;
 using Subscription.API.Dtos;
 using Subscription.API.Exceptions;
-using Subscription.API.Models;
 
 namespace Subscription.API.Features.UserSubscriptions.GetUserSubscription;
 
@@ -31,7 +30,7 @@ public class GetUserSubscriptionHandler : IQueryHandler<GetUserSubscriptionQuery
     public async Task<GetUserSubscriptionResult> Handle(GetUserSubscriptionQuery query, CancellationToken cancellationToken)
     {
         var userSubscription = await _context.UserSubscriptions.FindAsync(query.Id, cancellationToken)
-                                    ?? throw new SubscriptionNotFoundException(query.Id.ToString());
+                               ?? throw new SubscriptionNotFoundException(query.Id.ToString());
 
         var userSubscriptionDto = new GetUserSubscriptionDto(
             userSubscription.Id,
@@ -46,5 +45,4 @@ public class GetUserSubscriptionHandler : IQueryHandler<GetUserSubscriptionQuery
 
         return new GetUserSubscriptionResult(userSubscriptionDto);
     }
-
 }

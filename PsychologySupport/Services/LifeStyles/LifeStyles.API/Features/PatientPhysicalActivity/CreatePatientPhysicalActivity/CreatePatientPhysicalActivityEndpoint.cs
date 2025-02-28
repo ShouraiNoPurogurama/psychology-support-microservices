@@ -3,25 +3,25 @@ using LifeStyles.API.Data.Common;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LifeStyles.API.Features.PatientPhysicalActivity.CreatePatientPhysicalActivity
+namespace LifeStyles.API.Features.PatientPhysicalActivity.CreatePatientPhysicalActivity;
+
+public record CreatePatientPhysicalActivityRequest(
+    Guid PatientProfileId,
+    List<PhysicalPreference> Activities
+);
+
+public record PhysicalPreference(Guid PhysicalActivityId, PreferenceLevel PreferenceLevel);
+
+public record CreatePatientPhysicalActivityResponse(
+    Guid PatientProfileId,
+    List<PhysicalPreference> Activities
+);
+
+public class CreatePatientPhysicalActivityEndpoint : ICarterModule
 {
-    public record CreatePatientPhysicalActivityRequest(
-        Guid PatientProfileId,
-        List<PhysicalPreference> Activities
-    );
-
-    public record PhysicalPreference(Guid PhysicalActivityId, PreferenceLevel PreferenceLevel);
-
-    public record CreatePatientPhysicalActivityResponse(
-        Guid PatientProfileId,
-        List<PhysicalPreference> Activities
-    );
-
-    public class CreatePatientPhysicalActivityEndpoint : ICarterModule
+    public void AddRoutes(IEndpointRouteBuilder app)
     {
-        public void AddRoutes(IEndpointRouteBuilder app)
-        {
-            app.MapPost("patient-physical-activities", async (
+        app.MapPost("patient-physical-activities", async (
                 [FromBody] CreatePatientPhysicalActivityRequest request, ISender sender) =>
             {
                 var command = new CreatePatientPhysicalActivityCommand(
@@ -43,7 +43,5 @@ namespace LifeStyles.API.Features.PatientPhysicalActivity.CreatePatientPhysicalA
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Create multiple Patient Physical Activities")
             .WithSummary("Create multiple Patient Physical Activities");
-        }
     }
-
 }
