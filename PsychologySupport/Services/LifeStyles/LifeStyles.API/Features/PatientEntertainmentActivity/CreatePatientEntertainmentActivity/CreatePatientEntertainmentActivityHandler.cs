@@ -2,7 +2,6 @@
 using BuildingBlocks.Messaging.Events.Profile;
 using LifeStyles.API.Data;
 using LifeStyles.API.Data.Common;
-using LifeStyles.API.Events;
 using LifeStyles.API.Exceptions;
 using MassTransit;
 
@@ -17,10 +16,10 @@ namespace LifeStyles.API.Features.PatientEntertainmentActivity.CreatePatientEnte
     : ICommandHandler<CreatePatientEntertainmentActivityCommand, CreatePatientEntertainmentActivityResult>
     {
         private readonly LifeStylesDbContext _context;
-        private readonly IRequestClient<CheckPatientProfileExistenceIntegrationEvent> _client;
+        private readonly IRequestClient<PatientProfileExistenceRequest> _client;
 
         public CreatePatientEntertainmentActivityHandler(LifeStylesDbContext context,
-            IRequestClient<CheckPatientProfileExistenceIntegrationEvent> client)
+            IRequestClient<PatientProfileExistenceRequest> client)
         {
             _context = context;
             _client = client;
@@ -30,9 +29,9 @@ namespace LifeStyles.API.Features.PatientEntertainmentActivity.CreatePatientEnte
             CreatePatientEntertainmentActivityCommand request,CancellationToken cancellationToken)
         {
 
-            var response = await _client.GetResponse<CheckPatientProfileExistenceResponseEvent>(new CheckPatientProfileExistenceIntegrationEvent(request.PatientProfileId), cancellationToken);
+            var response = await _client.GetResponse<PatientProfileExistenceResponse>(new PatientProfileExistenceRequest(request.PatientProfileId), cancellationToken);
 
-            if (!response.Message.Exists)
+            if (!response.Message.IsExist)
             {
                 throw new LifeStylesNotFoundException("PatientProfile", request.PatientProfileId);
             }

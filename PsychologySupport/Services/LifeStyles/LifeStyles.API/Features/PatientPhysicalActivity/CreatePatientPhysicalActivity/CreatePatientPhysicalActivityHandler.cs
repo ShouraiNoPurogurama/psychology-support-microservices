@@ -2,7 +2,6 @@
 using BuildingBlocks.Messaging.Events.Profile;
 using LifeStyles.API.Data;
 using LifeStyles.API.Data.Common;
-using LifeStyles.API.Events;
 using LifeStyles.API.Exceptions;
 using MassTransit;
 
@@ -15,30 +14,22 @@ namespace LifeStyles.API.Features.PatientPhysicalActivity.CreatePatientPhysicalA
 
     public record CreatePatientPhysicalActivityResult(bool IsSucceeded);
 
-    public class CreatePatientPhysicalActivityHandler : ICommandHandler<CreatePatientPhysicalActivityCommand,
-        CreatePatientPhysicalActivityResult>
+    public class CreatePatientPhysicalActivityHandler(
+        LifeStylesDbContext context,
+        IRequestClient<PatientProfileExistenceRequest> client)
+        : ICommandHandler<CreatePatientPhysicalActivityCommand,
+            CreatePatientPhysicalActivityResult>
     {
-        private readonly LifeStylesDbContext _context;
-        private readonly IRequestClient<CheckPatientProfileExistenceIntegrationEvent> _client;
-
-        public CreatePatientPhysicalActivityHandler(LifeStylesDbContext context,
-            IRequestClient<CheckPatientProfileExistenceIntegrationEvent> client)
-        {
-            _context = context;
-            _client = client;
-        }
-
         public async Task<CreatePatientPhysicalActivityResult> Handle(CreatePatientPhysicalActivityCommand request,
             CancellationToken cancellationToken)
         {
-            var response = await _client.GetResponse<CheckPatientProfileExistenceResponseEvent>(new CheckPatientProfileExistenceIntegrationEvent(request.PatientProfileId), cancellationToken);
+            var response = await client.GetResponse<PatientProfileExistenceResponse>(new PatientProfileExistenceRequest(request.PatientProfileId), cancellationToken);
 
-            if (!response.Message.Exists)
+            if (!response.Message.IsExist)
             {
                 throw new LifeStylesNotFoundException("PatientProfile", request.PatientProfileId);
             }
-
-
+            
             var activities = request.Activities.Select(a => new Models.PatientPhysicalActivity
                 {
                     PatientProfileId = request.PatientProfileId,
@@ -47,8 +38,8 @@ namespace LifeStyles.API.Features.PatientPhysicalActivity.CreatePatientPhysicalA
                 })
                 .ToList();
 
-            _context.PatientPhysicalActivities.AddRange(activities);
-            await _context.SaveChangesAsync(cancellationToken);
+            context.PatientPhysicalActivities.AddRange(activities);
+            await context.SaveChangesAsync(cancellationToken);
 
             return new CreatePatientPhysicalActivityResult(true);
         }

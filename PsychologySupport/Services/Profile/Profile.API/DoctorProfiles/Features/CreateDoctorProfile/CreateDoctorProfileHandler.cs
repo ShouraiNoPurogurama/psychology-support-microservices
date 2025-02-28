@@ -26,7 +26,7 @@ namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
             var doctorProfile = DoctorProfile.Create(
                 doctorProfileCreate.UserId,
                 doctorProfileCreate.FullName,
-                doctorProfileCreate.Gender.ToString(),
+                doctorProfileCreate.Gender,
                 new ContactInfo(
                     doctorProfileCreate.ContactInfo.Address,
                     doctorProfileCreate.ContactInfo.PhoneNumber,
@@ -48,8 +48,7 @@ namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
                 doctorProfile.FullName,
                 doctorProfile.Gender,
                 doctorProfile.ContactInfo.Email,
-                doctorProfile.ContactInfo.PhoneNumber,
-                doctorProfile.CreatedAt
+                doctorProfile.ContactInfo.PhoneNumber
             );
 
             await _publishEndpoint.Publish(doctorProfileCreatedEvent, cancellationToken);

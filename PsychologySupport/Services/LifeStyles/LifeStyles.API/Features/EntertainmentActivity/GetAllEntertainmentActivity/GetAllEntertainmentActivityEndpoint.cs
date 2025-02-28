@@ -6,7 +6,7 @@ using MediatR;
 
 namespace LifeStyles.API.Features.EntertainmentActivity.GetAllEntertainmentActivity;
 
-public record GetAllEntertainmentActivitiesResponse(IEnumerable<EntertainmentActivityDto> EntertainmentActivities);
+public record GetAllEntertainmentActivitiesResponse(PaginatedResult<EntertainmentActivityDto> EntertainmentActivities);
 
 public class GetAllEntertainmentActivityEndpoint : ICarterModule
 {

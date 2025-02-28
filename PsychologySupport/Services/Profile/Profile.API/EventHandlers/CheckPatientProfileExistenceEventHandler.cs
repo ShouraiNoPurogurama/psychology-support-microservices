@@ -1,9 +1,8 @@
-﻿using LifeStyles.API.Events; 
-using BuildingBlocks.Messaging.Events.Profile; 
+﻿using BuildingBlocks.Messaging.Events.Profile; 
 
 namespace Profile.API.EventHandlers
 {
-    public class CheckPatientProfileExistenceEventHandler : IConsumer<CheckPatientProfileExistenceIntegrationEvent>
+    public class CheckPatientProfileExistenceEventHandler : IConsumer<PatientProfileExistenceRequest>
     {
         private readonly ProfileDbContext _context;
 
@@ -12,16 +11,14 @@ namespace Profile.API.EventHandlers
             _context = context;
         }
 
-        public async Task Consume(ConsumeContext<CheckPatientProfileExistenceIntegrationEvent> context)
+        public async Task Consume(ConsumeContext<PatientProfileExistenceRequest> context)
         {
             var message = context.Message;
 
             var patientProfile = await _context.PatientProfiles
                 .FindAsync(message.PatientProfileId);
 
-            bool exists = patientProfile != null;
-
-            await context.RespondAsync(new CheckPatientProfileExistenceResponseEvent(message.PatientProfileId, exists));
+            await context.RespondAsync(new PatientProfileExistenceResponse(patientProfile is not null));
         }
     }
 }

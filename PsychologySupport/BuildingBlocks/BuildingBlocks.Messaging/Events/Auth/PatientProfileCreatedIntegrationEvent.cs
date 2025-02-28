@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Data.Enums;
+using BuildingBlocks.Messaging.Events.Notification;
 
 namespace BuildingBlocks.Messaging.Events.Auth
 {
@@ -6,8 +7,9 @@ namespace BuildingBlocks.Messaging.Events.Auth
         Guid UserId,
         string FullName,
         UserGender Gender,
-        string Email,
         string PhoneNumber,
-        DateTimeOffset? CreatedAt
-    ) : IntegrationEvents; 
+        string Email,
+        string Subject,
+        string Body
+    ) : SendEmailIntegrationEvent(Email, Subject, Body); 
 }

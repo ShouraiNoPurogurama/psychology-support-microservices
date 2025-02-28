@@ -9,7 +9,7 @@ namespace LifeStyles.API.Features.EntertainmentActivity.GetAllEntertainmentActiv
 
 public record GetAllEntertainmentActivitiesQuery(PaginationRequest PaginationRequest) : IQuery<GetAllEntertainmentActivitiesResult>;
 
-public record GetAllEntertainmentActivitiesResult(IEnumerable<EntertainmentActivityDto> EntertainmentActivities);
+public record GetAllEntertainmentActivitiesResult(PaginatedResult<EntertainmentActivityDto> EntertainmentActivities);
 
 public class GetAllEntertainmentActivityHandler : IQueryHandler<GetAllEntertainmentActivitiesQuery, GetAllEntertainmentActivitiesResult>
 {
@@ -25,6 +25,8 @@ public class GetAllEntertainmentActivityHandler : IQueryHandler<GetAllEntertainm
         var pageSize = request.PaginationRequest.PageSize;
         var pageIndex = request.PaginationRequest.PageIndex;
 
+        var totalCount = await _context.EntertainmentActivities.CountAsync(cancellationToken);
+        
         var activities = await _context.EntertainmentActivities
             .OrderBy(ea => ea.Name)
             .Skip((pageIndex - 1) * pageSize)
@@ -38,8 +40,8 @@ public class GetAllEntertainmentActivityHandler : IQueryHandler<GetAllEntertainm
              ))
             .ToListAsync(cancellationToken);
 
-        var result = activities.Adapt<IEnumerable<EntertainmentActivityDto>>();
-
+        var result = new PaginatedResult<EntertainmentActivityDto>(pageIndex, pageSize, totalCount, activities);
+        
         return new GetAllEntertainmentActivitiesResult(result);
     }
 }

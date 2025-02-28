@@ -1,33 +1,16 @@
 using BuildingBlocks.Exceptions.Handler;
-using BuildingBlocks.Messaging.Events.Profile;
 using Carter;
-using LifeStyles.API.Events;
 using LifeStyles.API.Extensions;
-using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
-
-services.AddCarter();
 
 services.AddApplicationServices(builder.Configuration);
 
 services.AddExceptionHandler<CustomExceptionHandler>();
 
 services.RegisterMapsterConfiguration();
-
-// RabbitMQ
-builder.Services.AddMassTransit(x =>
-{
-    x.UsingRabbitMq((context, cfg) =>
-    {
-        cfg.Host("rabbitmq://localhost");
-    });
-
-    x.AddRequestClient<CheckPatientProfileExistenceIntegrationEvent>();
-});
-
 
 // Configure the HTTP request pipeline
 var app = builder.Build();
