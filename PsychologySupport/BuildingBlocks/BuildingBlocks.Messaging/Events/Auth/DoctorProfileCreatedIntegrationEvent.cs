@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Data.Enums;
+using BuildingBlocks.Messaging.Events.Notification;
 
 namespace BuildingBlocks.Messaging.Events.Auth
 {
@@ -8,5 +9,5 @@ namespace BuildingBlocks.Messaging.Events.Auth
         UserGender Gender,
         string Email,
         string PhoneNumber
-    ) : IntegrationEvents;
+    ) : SendEmailIntegrationEvent(Email, "Welcome to Psychology Support", "Hello world");
 }

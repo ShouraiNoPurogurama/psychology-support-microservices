@@ -1,6 +1,4 @@
-﻿using BuildingBlocks.Exceptions;
-
-namespace Profile.API.Exceptions;
+﻿namespace Profile.API.Exceptions;
 
 public class ProfileNotFoundException : NotFoundException
 {

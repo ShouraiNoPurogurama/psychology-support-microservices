@@ -1,5 +1,4 @@
-﻿using System.Data;
-using Auth.API.Dtos.Requests;
+﻿using Auth.API.Dtos.Requests;
 using BuildingBlocks.Constants;
 using FluentValidation;
 

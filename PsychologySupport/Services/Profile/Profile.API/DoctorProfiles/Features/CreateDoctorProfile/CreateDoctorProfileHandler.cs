@@ -1,5 +1,4 @@
-﻿using Profile.API.Common.ValueObjects;
-using Profile.API.DoctorProfiles.Dtos;
+﻿using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.DoctorProfiles.Models;
 
 
@@ -9,39 +8,35 @@ namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
 
     public record CreateDoctorProfileResult(Guid Id);
 
-    public class CreateDoctorProfileHandler : ICommandHandler<CreateDoctorProfileCommand, CreateDoctorProfileResult>
+    public class CreateDoctorProfileHandler(ProfileDbContext context, IPublishEndpoint publishEndpoint)
+        : ICommandHandler<CreateDoctorProfileCommand, CreateDoctorProfileResult>
     {
-        private readonly ProfileDbContext _context;
-        private readonly IPublishEndpoint _publishEndpoint;
-        public CreateDoctorProfileHandler(ProfileDbContext context,IPublishEndpoint publishEndpoint)
-        {
-            _context = context;
-            _publishEndpoint = publishEndpoint;
-        }
-
         public async Task<CreateDoctorProfileResult> Handle(CreateDoctorProfileCommand request, CancellationToken cancellationToken)
         {
-            var doctorProfileCreate = request.DoctorProfile;
+            var dto = request.DoctorProfile;
 
+            if (context.DoctorProfiles.Any(p => p.UserId == dto.UserId))
+            {
+                throw new BadRequestException("Doctor profile already exists.");
+            }
+            
             var doctorProfile = DoctorProfile.Create(
-                doctorProfileCreate.UserId,
-                doctorProfileCreate.FullName,
-                doctorProfileCreate.Gender,
+                dto.UserId,
+                dto.FullName,
+                dto.Gender,
                 new ContactInfo(
-                    doctorProfileCreate.ContactInfo.Address,
-                    doctorProfileCreate.ContactInfo.PhoneNumber,
-                    doctorProfileCreate.ContactInfo.Email
+                    dto.ContactInfo.Address,
+                    dto.ContactInfo.PhoneNumber,
+                    dto.ContactInfo.Email
                 ),
-                doctorProfileCreate.Specialty,
-                doctorProfileCreate.Qualifications,
-                doctorProfileCreate.YearsOfExperience,
-                doctorProfileCreate.Bio
+                dto.Specialty,
+                dto.Qualifications,
+                dto.YearsOfExperience,
+                dto.Bio
             );
-
-            doctorProfile.CreatedAt = DateTimeOffset.UtcNow;
-
-            _context.DoctorProfiles.Add(doctorProfile);
-            await _context.SaveChangesAsync(cancellationToken);
+            
+            context.DoctorProfiles.Add(doctorProfile);
+            await context.SaveChangesAsync(cancellationToken);
 
             var doctorProfileCreatedEvent = new DoctorProfileCreatedIntegrationEvent(
                 doctorProfile.UserId,
@@ -51,7 +46,7 @@ namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
                 doctorProfile.ContactInfo.PhoneNumber
             );
 
-            await _publishEndpoint.Publish(doctorProfileCreatedEvent, cancellationToken);
+            await publishEndpoint.Publish(doctorProfileCreatedEvent, cancellationToken);
 
             return new CreateDoctorProfileResult(doctorProfile.Id);
         }

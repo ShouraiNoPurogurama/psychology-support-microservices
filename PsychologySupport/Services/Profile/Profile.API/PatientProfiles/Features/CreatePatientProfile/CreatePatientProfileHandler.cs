@@ -24,6 +24,11 @@ namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
             {
                 var dto = request.PatientProfileCreate;
 
+                if (_context.PatientProfiles.Any(p => p.UserId == dto.UserId))
+                {
+                    throw new BadRequestException("Patient profile already exists.");
+                }
+                
                 var patientProfile = PatientProfile.Create(
                     dto.UserId,
                     dto.FullName,

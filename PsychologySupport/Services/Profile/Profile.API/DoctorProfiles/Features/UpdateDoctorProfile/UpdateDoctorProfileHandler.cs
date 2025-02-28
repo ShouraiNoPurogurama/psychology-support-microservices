@@ -1,5 +1,4 @@
-﻿using Profile.API.Common.ValueObjects;
-using Profile.API.DoctorProfiles.Dtos;
+﻿using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.Exceptions;
 
 
@@ -12,13 +11,11 @@ public record UpdateDoctorProfileResult(Guid Id);
 public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCommand, UpdateDoctorProfileResult>
 {
     private readonly ProfileDbContext _context;
-    private readonly IMediator _mediator;
     private readonly IPublishEndpoint _publishEndpoint;
 
-    public UpdateDoctorProfileHandler(ProfileDbContext context, IMediator mediator,IPublishEndpoint publishEndpoint)
+    public UpdateDoctorProfileHandler(ProfileDbContext context, IPublishEndpoint publishEndpoint)
     {
         _context = context;
-        _mediator = mediator;
         _publishEndpoint = publishEndpoint;
     }
 
@@ -35,12 +32,9 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
             request.DoctorProfileDto.Specialty,
             request.DoctorProfileDto.Qualifications,
             request.DoctorProfileDto.YearsOfExperience,
-            request.DoctorProfileDto.Bio,
-            request.DoctorProfileDto.Rating,
-            request.DoctorProfileDto.TotalReviews
+            request.DoctorProfileDto.Bio
         );
         
-        doctorProfile.LastModified = DateTimeOffset.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         var doctorProfileUpdatedEvent = new DoctorProfileUpdatedIntegrationEvent(
@@ -52,7 +46,6 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
             doctorProfile.LastModified
         );
 
-        await _mediator.Publish(doctorProfileUpdatedEvent, cancellationToken);
         await _publishEndpoint.Publish(doctorProfileUpdatedEvent, cancellationToken);
 
         return new UpdateDoctorProfileResult(doctorProfile.Id);

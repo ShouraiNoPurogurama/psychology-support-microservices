@@ -19,9 +19,6 @@ public class UpdateMedicalHistoryEndpoint : ICarterModule
     {
         app.MapPut("/patients/medical-history", async ([FromBody] UpdateMedicalHistoryRequest request, ISender sender) =>
             {
-                if (request == null)
-                    return Results.BadRequest("Invalid request payload.");
-
                 var command = request.Adapt<UpdateMedicalHistoryCommand>();
                 var result = await sender.Send(command);
                 var response = result.Adapt<UpdateMedicalHistoryResponse>();

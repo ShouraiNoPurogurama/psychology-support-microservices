@@ -1,5 +1,4 @@
-﻿using Profile.API.Common.ValueObjects;
-using Profile.API.PatientProfiles.Models;
+﻿using Profile.API.PatientProfiles.Models;
 using Profile.API.PatientProfiles.ValueObjects;
 
 namespace Profile.API.PatientProfiles.Dtos;

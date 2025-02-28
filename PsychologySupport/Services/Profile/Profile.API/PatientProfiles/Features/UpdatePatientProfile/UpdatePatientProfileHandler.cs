@@ -9,27 +9,21 @@ namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile
     public class UpdatePatientProfileHandler : ICommandHandler<UpdatePatientProfileCommand, UpdatePatientProfileResult>
     {
         private readonly ProfileDbContext _context;
-        private readonly IMediator _mediator;
         private readonly IPublishEndpoint _publishEndpoint;
 
-        public UpdatePatientProfileHandler(ProfileDbContext context, IMediator mediator,IPublishEndpoint publishEndpoint)
+        public UpdatePatientProfileHandler(ProfileDbContext context, IPublishEndpoint publishEndpoint)
         {
             _context = context;
-            _mediator = mediator;
             _publishEndpoint = publishEndpoint;
         }
 
         public async Task<UpdatePatientProfileResult> Handle(UpdatePatientProfileCommand request, CancellationToken cancellationToken)
         {
-            var patientProfile = await _context.PatientProfiles.FindAsync(new object[] { request.Id }, cancellationToken);
-            if (patientProfile is null)
-            {
-                throw new KeyNotFoundException("Patient profile not found.");
-            }
+            var patientProfile = await _context.PatientProfiles.FindAsync([request.Id], cancellationToken: cancellationToken)
+                ?? throw new KeyNotFoundException("Patient profile not found.");
 
             var dto = request.PatientProfileUpdate;
             patientProfile.Update(dto.FullName, dto.Gender, dto.Allergies, dto.PersonalityTraits, dto.ContactInfo);
-            patientProfile.LastModified = DateTimeOffset.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -38,11 +32,9 @@ namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile
                 patientProfile.FullName,
                 patientProfile.Gender,
                 patientProfile.ContactInfo.Email,
-                patientProfile.ContactInfo.PhoneNumber,
-                patientProfile.LastModified
+                patientProfile.ContactInfo.PhoneNumber
             );
 
-            await _mediator.Publish(patientProfileUpdatedEvent, cancellationToken);
             await _publishEndpoint.Publish(patientProfileUpdatedEvent, cancellationToken);
 
             return new UpdatePatientProfileResult(patientProfile.Id);

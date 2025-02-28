@@ -2,11 +2,11 @@
 
 namespace Profile.API.EventHandlers
 {
-    public class CheckPatientProfileExistenceEventHandler : IConsumer<PatientProfileExistenceRequest>
+    public class PatientProfileExistenceRequestHandler : IConsumer<PatientProfileExistenceRequest>
     {
         private readonly ProfileDbContext _context;
 
-        public CheckPatientProfileExistenceEventHandler(ProfileDbContext context)
+        public PatientProfileExistenceRequestHandler(ProfileDbContext context)
         {
             _context = context;
         }

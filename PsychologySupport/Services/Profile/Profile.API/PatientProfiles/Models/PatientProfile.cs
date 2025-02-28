@@ -1,7 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using BuildingBlocks.Data.Enums;
 using BuildingBlocks.DDD;
-using Profile.API.Common.ValueObjects;
 using Profile.API.MentalDisorders.Models;
 using Profile.API.PatientProfiles.Events;
 using Profile.API.PatientProfiles.ValueObjects;

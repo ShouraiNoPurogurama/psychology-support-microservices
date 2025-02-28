@@ -1,6 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events;
-using BuildingBlocks.Messaging.Events.Notification;
-using Mapster;
+﻿using Mapster;
 using Profile.API.DoctorProfiles.Features;
 using Profile.API.PatientProfiles.Events;
 
@@ -16,11 +14,6 @@ public class MedicalRecordAddedEventHandler(IBus bus, ISender sender, ILogger<Me
         var command = notification.Adapt<AddMedicalRecordCommand>();
         
         var result = await sender.Send(command, cancellationToken);
-
-        // var integrationEvent =
-        //     new SendEmailIntegrationEvent("nhatanhtruong687@gmail.com", "Test ne", "Hello world!");
-
-        // await bus.Publish(integrationEvent, cancellationToken);
         
         if (!result.IsSuccess)
         {

@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Profile.API.PatientProfiles.Models;
-
-namespace Profile.API.PatientProfiles.Features.UpdateMedicalHistory;
+﻿namespace Profile.API.PatientProfiles.Features.UpdateMedicalHistory;
 
 public record UpdateMedicalHistoryCommand(
     Guid PatientProfileId,
