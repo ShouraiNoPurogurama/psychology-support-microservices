@@ -1,7 +1,9 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Messaging.Events.Profile;
 using LifeStyles.API.Data;
 using LifeStyles.API.Data.Common;
-using MediatR;
+using LifeStyles.API.Exceptions;
+using MassTransit;
 
 namespace LifeStyles.API.Features.PatientEntertainmentActivity.CreatePatientEntertainmentActivity
 {
@@ -11,19 +13,29 @@ namespace LifeStyles.API.Features.PatientEntertainmentActivity.CreatePatientEnte
     public record CreatePatientEntertainmentActivityResult(bool IsSucceeded);
 
     public class CreatePatientEntertainmentActivityHandler
-    : IRequestHandler<CreatePatientEntertainmentActivityCommand, CreatePatientEntertainmentActivityResult>
+    : ICommandHandler<CreatePatientEntertainmentActivityCommand, CreatePatientEntertainmentActivityResult>
     {
         private readonly LifeStylesDbContext _context;
+        private readonly IRequestClient<PatientProfileExistenceRequest> _client;
 
-        public CreatePatientEntertainmentActivityHandler(LifeStylesDbContext context)
+        public CreatePatientEntertainmentActivityHandler(LifeStylesDbContext context,
+            IRequestClient<PatientProfileExistenceRequest> client)
         {
             _context = context;
+            _client = client;
         }
 
         public async Task<CreatePatientEntertainmentActivityResult> Handle(
-            CreatePatientEntertainmentActivityCommand request,
-            CancellationToken cancellationToken)
+            CreatePatientEntertainmentActivityCommand request,CancellationToken cancellationToken)
         {
+
+            var response = await _client.GetResponse<PatientProfileExistenceResponse>(new PatientProfileExistenceRequest(request.PatientProfileId), cancellationToken);
+
+            if (!response.Message.IsExist)
+            {
+                throw new LifeStylesNotFoundException("PatientProfile", request.PatientProfileId);
+            }
+
             var activities = request.Activities
                 .Select(activity => new Models.PatientEntertainmentActivity
                 {

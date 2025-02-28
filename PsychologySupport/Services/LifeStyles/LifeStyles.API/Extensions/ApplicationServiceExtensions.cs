@@ -1,4 +1,6 @@
 ﻿using BuildingBlocks.Behaviors;
+using BuildingBlocks.Messaging.Masstransit;
+using Carter;
 using LifeStyles.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -10,15 +12,45 @@ namespace LifeStyles.API.Extensions
         {
             public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
             {
-                // services.AddCarter();
+                services.AddCarter();
+                
+                ConfigureSwagger(services);
+
+                ConfigureCors(services);
+
+                ConfigureMediatR(services);
+
+                AddDatabase(services, config);
+
+                AddServiceDependencies(services);
+                
+                services.AddMessageBroker(config);
+                
+                return services;
+            }
+
+            private static void ConfigureSwagger(IServiceCollection services)
+            {
                 services.AddEndpointsApiExplorer();
                 services.AddSwaggerGen(options => options.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = "LifeStyles API",
                     Version = "v1"
                 }));
+            }
 
+            private static void ConfigureMediatR(IServiceCollection services)
+            {
+                services.AddMediatR(configuration =>
+                {
+                    configuration.RegisterServicesFromAssembly(typeof(Program).Assembly);
+                    configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
+                    configuration.AddOpenBehavior(typeof(LoggingBehavior<,>));
+                });
+            }
 
+            private static void ConfigureCors(IServiceCollection services)
+            {
                 services.AddCors(options =>
                 {
                     options.AddPolicy("CorsPolicy", builder =>
@@ -29,19 +61,6 @@ namespace LifeStyles.API.Extensions
                             .AllowAnyHeader();
                     });
                 });
-
-                services.AddMediatR(configuration =>
-                {
-                    configuration.RegisterServicesFromAssembly(typeof(Program).Assembly);
-                    configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
-                    configuration.AddOpenBehavior(typeof(LoggingBehavior<,>));
-                });
-
-                AddDatabase(services, config);
-
-                AddServiceDependencies(services);
-
-                return services;
             }
 
             private static void AddServiceDependencies(IServiceCollection services)

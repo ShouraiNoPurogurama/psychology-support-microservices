@@ -7,7 +7,6 @@ namespace BuildingBlocks.Messaging.Events.Auth
         string FullName,
         UserGender Gender,
         string Email,
-        string PhoneNumber,
-        DateTimeOffset? CreatedAt
+        string PhoneNumber
     ) : IntegrationEvents;
 }

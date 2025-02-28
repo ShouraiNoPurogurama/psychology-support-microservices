@@ -10,13 +10,11 @@ namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
     public class CreatePatientProfileHandler : ICommandHandler<CreatePatientProfileCommand, CreatePatientProfileResult>
     {
         private readonly ProfileDbContext _context;
-        private readonly IMediator _mediator;
         private readonly IPublishEndpoint _publishEndpoint;
 
-        public CreatePatientProfileHandler(ProfileDbContext context, IMediator mediator,IPublishEndpoint publishEndpoint)
+        public CreatePatientProfileHandler(ProfileDbContext context, IPublishEndpoint publishEndpoint)
         {
             _context = context;
-            _mediator = mediator;
             _publishEndpoint = publishEndpoint;
         }
 
@@ -34,7 +32,6 @@ namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
                     dto.PersonalityTraits,
                     dto.ContactInfo
                 );
-                patientProfile.CreatedAt = DateTimeOffset.UtcNow;
 
                 _context.PatientProfiles.Add(patientProfile);
                 await _context.SaveChangesAsync(cancellationToken);
@@ -43,12 +40,12 @@ namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
                     patientProfile.UserId,
                     patientProfile.FullName,
                     patientProfile.Gender,
-                    patientProfile.ContactInfo.Email,
                     patientProfile.ContactInfo.PhoneNumber,
-                    patientProfile.CreatedAt
+                    patientProfile.ContactInfo.Email,
+                    "Patient profile created successfully.",
+                    "Hello world"
                 );
 
-                await _mediator.Publish(patientProfileCreatedEvent, cancellationToken);
                 await _publishEndpoint.Publish(patientProfileCreatedEvent, cancellationToken);
 
                 return new CreatePatientProfileResult(patientProfile.Id);
