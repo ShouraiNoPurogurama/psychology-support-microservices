@@ -56,7 +56,9 @@ public class CreateTestResultHandler : IRequestHandler<CreateTestResultCommand, 
 
         var severityLevel = DetermineSeverity(depressionScore, anxietyScore, stressScore);
 
-
+        //TODO Raise IRequestClient to AI Recommendations microservices to get recommendation
+        var recommendation = "Recommendation goes here";
+        
         var testResult = TestResult.Create(
             request.PatientId,
             request.TestId,
@@ -64,13 +66,14 @@ public class CreateTestResultHandler : IRequestHandler<CreateTestResultCommand, 
             anxietyScore,
             stressScore,
             severityLevel,
-            "Recommendation goes here",
-            request.SelectedOptionIds
+            recommendation,
+            selectedOptions
         );
 
         await _dbContext.TestResults.AddAsync(testResult, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        //Publish notification 
         await _publisher.Publish(new TestResultCreatedEvent(testResult.Id, request.SelectedOptionIds), cancellationToken);
 
         return testResult.Id;

@@ -20,4 +20,7 @@ public class QuestionOption : Entity<Guid>
     public Guid QuestionId { get; private set; }
     public string Content { get; private set; }
     public OptionValue OptionValue { get; private set; }
+    
+    public virtual ICollection<TestResult> TestResults { get; private set; } = new List<TestResult>();
+    
 }

@@ -1,4 +1,6 @@
-﻿using MediatR;
+﻿using BuildingBlocks.Exceptions;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Test.Application.Data;
 using Test.Domain.Events;
 using Test.Domain.Models;
@@ -16,11 +18,17 @@ public class TestResultCreatedEventHandler : INotificationHandler<TestResultCrea
 
     public async Task Handle(TestResultCreatedEvent notification, CancellationToken cancellationToken)
     {
-        var testHistoryAnswers = notification.SelectedOptionIds
-            .Select(optionId => TestHistoryAnswer.Create(notification.TestResultId, optionId))
-            .ToList();
+        TestResult testResult = await _dbContext.TestResults
+                                    .FindAsync([notification.TestResultId], cancellationToken)
+                                ?? throw new NotFoundException("Test Result", notification.TestResultId);
 
-        await _dbContext.TestHistoryAnswers.AddRangeAsync(testHistoryAnswers, cancellationToken);
+        List<QuestionOption> testResultOptions = await _dbContext.QuestionOptions
+            .AsNoTracking()
+            .Where(o => notification.SelectedOptionIds.Contains(o.Id))
+            .ToListAsync(cancellationToken);
+
+        testResult.AddSelectedOptions(testResultOptions);
+
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

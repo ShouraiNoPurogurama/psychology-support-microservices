@@ -6,8 +6,6 @@ namespace Test.Domain.Models;
 
 public class TestResult : AggregateRoot<Guid>
 {
-    private readonly List<TestHistoryAnswer> _historyAnswers = [];
-
     private TestResult()
     {
     }
@@ -34,21 +32,28 @@ public class TestResult : AggregateRoot<Guid>
     public Score StressScore { get; private set; }
     public SeverityLevel SeverityLevel { get; private set; }
     public string Recommendation { get; private set; }
-    public IReadOnlyCollection<TestHistoryAnswer> HistoryAnswers => _historyAnswers.AsReadOnly();
+    public virtual ICollection<QuestionOption> SelectedOptions { get; private set; }
+
 
     public static TestResult Create(Guid patientId, Guid testId, Score depressionScore,
         Score anxietyScore, Score stressScore, SeverityLevel severityLevel,
-        string recommendation, List<Guid> selectedOptionIds)
+        string recommendation, List<QuestionOption> selectedOptions)
     {
-        var testResult = new TestResult(Guid.NewGuid(), patientId, testId, depressionScore, anxietyScore, stressScore,
+        var newTestResult = new TestResult(Guid.NewGuid(), patientId, testId, depressionScore, anxietyScore, stressScore,
             severityLevel, recommendation);
 
-        foreach (var optionId in selectedOptionIds)
+        foreach (var option in selectedOptions)
         {
-            var historyAnswer = TestHistoryAnswer.Create(testResult.Id, optionId);
-            testResult._historyAnswers.Add(historyAnswer);
+            newTestResult.SelectedOptions.Add(option);
         }
+        return newTestResult;
+    }
 
-        return testResult;
+    public void AddSelectedOptions(IEnumerable<QuestionOption> options)
+    {
+        foreach (var option in options)
+        {
+            SelectedOptions.Add(option);
+        }
     }
 }
