@@ -1,15 +1,18 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Exceptions;
 using BuildingBlocks.Pagination;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Test.Application.Data;
+using Test.Application.Dtos;
 using Test.Domain.Models;
 
 namespace Test.Application.TestOutput.Queries;
 
-public record GetAllTestHistoryAnswersQuery(Guid TestResultId, PaginationRequest PaginationRequest)
+public record GetAllTestHistoryAnswersQuery(Guid TestResultId)
     : IQuery<GetAllTestHistoryAnswersResult>;
 
-public record GetAllTestHistoryAnswersResult(PaginatedResult<TestHistoryAnswer> Answers);
+public record GetAllTestHistoryAnswersResult(TestResultOptionsDto Answer);
 
 public class GetAllTestHistoryAnswersHandler
     : IQueryHandler<GetAllTestHistoryAnswersQuery, GetAllTestHistoryAnswersResult>
@@ -20,29 +23,32 @@ public class GetAllTestHistoryAnswersHandler
     {
         _context = context;
     }
-
+    
     public async Task<GetAllTestHistoryAnswersResult> Handle(
         GetAllTestHistoryAnswersQuery request, CancellationToken cancellationToken)
     {
-        var query = _context.TestHistoryAnswers
-            .AsNoTracking()
-            .Where(t => t.TestResultId == request.TestResultId)
-            .OrderBy(t => t.Id);
+        var testResult = await _context.TestResults
+                             .Include(t => t.SelectedOptions)
+                             .FirstOrDefaultAsync(t => t.Id == request.TestResultId, cancellationToken)
+                         ?? throw new NotFoundException("Test result not found");
 
-        var totalCount = await query.CountAsync(cancellationToken);
+        var testQuestionIds = testResult.SelectedOptions
+            .Select(o => o.QuestionId)
+            .Distinct()
+            .ToList();
 
-        var answers = await query
-            .Skip(request.PaginationRequest.PageIndex * request.PaginationRequest.PageSize)
-            .Take(request.PaginationRequest.PageSize)
-            .ToListAsync(cancellationToken);
+        var testQuestions = await _context.TestQuestions
+            .Where(q => testQuestionIds.Contains(q.Id))
+            .ToDictionaryAsync(q => q.Id, cancellationToken); //Store as dictionary for fast lookups
 
-        var paginatedResult = new PaginatedResult<TestHistoryAnswer>(
-            request.PaginationRequest.PageIndex,
-            request.PaginationRequest.PageSize,
-            totalCount,
-            answers
-        );
+        var selectedOptions = testResult.SelectedOptions
+            .Select(option => new SelectedOptionDto(
+                testQuestions[option.QuestionId].Adapt<TestQuestionDto>(),
+                option.Adapt<QuestionOptionDto>()
+            ))
+            .ToList();
 
-        return new GetAllTestHistoryAnswersResult(paginatedResult);
+        return new GetAllTestHistoryAnswersResult(
+            new TestResultOptionsDto(testResult.Adapt<TestResultDto>(), selectedOptions));
     }
 }

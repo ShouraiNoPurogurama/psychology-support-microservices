@@ -17,7 +17,7 @@ public class TestDbContext : DbContext, ITestDbContext
     public DbSet<TestQuestion> TestQuestions => Set<TestQuestion>();
     public DbSet<QuestionOption> QuestionOptions => Set<QuestionOption>();
     public DbSet<TestResult> TestResults => Set<TestResult>();
-    public DbSet<TestHistoryAnswer> TestHistoryAnswers => Set<TestHistoryAnswer>();
+    // public DbSet<TestHistoryAnswer> TestHistoryAnswers => Set<TestHistoryAnswer>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

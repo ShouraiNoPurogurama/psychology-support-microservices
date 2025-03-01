@@ -10,7 +10,7 @@ public interface ITestDbContext
     DbSet<TestQuestion> TestQuestions { get; }
     DbSet<QuestionOption> QuestionOptions { get; }
     DbSet<TestResult> TestResults { get; }
-    DbSet<TestHistoryAnswer> TestHistoryAnswers { get; }
+    // DbSet<TestHistoryAnswer> TestHistoryAnswers { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
