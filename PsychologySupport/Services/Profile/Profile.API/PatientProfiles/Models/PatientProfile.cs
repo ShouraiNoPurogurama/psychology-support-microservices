@@ -2,7 +2,7 @@
 using BuildingBlocks.DDD;
 using Profile.API.MentalDisorders.Models;
 using Profile.API.PatientProfiles.Events;
-using Profile.API.PatientProfiles.ValueObjects;
+using Profile.API.PatientProfiles.Enum;
 
 namespace Profile.API.PatientProfiles.Models;
 
@@ -15,17 +15,12 @@ public class PatientProfile : AggregateRoot<Guid>
     {
     }
 
-    public PatientProfile(Guid userId, string? fullName, string? gender, string? allergies, PersonalityTrait personalityTraits,
+    public PatientProfile(Guid userId, string fullName, UserGender gender, string? allergies, PersonalityTrait personalityTraits,
         ContactInfo contactInfo)
     {
         UserId = userId;
         FullName = fullName;
-
-        if (!Enum.TryParse<UserGender>(gender, true, out var parsedGender))
-            throw new ArgumentException("Invalid gender value. Allowed: Male, Female, Else.", nameof(gender));
-
-        Gender = parsedGender;
-
+        Gender = gender;
         Allergies = allergies;
         PersonalityTraits = personalityTraits;
         ContactInfo = contactInfo;
@@ -34,7 +29,7 @@ public class PatientProfile : AggregateRoot<Guid>
     public Guid UserId { get; set; }
     public string FullName { get; set; }
     public UserGender Gender { get; set; }
-    public string Allergies { get; set; }
+    public string? Allergies { get; set; }
     public PersonalityTrait PersonalityTraits { get; set; }
     public ContactInfo ContactInfo { get; set; } = default!;
     public Guid? MedicalHistoryId { get; set; }
@@ -82,7 +77,7 @@ public class PatientProfile : AggregateRoot<Guid>
         MedicalHistoryId = null;
     }
 
-    public static PatientProfile Create(Guid userId, string? fullName, string? gender, string? allergies,
+    public static PatientProfile Create(Guid userId, string fullName, UserGender gender, string? allergies,
         PersonalityTrait personalityTraits, ContactInfo contactInfo)
     {
         if (userId == Guid.Empty)
@@ -91,16 +86,11 @@ public class PatientProfile : AggregateRoot<Guid>
         return new PatientProfile(userId, fullName, gender, allergies, personalityTraits, contactInfo);
     }
 
-    public void Update(string? fullName, string? gender, string? allergies, PersonalityTrait personalityTraits,
+    public void Update(string fullName, UserGender gender, string allergies, PersonalityTrait personalityTraits,
         ContactInfo contactInfo)
     {
         FullName = fullName;
-
-        if (!Enum.TryParse<UserGender>(gender, true, out var parsedGender))
-            throw new ArgumentException("Invalid gender value. Allowed: Male, Female, Else.", nameof(gender));
-
-        Gender = parsedGender;
-
+        Gender = gender;
         Allergies = allergies;
         PersonalityTraits = personalityTraits;
         ContactInfo = contactInfo;

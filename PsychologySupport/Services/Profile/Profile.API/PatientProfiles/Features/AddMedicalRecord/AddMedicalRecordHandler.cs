@@ -1,4 +1,4 @@
-﻿using Profile.API.PatientProfiles.ValueObjects;
+﻿using Profile.API.PatientProfiles.Enum;
 
 namespace Profile.API.PatientProfiles.Features.AddMedicalRecord;
 

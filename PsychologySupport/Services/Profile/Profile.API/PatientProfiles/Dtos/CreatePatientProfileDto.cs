@@ -1,12 +1,13 @@
-﻿using Profile.API.PatientProfiles.ValueObjects;
+﻿using BuildingBlocks.Data.Enums;
+using Profile.API.PatientProfiles.Enum;
 
 namespace Profile.API.PatientProfiles.Dtos;
 
 public record CreatePatientProfileDto(
     Guid UserId,
     string FullName,
-    string Gender,
-    string Allergies,
+    UserGender Gender,
+    string? Allergies,
     PersonalityTrait PersonalityTraits,
     ContactInfo ContactInfo
 );

@@ -1,4 +1,6 @@
-﻿namespace Subscription.API.Dtos;
+﻿using Subscription.API.Data.Common;
+
+namespace Subscription.API.Dtos;
 
 public record GetUserSubscriptionDto(
     Guid Id,
@@ -8,5 +10,5 @@ public record GetUserSubscriptionDto(
     DateTime EndDate,
     Guid? PromotionId,
     Guid? GiftId,
-    string Status
+    SubscriptionStatus Status
 );

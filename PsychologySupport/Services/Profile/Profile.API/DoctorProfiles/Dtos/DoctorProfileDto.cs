@@ -1,8 +1,10 @@
-﻿namespace Profile.API.DoctorProfiles.Dtos;
+﻿using BuildingBlocks.Data.Enums;
+
+namespace Profile.API.DoctorProfiles.Dtos;
 
 public record DoctorProfileDto(
     string FullName,
-    string Gender,
+    UserGender Gender,
     ContactInfo ContactInfo,
     List<SpecialtyDto> Specialties,
     string Qualifications,

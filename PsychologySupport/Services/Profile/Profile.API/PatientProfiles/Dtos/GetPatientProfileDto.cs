@@ -1,10 +1,11 @@
-﻿using Profile.API.PatientProfiles.ValueObjects;
+﻿using BuildingBlocks.Data.Enums;
+using Profile.API.PatientProfiles.Enum;
 
 namespace Profile.API.PatientProfiles.Dtos;
 
 public record GetPatientProfileDto(
     Guid UserId,
-    string? Gender,
+    UserGender Gender,
     string? Allergies,
     PersonalityTrait PersonalityTraits,
     ContactInfo ContactInfo,

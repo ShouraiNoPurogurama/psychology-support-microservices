@@ -24,7 +24,13 @@ public class UpdatePatientProfileHandler : ICommandHandler<UpdatePatientProfileC
                              ?? throw new KeyNotFoundException("Patient profile not found.");
 
         var dto = request.PatientProfileUpdate;
-        patientProfile.Update(dto.FullName, dto.Gender, dto.Allergies, dto.PersonalityTraits, dto.ContactInfo);
+        patientProfile.Update(
+            dto.FullName ?? patientProfile.FullName,
+            dto.Gender ?? patientProfile.Gender,
+            dto.Allergies ?? patientProfile.Allergies,
+            dto.PersonalityTraits ?? patientProfile.PersonalityTraits,
+            dto.ContactInfo ?? patientProfile.ContactInfo
+        );
 
         await _context.SaveChangesAsync(cancellationToken);
 

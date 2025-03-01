@@ -34,8 +34,8 @@ public class GetAllPhysicalActivityHandler : IQueryHandler<GetAllPhysicalActivit
                 pa.Id,
                 pa.Name,
                 pa.Description,
-                pa.IntensityLevel.ToString(),
-                pa.ImpactLevel.ToString()
+                pa.IntensityLevel,
+                pa.ImpactLevel
             ))
             .ToListAsync(cancellationToken);
 

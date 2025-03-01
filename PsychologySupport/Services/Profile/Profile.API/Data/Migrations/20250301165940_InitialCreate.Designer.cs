@@ -13,8 +13,8 @@ using Profile.API.Data;
 namespace Profile.API.Data.Migrations
 {
     [DbContext(typeof(ProfileDbContext))]
-    [Migration("20250224130902_FixDoctorProfileErrors")]
-    partial class FixDoctorProfileErrors
+    [Migration("20250301165940_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -26,6 +26,21 @@ namespace Profile.API.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("DoctorProfileSpecialty", b =>
+                {
+                    b.Property<Guid>("DoctorProfilesId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SpecialtiesId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("DoctorProfilesId", "SpecialtiesId");
+
+                    b.HasIndex("SpecialtiesId");
+
+                    b.ToTable("DoctorProfileSpecialty", "public");
+                });
 
             modelBuilder.Entity("MedicalHistoryPhysicalSymptom", b =>
                 {
@@ -88,10 +103,14 @@ namespace Profile.API.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("FullName")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Gender")
-                        .HasColumnType("text");
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("Gender");
 
                     b.Property<DateTimeOffset?>("LastModified")
                         .HasColumnType("timestamp with time zone");
@@ -104,9 +123,6 @@ namespace Profile.API.Data.Migrations
 
                     b.Property<float>("Rating")
                         .HasColumnType("real");
-
-                    b.Property<string>("Specialty")
-                        .HasColumnType("text");
 
                     b.Property<int>("TotalReviews")
                         .HasColumnType("integer");
@@ -122,14 +138,17 @@ namespace Profile.API.Data.Migrations
                             b1.IsRequired();
 
                             b1.Property<string>("Address")
+                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("Address");
 
                             b1.Property<string>("Email")
+                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("Email");
 
                             b1.Property<string>("PhoneNumber")
+                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("PhoneNumber");
                         });
@@ -137,6 +156,21 @@ namespace Profile.API.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DoctorProfiles", "public");
+                });
+
+            modelBuilder.Entity("Profile.API.DoctorProfiles.Models.Specialty", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Specialties", "public");
                 });
 
             modelBuilder.Entity("Profile.API.MentalDisorders.Models.MentalDisorder", b =>
@@ -282,6 +316,7 @@ namespace Profile.API.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Allergies")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("CreatedAt")
@@ -291,10 +326,14 @@ namespace Profile.API.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("FullName")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Gender")
-                        .HasColumnType("text");
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("Gender");
 
                     b.Property<DateTimeOffset?>("LastModified")
                         .HasColumnType("timestamp with time zone");
@@ -316,14 +355,17 @@ namespace Profile.API.Data.Migrations
                             b1.IsRequired();
 
                             b1.Property<string>("Address")
+                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("Address");
 
                             b1.Property<string>("Email")
+                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("Email");
 
                             b1.Property<string>("PhoneNumber")
+                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("PhoneNumber");
                         });
@@ -350,6 +392,21 @@ namespace Profile.API.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PhysicalSymptoms", "public");
+                });
+
+            modelBuilder.Entity("DoctorProfileSpecialty", b =>
+                {
+                    b.HasOne("Profile.API.DoctorProfiles.Models.DoctorProfile", null)
+                        .WithMany()
+                        .HasForeignKey("DoctorProfilesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Profile.API.DoctorProfiles.Models.Specialty", null)
+                        .WithMany()
+                        .HasForeignKey("SpecialtiesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MedicalHistoryPhysicalSymptom", b =>

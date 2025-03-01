@@ -1,5 +1,8 @@
-﻿namespace LifeStyles.API.Data.Common;
+﻿using System.Text.Json.Serialization;
 
+namespace LifeStyles.API.Data.Common;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PreferenceLevel
 {
     Daily,

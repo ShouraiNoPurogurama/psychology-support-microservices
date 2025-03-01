@@ -40,7 +40,7 @@ public class GetUserSubscriptionHandler : IQueryHandler<GetUserSubscriptionQuery
             userSubscription.EndDate,
             userSubscription.PromoCodeId,
             userSubscription.GiftId,
-            userSubscription.Status.ToString()
+            userSubscription.Status
         );
 
         return new GetUserSubscriptionResult(userSubscriptionDto);

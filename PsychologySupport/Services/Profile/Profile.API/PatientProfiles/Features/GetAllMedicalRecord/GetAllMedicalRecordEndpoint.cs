@@ -1,11 +1,12 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
+using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.GetAllMedicalRecord;
 
-public record GetAllMedicalRecordsResponse(IEnumerable<MedicalRecordDto> MedicalRecords, int TotalRecords);
+public record GetAllMedicalRecordsResponse(PaginatedResult<MedicalRecordDto> MedicalRecords);
 
 public class GetAllMedicalRecordsEndpoint : ICarterModule
 {
@@ -15,19 +16,18 @@ public class GetAllMedicalRecordsEndpoint : ICarterModule
                 [FromRoute] Guid patientId,
                 [AsParameters] PaginationRequest request,
                 ISender sender) =>
-            {
-                var query = new GetAllMedicalRecordsQuery(patientId, request);
-                var result = await sender.Send(query);
+        {
+            var query = new GetAllMedicalRecordsQuery(patientId, request);
+            var result = await sender.Send(query);
+            var response = result.Adapt<GetAllMedicalRecordsResponse>();
 
-                var response = new GetAllMedicalRecordsResponse(result.MedicalRecords, result.TotalRecords);
-
-                return Results.Ok(response);
-            })
-            .WithName("GetAllMedicalRecordsByPatientId")
+            return Results.Ok(response);
+        })
+            .WithName("GetAllMedicalRecords")
             .Produces<GetAllMedicalRecordsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .WithDescription("GetAll MedicalRecords By PatientId")
-            .WithSummary("GetAll MedicalRecords By PatientId");
+            .WithDescription("Get All MedicalRecords")
+            .WithSummary("Get All MedicalRecords");
     }
 }

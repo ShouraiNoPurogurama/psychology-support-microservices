@@ -12,8 +12,8 @@ using Subscription.API.Data;
 namespace Subscription.API.Data.Migrations
 {
     [DbContext(typeof(SubscriptionDbContext))]
-    [Migration("20250227163528_AddMissingColumns")]
-    partial class AddMissingColumns
+    [Migration("20250301181538_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

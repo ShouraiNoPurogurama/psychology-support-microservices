@@ -9,5 +9,5 @@ public record FoodActivityDto(
     MealTime MealTime,
     IEnumerable<string> FoodNutrients,
     IEnumerable<string> FoodCategories,
-    string IntensityLevel
+    IntensityLevel IntensityLevel
 );

@@ -35,7 +35,7 @@ public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery
                 fa.MealTime,
                 fa.FoodNutrients.Select(fn => fn.Name),
                 fa.FoodCategories.Select(fc => fc.Name),
-                fa.IntensityLevel.ToString()
+                fa.IntensityLevel
             ))
             .ToListAsync(cancellationToken);
 

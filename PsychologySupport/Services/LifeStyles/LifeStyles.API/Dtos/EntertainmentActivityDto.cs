@@ -1,9 +1,11 @@
-﻿namespace LifeStyles.API.Dtos;
+﻿using LifeStyles.API.Data.Common;
+
+namespace LifeStyles.API.Dtos;
 
 public record EntertainmentActivityDto(
     Guid Id,
     string Name,
     string Description,
-    string IntensityLevel,
-    string ImpactLevel
+    IntensityLevel IntensityLevel,
+    ImpactLevel ImpactLevel
 );

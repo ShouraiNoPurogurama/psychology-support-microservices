@@ -46,6 +46,8 @@ namespace Subscription.API.Data.Migrations
                     ServicePackageId = table.Column<Guid>(type: "uuid", nullable: false),
                     StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    PromoCodeId = table.Column<Guid>(type: "uuid", nullable: true),
+                    GiftId = table.Column<Guid>(type: "uuid", nullable: true),
                     Status = table.Column<string>(type: "VARCHAR(20)", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
@@ -55,18 +57,31 @@ namespace Subscription.API.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_UserSubscriptions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserSubscriptions_ServicePackages_ServicePackageId",
+                        column: x => x.ServicePackageId,
+                        principalSchema: "public",
+                        principalTable: "ServicePackages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserSubscriptions_ServicePackageId",
+                schema: "public",
+                table: "UserSubscriptions",
+                column: "ServicePackageId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ServicePackages",
+                name: "UserSubscriptions",
                 schema: "public");
 
             migrationBuilder.DropTable(
-                name: "UserSubscriptions",
+                name: "ServicePackages",
                 schema: "public");
         }
     }

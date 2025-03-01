@@ -28,7 +28,7 @@ public class GetFoodActivityHandler(LifeStylesDbContext context)
             activity.MealTime,
             activity.FoodNutrients.Select(fn => fn.Name),
             activity.FoodCategories.Select(fc => fc.Name),
-            activity.IntensityLevel.ToString()
+            activity.IntensityLevel
         );
 
         return new GetFoodActivityResult(activityDto);

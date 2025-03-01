@@ -1,5 +1,5 @@
 ﻿using Profile.API.MentalDisorders.Dtos;
-using Profile.API.PatientProfiles.ValueObjects;
+using Profile.API.PatientProfiles.Enum;
 
 namespace Profile.API.PatientProfiles.Dtos;
 

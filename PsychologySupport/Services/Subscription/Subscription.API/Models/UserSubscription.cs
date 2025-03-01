@@ -16,7 +16,7 @@ public class UserSubscription : AggregateRoot<Guid>
     public Guid? PromoCodeId { get; set; }
     public Guid? GiftId { get; set; }
 
-    public SubscriptionStatus Status { get; set; }
+    public SubscriptionStatus Status { get; set; } = SubscriptionStatus.Active;
 
     public ServicePackage servicePackage { get; set; }
 }

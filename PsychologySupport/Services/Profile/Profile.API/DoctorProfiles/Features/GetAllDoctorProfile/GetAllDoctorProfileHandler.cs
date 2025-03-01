@@ -4,11 +4,11 @@ using Profile.API.DoctorProfiles.Dtos;
 
 namespace Profile.API.DoctorProfiles.Features.GetAllDoctorProfile;
 
-public record GetAllDoctorProfilesQuery(PaginationRequest PaginationRequest) : IQuery<GetAllDoctorProfilesResult>;
+public record GetAllDoctorProfilesQuery(PaginationRequest PaginationRequest) : IRequest<GetAllDoctorProfilesResult>;
 
-public record GetAllDoctorProfilesResult(IEnumerable<DoctorProfileDto> DoctorProfileDtos);
+public record GetAllDoctorProfilesResult(PaginatedResult<DoctorProfileDto> DoctorProfiles);
 
-public class GetAllDoctorProfilesHandler : IQueryHandler<GetAllDoctorProfilesQuery, GetAllDoctorProfilesResult>
+public class GetAllDoctorProfilesHandler : IRequestHandler<GetAllDoctorProfilesQuery, GetAllDoctorProfilesResult>
 {
     private readonly ProfileDbContext _context;
 
@@ -22,16 +22,23 @@ public class GetAllDoctorProfilesHandler : IQueryHandler<GetAllDoctorProfilesQue
         var pageSize = request.PaginationRequest.PageSize;
         var pageIndex = Math.Max(1, request.PaginationRequest.PageIndex);
 
+        var totalRecords = await _context.DoctorProfiles.CountAsync(cancellationToken);
+
         var doctorProfiles = await _context.DoctorProfiles
             .Include(d => d.Specialties)
+            .Include(d => d.MedicalRecords)
             .OrderByDescending(d => d.FullName)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
-            .Include(d => d.MedicalRecords)
             .ToListAsync(cancellationToken);
 
-        var result = doctorProfiles.Adapt<IEnumerable<DoctorProfileDto>>();
+        var paginatedResult = new PaginatedResult<DoctorProfileDto>(
+            pageIndex,
+            pageSize,
+            totalRecords,
+            doctorProfiles.Adapt<IEnumerable<DoctorProfileDto>>()
+        );
 
-        return new GetAllDoctorProfilesResult(result);
+        return new GetAllDoctorProfilesResult(paginatedResult);
     }
 }

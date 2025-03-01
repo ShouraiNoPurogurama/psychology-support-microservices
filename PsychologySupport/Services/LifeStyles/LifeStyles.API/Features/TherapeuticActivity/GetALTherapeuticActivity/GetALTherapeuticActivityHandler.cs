@@ -36,8 +36,8 @@ public class GetAllTherapeuticActivityHandler : IQueryHandler<GetAllTherapeuticA
                 ta.Name,
                 ta.Description,
                 ta.Instructions,
-                ta.IntensityLevel.ToString(),
-                ta.ImpactLevel.ToString()
+                ta.IntensityLevel,
+                ta.ImpactLevel
             ))
             .ToListAsync(cancellationToken);
 

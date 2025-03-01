@@ -37,8 +37,8 @@ public class GetAllEntertainmentActivityHandler : IQueryHandler<GetAllEntertainm
                 ea.Id,
                 ea.Name,
                 ea.Description,
-                ea.IntensityLevel.ToString(),
-                ea.ImpactLevel.ToString()
+                ea.IntensityLevel,
+                ea.ImpactLevel
             ))
             .ToListAsync(cancellationToken);
 

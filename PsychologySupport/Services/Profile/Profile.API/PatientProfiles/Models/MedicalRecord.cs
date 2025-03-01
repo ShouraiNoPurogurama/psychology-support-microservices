@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.DDD;
 using Profile.API.DoctorProfiles.Models;
 using Profile.API.MentalDisorders.Models;
-using Profile.API.PatientProfiles.ValueObjects;
+using Profile.API.PatientProfiles.Enum;
 
 namespace Profile.API.PatientProfiles.Models;
 

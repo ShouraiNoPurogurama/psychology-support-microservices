@@ -1,14 +1,15 @@
 ﻿using BuildingBlocks.Pagination;
 using Mapster;
+using Profile.API.Exceptions;
 using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.GetAllMedicalRecord;
 
-public record GetAllMedicalRecordsQuery(Guid PatientId, PaginationRequest PaginationRequest) : IQuery<GetAllMedicalRecordsResult>;
+public record GetAllMedicalRecordsQuery(Guid PatientId, PaginationRequest PaginationRequest) : IRequest<GetAllMedicalRecordsResult>;
 
-public record GetAllMedicalRecordsResult(IEnumerable<MedicalRecordDto> MedicalRecords, int TotalRecords);
+public record GetAllMedicalRecordsResult(PaginatedResult<MedicalRecordDto> MedicalRecords);
 
-public class GetAllMedicalRecordsHandler : IQueryHandler<GetAllMedicalRecordsQuery, GetAllMedicalRecordsResult>
+public class GetAllMedicalRecordsHandler : IRequestHandler<GetAllMedicalRecordsQuery, GetAllMedicalRecordsResult>
 {
     private readonly ProfileDbContext _context;
 
@@ -24,18 +25,25 @@ public class GetAllMedicalRecordsHandler : IQueryHandler<GetAllMedicalRecordsQue
             .ThenInclude(m => m.SpecificMentalDisorders)
             .FirstOrDefaultAsync(p => p.Id == request.PatientId, cancellationToken);
 
-        if (patient is null) throw new KeyNotFoundException("Patient not found.");
+        if (patient is null)
+            throw new ProfileNotFoundException("Patient", request.PatientId);
 
         var pageSize = request.PaginationRequest.PageSize;
-        var pageIndex = Math.Max(1, request.PaginationRequest.PageIndex);
+        var pageIndex = Math.Max(0, request.PaginationRequest.PageIndex - 1);
 
         var totalRecords = patient.MedicalRecords.Count;
         var medicalRecords = patient.MedicalRecords
-            .Skip((pageIndex - 1) * pageSize)
+            .Skip(pageIndex * pageSize)
             .Take(pageSize)
             .Adapt<IEnumerable<MedicalRecordDto>>();
 
+        var paginatedResult = new PaginatedResult<MedicalRecordDto>(
+            pageIndex + 1,
+            pageSize,
+            totalRecords,
+            medicalRecords
+        );
 
-        return new GetAllMedicalRecordsResult(medicalRecords, totalRecords);
+        return new GetAllMedicalRecordsResult(paginatedResult);
     }
 }
