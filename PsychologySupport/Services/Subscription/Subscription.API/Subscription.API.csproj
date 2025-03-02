@@ -20,4 +20,11 @@
         <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="ServicePackages\Features\" />
+      <Folder Include="UserSubscriptions\EventHandlers\" />
+      <Folder Include="UserSubscriptions\Events\" />
+      <Folder Include="UserSubscriptions\Features\" />
+    </ItemGroup>
+
 </Project>

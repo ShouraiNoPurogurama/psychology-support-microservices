@@ -9,23 +9,23 @@ public class LifeStylesDbContext : DbContext
 {
     public LifeStylesDbContext(DbContextOptions<LifeStylesDbContext> options) : base(options)
     {
+        
     }
 
-    public DbSet<PatientPhysicalActivity> PatientPhysicalActivities { get; set; }
-    public DbSet<EntertainmentActivity> EntertainmentActivities { get; set; }
-    public DbSet<TherapeuticActivity> TherapeuticActivities { get; set; }
-    public DbSet<TherapeuticType> TherapeuticTypes { get; set; }
-    public DbSet<PatientEntertainmentActivity> PatientEntertainmentActivities { get; set; }
-    public DbSet<PhysicalActivity> PhysicalActivities { get; set; }
-    public DbSet<FoodActivity> FoodActivities { get; set; }
-    public DbSet<FoodCategory> FoodCategories { get; set; }
-    public DbSet<FoodNutrient> FoodNutrients { get; set; }
+    public DbSet<PatientPhysicalActivity> PatientPhysicalActivities => Set<PatientPhysicalActivity>();
+    public DbSet<EntertainmentActivity> EntertainmentActivities => Set<EntertainmentActivity>();
+    public DbSet<TherapeuticActivity> TherapeuticActivities  => Set<TherapeuticActivity>();
+    public DbSet<TherapeuticType> TherapeuticTypes => Set<TherapeuticType>();
+    public DbSet<PatientEntertainmentActivity> PatientEntertainmentActivities => Set<PatientEntertainmentActivity>();
+    public DbSet<PhysicalActivity> PhysicalActivities => Set<PhysicalActivity>();
+    public DbSet<FoodActivity> FoodActivities => Set<FoodActivity>();
+    public DbSet<FoodCategory> FoodCategories => Set<FoodCategory>();
+    public DbSet<FoodNutrient> FoodNutrients => Set<FoodNutrient>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.HasDefaultSchema("public");
-
-
+        
         builder.Entity<PatientPhysicalActivity>()
             .Property(e => e.PreferenceLevel)
             .HasConversion(new EnumToStringConverter<PreferenceLevel>())

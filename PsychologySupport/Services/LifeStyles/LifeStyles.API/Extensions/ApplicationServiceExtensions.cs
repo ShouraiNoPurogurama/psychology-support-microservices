@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Behaviors;
+using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Messaging.Masstransit;
 using Carter;
 using LifeStyles.API.Data;
@@ -24,7 +25,7 @@ public static class ApplicationServiceExtensions
 
         AddServiceDependencies(services);
 
-        services.AddMessageBroker(config, typeof(Program).Assembly);
+        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
         return services;
     }
@@ -65,6 +66,8 @@ public static class ApplicationServiceExtensions
 
     private static void AddServiceDependencies(IServiceCollection services)
     {
+        services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+        services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)

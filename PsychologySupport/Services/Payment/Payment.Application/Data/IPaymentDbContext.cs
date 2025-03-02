@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Payment.Domain.Models;
 
 namespace Payment.Application.Data;
 

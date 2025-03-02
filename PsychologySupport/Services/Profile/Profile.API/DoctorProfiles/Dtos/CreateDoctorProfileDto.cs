@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Data.Enums;
+﻿using BuildingBlocks.Enums;
 using Profile.API.DoctorProfiles.Models;
 
 namespace Profile.API.DoctorProfiles.Dtos;

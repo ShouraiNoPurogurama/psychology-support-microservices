@@ -6,8 +6,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
 
-services.AddCarter();
-
 services.AddApplicationServices(builder.Configuration);
 
 services.AddExceptionHandler<CustomExceptionHandler>();

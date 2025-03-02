@@ -1,10 +1,12 @@
-﻿namespace Payment.Domain.Models;
+﻿using BuildingBlocks.Enums;
+using Payment.Domain.Enums;
+
+namespace Payment.Domain.Models;
 
 public class PaymentMethod
 {
     public Guid Id { get; set; }
-
-    public string Name { get; set; } = default!;
+    public PaymentMethodName Name { get; set; } = default!;
 
     public string? Details { get; set; }
 

@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Messaging.Masstransit;
+using Carter;
 
 namespace Profile.API.Extensions;
 
@@ -7,6 +8,8 @@ public static class ApplicationServiceExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
         services.AddEndpointsApiExplorer();
+
+        services.AddCarter();
 
         ConfigureSwagger(services);
 
