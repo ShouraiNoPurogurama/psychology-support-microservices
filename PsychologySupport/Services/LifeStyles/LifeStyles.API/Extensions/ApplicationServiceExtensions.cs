@@ -24,7 +24,7 @@ public static class ApplicationServiceExtensions
 
         AddServiceDependencies(services);
 
-        services.AddMessageBroker(config);
+        services.AddMessageBroker(config, typeof(Program).Assembly);
 
         return services;
     }

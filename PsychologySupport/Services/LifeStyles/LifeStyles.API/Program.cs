@@ -28,4 +28,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "LifeStyles API v1"); });
 }
 
+// Apply CORS policy
+app.UseCors();
+
+
 app.Run();

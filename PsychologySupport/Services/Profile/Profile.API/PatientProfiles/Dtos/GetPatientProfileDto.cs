@@ -4,6 +4,7 @@ using Profile.API.PatientProfiles.Enum;
 namespace Profile.API.PatientProfiles.Dtos;
 
 public record GetPatientProfileDto(
+    Guid Id,
     Guid UserId,
     UserGender Gender,
     string? Allergies,

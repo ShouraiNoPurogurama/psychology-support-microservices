@@ -41,10 +41,20 @@ public class LifeStylesDbContext : DbContext
             .HasConversion(new EnumToStringConverter<IntensityLevel>())
             .HasColumnType("VARCHAR(20)");
 
+        builder.Entity<PhysicalActivity>()
+            .Property(e => e.ImpactLevel)
+            .HasConversion(new EnumToStringConverter<ImpactLevel>())
+            .HasColumnType("VARCHAR(20)");
+
         builder.Entity<FoodActivity>()
             .Property(e => e.IntensityLevel)
             .HasConversion(new EnumToStringConverter<IntensityLevel>())
             .HasColumnType("VARCHAR(20)");
+
+        builder.Entity<FoodActivity>()
+           .Property(e => e.MealTime)
+           .HasConversion(new EnumToStringConverter<MealTime>())
+           .HasColumnType("VARCHAR(20)");
 
         builder.Entity<EntertainmentActivity>()
             .Property(e => e.IntensityLevel)

@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
+using BuildingBlocks.Messaging.Masstransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
@@ -38,6 +39,8 @@ public static class ApplicationServiceExtensions
             configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
             configuration.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
+
+        services.AddMessageBroker(config, typeof(Program).Assembly);
 
         AddDatabase(services, config);
 
