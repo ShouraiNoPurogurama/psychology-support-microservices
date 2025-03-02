@@ -69,12 +69,14 @@ public static class ApplicationServiceExtensions
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
     {
-        var connectionString = config.GetConnectionString("LifeStylesDb");
+        var connectionString = config.GetConnectionString("LifeStyleDb");
 
         services.AddDbContext<LifeStylesDbContext>((sp, opt) =>
         {
             opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             opt.UseNpgsql(connectionString);
         });
+
+        services.AddScoped<DbContext, LifeStylesDbContext>();
     }
 }

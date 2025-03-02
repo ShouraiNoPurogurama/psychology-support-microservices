@@ -12,7 +12,7 @@ using Test.Infrastructure.Data;
 namespace Test.Infrastructure.Migrations
 {
     [DbContext(typeof(TestDbContext))]
-    [Migration("20250227084940_InitialMigration")]
+    [Migration("20250301185622_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -24,6 +24,21 @@ namespace Test.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("QuestionOptionTestResult", b =>
+                {
+                    b.Property<Guid>("SelectedOptionsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TestResultsId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("SelectedOptionsId", "TestResultsId");
+
+                    b.HasIndex("TestResultsId");
+
+                    b.ToTable("QuestionOptionTestResult");
+                });
 
             modelBuilder.Entity("Test.Domain.Models.Category", b =>
                 {
@@ -103,31 +118,6 @@ namespace Test.Infrastructure.Migrations
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("LastModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastModifiedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Tests");
-                });
-
-            modelBuilder.Entity("Test.Domain.Models.TestHistoryAnswer", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
                     b.Property<DateTimeOffset?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -140,17 +130,9 @@ namespace Test.Infrastructure.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("SelectedOptionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("TestResultId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("TestResultId");
-
-                    b.ToTable("TestHistoryAnswers");
+                    b.ToTable("Tests");
                 });
 
             modelBuilder.Entity("Test.Domain.Models.TestQuestion", b =>
@@ -233,7 +215,24 @@ namespace Test.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TestId");
+
                     b.ToTable("TestResults");
+                });
+
+            modelBuilder.Entity("QuestionOptionTestResult", b =>
+                {
+                    b.HasOne("Test.Domain.Models.QuestionOption", null)
+                        .WithMany()
+                        .HasForeignKey("SelectedOptionsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Test.Domain.Models.TestResult", null)
+                        .WithMany()
+                        .HasForeignKey("TestResultsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Test.Domain.Models.QuestionOption", b =>
@@ -241,15 +240,6 @@ namespace Test.Infrastructure.Migrations
                     b.HasOne("Test.Domain.Models.TestQuestion", null)
                         .WithMany("Options")
                         .HasForeignKey("TestQuestionId");
-                });
-
-            modelBuilder.Entity("Test.Domain.Models.TestHistoryAnswer", b =>
-                {
-                    b.HasOne("Test.Domain.Models.TestResult", null)
-                        .WithMany("HistoryAnswers")
-                        .HasForeignKey("TestResultId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Test.Domain.Models.TestQuestion", b =>
@@ -261,19 +251,25 @@ namespace Test.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Test.Domain.Models.TestResult", b =>
+                {
+                    b.HasOne("Test.Domain.Models.Test", null)
+                        .WithMany("TestResults")
+                        .HasForeignKey("TestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Test.Domain.Models.Test", b =>
                 {
                     b.Navigation("Questions");
+
+                    b.Navigation("TestResults");
                 });
 
             modelBuilder.Entity("Test.Domain.Models.TestQuestion", b =>
                 {
                     b.Navigation("Options");
-                });
-
-            modelBuilder.Entity("Test.Domain.Models.TestResult", b =>
-                {
-                    b.Navigation("HistoryAnswers");
                 });
 #pragma warning restore 612, 618
         }

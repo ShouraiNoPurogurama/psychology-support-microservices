@@ -1,11 +1,9 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
-using BuildingBlocks.Pagination;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Test.Application.Data;
 using Test.Application.Dtos;
-using Test.Domain.Models;
 
 namespace Test.Application.TestOutput.Queries;
 
