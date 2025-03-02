@@ -1,5 +1,5 @@
 ﻿using Auth.API.Models;
-using BuildingBlocks.Data.Enums;
+using BuildingBlocks.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

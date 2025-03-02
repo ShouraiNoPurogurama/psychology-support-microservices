@@ -1,5 +1,5 @@
-﻿using BuildingBlocks.Data.Enums;
-using BuildingBlocks.DDD;
+﻿using BuildingBlocks.DDD;
+using BuildingBlocks.Enums;
 using Profile.API.MentalDisorders.Models;
 using Profile.API.PatientProfiles.Events;
 using Profile.API.PatientProfiles.ValueObjects;

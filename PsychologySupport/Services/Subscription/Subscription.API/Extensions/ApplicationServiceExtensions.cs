@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
+using BuildingBlocks.Messaging.Masstransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
@@ -14,13 +15,33 @@ public static class ApplicationServiceExtensions
     {
         // services.AddCarter();
         services.AddEndpointsApiExplorer();
+        
+        ConfigureSwagger(services);
+
+        ConfigureCORS(services);
+
+        ConfigureMediatR(services);
+
+        AddDatabase(services, config);
+
+        AddServiceDependencies(services);
+
+        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+        
+        return services;
+    }
+
+    private static void ConfigureSwagger(IServiceCollection services)
+    {
         services.AddSwaggerGen(options => options.SwaggerDoc("v1", new OpenApiInfo
         {
             Title = "Subscription API",
             Version = "v1"
         }));
+    }
 
-
+    private static void ConfigureCORS(IServiceCollection services)
+    {
         services.AddCors(options =>
         {
             options.AddPolicy("CorsPolicy", builder =>
@@ -31,19 +52,16 @@ public static class ApplicationServiceExtensions
                     .AllowAnyHeader();
             });
         });
+    }
 
+    private static void ConfigureMediatR(IServiceCollection services)
+    {
         services.AddMediatR(configuration =>
         {
             configuration.RegisterServicesFromAssembly(typeof(Program).Assembly);
             configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
             configuration.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
-
-        AddDatabase(services, config);
-
-        AddServiceDependencies(services);
-
-        return services;
     }
 
     private static void AddServiceDependencies(IServiceCollection services)

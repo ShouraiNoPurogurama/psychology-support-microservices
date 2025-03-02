@@ -15,19 +15,6 @@ services.AddExceptionHandler<CustomExceptionHandler>();
 
 services.RegisterMapsterConfiguration();
 
-builder.Services.AddMassTransit(config =>
-{
-    config.UsingRabbitMq((context, cfg) =>
-    {
-        cfg.Host("rabbitmq://localhost", h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
-    });
-});
-
-
 // Configure the HTTP request pipeline
 var app = builder.Build();
 

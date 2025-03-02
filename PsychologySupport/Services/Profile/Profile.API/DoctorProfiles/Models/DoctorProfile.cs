@@ -1,5 +1,5 @@
-﻿using BuildingBlocks.Data.Enums;
-using BuildingBlocks.DDD;
+﻿using BuildingBlocks.DDD;
+using BuildingBlocks.Enums;
 using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.DoctorProfiles.Models;

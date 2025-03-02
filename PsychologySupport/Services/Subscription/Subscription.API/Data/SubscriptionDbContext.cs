@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Subscription.API.Data.Common;
-using Subscription.API.Models;
+using Subscription.API.ServicePackages.Models;
+using Subscription.API.UserSubscriptions.Models;
 
 namespace Subscription.API.Data;
 
@@ -25,7 +26,7 @@ public class SubscriptionDbContext : DbContext
             .HasColumnType("VARCHAR(20)");
 
         builder.Entity<UserSubscription>()
-            .HasOne(us => us.servicePackage)
+            .HasOne(us => us.ServicePackage)
             .WithMany()
             .HasForeignKey(us => us.ServicePackageId)
             .OnDelete(DeleteBehavior.Restrict);

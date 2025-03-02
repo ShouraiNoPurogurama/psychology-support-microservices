@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
 
+
 services.AddApplicationServices(builder.Configuration);
 
 services.AddExceptionHandler<CustomExceptionHandler>();
@@ -27,5 +28,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "LifeStyles API v1"); });
 }
+
+app.UseCors();
 
 app.Run();

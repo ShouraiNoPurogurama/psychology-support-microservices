@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using Mapster;
-using Subscription.API.Dtos;
-using Subscription.API.Models;
+using Subscription.API.ServicePackages.Dtos;
+using Subscription.API.ServicePackages.Models;
 
 namespace Subscription.API.Extensions;
 
