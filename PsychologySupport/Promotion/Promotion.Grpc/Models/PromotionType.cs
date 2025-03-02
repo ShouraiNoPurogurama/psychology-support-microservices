@@ -2,11 +2,12 @@ namespace Promotion.Grpc.Models;
 
 public class PromotionType
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; }
     
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; set; }
     
-    public string? Description { get; set; } = string.Empty;
-    
+    public string? Description { get; set; }
     public virtual ICollection<Promotion> Promotions { get; set; } = default!;
+    
+    public virtual ICollection<PromotionTypeServicePackage> PromotionTypeServicePackages { get; set; } = default!;
 }

@@ -11,21 +11,18 @@ using Promotion.Grpc.Data;
 namespace Promotion.Grpc.Data.Migrations
 {
     [DbContext(typeof(PromotionDbContext))]
-    [Migration("20250302091216_InitialCreate")]
+    [Migration("20250302144804_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasDefaultSchema("public")
-                .HasAnnotation("ProductVersion", "8.0.11");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
 
             modelBuilder.Entity("Promotion.Grpc.Models.GiftCode", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
@@ -37,7 +34,8 @@ namespace Promotion.Grpc.Data.Migrations
                     b.Property<decimal>("MoneyValue")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("PromotionId")
+                    b.Property<string>("PromotionId")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
@@ -48,13 +46,12 @@ namespace Promotion.Grpc.Data.Migrations
 
                     b.HasIndex("PromotionId");
 
-                    b.ToTable("GiftCodes", "public");
+                    b.ToTable("GiftCodes");
                 });
 
             modelBuilder.Entity("Promotion.Grpc.Models.PromoCode", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Code")
@@ -71,7 +68,8 @@ namespace Promotion.Grpc.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("PromotionId")
+                    b.Property<string>("PromotionId")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Value")
@@ -81,13 +79,12 @@ namespace Promotion.Grpc.Data.Migrations
 
                     b.HasIndex("PromotionId");
 
-                    b.ToTable("PromoCodes", "public");
+                    b.ToTable("PromoCodes");
                 });
 
             modelBuilder.Entity("Promotion.Grpc.Models.Promotion", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("EffectiveDate")
@@ -96,26 +93,27 @@ namespace Promotion.Grpc.Data.Migrations
                     b.Property<DateTimeOffset>("EndDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("ImageId")
+                    b.Property<string>("ImageId")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("PromotionTypeId")
+                    b.Property<string>("PromotionTypeId")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.HasIndex("PromotionTypeId");
 
-                    b.ToTable("Promotions", "public");
+                    b.ToTable("Promotions");
                 });
 
             modelBuilder.Entity("Promotion.Grpc.Models.PromotionType", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
@@ -127,7 +125,20 @@ namespace Promotion.Grpc.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PromotionTypes", "public");
+                    b.ToTable("PromotionTypes");
+                });
+
+            modelBuilder.Entity("Promotion.Grpc.Models.PromotionTypeServicePackage", b =>
+                {
+                    b.Property<string>("PromotionTypeId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ServicePackageId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("PromotionTypeId", "ServicePackageId");
+
+                    b.ToTable("PromotionTypeServicePackages");
                 });
 
             modelBuilder.Entity("Promotion.Grpc.Models.GiftCode", b =>
@@ -163,6 +174,17 @@ namespace Promotion.Grpc.Data.Migrations
                     b.Navigation("PromotionType");
                 });
 
+            modelBuilder.Entity("Promotion.Grpc.Models.PromotionTypeServicePackage", b =>
+                {
+                    b.HasOne("Promotion.Grpc.Models.PromotionType", "PromotionType")
+                        .WithMany("PromotionTypeServicePackages")
+                        .HasForeignKey("PromotionTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PromotionType");
+                });
+
             modelBuilder.Entity("Promotion.Grpc.Models.Promotion", b =>
                 {
                     b.Navigation("GiftCodes");
@@ -172,6 +194,8 @@ namespace Promotion.Grpc.Data.Migrations
 
             modelBuilder.Entity("Promotion.Grpc.Models.PromotionType", b =>
                 {
+                    b.Navigation("PromotionTypeServicePackages");
+
                     b.Navigation("Promotions");
                 });
 #pragma warning restore 612, 618

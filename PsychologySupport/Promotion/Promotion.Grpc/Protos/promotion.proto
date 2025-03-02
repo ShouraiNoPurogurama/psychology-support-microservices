@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Promotion.Grpc";
+
+package promotion;
+
+service PromotionService {
+  //CRUD Operations
+  rpc GetPromotionsByServicePackageId(GetPromotionsByServicePackageIdRequest) returns (GetPromotionsByServicePackageIdResponse);
+  rpc CreatePromotion(CreatePromotionRequest) returns (PromotionDto);
+  rpc UpdatePromotion(UpdatePromotionRequest) returns (PromotionDto);
+  rpc AddPromoCodesToPromotion(AddPromoCodesToPromotionRequest) returns (PromotionDto);
+  rpc AddGiftCodesToPromotion(AddGiftCodesToPromotionRequest) returns (PromotionDto);
+  rpc DeletePromotion(DeletePromotionRequest) returns (DeletePromotionResponse);
+}
+
+message GetPromotionsByServicePackageIdRequest {
+  string servicePackageId = 1;
+}
+
+message GetPromotionsByServicePackageIdResponse {
+  repeated PromotionDto promotions = 1;
+}
+
+message CreatePromotionRequest {
+  string promotionTypeId = 1;
+  google.protobuf.Timestamp startDate = 2;
+  google.protobuf.Timestamp endDate = 3;
+}
+
+message AddPromoCodesToPromotionRequest {
+  int32 quantity = 1;
+  PromoCodeDto promoCode = 2;
+}
+
+message AddGiftCodesToPromotionRequest {
+  int32 quantity = 1;
+  GiftCodeDto giftCode = 2;
+}
+
+message UpdatePromotionRequest {
+  //  string ImageId = 3;
+  google.protobuf.Timestamp startDate = 4;
+  google.protobuf.Timestamp endDate = 5;
+}
+
+message DeletePromotionRequest {
+  string promotionId = 1;
+}
+
+message DeletePromotionResponse {
+  bool success = 1;
+}
+
+message PromotionDto {
+  string id = 1;
+  google.protobuf.Timestamp startDate = 2;
+  google.protobuf.Timestamp endDate = 3;
+  bool isActive = 4;
+  PromotionType promotionType = 5;
+  repeated PromoCodeDto promoCodes = 6;
+  repeated GiftCodeDto giftCodes = 7;
+}
+
+message PromotionType {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+
+message GiftCodeDto {
+  string id = 1;
+  string promotionId = 2;
+  double moneyValue = 3; //Using double as protobuf does not natively support decimal
+  string title = 4;
+  string description = 5;
+  bool isActive = 6;
+}
+
+
+message PromoCodeDto {
+  string id = 1;
+  string promotionId = 2;
+  string code = 3;
+  int32 value = 4;
+  string name = 5;
+  string description = 6;
+  bool isActive = 7;
+}

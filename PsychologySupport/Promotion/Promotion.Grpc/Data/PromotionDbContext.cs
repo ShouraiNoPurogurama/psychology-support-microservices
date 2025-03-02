@@ -11,7 +11,9 @@ public class PromotionDbContext : DbContext
     
     public DbSet<GiftCode> GiftCodes => Set<GiftCode>();
     
-    public DbSet<PromotionType> PromotionTypes => Set<PromotionType>();
+    public DbSet<Models.PromotionType> PromotionTypes => Set<Models.PromotionType>();
+    
+    public DbSet<PromotionTypeServicePackage> PromotionTypeServicePackages => Set<PromotionTypeServicePackage>();
     
     public PromotionDbContext(DbContextOptions<PromotionDbContext> options) : base(options)
     {
@@ -20,6 +22,18 @@ public class PromotionDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        builder.Entity<PromotionTypeServicePackage>(e =>
+        {
+            e.HasKey(x => new { x.PromotionTypeId, x.ServicePackageId });
+
+            e.HasOne(x => x.PromotionType)
+                .WithMany(pt => pt.PromotionTypeServicePackages)
+                .HasForeignKey(x => x.PromotionTypeId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         base.OnModelCreating(builder);
     }
+
+
 }

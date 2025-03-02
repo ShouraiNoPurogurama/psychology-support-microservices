@@ -2,9 +2,9 @@ namespace Promotion.Grpc.Models;
 
 public class GiftCode
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; }
     
-    public Guid PromotionId { get; set; }
+    public string PromotionId { get; set; }
     
     public decimal MoneyValue { get; set; } // VND
     

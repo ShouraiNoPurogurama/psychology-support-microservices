@@ -3,11 +3,11 @@ namespace Promotion.Grpc.Models;
 
 public class Promotion
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; }
     
-    public Guid PromotionTypeId { get; set; }
+    public string PromotionTypeId { get; set; }
     
-    public Guid ImageId { get; set; }
+    public string ImageId { get; set; }
     
     public DateTimeOffset EffectiveDate { get; set; }
     
