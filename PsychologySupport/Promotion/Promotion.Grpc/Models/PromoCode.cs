@@ -5,7 +5,6 @@ public class PromoCode
     public string Id { get; set; }
     
     public string PromotionId { get; set; }
-    
     public string Code { get; set; } = string.Empty;
     
     public int Value { get; set; } // Percentage discount

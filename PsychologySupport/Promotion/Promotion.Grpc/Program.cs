@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Promotion.Grpc.BackgroundServices;
 using Promotion.Grpc.Data;
 using Promotion.Grpc.Extensions;
 using Promotion.Grpc.Services;
@@ -13,7 +14,12 @@ builder.Services.AddDbContext<PromotionDbContext>(opts =>
     opts.UseSqlite(builder.Configuration.GetConnectionString("PromotionDb"));
 });
 
+//Background service configurations
+builder.Services.AddHostedService<UpdatePromotionStatusesBackgroundService>();
+
 builder.Services.RegisterMapsterConfigurations();
+
+builder.Services.AddScoped<ValidatorService>();
 
 var app = builder.Build();
 

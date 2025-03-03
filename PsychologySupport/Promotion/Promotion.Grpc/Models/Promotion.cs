@@ -17,7 +17,7 @@ public class Promotion
     
     public virtual PromotionType PromotionType { get; set; } = default!;
     
-    public virtual ICollection<PromoCode> PromoCodes { get; set; } = default!;
+    public virtual ICollection<PromoCode> PromoCodes { get; set; } = [];
     
-    public virtual ICollection<GiftCode> GiftCodes { get; set; } = default!;
+    public virtual ICollection<GiftCode> GiftCodes { get; set; } = [];
 }

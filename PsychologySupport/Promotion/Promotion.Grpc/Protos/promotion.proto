@@ -9,10 +9,12 @@ package promotion;
 service PromotionService {
   //CRUD Operations
   rpc GetPromotionsByServicePackageId(GetPromotionsByServicePackageIdRequest) returns (GetPromotionsByServicePackageIdResponse);
+  rpc GetPromotionByCode(GetPromotionByCodeRequest) returns (GetPromotionByCodeResponse); //Include gift code and promo code
+  rpc GetGiftCodeByPatientId(GetGiftCodeByPatientIdRequest) returns (GetGiftCodeByPatientIdResponse); //Include gift code and promo code
   rpc CreatePromotion(CreatePromotionRequest) returns (PromotionDto);
-  rpc UpdatePromotion(UpdatePromotionRequest) returns (PromotionDto);
-  rpc AddPromoCodesToPromotion(AddPromoCodesToPromotionRequest) returns (PromotionDto);
-  rpc AddGiftCodesToPromotion(AddGiftCodesToPromotionRequest) returns (PromotionDto);
+  rpc UpdatePromotion(UpdatePromotionRequest) returns (UpdatePromotionResponse);
+  rpc AddPromoCodesToPromotion(AddPromoCodesToPromotionRequest) returns (AddPromoCodesToPromotionResponse);
+  rpc AddGiftCodesToPromotion(AddGiftCodesToPromotionRequest) returns (AddGiftCodesToPromotionResponse);
   rpc DeletePromotion(DeletePromotionRequest) returns (DeletePromotionResponse);
 }
 
@@ -24,26 +26,48 @@ message GetPromotionsByServicePackageIdResponse {
   repeated PromotionDto promotions = 1;
 }
 
+message GetPromotionByCodeRequest {
+  string code = 1;
+}
+
+message GetPromotionByCodeResponse {
+  PromoCodeActivateDto promoCode = 1;
+}
+
+message GetGiftCodeByPatientIdRequest {
+  string Id = 1;
+}
+
+message GetGiftCodeByPatientIdResponse {
+  repeated GiftCodeActivateDto giftCode = 1;
+}
+
 message CreatePromotionRequest {
   string promotionTypeId = 1;
   google.protobuf.Timestamp startDate = 2;
   google.protobuf.Timestamp endDate = 3;
+  CreatePromoCodesDto createPromoCodesDto = 4;
 }
 
 message AddPromoCodesToPromotionRequest {
-  int32 quantity = 1;
-  PromoCodeDto promoCode = 2;
+  string promotionId = 1;
+  CreatePromoCodesDto promoCode = 2;
 }
 
 message AddGiftCodesToPromotionRequest {
-  int32 quantity = 1;
-  GiftCodeDto giftCode = 2;
+  string promotionId = 1;
+  CreateGiftCodeDto createGiftCodeDto = 2;
 }
 
 message UpdatePromotionRequest {
   //  string ImageId = 3;
+  string promotionId = 1;
   google.protobuf.Timestamp startDate = 4;
   google.protobuf.Timestamp endDate = 5;
+}
+
+message UpdatePromotionResponse {
+  bool isSuccess = 1;
 }
 
 message DeletePromotionRequest {
@@ -51,7 +75,7 @@ message DeletePromotionRequest {
 }
 
 message DeletePromotionResponse {
-  bool success = 1;
+  bool isSuccess = 1;
 }
 
 message PromotionDto {
@@ -59,17 +83,16 @@ message PromotionDto {
   google.protobuf.Timestamp startDate = 2;
   google.protobuf.Timestamp endDate = 3;
   bool isActive = 4;
-  PromotionType promotionType = 5;
+  PromotionTypeDto promotionType = 5;
   repeated PromoCodeDto promoCodes = 6;
   repeated GiftCodeDto giftCodes = 7;
 }
 
-message PromotionType {
+message PromotionTypeDto {
   string id = 1;
   string name = 2;
   string description = 3;
 }
-
 
 message GiftCodeDto {
   string id = 1;
@@ -78,9 +101,19 @@ message GiftCodeDto {
   string title = 4;
   string description = 5;
   bool isActive = 6;
+  string patientId = 7;
 }
 
+message GiftCodeActivateDto {
+  string id = 1;
+  string promotionId = 2;
+  double moneyValue = 3; //Using double as protobuf does not natively support decimal
+  string title = 4;
+  string description = 5;
+  PromotionTypeDto promotionType = 7;
+}
 
+//For listing of promo codes
 message PromoCodeDto {
   string id = 1;
   string promotionId = 2;
@@ -89,4 +122,38 @@ message PromoCodeDto {
   string name = 5;
   string description = 6;
   bool isActive = 7;
+}
+
+//For creating promo codes
+message CreatePromoCodesDto {
+  int32 value = 1;
+  string name = 2;
+  string description = 3;
+  int32 quantity = 4;
+}
+
+message CreateGiftCodeDto {
+  string patientId = 1;
+  double moneyValue = 2; //Using double as protobuf does not natively support decimal
+  string title = 3;
+  string description = 4;
+}
+
+//For activating promo by code
+message PromoCodeActivateDto {
+  string id = 1;
+  string promotionId = 2;
+  string code = 3;
+  int32 value = 4; //Discount percentage
+  string name = 5;
+  string description = 6;
+  PromotionTypeDto promotionType = 7;
+}
+
+message AddPromoCodesToPromotionResponse {
+  bool isSuccess = 1;
+}
+
+message AddGiftCodesToPromotionResponse {
+  bool isSuccess = 1;
 }
