@@ -40,3 +40,9 @@
     build:
       context: .
       dockerfile: Services/Subscription/Subscription.API/Dockerfile
+
+  payment.api:
+    image: payment.api
+    build:
+      context: .
+      dockerfile: Services/Payment/Payment.API/Dockerfile

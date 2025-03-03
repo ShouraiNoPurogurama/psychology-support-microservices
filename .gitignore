@@ -412,3 +412,5 @@ PsychologySupport/Services/Notification/Notification.API/firebase_notification_k
 PsychologySupport/Promotion/Promotion.Grpc/PromotionDb
 PsychologySupport/Promotion/Promotion.Grpc/PromotionDb-shm
 PsychologySupport/Promotion/Promotion.Grpc/PromotionDb-wal
+PsychologySupport/Services/Test/Test.API/appsettings.json
+PsychologySupport/Services/Test/Test.API/appsettings.Development.json
