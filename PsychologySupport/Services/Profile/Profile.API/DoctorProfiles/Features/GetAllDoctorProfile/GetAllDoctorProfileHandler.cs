@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.CQRS;
-using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Pagination;
 using Mapster;
 using Profile.API.DoctorProfiles.Dtos;
 
@@ -24,6 +23,7 @@ public class GetAllDoctorProfilesHandler : IQueryHandler<GetAllDoctorProfilesQue
         var pageIndex = Math.Max(1, request.PaginationRequest.PageIndex);
 
         var doctorProfiles = await _context.DoctorProfiles
+            .Include(d => d.Specialties)
             .OrderByDescending(d => d.FullName)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)

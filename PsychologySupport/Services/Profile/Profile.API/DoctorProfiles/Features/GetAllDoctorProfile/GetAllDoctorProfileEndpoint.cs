@@ -1,7 +1,6 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
-using MediatR;
 using Profile.API.DoctorProfiles.Dtos;
 
 namespace Profile.API.DoctorProfiles.Features.GetAllDoctorProfile;

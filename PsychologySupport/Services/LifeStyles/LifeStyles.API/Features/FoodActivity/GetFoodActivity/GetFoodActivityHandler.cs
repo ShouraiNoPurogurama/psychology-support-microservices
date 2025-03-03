@@ -16,10 +16,10 @@ public class GetFoodActivityHandler(LifeStylesDbContext context)
     public async Task<GetFoodActivityResult> Handle(GetFoodActivityQuery request, CancellationToken cancellationToken)
     {
         var activity = await context.FoodActivities
-            .Include(fa => fa.FoodNutrients)
-            .Include(fa => fa.FoodCategories)
-            .FirstOrDefaultAsync(fa => fa.Id == request.Id, cancellationToken)
-            ?? throw new NotFoundException("Food Activity", request.Id);
+                           .Include(fa => fa.FoodNutrients)
+                           .Include(fa => fa.FoodCategories)
+                           .FirstOrDefaultAsync(fa => fa.Id == request.Id, cancellationToken)
+                       ?? throw new NotFoundException("Food Activity", request.Id);
 
         var activityDto = new FoodActivityDto(
             activity.Id,

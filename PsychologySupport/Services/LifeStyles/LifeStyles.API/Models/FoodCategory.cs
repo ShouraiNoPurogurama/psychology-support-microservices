@@ -1,10 +1,9 @@
-﻿namespace LifeStyles.API.Models
+﻿namespace LifeStyles.API.Models;
+
+public class FoodCategory
 {
-    public class FoodCategory
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public ICollection<FoodActivity> FoodActivities { get; set; }
-    }
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public ICollection<FoodActivity> FoodActivities { get; set; }
 }

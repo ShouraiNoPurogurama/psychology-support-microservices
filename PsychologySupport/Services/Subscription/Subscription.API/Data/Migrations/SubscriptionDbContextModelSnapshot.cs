@@ -81,6 +81,9 @@ namespace Subscription.API.Data.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("GiftId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset?>("LastModified")
                         .HasColumnType("timestamp with time zone");
 
@@ -88,6 +91,9 @@ namespace Subscription.API.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PromoCodeId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ServicePackageId")
@@ -102,7 +108,20 @@ namespace Subscription.API.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ServicePackageId");
+
                     b.ToTable("UserSubscriptions", "public");
+                });
+
+            modelBuilder.Entity("Subscription.API.Models.UserSubscription", b =>
+                {
+                    b.HasOne("Subscription.API.Models.ServicePackage", "servicePackage")
+                        .WithMany()
+                        .HasForeignKey("ServicePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("servicePackage");
                 });
 #pragma warning restore 612, 618
         }

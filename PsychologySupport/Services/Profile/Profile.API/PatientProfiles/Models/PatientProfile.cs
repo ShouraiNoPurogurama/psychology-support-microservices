@@ -1,7 +1,5 @@
-﻿using System.Text.Json.Serialization;
-using BuildingBlocks.Data.Enums;
-using BuildingBlocks.DDD;
-using Profile.API.Common.ValueObjects;
+﻿using BuildingBlocks.DDD;
+using BuildingBlocks.Enums;
 using Profile.API.MentalDisorders.Models;
 using Profile.API.PatientProfiles.Events;
 using Profile.API.PatientProfiles.ValueObjects;
@@ -10,23 +8,15 @@ namespace Profile.API.PatientProfiles.Models;
 
 public class PatientProfile : AggregateRoot<Guid>
 {
-    public Guid UserId { get;  set; }
-    public string FullName { get; set; }
-    public UserGender Gender { get;  set; }
-    public string Allergies { get;  set; }
-    public PersonalityTrait PersonalityTraits { get;  set; }
-    public ContactInfo ContactInfo { get;  set; } = default!;
-    public Guid? MedicalHistoryId { get;  set; }
-    public MedicalHistory? MedicalHistory { get;  set; }
-
     private readonly List<MedicalRecord> _medicalRecords = [];
 
-    public IReadOnlyList<MedicalRecord> MedicalRecords => _medicalRecords.AsReadOnly();
 
+    public PatientProfile()
+    {
+    }
 
-    public PatientProfile() { }
-
-    public PatientProfile(Guid userId, string? fullName, string? gender, string? allergies, PersonalityTrait personalityTraits, ContactInfo contactInfo)
+    public PatientProfile(Guid userId, string? fullName, string? gender, string? allergies, PersonalityTrait personalityTraits,
+        ContactInfo contactInfo)
     {
         UserId = userId;
         FullName = fullName;
@@ -34,30 +24,42 @@ public class PatientProfile : AggregateRoot<Guid>
         if (!Enum.TryParse<UserGender>(gender, true, out var parsedGender))
             throw new ArgumentException("Invalid gender value. Allowed: Male, Female, Else.", nameof(gender));
 
-        Gender = parsedGender; 
+        Gender = parsedGender;
 
         Allergies = allergies;
         PersonalityTraits = personalityTraits;
         ContactInfo = contactInfo;
     }
 
-    public MedicalRecord AddMedicalRecord(Guid doctorId, string notes, MedicalRecordStatus status, List<SpecificMentalDisorder> existingDisorders)
+    public Guid UserId { get; set; }
+    public string FullName { get; set; }
+    public UserGender Gender { get; set; }
+    public string Allergies { get; set; }
+    public PersonalityTrait PersonalityTraits { get; set; }
+    public ContactInfo ContactInfo { get; set; } = default!;
+    public Guid? MedicalHistoryId { get; set; }
+    public MedicalHistory? MedicalHistory { get; set; }
+
+    public IReadOnlyList<MedicalRecord> MedicalRecords => _medicalRecords.AsReadOnly();
+
+    public MedicalRecord AddMedicalRecord(Guid doctorId, string notes, MedicalRecordStatus status,
+        List<SpecificMentalDisorder> existingDisorders)
     {
         var medicalRecord = MedicalRecord.Create(Id, doctorId, MedicalHistoryId, notes, status, existingDisorders);
-        
+
         _medicalRecords.Add(medicalRecord);
-        
+
         AddDomainEvent(new MedicalRecordAddedEvent(medicalRecord));
-        
+
         return medicalRecord;
     }
 
-    public MedicalHistory AddMedicalHistory(string description, DateTimeOffset diagnosedAt, List<SpecificMentalDisorder> specificMentalDisorders, List<PhysicalSymptom> physicalSymptoms)
+    public MedicalHistory AddMedicalHistory(string description, DateTimeOffset diagnosedAt,
+        List<SpecificMentalDisorder> specificMentalDisorders, List<PhysicalSymptom> physicalSymptoms)
     {
         if (MedicalHistory is not null)
-        {
-            throw new InvalidOperationException("A patient can only have one medical history. Remove the existing one before adding a new one.");
-        }
+            throw new InvalidOperationException(
+                "A patient can only have one medical history. Remove the existing one before adding a new one.");
 
         MedicalHistory = MedicalHistory.Create(Id, description, diagnosedAt, specificMentalDisorders, physicalSymptoms);
         MedicalHistoryId = MedicalHistory.Id;
@@ -80,7 +82,8 @@ public class PatientProfile : AggregateRoot<Guid>
         MedicalHistoryId = null;
     }
 
-    public static PatientProfile Create(Guid userId, string? fullName, string? gender, string? allergies, PersonalityTrait personalityTraits, ContactInfo contactInfo)
+    public static PatientProfile Create(Guid userId, string? fullName, string? gender, string? allergies,
+        PersonalityTrait personalityTraits, ContactInfo contactInfo)
     {
         if (userId == Guid.Empty)
             throw new ArgumentException("User ID cannot be empty.", nameof(userId));
@@ -88,38 +91,36 @@ public class PatientProfile : AggregateRoot<Guid>
         return new PatientProfile(userId, fullName, gender, allergies, personalityTraits, contactInfo);
     }
 
-    public void Update(string? fullName, string? gender, string? allergies, PersonalityTrait personalityTraits, ContactInfo contactInfo)
+    public void Update(string? fullName, string? gender, string? allergies, PersonalityTrait personalityTraits,
+        ContactInfo contactInfo)
     {
         FullName = fullName;
 
         if (!Enum.TryParse<UserGender>(gender, true, out var parsedGender))
             throw new ArgumentException("Invalid gender value. Allowed: Male, Female, Else.", nameof(gender));
 
-        Gender = parsedGender; 
+        Gender = parsedGender;
 
         Allergies = allergies;
         PersonalityTraits = personalityTraits;
         ContactInfo = contactInfo;
     }
 
-    public void UpdateMedicalRecord(Guid medicalRecordId, Guid doctorId, string notes, MedicalRecordStatus status, List<SpecificMentalDisorder> updatedDisorders)
+    public void UpdateMedicalRecord(Guid medicalRecordId, Guid doctorId, string notes, MedicalRecordStatus status,
+        List<SpecificMentalDisorder> updatedDisorders)
     {
         var medicalRecord = _medicalRecords.FirstOrDefault(mr => mr.Id == medicalRecordId);
 
-        if (medicalRecord is null)
-        {
-            throw new KeyNotFoundException("Medical record not found.");
-        }
+        if (medicalRecord is null) throw new KeyNotFoundException("Medical record not found.");
 
         medicalRecord.Update(Id, doctorId, MedicalHistoryId, notes, status, updatedDisorders);
     }
+
     public void UpdateMedicalHistory(string description, DateTimeOffset diagnosedAt,
-    List<SpecificMentalDisorder> specificMentalDisorders, List<PhysicalSymptom> physicalSymptoms)
+        List<SpecificMentalDisorder> specificMentalDisorders, List<PhysicalSymptom> physicalSymptoms)
     {
         if (MedicalHistory is null)
-        {
             throw new InvalidOperationException("Medical history does not exist. Create a new one before updating.");
-        }
 
         MedicalHistory.Update(description, diagnosedAt, specificMentalDisorders, physicalSymptoms);
     }

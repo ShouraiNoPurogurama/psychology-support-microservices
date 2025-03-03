@@ -1,6 +1,4 @@
-﻿using BuildingBlocks.CQRS;
-using Microsoft.EntityFrameworkCore;
-using Profile.API.PatientProfiles.ValueObjects;
+﻿using Profile.API.PatientProfiles.ValueObjects;
 
 namespace Profile.API.PatientProfiles.Features.UpdateMedicalRecord;
 
@@ -30,10 +28,7 @@ public class UpdateMedicalRecordHandler : ICommandHandler<UpdateMedicalRecordCom
             .ThenInclude(mr => mr.SpecificMentalDisorders)
             .FirstOrDefaultAsync(pp => pp.Id == request.PatientProfileId, cancellationToken);
 
-        if (patientProfile == null)
-        {
-            return new UpdateMedicalRecordResult(false); 
-        }
+        if (patientProfile == null) return new UpdateMedicalRecordResult(false);
 
         var disorders = await _context.SpecificMentalDisorders
             .Where(d => request.DisorderIds.Contains(d.Id))
@@ -41,7 +36,8 @@ public class UpdateMedicalRecordHandler : ICommandHandler<UpdateMedicalRecordCom
 
         try
         {
-            patientProfile.UpdateMedicalRecord(request.MedicalHistoryId, request.DoctorId, request.Notes, request.Status, disorders);
+            patientProfile.UpdateMedicalRecord(request.MedicalHistoryId, request.DoctorId, request.Notes, request.Status,
+                disorders);
             await _context.SaveChangesAsync(cancellationToken);
             return new UpdateMedicalRecordResult(true);
         }

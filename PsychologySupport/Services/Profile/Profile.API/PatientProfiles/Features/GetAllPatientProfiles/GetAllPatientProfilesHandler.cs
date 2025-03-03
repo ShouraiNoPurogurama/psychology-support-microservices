@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.CQRS;
-using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Pagination;
 using Mapster;
 using Profile.API.PatientProfiles.Dtos;
 
@@ -7,7 +6,7 @@ namespace Profile.API.PatientProfiles.Features.GetAllPatientProfiles;
 
 public record GetAllPatientProfilesQuery(PaginationRequest PaginationRequest) : IQuery<GetAllPatientProfilesResult>;
 
-public record GetAllPatientProfilesResult(IEnumerable<GetPatientProfileDto> PatientProfileDtos);
+public record GetAllPatientProfilesResult(PaginatedResult<GetPatientProfileDto> PaginatedResult);
 
 public class GetAllPatientProfilesHandler : IQueryHandler<GetAllPatientProfilesQuery, GetAllPatientProfilesResult>
 {
@@ -28,14 +27,17 @@ public class GetAllPatientProfilesHandler : IQueryHandler<GetAllPatientProfilesQ
             .Skip(pageIndex - 1)
             .Take(pageSize)
             .Include(p => p.MedicalRecords)
-                .ThenInclude(m => m.SpecificMentalDisorders)
+            .ThenInclude(m => m.SpecificMentalDisorders)
             .Include(p => p.MedicalHistory)
-                .ThenInclude(m => m.SpecificMentalDisorders)
+            .ThenInclude(m => m.SpecificMentalDisorders)
             .Include(p => p.MedicalHistory)
-                .ThenInclude(m => m.PhysicalSymptoms)
+            .ThenInclude(m => m.PhysicalSymptoms)
             .ToListAsync(cancellationToken);
 
-        var result = patientProfiles.Adapt<IEnumerable<GetPatientProfileDto>>();
+        var totalCount = await _context.PatientProfiles.LongCountAsync(cancellationToken);
+
+        var result = new PaginatedResult<GetPatientProfileDto>(pageIndex, pageSize, totalCount,
+            patientProfiles.Adapt<IEnumerable<GetPatientProfileDto>>());
 
         return new GetAllPatientProfilesResult(result);
     }

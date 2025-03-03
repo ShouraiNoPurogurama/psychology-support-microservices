@@ -1,19 +1,19 @@
 ﻿using Carter;
 using Mapster;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Profile.API.PatientProfiles.Dtos;
 
-namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
-{
-    public record CreatePatientProfileRequest(CreatePatientProfileDto PatientProfileCreate);
-    public record CreatePatientProfileResponse(Guid Id);
+namespace Profile.API.PatientProfiles.Features.CreatePatientProfile;
 
-    public class CreatePatientProfileEndpoint : ICarterModule
+public record CreatePatientProfileRequest(CreatePatientProfileDto PatientProfileCreate);
+
+public record CreatePatientProfileResponse(Guid Id);
+
+public class CreatePatientProfileEndpoint : ICarterModule
+{
+    public void AddRoutes(IEndpointRouteBuilder app)
     {
-        public void AddRoutes(IEndpointRouteBuilder app)
-        {
-            app.MapPost("patient-profiles", async ([FromBody] CreatePatientProfileRequest request, ISender sender) =>
+        app.MapPost("patients", async ([FromBody] CreatePatientProfileRequest request, ISender sender) =>
             {
                 var command = request.Adapt<CreatePatientProfileCommand>();
 
@@ -28,6 +28,5 @@ namespace Profile.API.PatientProfiles.Features.CreatePatientProfile
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Create Patient Profile")
             .WithSummary("Create Patient Profile");
-        }
     }
 }

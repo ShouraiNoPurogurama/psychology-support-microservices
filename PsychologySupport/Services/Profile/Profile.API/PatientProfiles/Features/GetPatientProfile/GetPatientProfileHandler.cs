@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.CQRS;
-using Mapster;
+﻿using Mapster;
 using Profile.API.Exceptions;
 using Profile.API.PatientProfiles.Dtos;
 
@@ -15,16 +14,16 @@ public class GetPatientProfileHandler(ProfileDbContext context) : IQueryHandler<
     {
         var patientProfile = await context.PatientProfiles
                                  .Include(p => p.MedicalHistory)
-                                    .ThenInclude(m => m.PhysicalSymptoms)
+                                 .ThenInclude(m => m.PhysicalSymptoms)
                                  .Include(p => p.MedicalHistory)
-                                    .ThenInclude(m => m.SpecificMentalDisorders)
+                                 .ThenInclude(m => m.SpecificMentalDisorders)
                                  .Include(p => p.MedicalRecords)
-                                    .ThenInclude(m => m.SpecificMentalDisorders)
-                                 .FirstOrDefaultAsync(p => p.Id.Equals(request.Id), cancellationToken: cancellationToken)
+                                 .ThenInclude(m => m.SpecificMentalDisorders)
+                                 .FirstOrDefaultAsync(p => p.Id.Equals(request.Id), cancellationToken)
                              ?? throw new ProfileNotFoundException("Patient profile", request.Id);
 
         var patientProfileDto = patientProfile.Adapt<GetPatientProfileDto>();
-        
+
         return new GetPatientProfileResult(patientProfileDto);
     }
 }

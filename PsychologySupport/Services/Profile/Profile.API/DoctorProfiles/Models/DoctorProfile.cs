@@ -1,62 +1,35 @@
-﻿using BuildingBlocks.Data.Enums;
-using BuildingBlocks.DDD;
-using Profile.API.Common.ValueObjects;
+﻿using BuildingBlocks.DDD;
+using BuildingBlocks.Enums;
 using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.DoctorProfiles.Models;
 
 public class DoctorProfile : AggregateRoot<Guid>
 {
-    public Guid UserId { get; set; }
-    
-    public string? FullName { get; set; }
-    
-    public UserGender Gender { get; set; }
-    public ContactInfo ContactInfo { get; set; } = default!;
-
-    public string? Specialty { get; set; }
-    
-    public string? Qualifications { get; set; }
-    
-    public int YearsOfExperience { get; set; }
-    
-    public string? Bio { get; set; }
-    
-    public float Rating { get; set; }
-    
-    public int TotalReviews { get; set; }
-
     private readonly List<MedicalRecord> _medicalRecords = [];
-    public IReadOnlyList<MedicalRecord> MedicalRecords => _medicalRecords.AsReadOnly();
 
     public DoctorProfile()
     {
-        
     }
 
     public DoctorProfile(
         Guid userId,
-        string? fullName,
-        string? gender,
+        string fullName,
+        UserGender gender,
         ContactInfo contactInfo,
-        string specialty,
+        List<Specialty> specialties,
         string qualifications,
         int yearsOfExperience,
-        string bio,
+        string? bio,
         float rating = 0,
         int totalReviews = 0)
 
     {
         UserId = userId;
         FullName = fullName;
-
-        if (!Enum.TryParse<UserGender>(gender, true, out var parsedGender))
-            throw new ArgumentException("Invalid gender value. Allowed: Male, Female, Else.", nameof(gender));
-
-        Gender = parsedGender; 
-
+        Gender = gender;
         ContactInfo = contactInfo;
-        Specialty = specialty;
+        Specialties = specialties;
         Qualifications = qualifications;
         YearsOfExperience = yearsOfExperience;
         Bio = bio;
@@ -64,17 +37,35 @@ public class DoctorProfile : AggregateRoot<Guid>
         TotalReviews = totalReviews;
     }
 
+    public Guid UserId { get; set; }
+
+    public string FullName { get; set; } = default!;
+
+    public UserGender Gender { get; set; }
+    public ContactInfo ContactInfo { get; set; } = default!;
+    public string? Qualifications { get; set; }
+
+    public int YearsOfExperience { get; set; }
+
+    public string? Bio { get; set; }
+
+    public float Rating { get; set; }
+
+    public int TotalReviews { get; set; }
+    public ICollection<Specialty> Specialties { get; set; } = [];
+    public IReadOnlyList<MedicalRecord> MedicalRecords => _medicalRecords.AsReadOnly();
+
     public static DoctorProfile Create(
-       Guid userId,
-       string fullName,
-       string gender,
-       ContactInfo contactInfo,
-       string specialty,
-       string qualifications,
-       int yearsOfExperience,
-       string bio,
-       float rating = 0,
-       int totalReviews = 0)
+        Guid userId,
+        string fullName,
+        UserGender gender,
+        ContactInfo contactInfo,
+        List<Specialty> specialties,
+        string qualifications,
+        int yearsOfExperience,
+        string? bio,
+        float rating = 0,
+        int totalReviews = 0)
     {
         if (userId == Guid.Empty)
             throw new ArgumentException("User ID cannot be empty.", nameof(userId));
@@ -85,15 +76,12 @@ public class DoctorProfile : AggregateRoot<Guid>
         if (contactInfo == null)
             throw new ArgumentNullException(nameof(contactInfo), "Contact info cannot be null.");
 
-        if (!Enum.TryParse<UserGender>(gender, true, out var parsedGender))
-            throw new ArgumentException("Invalid gender value. Allowed: Male, Female, Else.", nameof(gender));
-
         return new DoctorProfile(
             userId,
             fullName,
             gender,
             contactInfo,
-            specialty,
+            specialties,
             qualifications,
             yearsOfExperience,
             bio,
@@ -111,32 +99,20 @@ public class DoctorProfile : AggregateRoot<Guid>
     }
 
     public void Update(
-    string fullName,
-    string gender,
-    ContactInfo contactInfo,
-    string specialty,
-    string qualifications,
-    int yearsOfExperience,
-    string bio,
-    float rating,
-    int totalReviews)
+        string fullName,
+        UserGender gender,
+        ContactInfo contactInfo,
+        List<Specialty> specialties,
+        string qualifications,
+        int yearsOfExperience,
+        string bio)
     {
-
         FullName = fullName;
-
-        if (!Enum.TryParse<UserGender>(gender, true, out var parsedGender))
-            throw new ArgumentException("Invalid gender value. Allowed: Male, Female, Else.", nameof(gender));
-
-        Gender = parsedGender; 
-
-        ContactInfo = contactInfo ?? throw new ArgumentNullException(nameof(contactInfo), "Contact info cannot be null.");
-        Specialty = specialty;
+        Gender = gender;
+        ContactInfo = contactInfo;
+        Specialties = specialties;
         Qualifications = qualifications;
         YearsOfExperience = yearsOfExperience;
         Bio = bio;
-        Rating = rating;
-        TotalReviews = totalReviews;
     }
-
-
 }

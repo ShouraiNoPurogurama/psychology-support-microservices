@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.CQRS;
-using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Pagination;
 using Mapster;
 using Profile.API.PatientProfiles.Dtos;
 
@@ -8,6 +7,7 @@ namespace Profile.API.PatientProfiles.Features.GetAllMedicalRecord;
 public record GetAllMedicalRecordsQuery(Guid PatientId, PaginationRequest PaginationRequest) : IQuery<GetAllMedicalRecordsResult>;
 
 public record GetAllMedicalRecordsResult(IEnumerable<MedicalRecordDto> MedicalRecords, int TotalRecords);
+
 public class GetAllMedicalRecordsHandler : IQueryHandler<GetAllMedicalRecordsQuery, GetAllMedicalRecordsResult>
 {
     private readonly ProfileDbContext _context;
@@ -24,17 +24,14 @@ public class GetAllMedicalRecordsHandler : IQueryHandler<GetAllMedicalRecordsQue
             .ThenInclude(m => m.SpecificMentalDisorders)
             .FirstOrDefaultAsync(p => p.Id == request.PatientId, cancellationToken);
 
-        if (patient is null)
-        {
-            throw new KeyNotFoundException("Patient not found.");
-        }
+        if (patient is null) throw new KeyNotFoundException("Patient not found.");
 
         var pageSize = request.PaginationRequest.PageSize;
         var pageIndex = Math.Max(1, request.PaginationRequest.PageIndex);
 
         var totalRecords = patient.MedicalRecords.Count;
         var medicalRecords = patient.MedicalRecords
-            .Skip((pageIndex - 1) * pageSize)  
+            .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .Adapt<IEnumerable<MedicalRecordDto>>();
 

@@ -1,63 +1,50 @@
-﻿using BuildingBlocks.CQRS;
-using MassTransit;
-using Profile.API.Common.ValueObjects;
-using Profile.API.DoctorProfiles.Dtos;
-using Profile.API.DoctorProfiles.Events;
+﻿using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.DoctorProfiles.Models;
 
+namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile;
 
-namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile
+public record CreateDoctorProfileCommand(CreateDoctorProfileDto DoctorProfile) : ICommand<CreateDoctorProfileResult>;
+
+public record CreateDoctorProfileResult(Guid Id);
+
+public class CreateDoctorProfileHandler(ProfileDbContext context, IPublishEndpoint publishEndpoint)
+    : ICommandHandler<CreateDoctorProfileCommand, CreateDoctorProfileResult>
 {
-    public record CreateDoctorProfileCommand(CreateDoctorProfileDto DoctorProfile) : ICommand<CreateDoctorProfileResult>;
-
-    public record CreateDoctorProfileResult(Guid Id);
-
-    public class CreateDoctorProfileHandler : ICommandHandler<CreateDoctorProfileCommand, CreateDoctorProfileResult>
+    public async Task<CreateDoctorProfileResult> Handle(CreateDoctorProfileCommand request, CancellationToken cancellationToken)
     {
-        private readonly ProfileDbContext _context;
-        private readonly IPublishEndpoint _publishEndpoint;
-        public CreateDoctorProfileHandler(ProfileDbContext context,IPublishEndpoint publishEndpoint)
-        {
-            _context = context;
-            _publishEndpoint = publishEndpoint;
-        }
+        var dto = request.DoctorProfile;
 
-        public async Task<CreateDoctorProfileResult> Handle(CreateDoctorProfileCommand request, CancellationToken cancellationToken)
-        {
-            var doctorProfileCreate = request.DoctorProfile;
+        if (context.DoctorProfiles.Any(p => p.UserId == dto.UserId))
+            throw new BadRequestException("Doctor profile already exists.");
 
-            var doctorProfile = DoctorProfile.Create(
-                doctorProfileCreate.UserId,
-                doctorProfileCreate.FullName,
-                doctorProfileCreate.Gender.ToString(),
-                new ContactInfo(
-                    doctorProfileCreate.ContactInfo.Email,
-                    doctorProfileCreate.ContactInfo.PhoneNumber,
-                    doctorProfileCreate.ContactInfo.Address
-                ),
-                doctorProfileCreate.Specialty,
-                doctorProfileCreate.Qualifications,
-                doctorProfileCreate.YearsOfExperience,
-                doctorProfileCreate.Bio
-            );
+        var doctorProfile = DoctorProfile.Create(
+            dto.UserId,
+            dto.FullName,
+            dto.Gender,
+            new ContactInfo(
+                dto.ContactInfo.Address,
+                dto.ContactInfo.PhoneNumber,
+                dto.ContactInfo.Email
+            ),
+            dto.Specialties,
+            dto.Qualifications,
+            dto.YearsOfExperience,
+            dto.Bio
+        );
 
-            doctorProfile.CreatedAt = DateTimeOffset.UtcNow;
+        context.DoctorProfiles.Add(doctorProfile);
+        await context.SaveChangesAsync(cancellationToken);
 
-            _context.DoctorProfiles.Add(doctorProfile);
-            await _context.SaveChangesAsync(cancellationToken);
+        var doctorProfileCreatedEvent = new DoctorProfileCreatedIntegrationEvent(
+            doctorProfile.UserId,
+            doctorProfile.FullName,
+            doctorProfile.Gender,
+            doctorProfile.ContactInfo.Email,
+            doctorProfile.ContactInfo.PhoneNumber
+        );
 
-            var doctorProfileCreatedEvent = new DoctorProfileCreatedEvent(
-                doctorProfile.UserId,
-                doctorProfile.Gender,
-                doctorProfile.ContactInfo.Email,
-                doctorProfile.ContactInfo.PhoneNumber,
-                doctorProfile.CreatedAt
-            );
+        await publishEndpoint.Publish(doctorProfileCreatedEvent, cancellationToken);
 
-            await _publishEndpoint.Publish(doctorProfileCreatedEvent, cancellationToken);
-
-            return new CreateDoctorProfileResult(doctorProfile.Id);
-        }
-
+        return new CreateDoctorProfileResult(doctorProfile.Id);
     }
 }

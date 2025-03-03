@@ -8,7 +8,7 @@ namespace BuildingBlocks.Messaging.Masstransit;
 public static class Extensions
 {
     public static IServiceCollection AddMessageBroker(this IServiceCollection services, IConfiguration configuration,
-        Assembly? assembly = null) //assembly param is just required on the CONSUMER SIDE
+        Assembly? assembly = null) 
     {
         services.AddMassTransit(config =>
         {

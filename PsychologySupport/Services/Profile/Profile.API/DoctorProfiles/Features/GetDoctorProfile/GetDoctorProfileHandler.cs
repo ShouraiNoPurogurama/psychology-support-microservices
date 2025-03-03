@@ -1,8 +1,6 @@
-﻿using BuildingBlocks.CQRS;
-using Mapster;
+﻿using Mapster;
 using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.Exceptions;
-
 
 namespace Profile.API.DoctorProfiles.Features.GetDoctorProfile;
 
@@ -15,9 +13,9 @@ public class GetDoctorProfileHandler(ProfileDbContext context) : IQueryHandler<G
     public async Task<GetDoctorProfileResult> Handle(GetDoctorProfileQuery request, CancellationToken cancellationToken)
     {
         var doctorProfile = await context.DoctorProfiles
-                                 .Include(d => d.MedicalRecords)
-                                 .FirstOrDefaultAsync(d => d.Id.Equals(request.Id), cancellationToken)
-                             ?? throw new ProfileNotFoundException("Doctor profile", request.Id);
+                                .Include(d => d.MedicalRecords)
+                                .FirstOrDefaultAsync(d => d.Id.Equals(request.Id), cancellationToken)
+                            ?? throw new ProfileNotFoundException("Doctor profile", request.Id);
 
         var doctorProfileDto = doctorProfile.Adapt<DoctorProfileDto>();
 

@@ -7,30 +7,26 @@ namespace LifeStyles.API.Data;
 
 public class LifeStylesDbContext : DbContext
 {
-    public LifeStylesDbContext(DbContextOptions<LifeStylesDbContext> options) : base(options) { }
+    public LifeStylesDbContext(DbContextOptions<LifeStylesDbContext> options) : base(options)
+    {
+        
+    }
 
-    public DbSet<PatientPhysicalActivity> PatientPhysicalActivities { get; set; }
-    public DbSet<EntertainmentActivity> EntertainmentActivities { get; set; }
-    public DbSet<TherapeuticActivity> TherapeuticActivities { get; set; }
-    public DbSet<TherapeuticType> TherapeuticTypes { get; set; }
-    public DbSet<PatientFoodActivity> PatientFoodActivities { get; set; }
-    public DbSet<PatientEntertainmentActivity> PatientEntertainmentActivities { get; set; }
-    public DbSet<PhysicalActivity> PhysicalActivities { get; set; }
-    public DbSet<FoodActivity> FoodActivities { get; set; }
-    public DbSet<FoodCategory> FoodCategories { get; set; }
-    public DbSet<FoodNutrient> FoodNutrients { get; set; }
+    public DbSet<PatientPhysicalActivity> PatientPhysicalActivities => Set<PatientPhysicalActivity>();
+    public DbSet<EntertainmentActivity> EntertainmentActivities => Set<EntertainmentActivity>();
+    public DbSet<TherapeuticActivity> TherapeuticActivities  => Set<TherapeuticActivity>();
+    public DbSet<TherapeuticType> TherapeuticTypes => Set<TherapeuticType>();
+    public DbSet<PatientEntertainmentActivity> PatientEntertainmentActivities => Set<PatientEntertainmentActivity>();
+    public DbSet<PhysicalActivity> PhysicalActivities => Set<PhysicalActivity>();
+    public DbSet<FoodActivity> FoodActivities => Set<FoodActivity>();
+    public DbSet<FoodCategory> FoodCategories => Set<FoodCategory>();
+    public DbSet<FoodNutrient> FoodNutrients => Set<FoodNutrient>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.HasDefaultSchema("public");
-
-     
+        
         builder.Entity<PatientPhysicalActivity>()
-            .Property(e => e.PreferenceLevel)
-            .HasConversion(new EnumToStringConverter<PreferenceLevel>())
-            .HasColumnType("VARCHAR(20)");
-
-        builder.Entity<PatientFoodActivity>()
             .Property(e => e.PreferenceLevel)
             .HasConversion(new EnumToStringConverter<PreferenceLevel>())
             .HasColumnType("VARCHAR(20)");
@@ -74,8 +70,6 @@ public class LifeStylesDbContext : DbContext
         builder.Entity<PatientPhysicalActivity>()
             .HasKey(e => new { e.PatientProfileId, e.PhysicalActivityId });
 
-        builder.Entity<PatientFoodActivity>()
-            .HasKey(e => new { e.PatientProfileId, e.FoodActivityId });
 
         builder.Entity<PatientEntertainmentActivity>()
             .HasKey(e => new { e.PatientProfileId, e.EntertainmentActivityId });
@@ -85,18 +79,6 @@ public class LifeStylesDbContext : DbContext
             .WithMany()
             .HasForeignKey(e => e.TherapeuticTypeId);
 
-        /* // Configure FoodActivity's foreign keys
-    builder.Entity<FoodActivity>()
-        .HasOne(e => e.FoodCategories)
-        .WithMany()
-        .HasForeignKey(e => e.Id);
-
-    builder.Entity<FoodActivity>()
-        .HasOne(e => e.FoodNutrients)
-        .WithMany()
-        .HasForeignKey(e => e.Id);*/
-
-        // Add additional configurations for other entities if necessary
         base.OnModelCreating(builder);
     }
 }

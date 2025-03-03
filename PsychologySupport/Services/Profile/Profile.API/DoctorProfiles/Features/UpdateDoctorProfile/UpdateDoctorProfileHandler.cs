@@ -1,60 +1,54 @@
-﻿using BuildingBlocks.CQRS;
-using MassTransit;
-using MediatR;
-using Profile.API.DoctorProfiles.Dtos;
-using Profile.API.DoctorProfiles.Events;
+﻿using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.Exceptions;
-
 
 namespace Profile.API.DoctorProfiles.Features.UpdateDoctorProfile;
 
-public record UpdateDoctorProfileCommand(Guid Id, DoctorProfileDto DoctorProfileDto) : ICommand<UpdateDoctorProfileResult>;
+public record UpdateDoctorProfileCommand(Guid Id, UpdateDoctorProfileDto DoctorProfileDto) : ICommand<UpdateDoctorProfileResult>;
 
 public record UpdateDoctorProfileResult(Guid Id);
 
 public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCommand, UpdateDoctorProfileResult>
 {
     private readonly ProfileDbContext _context;
-    private readonly IMediator _mediator;
     private readonly IPublishEndpoint _publishEndpoint;
 
-    public UpdateDoctorProfileHandler(ProfileDbContext context, IMediator mediator,IPublishEndpoint publishEndpoint)
+    public UpdateDoctorProfileHandler(ProfileDbContext context, IPublishEndpoint publishEndpoint)
     {
         _context = context;
-        _mediator = mediator;
         _publishEndpoint = publishEndpoint;
     }
 
     public async Task<UpdateDoctorProfileResult> Handle(UpdateDoctorProfileCommand request, CancellationToken cancellationToken)
     {
-        var doctorProfile = await _context.DoctorProfiles
-            .FirstOrDefaultAsync(d => d.Id == request.Id, cancellationToken)
-            ?? throw new ProfileNotFoundException("Doctor profile", request.Id);
+        var doctorProfile = await _context.DoctorProfiles.Include(doctorProfile => doctorProfile.ContactInfo)
+                                .FirstOrDefaultAsync(d => d.Id == request.Id, cancellationToken)
+                            ?? throw new ProfileNotFoundException("Doctor profile", request.Id);
+
+        var specialties = await _context.Specialties
+            .Where(s => request.DoctorProfileDto.SpecialtyIds.Contains(s.Id))
+            .ToListAsync(cancellationToken);
 
         doctorProfile.Update(
-        request.DoctorProfileDto.FullName,
-        request.DoctorProfileDto.Gender.ToString(),
-        request.DoctorProfileDto.ContactInfo,
-        request.DoctorProfileDto.Specialty,
-        request.DoctorProfileDto.Qualifications,
-        request.DoctorProfileDto.YearsOfExperience,
-        request.DoctorProfileDto.Bio,
-        request.DoctorProfileDto.Rating,
-        request.DoctorProfileDto.TotalReviews
+            request.DoctorProfileDto.FullName ?? doctorProfile.FullName,
+            request.DoctorProfileDto.Gender ?? doctorProfile.Gender,
+            request.DoctorProfileDto.ContactInfo ?? doctorProfile.ContactInfo,
+            specialties,
+            request.DoctorProfileDto.Qualifications ?? doctorProfile.Qualifications,
+            request.DoctorProfileDto.YearsOfExperience ?? doctorProfile.YearsOfExperience,
+            request.DoctorProfileDto.Bio ?? doctorProfile.Bio
         );
 
-        doctorProfile.LastModified = DateTimeOffset.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
-        var doctorProfileUpdatedEvent = new DoctorProfileUpdatedEvent(
+        var doctorProfileUpdatedEvent = new DoctorProfileUpdatedIntegrationEvent(
             doctorProfile.UserId,
-            doctorProfile.Gender.ToString(),
+            doctorProfile.FullName,
+            doctorProfile.Gender,
             doctorProfile.ContactInfo.Email,
             doctorProfile.ContactInfo.PhoneNumber,
             doctorProfile.LastModified
         );
 
-        await _mediator.Publish(doctorProfileUpdatedEvent, cancellationToken);
         await _publishEndpoint.Publish(doctorProfileUpdatedEvent, cancellationToken);
 
         return new UpdateDoctorProfileResult(doctorProfile.Id);

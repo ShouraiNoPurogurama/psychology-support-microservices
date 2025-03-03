@@ -24,10 +24,7 @@ public class AuthService(
         var existingUser = await _userManager.FindByEmailAsync(registerRequest.Email);
         existingUser ??= await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == registerRequest.PhoneNumber);
 
-        if (existingUser is not null)
-        {
-            throw new InvalidDataException("Email hoặc số điện thoại đã tồn tại trong hệ thống");
-        }
+        if (existingUser is not null) throw new InvalidDataException("Email hoặc số điện thoại đã tồn tại trong hệ thống");
 
         var user = registerRequest.Adapt<User>();
         user.Email = user.UserName = registerRequest.Email;
@@ -42,10 +39,7 @@ public class AuthService(
         }
 
         var roleResult = await _userManager.AddToRoleAsync(user, Roles.UserRole);
-        if (!roleResult.Succeeded)
-        {
-            throw new InvalidDataException("Gán vai trò thất bại");
-        }
+        if (!roleResult.Succeeded) throw new InvalidDataException("Gán vai trò thất bại");
 
         // var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         // var confirmationUrlTemplate = configuration["Mail:ConfirmationUrl"];
@@ -65,20 +59,17 @@ public class AuthService(
                    ?? throw new UserNotFoundException(loginRequest.Email);
 
             if (!user.EmailConfirmed)
-            {
                 throw new ForbiddenException("Tài khoản chưa được xác nhận. Vui lòng kiểm tra email để xác nhận tài khoản.");
-            }
         }
         else
         {
             user = await _userManager.Users.FirstOrDefaultAsync(u =>
-                u.PhoneNumber == loginRequest.PhoneNumber&& !u.LockoutEnabled)
+                       u.PhoneNumber == loginRequest.PhoneNumber && !u.LockoutEnabled)
                    ?? throw new UserNotFoundException(loginRequest.PhoneNumber);
-            
+
             if (!user.PhoneNumberConfirmed)
-            {
-                throw new ForbiddenException("Tài khoản chưa được xác nhận. Vui lòng kiểm tra tin nhắn SMS để xác nhận tài khoản.");
-            }
+                throw new ForbiddenException(
+                    "Tài khoản chưa được xác nhận. Vui lòng kiểm tra tin nhắn SMS để xác nhận tài khoản.");
         }
 
         var currentTime = CoreUtils.SystemTimeNow;
@@ -115,8 +106,8 @@ public class AuthService(
         await tokenService.SaveRefreshToken(user, refreshToken);
 
         return new LoginResponse(
-            Token: token,
-            RefreshToken: refreshToken
+            token,
+            refreshToken
         );
     }
 
@@ -124,9 +115,7 @@ public class AuthService(
     public async Task<bool> ConfirmEmailAsync(string token, string email)
     {
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email))
-        {
             throw new BadRequestException("Email hoặc Token bị thiếu.");
-        }
 
         var user = await _userManager.FindByEmailAsync(email)
                    ?? throw new UserNotFoundException(email);
@@ -184,9 +173,7 @@ public class AuthService(
                    ?? throw new UserNotFoundException(userId);
 
         if (!await tokenService.ValidateRefreshToken(user, refreshToken))
-        {
             throw new BadRequestException("Refresh token không hợp lệ");
-        }
 
         var newAccessToken = await tokenService.GenerateJWTToken(user);
         var newRefreshToken = tokenService.GenerateRefreshToken();

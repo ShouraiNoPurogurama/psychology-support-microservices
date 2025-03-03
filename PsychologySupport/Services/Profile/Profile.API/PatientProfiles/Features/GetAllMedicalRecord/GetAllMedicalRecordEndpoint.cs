@@ -1,6 +1,5 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Profile.API.PatientProfiles.Dtos;
 
@@ -30,7 +29,5 @@ public class GetAllMedicalRecordsEndpoint : ICarterModule
             .ProducesProblem(StatusCodes.Status404NotFound)
             .WithDescription("GetAll MedicalRecords By PatientId")
             .WithSummary("GetAll MedicalRecords By PatientId");
-
-
     }
 }

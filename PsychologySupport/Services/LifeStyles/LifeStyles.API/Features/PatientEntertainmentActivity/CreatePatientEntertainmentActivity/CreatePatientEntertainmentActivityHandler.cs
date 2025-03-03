@@ -1,62 +1,53 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Messaging.Events.Profile;
 using LifeStyles.API.Data;
-using LifeStyles.API.Events;
+using LifeStyles.API.Data.Common;
 using LifeStyles.API.Exceptions;
 using MassTransit;
-using MediatR;
 
-namespace LifeStyles.API.Features.PatientEntertainmentActivity.CreatePatientEntertainmentActivity
+namespace LifeStyles.API.Features.PatientEntertainmentActivity.CreatePatientEntertainmentActivity;
+
+public record CreatePatientEntertainmentActivityCommand(
+    Guid PatientProfileId,
+    List<(Guid EntertainmentActivityId, PreferenceLevel PreferenceLevel)> Activities)
+    : ICommand<CreatePatientEntertainmentActivityResult>;
+
+public record CreatePatientEntertainmentActivityResult(bool IsSucceeded);
+
+public class CreatePatientEntertainmentActivityHandler
+    : ICommandHandler<CreatePatientEntertainmentActivityCommand, CreatePatientEntertainmentActivityResult>
 {
-    public record CreatePatientEntertainmentActivityCommand(Models.PatientEntertainmentActivity PatientEntertainmentActivity)
-        : ICommand<CreatePatientEntertainmentActivityResult>;
+    private readonly IRequestClient<PatientProfileExistenceRequest> _client;
+    private readonly LifeStylesDbContext _context;
 
-    public record CreatePatientEntertainmentActivityResult(bool IsSucceeded);
-
-    public class CreatePatientEntertainmentActivityHandler
-        : IRequestHandler<CreatePatientEntertainmentActivityCommand, CreatePatientEntertainmentActivityResult>
+    public CreatePatientEntertainmentActivityHandler(LifeStylesDbContext context,
+        IRequestClient<PatientProfileExistenceRequest> client)
     {
-        private readonly LifeStylesDbContext _context;
-        private readonly IPublishEndpoint _publishEndpoint;
-        private readonly IRequestClient<CheckPatientProfileExistenceEvent> _client;
+        _context = context;
+        _client = client;
+    }
 
-        public CreatePatientEntertainmentActivityHandler(
-            LifeStylesDbContext context,
-            IPublishEndpoint publishEndpoint,
-            IRequestClient<CheckPatientProfileExistenceEvent> client)
-        {
-            _context = context;
-            _publishEndpoint = publishEndpoint;
-            _client = client;
-        }
+    public async Task<CreatePatientEntertainmentActivityResult> Handle(
+        CreatePatientEntertainmentActivityCommand request, CancellationToken cancellationToken)
+    {
+        var response =
+            await _client.GetResponse<PatientProfileExistenceResponse>(
+                new PatientProfileExistenceRequest(request.PatientProfileId), cancellationToken);
 
-        public async Task<CreatePatientEntertainmentActivityResult> Handle(
-            CreatePatientEntertainmentActivityCommand request,
-            CancellationToken cancellationToken)
-        {
+        if (!response.Message.IsExist) throw new LifeStylesNotFoundException("PatientProfile", request.PatientProfileId);
 
-            // Check patientid
-            var patientProfileId = request.PatientEntertainmentActivity.PatientProfileId;
-
-            var response = await _client.GetResponse<CheckPatientProfileExistenceResponseEvent>(
-                new CheckPatientProfileExistenceEvent(patientProfileId), cancellationToken);
-
-
-            if (!response.Message.Exists)
+        var activities = request.Activities
+            .Select(activity => new Models.PatientEntertainmentActivity
             {
-                throw new LifeStylesNotFoundException("PatientProfile", patientProfileId);
-            }
+                PatientProfileId = request.PatientProfileId,
+                EntertainmentActivityId = activity.EntertainmentActivityId,
+                PreferenceLevel = activity.PreferenceLevel
+            })
+            .ToList();
 
-            var activity = new Models.PatientEntertainmentActivity
-            {
-                PatientProfileId = request.PatientEntertainmentActivity.PatientProfileId,
-                EntertainmentActivityId = request.PatientEntertainmentActivity.EntertainmentActivityId,
-                PreferenceLevel = request.PatientEntertainmentActivity.PreferenceLevel
-            };
+        _context.PatientEntertainmentActivities.AddRange(activities);
+        await _context.SaveChangesAsync(cancellationToken);
 
-            _context.PatientEntertainmentActivities.Add(activity);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return new CreatePatientEntertainmentActivityResult(true);
-        }
+        return new CreatePatientEntertainmentActivityResult(true);
     }
 }

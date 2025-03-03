@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using BuildingBlocks.DDD;
+﻿using BuildingBlocks.DDD;
 using Profile.API.DoctorProfiles.Models;
 using Profile.API.MentalDisorders.Models;
 using Profile.API.PatientProfiles.ValueObjects;
@@ -8,25 +7,7 @@ namespace Profile.API.PatientProfiles.Models;
 
 public class MedicalRecord : Entity<Guid>
 {
-    public Guid PatientProfileId { get; set; }
-
-    public Guid DoctorProfileId { get; set; }
-
-    public Guid? MedicalHistoryId { get; set; }
-
-    public string Notes { get; set; } = default!;
-
-    public MedicalRecordStatus Status { get; set; }
-    
-    public MedicalHistory? MedicalHistory { get; set; }
-
-    public virtual PatientProfile PatientProfile { get; set; }
-    
-    public virtual DoctorProfile DoctorProfile { get; set; }
-    
     private readonly List<SpecificMentalDisorder> _specificMentalDisorders = [];
-
-    public IReadOnlyList<SpecificMentalDisorder> SpecificMentalDisorders => _specificMentalDisorders.AsReadOnly();
 
     public MedicalRecord()
     {
@@ -43,6 +24,24 @@ public class MedicalRecord : Entity<Guid>
         Status = status;
         _specificMentalDisorders = disorders;
     }
+
+    public Guid PatientProfileId { get; set; }
+
+    public Guid DoctorProfileId { get; set; }
+
+    public Guid? MedicalHistoryId { get; set; }
+
+    public string Notes { get; set; } = default!;
+
+    public MedicalRecordStatus Status { get; set; }
+
+    public MedicalHistory? MedicalHistory { get; set; }
+
+    public virtual PatientProfile PatientProfile { get; set; }
+
+    public virtual DoctorProfile DoctorProfile { get; set; }
+
+    public IReadOnlyList<SpecificMentalDisorder> SpecificMentalDisorders => _specificMentalDisorders.AsReadOnly();
 
     internal static MedicalRecord Create(Guid patientId, Guid doctorId, Guid? medicalHistoryId,
         string notes, MedicalRecordStatus status,
@@ -86,6 +85,5 @@ public class MedicalRecord : Entity<Guid>
 
         _specificMentalDisorders.Clear();
         _specificMentalDisorders.AddRange(disorders);
-
     }
 }

@@ -17,6 +17,7 @@ public class ProfileDbContext : DbContext
     public DbSet<MentalDisorder> MentalDisorders => Set<MentalDisorder>();
     public DbSet<SpecificMentalDisorder> SpecificMentalDisorders => Set<SpecificMentalDisorder>();
     public DbSet<PhysicalSymptom> PhysicalSymptoms => Set<PhysicalSymptom>();
+    public DbSet<Specialty> Specialties => Set<Specialty>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -24,8 +25,8 @@ public class ProfileDbContext : DbContext
 
         builder.Entity<PatientProfile>(typeBuilder =>
         {
-             typeBuilder.Property(d => d.Gender)
-                .HasConversion<string>()  
+            typeBuilder.Property(d => d.Gender)
+                .HasConversion<string>()
                 .HasMaxLength(10)
                 .HasColumnName("Gender");
 
@@ -43,14 +44,14 @@ public class ProfileDbContext : DbContext
                     .HasColumnName("PhoneNumber");
             });
         });
-            
-        
+
+
         builder.Entity<DoctorProfile>(typeBuilder =>
         {
             typeBuilder.Property(d => d.Gender)
-                .HasConversion<string>() 
+                .HasConversion<string>()
                 .HasMaxLength(10)
-                .HasColumnName("gender");
+                .HasColumnName("Gender");
 
             typeBuilder.ComplexProperty(d => d.ContactInfo, contactInfoBuilder =>
             {

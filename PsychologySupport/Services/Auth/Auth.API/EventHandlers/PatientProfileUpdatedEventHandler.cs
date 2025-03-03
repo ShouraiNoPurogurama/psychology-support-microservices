@@ -1,20 +1,23 @@
-﻿using MassTransit;
-using Auth.API.Data;
-using Profile.API.PatientProfiles.Events;
-using Auth.API.Data.Enums;
+﻿using Auth.API.Data;
+using Auth.API.Models;
+using BuildingBlocks.Messaging.Events.Auth;
+using MassTransit;
+using Microsoft.AspNetCore.Identity;
 
 namespace Auth.API.EventHandlers;
 
-public class PatientProfileUpdatedEventHandler : IConsumer<PatientProfileUpdatedEvent>
+public class PatientProfileUpdatedEventHandler : IConsumer<PatientProfileUpdatedIntegrationEvent>
 {
     private readonly AuthDbContext _context;
+    private readonly UserManager<User> _userManager;
 
-    public PatientProfileUpdatedEventHandler(AuthDbContext context)
+    public PatientProfileUpdatedEventHandler(AuthDbContext context, UserManager<User> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
-    public async Task Consume(ConsumeContext<PatientProfileUpdatedEvent> context)
+    public async Task Consume(ConsumeContext<PatientProfileUpdatedIntegrationEvent> context)
     {
         var message = context.Message;
 
@@ -22,9 +25,9 @@ public class PatientProfileUpdatedEventHandler : IConsumer<PatientProfileUpdated
         if (user != null)
         {
             user.FullName = message.FullName;
-            user.Gender = message.Gender == "Male" ? UserGender.Male : UserGender.Female;
-            user.Email = message.Email;
-            user.PhoneNumber = message.PhoneNumber;
+            user.Gender = message.Gender;
+            await _userManager.SetEmailAsync(user, message.Email);
+            await _userManager.SetPhoneNumberAsync(user, message.PhoneNumber);
 
             await _context.SaveChangesAsync();
         }
