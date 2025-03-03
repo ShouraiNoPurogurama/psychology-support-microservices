@@ -22,7 +22,6 @@ public class UserSubscription : AggregateRoot<Guid>
 
     public ServicePackage ServicePackage { get; private set; }
     
-    
     public decimal FinalPrice { get; private set; }
     
     
@@ -32,7 +31,7 @@ public class UserSubscription : AggregateRoot<Guid>
     }
 
     private UserSubscription(Guid patientId, Guid servicePackageId, DateTime startDate, DateTime endDate, Guid? promoCodeId,
-        Guid? giftId, SubscriptionStatus status, ServicePackage servicePackage)
+        Guid? giftId, SubscriptionStatus status, ServicePackage servicePackage, decimal finalPrice)
     {
         PatientId = patientId;
         ServicePackageId = servicePackageId;
@@ -42,10 +41,11 @@ public class UserSubscription : AggregateRoot<Guid>
         GiftId = giftId;
         Status = status;
         ServicePackage = servicePackage;
+        FinalPrice = finalPrice;
     }
 
     public static UserSubscription Create(Guid patientId, Guid servicePackageId, DateTime startDate, DateTime endDate,
-        Guid? promoCodeId, Guid? giftId, ServicePackage servicePackage)
+        Guid? promoCodeId, Guid? giftId, ServicePackage servicePackage, decimal finalPrice)
     {
         #region Validations
 
@@ -53,6 +53,7 @@ public class UserSubscription : AggregateRoot<Guid>
         ArgumentException.ThrowIfNullOrEmpty(nameof(servicePackageId), servicePackageId.ToString());
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startDate, endDate);
         ArgumentNullException.ThrowIfNull(servicePackage, nameof(servicePackage));
+        ArgumentOutOfRangeException.ThrowIfLessThan(finalPrice, 0);
 
         if (!servicePackage.IsActive)
             throw new InvalidOperationException("ServicePackage must be active.");
@@ -60,7 +61,7 @@ public class UserSubscription : AggregateRoot<Guid>
         #endregion
 
         var userSubscription = new UserSubscription(patientId, servicePackageId, startDate, endDate, promoCodeId, giftId,
-            SubscriptionStatus.Active, servicePackage);
+            SubscriptionStatus.Active, servicePackage, finalPrice);
 
         return userSubscription;
     }

@@ -5,7 +5,7 @@ namespace Subscription.API.UserSubscriptions.Dtos;
 public record CreateUserSubscriptionDto(
     Guid PatientId,
     Guid ServicePackageId,
-    Guid? PromotionCodeId,
+    string? PromoCode,
     Guid? GiftId,
     DateTime StartDate,
     DateTime EndDate,

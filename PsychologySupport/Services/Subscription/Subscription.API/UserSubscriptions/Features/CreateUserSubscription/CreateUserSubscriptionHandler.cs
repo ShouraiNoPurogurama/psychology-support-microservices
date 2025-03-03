@@ -3,6 +3,7 @@ using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Payment;
 using Mapster;
 using MassTransit;
+using Promotion.Grpc;
 using Subscription.API.Data;
 using Subscription.API.ServicePackages.Models;
 using Subscription.API.UserSubscriptions.Dtos;
@@ -14,38 +15,74 @@ public record CreateUserSubscriptionCommand(CreateUserSubscriptionDto UserSubscr
 
 public record CreateUserSubscriptionResult(Guid Id);
 
-public class CreateUserSubscriptionHandler : ICommandHandler<CreateUserSubscriptionCommand, CreateUserSubscriptionResult>
+public class CreateUserSubscriptionHandler(
+    SubscriptionDbContext context,
+    IPublishEndpoint publishEndpoint,
+    PromotionService.PromotionServiceClient promotionService)
+    : ICommandHandler<CreateUserSubscriptionCommand, CreateUserSubscriptionResult>
 {
-    private readonly SubscriptionDbContext _context;
-    private readonly IPublishEndpoint _publishEndpoint;
-
-    public CreateUserSubscriptionHandler(SubscriptionDbContext context, IPublishEndpoint publishEndpoint)
-    {
-        _context = context;
-        _publishEndpoint = publishEndpoint;
-    }
+    private readonly PromotionService.PromotionServiceClient _promotionService = promotionService;
 
     public async Task<CreateUserSubscriptionResult> Handle(CreateUserSubscriptionCommand request,
         CancellationToken cancellationToken)
     {
         var dto = request.UserSubscription;
 
-        ServicePackage servicePackage = await _context.ServicePackages.FindAsync([dto.ServicePackageId], cancellationToken)
-                                        ?? throw new NotFoundException(nameof(ServicePackage), dto.ServicePackageId);
+        var servicePackage = await context.ServicePackages
+                                 .FindAsync([dto.ServicePackageId], cancellationToken)
+                             ?? throw new NotFoundException(nameof(ServicePackage), dto.ServicePackageId);
+
+        //Calculate price after deducting promo code and gift code
+        var (finalPrice, promotion) = await CalculateFinalPriceAsync(cancellationToken, servicePackage, dto);
 
         var userSubscription = UserSubscription.Create(dto.PatientId, dto.ServicePackageId, dto.StartDate, dto.EndDate,
-            dto.PromotionCodeId, dto.GiftId, servicePackage);
+            Guid.TryParse(promotion?.Id, out var id) ? id : null, dto.GiftId, servicePackage, finalPrice);
 
-        _context.UserSubscriptions.Add(userSubscription);
+        context.UserSubscriptions.Add(userSubscription);
+        await context.SaveChangesAsync(cancellationToken);
 
-        await _context.SaveChangesAsync(cancellationToken);
-
+        //Publish event to Payment
         var subscriptionCreatedEvent = dto.Adapt<UserSubscriptionCreatedIntegrationEvent>();
         servicePackage.Adapt(subscriptionCreatedEvent);
         subscriptionCreatedEvent.SubscriptionId = userSubscription.Id;
 
-        await _publishEndpoint.Publish(subscriptionCreatedEvent, cancellationToken);
+        await publishEndpoint.Publish(subscriptionCreatedEvent, cancellationToken);
 
         return new CreateUserSubscriptionResult(userSubscription.Id);
+    }
+
+    private async Task<(decimal finalPrice, PromoCodeActivateDto? promotion)> CalculateFinalPriceAsync(
+        CancellationToken cancellationToken, 
+        ServicePackage servicePackage,
+        CreateUserSubscriptionDto dto)
+    {
+        var finalPrice = servicePackage.Price;
+
+        var promotion = (await _promotionService.GetPromotionByCodeAsync(new GetPromotionByCodeRequest()
+        {
+            Code = dto.PromoCode
+        }, cancellationToken: cancellationToken)).PromoCode;
+
+        if (promotion is not null)
+        {
+            finalPrice *= promotion.Value;
+        }
+
+        if (dto.GiftId is not null)
+        {
+            var giftCode = (await _promotionService.GetGiftCodeByPatientIdAsync(new GetGiftCodeByPatientIdRequest
+                {
+                    Id = dto.PatientId.ToString()
+                }, cancellationToken: cancellationToken))
+                .GiftCode
+                .FirstOrDefault(g => g.Id == dto.GiftId.ToString());
+
+            if (giftCode is null) return (finalPrice, promotion);
+
+            finalPrice -= (decimal)giftCode.MoneyValue;
+            finalPrice = Math.Max(finalPrice, 0);
+        }
+
+        return (finalPrice, promotion);
     }
 }

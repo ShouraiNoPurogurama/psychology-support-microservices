@@ -21,7 +21,7 @@ app.UseApiServices();
 
 if (app.Environment.IsDevelopment())
 {
-    app.InitializeDatabaseAsync();
+    await app.InitializeDatabaseAsync();
     app.UseSwagger();
     app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API v1"); });
 }

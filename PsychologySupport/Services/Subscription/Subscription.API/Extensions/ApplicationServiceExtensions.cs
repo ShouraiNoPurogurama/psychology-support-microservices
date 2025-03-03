@@ -4,6 +4,7 @@ using BuildingBlocks.Messaging.Masstransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
+using Promotion.Grpc;
 using Subscription.API.Data;
 using Subscription.API.Services;
 
@@ -25,6 +26,8 @@ public static class ApplicationServiceExtensions
         AddDatabase(services, config);
 
         AddServiceDependencies(services);
+
+        AddRpcServices(services, config);
 
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
         
@@ -79,6 +82,14 @@ public static class ApplicationServiceExtensions
         {
             opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             opt.UseNpgsql(connectionString);
+        });
+    }
+    
+    private static void AddRpcServices(IServiceCollection services, IConfiguration config)
+    {
+        services.AddGrpcClient<PromotionService.PromotionServiceClient>(options =>
+        {
+            options.Address = new Uri(config["GrpcSettings:PromotionUrl"]);
         });
     }
 }
