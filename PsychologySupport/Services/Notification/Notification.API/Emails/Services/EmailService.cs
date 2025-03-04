@@ -7,7 +7,6 @@ using Notification.API.Emails.ServiceContracts;
 namespace Notification.API.Emails.Services;
 
 public class EmailService(
-    NotificationDbContext notificationDbContext,
     IOptions<AppSettings> appsettingsOptions,
     NotificationDbContext dbContext
     ) : IEmailService

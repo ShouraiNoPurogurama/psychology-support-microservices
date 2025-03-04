@@ -2,7 +2,7 @@
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Profile;
 using MassTransit;
-using Payment.Application.Payment.Dtos;
+using Payment.Application.Payments.Dtos;
 using Payment.Application.ServiceContracts;
 using Payment.Domain.Enums;
 using Payment.Domain.Models;

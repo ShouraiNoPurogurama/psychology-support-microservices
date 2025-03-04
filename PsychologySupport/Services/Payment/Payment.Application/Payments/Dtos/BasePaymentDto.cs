@@ -1,5 +1,5 @@
 ﻿using BuildingBlocks.Enums;
 
-namespace Payment.Application.Payment.Dtos;
+namespace Payment.Application.Payments.Dtos;
 
 public record BasePaymentDto(decimal TotalAmount, Guid PatientId, PaymentMethodName PaymentMethod);

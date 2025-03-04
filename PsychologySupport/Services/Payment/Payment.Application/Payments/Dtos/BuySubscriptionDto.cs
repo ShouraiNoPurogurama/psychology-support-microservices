@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.Enums;
 
-namespace Payment.Application.Payment.Dtos;
+namespace Payment.Application.Payments.Dtos;
 
 public record BuySubscriptionDto(
     Guid ServicePackageId,

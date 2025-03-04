@@ -1,8 +1,8 @@
 ﻿using Carter;
 using Mapster;
 using MediatR;
-using Payment.Application.Payment.Commands;
-using Payment.Application.Payment.Dtos;
+using Payment.Application.Payments.Commands;
+using Payment.Application.Payments.Dtos;
 
 namespace Payment.API.Endpoints;
 

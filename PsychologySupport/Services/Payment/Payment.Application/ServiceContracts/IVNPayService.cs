@@ -1,4 +1,4 @@
-﻿using Payment.Application.Payment.Dtos;
+﻿using Payment.Application.Payments.Dtos;
 
 namespace Payment.Application.ServiceContracts;
 

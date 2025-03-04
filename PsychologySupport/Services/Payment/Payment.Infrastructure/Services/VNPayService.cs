@@ -2,7 +2,7 @@
 using System.Web;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using Payment.Application.Payment.Dtos;
+using Payment.Application.Payments.Dtos;
 using Payment.Application.ServiceContracts;
 using Payment.Application.Utils;
 

@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.CQRS;
-using Payment.Application.Payment.Dtos;
+using Payment.Application.Payments.Dtos;
 using Payment.Application.ServiceContracts;
 
-namespace Payment.Application.Payment.Commands;
+namespace Payment.Application.Payments.Commands;
 
 public record CreateSubscriptionVnPayCommand(BuySubscriptionDto BuySubscription) : ICommand<CreateSubscriptionVnPayResult>;
 
