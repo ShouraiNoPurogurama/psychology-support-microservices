@@ -49,6 +49,7 @@ namespace Subscription.API.Data.Migrations
                     PromoCodeId = table.Column<Guid>(type: "uuid", nullable: true),
                     GiftId = table.Column<Guid>(type: "uuid", nullable: true),
                     Status = table.Column<string>(type: "VARCHAR(20)", nullable: false),
+                    FinalPrice = table.Column<decimal>(type: "numeric", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
                     LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),

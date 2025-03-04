@@ -2,7 +2,7 @@
 using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Subscription.API.Data;
-using Subscription.API.UserSubscriptions.Dtos;
+using Subscription.API.Dtos;
 
 namespace Subscription.API.UserSubscriptions.Features.GetUserSubscriptions;
 

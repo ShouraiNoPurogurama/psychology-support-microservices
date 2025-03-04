@@ -12,7 +12,7 @@ using Subscription.API.Data;
 namespace Subscription.API.Data.Migrations
 {
     [DbContext(typeof(SubscriptionDbContext))]
-    [Migration("20250301181538_InitialCreate")]
+    [Migration("20250302130629_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -26,7 +26,7 @@ namespace Subscription.API.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Subscription.API.Models.ServicePackage", b =>
+            modelBuilder.Entity("Subscription.API.ServicePackages.Models.ServicePackage", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -69,7 +69,7 @@ namespace Subscription.API.Data.Migrations
                     b.ToTable("ServicePackages", "public");
                 });
 
-            modelBuilder.Entity("Subscription.API.Models.UserSubscription", b =>
+            modelBuilder.Entity("Subscription.API.UserSubscriptions.Models.UserSubscription", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -83,6 +83,9 @@ namespace Subscription.API.Data.Migrations
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("FinalPrice")
+                        .HasColumnType("numeric");
 
                     b.Property<Guid?>("GiftId")
                         .HasColumnType("uuid");
@@ -116,15 +119,15 @@ namespace Subscription.API.Data.Migrations
                     b.ToTable("UserSubscriptions", "public");
                 });
 
-            modelBuilder.Entity("Subscription.API.Models.UserSubscription", b =>
+            modelBuilder.Entity("Subscription.API.UserSubscriptions.Models.UserSubscription", b =>
                 {
-                    b.HasOne("Subscription.API.Models.ServicePackage", "servicePackage")
+                    b.HasOne("Subscription.API.ServicePackages.Models.ServicePackage", "ServicePackage")
                         .WithMany()
                         .HasForeignKey("ServicePackageId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("servicePackage");
+                    b.Navigation("ServicePackage");
                 });
 #pragma warning restore 612, 618
         }

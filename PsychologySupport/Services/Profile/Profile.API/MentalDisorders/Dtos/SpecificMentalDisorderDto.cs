@@ -2,7 +2,7 @@
 
 public record SpecificMentalDisorderDto(
     Guid Id,
-    Guid MentalDisorderId,
+    string MentalDisorderName,
     string Name,
     string Description
 );

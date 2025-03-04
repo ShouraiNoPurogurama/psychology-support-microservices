@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.CQRS;
 using FluentValidation;
 using Subscription.API.Data;
+using Subscription.API.Dtos;
 using Subscription.API.Exceptions;
-using Subscription.API.UserSubscriptions.Dtos;
 
 namespace Subscription.API.UserSubscriptions.Features.GetUserSubscription;
 

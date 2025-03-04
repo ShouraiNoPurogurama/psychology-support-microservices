@@ -21,6 +21,7 @@ public class GetMedicalHistoryHandler : IRequestHandler<GetMedicalHistoryQuery, 
         var patient = await _context.PatientProfiles
             .Include(p => p.MedicalHistory)
             .ThenInclude(mh => mh.SpecificMentalDisorders)
+            .ThenInclude(mp => mp.MentalDisorder)
             .Include(p => p.MedicalHistory)
             .ThenInclude(mh => mh.PhysicalSymptoms)
             .FirstOrDefaultAsync(p => p.Id == request.PatientId, cancellationToken);
@@ -33,7 +34,7 @@ public class GetMedicalHistoryHandler : IRequestHandler<GetMedicalHistoryQuery, 
             patient.MedicalHistory.Description,
             patient.MedicalHistory.DiagnosedAt,
             patient.MedicalHistory.SpecificMentalDisorders
-                .Select(md => new SpecificMentalDisorderDto(md.Id, md.MentalDisorderId, md.Name, md.Description))
+                .Select(md => new SpecificMentalDisorderDto(md.Id, md.MentalDisorder.Name, md.Name, md.Description))
                 .ToList(),
             patient.MedicalHistory.PhysicalSymptoms
                 .Select(ps => new PhysicalSymptomDto(ps.Id, ps.Name, ps.Description))

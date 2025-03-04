@@ -21,12 +21,14 @@ public class GetAllMedicalRecordsHandler : IRequestHandler<GetAllMedicalRecordsQ
     public async Task<GetAllMedicalRecordsResult> Handle(GetAllMedicalRecordsQuery request, CancellationToken cancellationToken)
     {
         var patient = await _context.PatientProfiles
+            .Include(m => m.MedicalHistory)
             .Include(p => p.MedicalRecords)
             .ThenInclude(m => m.SpecificMentalDisorders)
             .FirstOrDefaultAsync(p => p.Id == request.PatientId, cancellationToken);
 
         if (patient is null)
             throw new ProfileNotFoundException("Patient", request.PatientId);
+
 
         var pageSize = request.PaginationRequest.PageSize;
         var pageIndex = Math.Max(0, request.PaginationRequest.PageIndex - 1);

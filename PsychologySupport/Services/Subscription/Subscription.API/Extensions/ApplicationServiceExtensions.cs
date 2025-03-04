@@ -15,29 +15,25 @@ public static class ApplicationServiceExtensions
     {
         // services.AddCarter();
         services.AddEndpointsApiExplorer();
-        
+
         ConfigureSwagger(services);
-
         ConfigureCORS(services);
-
         ConfigureMediatR(services);
-
         AddDatabase(services, config);
-
         AddServiceDependencies(services);
-
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
-        
+
         return services;
     }
 
     private static void ConfigureSwagger(IServiceCollection services)
     {
-        services.AddSwaggerGen(options => options.SwaggerDoc("v1", new OpenApiInfo
-        {
-            Title = "Subscription API",
-            Version = "v1"
-        }));
+        services.AddSwaggerGen(options =>
+            options.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "Subscription API",
+                Version = "v1"
+            }));
     }
 
     private static void ConfigureCORS(IServiceCollection services)
@@ -56,20 +52,12 @@ public static class ApplicationServiceExtensions
 
     private static void ConfigureMediatR(IServiceCollection services)
     {
-        services.AddMediatR(configuration =>
+        services.AddMediatR(options =>
         {
-            configuration.RegisterServicesFromAssembly(typeof(Program).Assembly);
-            configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
-            configuration.AddOpenBehavior(typeof(LoggingBehavior<,>));
+            options.RegisterServicesFromAssembly(typeof(Program).Assembly);
+            options.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            options.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
-
-        services.AddMessageBroker(config, typeof(Program).Assembly);
-
-        AddDatabase(services, config);
-
-        AddServiceDependencies(services);
-
-        return services;
     }
 
     private static void AddServiceDependencies(IServiceCollection services)
