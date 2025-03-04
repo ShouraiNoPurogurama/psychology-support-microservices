@@ -16,6 +16,8 @@ service PromotionService {
   rpc AddPromoCodesToPromotion(AddPromoCodesToPromotionRequest) returns (AddPromoCodesToPromotionResponse);
   rpc AddGiftCodesToPromotion(AddGiftCodesToPromotionRequest) returns (AddGiftCodesToPromotionResponse);
   rpc DeletePromotion(DeletePromotionRequest) returns (DeletePromotionResponse);
+  rpc ConsumePromoCode(ConsumePromoCodeRequest) returns (ConsumePromoCodeResponse);
+  rpc ConsumeGiftCode(ConsumeGiftCodeRequest) returns (ConsumeGiftCodeResponse);
 }
 
 message GetPromotionsByServicePackageIdRequest {
@@ -155,5 +157,21 @@ message AddPromoCodesToPromotionResponse {
 }
 
 message AddGiftCodesToPromotionResponse {
+  bool isSuccess = 1;
+}
+
+message ConsumePromoCodeRequest {
+  string promoCodeId = 1;
+}
+
+message ConsumePromoCodeResponse {
+  bool isSuccess = 1;
+}
+
+message ConsumeGiftCodeRequest {
+  string giftCodeId = 1;
+}
+
+message ConsumeGiftCodeResponse {
   bool isSuccess = 1;
 }

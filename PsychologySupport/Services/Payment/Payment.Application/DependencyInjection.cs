@@ -4,6 +4,7 @@ using BuildingBlocks.Messaging.Masstransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
+using Payment.Application.ServiceContracts;
 
 namespace Payment.Application;
 
@@ -20,7 +21,7 @@ public static class DependencyInjection
 
         services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
         services.AddFeatureManagement();
-
+        
         return services;
     }
 }

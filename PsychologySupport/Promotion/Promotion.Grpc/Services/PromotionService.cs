@@ -81,9 +81,8 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
         var giftCode = await dbContext.GiftCodes
             .Include(g => g.Promotion)
             .ThenInclude(p => p.PromotionType)
-            .Where(g => g.PatientId.Equals(request.Id.Trim()) 
-                        && g.Promotion.IsActive == true
-                        && g.IsActive == true )
+            .Where(g => g.PatientId.Equals(request.Id.Trim())
+                        && g.Promotion.IsActive == true && g.IsActive == true)
             .ToListAsync();
 
         var giftCodeDtos = giftCode.Adapt<RepeatedField<GiftCodeActivateDto>>();
@@ -140,7 +139,7 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
 
         promotion.EffectiveDate = request.StartDate.ToDateTime();
         promotion.EndDate = request.EndDate.ToDateTime();
-        
+
         await dbContext.SaveChangesAsync();
 
         return new UpdatePromotionResponse()
@@ -189,7 +188,6 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
         };
     }
 
-
     public override async Task<DeletePromotionResponse> DeletePromotion(DeletePromotionRequest request, ServerCallContext context)
     {
         var promotion = await dbContext.Promotions.FindAsync(request.PromotionId)
@@ -198,6 +196,39 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
         promotion.IsActive = false;
 
         return new DeletePromotionResponse()
+        {
+            IsSuccess = true
+        };
+    }
+
+    public override async Task<ConsumePromoCodeResponse> ConsumePromoCode(ConsumePromoCodeRequest request,
+        ServerCallContext context)
+    {
+        var promoCode = await dbContext.PromoCodes
+                            .FindAsync(request.PromoCodeId)
+                        ?? throw new RpcException(new Status(StatusCode.NotFound, "Promo code not found"));
+
+        promoCode.IsActive = false;
+
+        await dbContext.SaveChangesAsync();
+
+        return new ConsumePromoCodeResponse()
+        {
+            IsSuccess = true
+        };
+    }
+
+    public override async Task<ConsumeGiftCodeResponse> ConsumeGiftCode(ConsumeGiftCodeRequest request, ServerCallContext context)
+    {
+        var promoCode = await dbContext.GiftCodes
+                            .FindAsync(request.GiftCodeId)
+                        ?? throw new RpcException(new Status(StatusCode.NotFound, "Gift code not found"));
+
+        promoCode.IsActive = false;
+
+        await dbContext.SaveChangesAsync();
+
+        return new ConsumeGiftCodeResponse()
         {
             IsSuccess = true
         };

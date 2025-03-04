@@ -60,6 +60,16 @@ public class UserSubscription : AggregateRoot<Guid>
 
         #endregion
 
+        if (promoCodeId == Guid.Empty)
+        {
+            promoCodeId = null;
+        }
+
+        if (giftId == Guid.Empty)
+        {
+            giftId = null;
+        }
+        
         var userSubscription = new UserSubscription(patientId, servicePackageId, startDate, endDate, promoCodeId, giftId,
             SubscriptionStatus.Active, servicePackage, finalPrice);
 

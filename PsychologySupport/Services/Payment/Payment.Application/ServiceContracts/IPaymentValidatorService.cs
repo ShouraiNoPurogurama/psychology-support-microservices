@@ -1,4 +1,5 @@
-﻿using Payment.Application.Dtos;
+﻿using BuildingBlocks.Enums;
+using Payment.Application.Payments.Dtos;
 
 namespace Payment.Application.ServiceContracts;
 
@@ -6,7 +7,7 @@ public interface IPaymentValidatorService
 {
     #region Validate Payment Methods
 
-    void ValidateVNPayMethod(PaymentMethod paymentMethod);
+    void ValidateVNPayMethod(PaymentMethodName paymentMethod);
     
     #endregion
 
