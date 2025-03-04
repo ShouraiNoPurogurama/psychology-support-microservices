@@ -1,9 +1,9 @@
-﻿using Payment.Application.Dtos;
+﻿using Payment.Application.Payment.Dtos;
 
 namespace Payment.Application.ServiceContracts;
 
 public interface IVNPayService
 {
-    Task<string> CreateVNPayUrlAsync(BuySubscriptionDto dto);
+    Task<string> CreateVNPayUrlForSubscriptionAsync(BuySubscriptionDto dto);
     Task<bool> ValidateSignatureAsync(string queryString, string signature);
 }

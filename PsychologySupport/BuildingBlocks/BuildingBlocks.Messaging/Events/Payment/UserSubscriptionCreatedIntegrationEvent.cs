@@ -7,7 +7,7 @@ namespace BuildingBlocks.Messaging.Events.Payment
         //Subscription
         public Guid SubscriptionId { get; set; }
         public Guid PatientId { get; set; }
-        public Guid? PromotionCodeId { get; set; }
+        public Guid? PromoCodeId { get; set; }
         public Guid? GiftId { get; set; }
         
         //Service Package
