@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Enums;
 using BuildingBlocks.Messaging.Events.Profile;
 using LifeStyles.API.Data;
-using LifeStyles.API.Data.Common;
 using LifeStyles.API.Exceptions;
 using MassTransit;
 

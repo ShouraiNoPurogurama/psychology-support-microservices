@@ -31,6 +31,11 @@ if (app.Environment.IsDevelopment())
 
 
 // Apply CORS policy
-app.UseCors();
+app.UseCors(config =>
+{
+    config.AllowAnyHeader();
+    config.AllowAnyMethod();
+    config.AllowAnyOrigin();
+});
 
 app.Run();

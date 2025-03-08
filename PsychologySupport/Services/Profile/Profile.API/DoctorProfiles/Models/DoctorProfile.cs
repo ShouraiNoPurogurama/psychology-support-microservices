@@ -55,6 +55,8 @@ public class DoctorProfile : AggregateRoot<Guid>
     public ICollection<Specialty> Specialties { get; set; } = [];
     public IReadOnlyList<MedicalRecord> MedicalRecords => _medicalRecords.AsReadOnly();
 
+    // public decimal BookingPrice;
+
     public static DoctorProfile Create(
         Guid userId,
         string fullName,

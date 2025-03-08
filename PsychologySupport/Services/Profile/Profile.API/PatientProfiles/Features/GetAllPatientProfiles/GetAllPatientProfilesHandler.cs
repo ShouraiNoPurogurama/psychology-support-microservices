@@ -23,7 +23,6 @@ public class GetAllPatientProfilesHandler : IQueryHandler<GetAllPatientProfilesQ
         var pageIndex = request.PaginationRequest.PageIndex;
 
         var patientProfiles = await _context.PatientProfiles
-            .OrderByDescending(p => p.FullName)
             .Skip(pageIndex - 1)
             .Take(pageSize)
             .Include(p => p.MedicalRecords)

@@ -1,4 +1,4 @@
-﻿using LifeStyles.API.Data.Common;
+﻿using BuildingBlocks.Enums;
 using LifeStyles.API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;

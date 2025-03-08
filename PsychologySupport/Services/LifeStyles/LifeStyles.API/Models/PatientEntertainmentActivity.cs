@@ -1,4 +1,4 @@
-﻿using LifeStyles.API.Data.Common;
+﻿using BuildingBlocks.Enums;
 
 namespace LifeStyles.API.Models;
 

@@ -1,5 +1,5 @@
-﻿using Carter;
-using LifeStyles.API.Data.Common;
+﻿using BuildingBlocks.Enums;
+using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
