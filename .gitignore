@@ -406,3 +406,5 @@ FodyWeavers.xsd
 *.sln.iml
 *appsettings.json
 PsychologySupport/Promotion/Promotion.Grpc/PromotionDb
+PsychologySupport/Services/Promotion/Promotion.Grpc/PromotionDb
+PromotionDb/

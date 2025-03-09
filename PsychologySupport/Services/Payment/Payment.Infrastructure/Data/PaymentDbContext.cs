@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BuildingBlocks.Enums;
+using Microsoft.EntityFrameworkCore;
 using Payment.Application.Data;
 using Payment.Domain.Enums;
 using Payment.Domain.Models;
@@ -26,9 +27,21 @@ public class PaymentDbContext : DbContext, IPaymentDbContext
                 .HasConversion(s => s.ToString(),
                     dbStatus => (PaymentStatus)Enum.Parse(typeof(PaymentStatus), dbStatus));
 
+            e.Property(p => p.PaymentType)
+                .HasConversion(t => t.ToString(),
+                    dbStatus => (PaymentType)Enum.Parse(typeof(PaymentType), dbStatus));
+
             e.Property(p => p.TotalAmount)
                 .HasColumnType("decimal(18,2)")
                 .IsRequired();
+        });
+
+        builder.Entity<PaymentMethod>(e =>
+        {
+            e.Property(p => p.Name)
+                .HasConversion(s => s.ToString(),
+                    dbStatus => (PaymentMethodName)Enum.Parse(typeof(PaymentMethodName), dbStatus)
+                );
         });
 
         builder.Entity<PaymentDetail>(e =>

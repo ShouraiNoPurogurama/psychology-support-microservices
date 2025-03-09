@@ -10,9 +10,9 @@ public record CreateSubscriptionVnPayResult(string Url);
 
 public class CreateSubscriptionVnPayCommandHandler : ICommandHandler<CreateSubscriptionVnPayCommand, CreateSubscriptionVnPayResult>
 {
-    private readonly IVNPayService _vnPayService;
+    private readonly IVnPayService _vnPayService;
 
-    public CreateSubscriptionVnPayCommandHandler(IVNPayService vnPayService)
+    public CreateSubscriptionVnPayCommandHandler(IVnPayService vnPayService)
     {
         _vnPayService = vnPayService;
     }
