@@ -7,7 +7,7 @@ namespace Scheduling.API.Models
         public Guid Id { get; set; }
         public Guid DoctorId { get; set; }
         public int SlotDuration { get; set; } // số phút
-        public int SlotsPerDay { get; set; }
+        public int SlotsPerDay { get; set; } 
     }
 
 }
