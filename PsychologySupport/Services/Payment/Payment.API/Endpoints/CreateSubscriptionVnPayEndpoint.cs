@@ -1,6 +1,7 @@
 ﻿using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Payment.Application.Payments.Commands;
 using Payment.Application.Payments.Dtos;
 
@@ -14,7 +15,7 @@ public class CreateSubscriptionVnPayEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/payments/vnpay/subscription", async (CreateSubscriptionVnPayRequest request, ISender sender) =>
+        app.MapPost("/payments/vnpay/subscription", async ([FromBody]CreateSubscriptionVnPayRequest request, ISender sender) =>
             {
                 var command = new CreateSubscriptionVnPayCommand(request.BuySubscription);
                 

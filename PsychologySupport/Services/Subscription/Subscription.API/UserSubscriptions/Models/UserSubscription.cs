@@ -18,7 +18,7 @@ public class UserSubscription : AggregateRoot<Guid>
 
     public Guid? GiftId { get; private set; }
 
-    public SubscriptionStatus Status { get; private set; }
+    public SubscriptionStatus Status { get; set; }
 
     public ServicePackage ServicePackage { get; private set; }
     

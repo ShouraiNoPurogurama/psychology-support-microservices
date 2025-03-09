@@ -4,12 +4,14 @@ using Payment.Domain.Enums;
 namespace Payment.Application.Payments.Dtos;
 
 public record BuySubscriptionDto(
+    Guid SubscriptionId,
     Guid ServicePackageId,
-    Guid? PromotionCodeId,
+    string? PromoCode,
     Guid? GiftId,
-    decimal TotalAmount,
+    decimal FinalPrice,
     Guid PatientId,
+    string PatientEmail,
     int DurationDays,
     PaymentMethodName PaymentMethod,
     PaymentType PaymentType
-    ) : BasePaymentDto(TotalAmount, PatientId, PaymentMethod);
+    ) : BasePaymentDto(FinalPrice, PatientId, PaymentMethod);

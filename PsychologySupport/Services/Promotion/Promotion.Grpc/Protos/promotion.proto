@@ -30,6 +30,7 @@ message GetPromotionsByServicePackageIdResponse {
 
 message GetPromotionByCodeRequest {
   string code = 1;
+  bool ignoreExpired = 2; //If true, it will ignore expired promotions
 }
 
 message GetPromotionByCodeResponse {

@@ -60,13 +60,12 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
     public override async Task<GetPromotionByCodeResponse> GetPromotionByCode(GetPromotionByCodeRequest request,
         ServerCallContext context)
     {
-        PromoCode promoCode = await dbContext.PromoCodes
-                                  .Include(p => p.Promotion)
-                                  .ThenInclude(p => p.PromotionType)
-                                  .Where(p => p.Promotion.IsActive == true && p.IsActive == true)
-                                  .FirstOrDefaultAsync(p => p.Code.Equals(request.Code.Trim()))
-                              ?? throw new RpcException(new Status(StatusCode.NotFound, "Promo code not found"));
-
+        var promoCode = await dbContext.PromoCodes
+            .Include(p => p.Promotion)
+            .ThenInclude(p => p.PromotionType)
+            .Where(p => p.Promotion.IsActive == true && (request.IgnoreExpired || p.IsActive == true))
+            .FirstOrDefaultAsync(p => p.Code.Equals(request.Code.Trim()));
+        
         return new GetPromotionByCodeResponse
         {
             PromoCode = promoCode.Adapt<PromoCodeActivateDto>()
@@ -100,9 +99,13 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
 
         var promotion = request.Adapt<Models.Promotion>();
 
-        var promotionType = await dbContext.PromotionTypes.FindAsync(request.PromotionTypeId)
-                            ?? throw new RpcException(new Status(StatusCode.NotFound, "Promotion type not found"));
+        var promotionType = await dbContext.PromotionTypes.FindAsync(request.PromotionTypeId);
 
+        if(promotionType is null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Promotion type not found"));
+        }
+        
         promotion.Id = Guid.NewGuid().ToString();
         promotion.PromotionType = promotionType;
         //Temporary hard code the ImgId
@@ -154,9 +157,16 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
         validator.ValidateGuid(request.PromotionId, "Promotion");
 
         var promotion = dbContext.Promotions
-                            .Include(p => p.PromoCodes)
-                            .FirstOrDefault(p => p.Id.Equals(request.PromotionId))
-                        ?? throw new RpcException(new Status(StatusCode.NotFound, "Promotion not found"));
+            .Include(p => p.PromoCodes)
+            .FirstOrDefault(p => p.Id.Equals(request.PromotionId));
+
+        if (promotion is null)
+        {
+            return new AddPromoCodesToPromotionResponse()
+            {
+                IsSuccess = false
+            };
+        }
 
         AddPromoCodesToPromotion(request.PromoCode, promotion);
 
@@ -171,8 +181,15 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
     public override async Task<AddGiftCodesToPromotionResponse> AddGiftCodesToPromotion(AddGiftCodesToPromotionRequest request,
         ServerCallContext context)
     {
-        var promotion = await dbContext.Promotions.FindAsync(request.PromotionId)
-                        ?? throw new RpcException(new Status(StatusCode.NotFound, "Promotion not found"));
+        var promotion = await dbContext.Promotions.FindAsync(request.PromotionId);
+        
+        if (promotion is null)
+        {
+            return new AddGiftCodesToPromotionResponse()
+            {
+                IsSuccess = false
+            };
+        }
 
         var giftCode = request.CreateGiftCodeDto.Adapt<GiftCode>();
 
@@ -190,8 +207,15 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
 
     public override async Task<DeletePromotionResponse> DeletePromotion(DeletePromotionRequest request, ServerCallContext context)
     {
-        var promotion = await dbContext.Promotions.FindAsync(request.PromotionId)
-                        ?? throw new RpcException(new Status(StatusCode.NotFound, "Promotion not found"));
+        var promotion = await dbContext.Promotions.FindAsync(request.PromotionId);
+        
+        if (promotion is null)
+        {
+            return new DeletePromotionResponse()
+            {
+                IsSuccess = false
+            };
+        }
 
         promotion.IsActive = false;
 

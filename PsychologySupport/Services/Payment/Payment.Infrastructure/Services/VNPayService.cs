@@ -20,18 +20,20 @@ public class VNPayService(
         await paymentValidatorService.ValidateSubscriptionRequestAsync(dto);
         
         var orderInfo = new StringBuilder();
-        orderInfo.Append($"UserId={HttpUtility.UrlEncode(dto.PatientId.ToString())}&");
-        orderInfo.Append($"PaymentMethod={dto.PaymentMethod}&");
-        orderInfo.Append($"PaymentType={dto.PaymentType}&");
-        orderInfo.Append($"ServicePackageId={HttpUtility.UrlEncode(dto.ServicePackageId.ToString())}&");
-        orderInfo.Append($"DurationDays={HttpUtility.UrlEncode(dto.DurationDays.ToString())}");
+        orderInfo.Append($"{nameof(BuySubscriptionDto.PatientId)}={HttpUtility.UrlEncode(dto.PatientId.ToString())}&");
+        orderInfo.Append($"{nameof(BuySubscriptionDto.PatientEmail)}={HttpUtility.UrlEncode(dto.PatientEmail)}&");
+        orderInfo.Append($"{nameof(BuySubscriptionDto.PaymentType)}={HttpUtility.UrlEncode(dto.PaymentType.ToString())}&");
+        orderInfo.Append($"{nameof(BuySubscriptionDto.SubscriptionId)}={HttpUtility.UrlEncode(dto.SubscriptionId.ToString())}&");
+        orderInfo.Append($"{nameof(BuySubscriptionDto.PromoCode)}={HttpUtility.UrlEncode(dto.PromoCode ?? "")}&");
+        orderInfo.Append($"{nameof(BuySubscriptionDto.GiftId)}={HttpUtility.UrlEncode(dto.GiftId?.ToString() ?? "")}&");
+        orderInfo.Append($"{nameof(BuySubscriptionDto.DurationDays)}={HttpUtility.UrlEncode(dto.DurationDays.ToString())}");
         
         if (orderInfo[^1] == '&')
         {
             orderInfo.Length--;
         }
         
-        return await GenerateVNPayUrl(dto.TotalAmount, orderInfo.ToString());
+        return await GenerateVNPayUrl(dto.FinalPrice, orderInfo.ToString());
     }
 
     public async Task<bool> ValidateSignatureAsync(string queryString, string signature)

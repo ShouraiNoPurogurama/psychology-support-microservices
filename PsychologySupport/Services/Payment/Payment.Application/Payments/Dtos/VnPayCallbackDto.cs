@@ -21,6 +21,7 @@ public record VnPayCallbackDto
 
     [FromQuery(Name = "vnp_Amount")]
     public float Amount { get; set; }
+    
 
     public bool Success => "00".Equals(ResponseCode);
 }

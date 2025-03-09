@@ -69,12 +69,13 @@ public class CreateUserSubscriptionHandler(
         //Apply promotion
         var promotion = (await promotionService.GetPromotionByCodeAsync(new GetPromotionByCodeRequest()
         {
-            Code = dto.PromoCode
+            Code = dto.PromoCode,
+            IgnoreExpired = false
         }, cancellationToken: cancellationToken)).PromoCode;
 
         if (promotion is not null)
         {
-            finalPrice *= promotion.Value;
+            finalPrice *= 0.01m * promotion.Value;
             await promotionService.ConsumePromoCodeAsync(new ConsumePromoCodeRequest()
             {
                 PromoCodeId = promotion.Id,

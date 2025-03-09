@@ -1,5 +1,6 @@
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
+using Promotion.Grpc;
 using Subscription.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,19 @@ services.AddApplicationServices(builder.Configuration);
 services.AddExceptionHandler<CustomExceptionHandler>();
 
 services.RegisterMapsterConfiguration();
+
+services.AddGrpcClient<PromotionService.PromotionServiceClient>(options =>
+    {
+        options.Address = new Uri(builder.Configuration["GrpcSettings:PromotionUrl"]!);
+    })
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+        return handler;
+    });
 
 // Configure the HTTP request pipeline
 var app = builder.Build();
