@@ -6,7 +6,7 @@ public class FirebaseService(ILogger<FirebaseService> logger)
 {
     public async Task SendPushNotification()
     {
-        var registrationToken = "BKPvgb5J0aXgS8QPPdctEGFtGw3WCUafYbQKQHWkev4UxjnpuVtQTksH3HBX7zMUNnz_Rv_S_UFDdzNlRYAUWW8";
+        var registrationToken = "";
 
         var message = new Message
         {

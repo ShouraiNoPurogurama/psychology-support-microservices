@@ -2,7 +2,7 @@
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Profile;
 using MassTransit;
-using Payment.Application.Dtos;
+using Payment.Application.Payments.Dtos;
 using Payment.Application.ServiceContracts;
 using Payment.Domain.Enums;
 using Payment.Domain.Models;
@@ -18,9 +18,9 @@ public class PaymentValidatorService : IPaymentValidatorService
         _client = client;
     }
 
-    public void ValidateVNPayMethod(PaymentMethod paymentMethod)
+    public void ValidateVNPayMethod(PaymentMethodName paymentMethod)
     {
-        if (paymentMethod.Name != PaymentMethodName.VNPay)
+        if (paymentMethod != PaymentMethodName.VNPay)
         {
             throw new BadRequestException("Invalid payment method");
         }

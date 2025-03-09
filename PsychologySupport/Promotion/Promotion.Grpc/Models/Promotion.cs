@@ -3,11 +3,11 @@ namespace Promotion.Grpc.Models;
 
 public class Promotion
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; }
     
-    public Guid PromotionTypeId { get; set; }
+    public string PromotionTypeId { get; set; }
     
-    public Guid ImageId { get; set; }
+    public string ImageId { get; set; }
     
     public DateTimeOffset EffectiveDate { get; set; }
     
@@ -17,7 +17,7 @@ public class Promotion
     
     public virtual PromotionType PromotionType { get; set; } = default!;
     
-    public virtual ICollection<PromoCode> PromoCodes { get; set; } = default!;
+    public virtual ICollection<PromoCode> PromoCodes { get; set; } = [];
     
-    public virtual ICollection<GiftCode> GiftCodes { get; set; } = default!;
+    public virtual ICollection<GiftCode> GiftCodes { get; set; } = [];
 }

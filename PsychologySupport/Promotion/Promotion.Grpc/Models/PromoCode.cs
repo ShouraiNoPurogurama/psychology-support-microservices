@@ -2,10 +2,9 @@ namespace Promotion.Grpc.Models;
 
 public class PromoCode
 {
-    public Guid Id { get; set; }
+    public string Id { get; set; }
     
-    public Guid PromotionId { get; set; }
-    
+    public string PromotionId { get; set; }
     public string Code { get; set; } = string.Empty;
     
     public int Value { get; set; } // Percentage discount

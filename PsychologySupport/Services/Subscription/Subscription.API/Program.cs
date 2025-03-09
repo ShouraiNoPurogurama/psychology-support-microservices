@@ -1,6 +1,5 @@
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
-using MassTransit;
 using Subscription.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);

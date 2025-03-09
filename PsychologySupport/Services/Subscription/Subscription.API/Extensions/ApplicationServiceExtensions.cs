@@ -4,6 +4,7 @@ using BuildingBlocks.Messaging.Masstransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
+using Promotion.Grpc;
 using Subscription.API.Data;
 using Subscription.API.Services;
 
@@ -21,6 +22,7 @@ public static class ApplicationServiceExtensions
         ConfigureMediatR(services);
         AddDatabase(services, config);
         AddServiceDependencies(services);
+
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
         return services;

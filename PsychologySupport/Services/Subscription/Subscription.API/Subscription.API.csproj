@@ -7,23 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Compile Remove="UserSubscriptions\EventHandlers\**" />
-      <Compile Remove="UserSubscriptions\Events\**" />
-      <Content Remove="UserSubscriptions\EventHandlers\**" />
-      <Content Remove="UserSubscriptions\Events\**" />
-      <EmbeddedResource Remove="UserSubscriptions\EventHandlers\**" />
-      <EmbeddedResource Remove="UserSubscriptions\Events\**" />
-      <None Remove="UserSubscriptions\EventHandlers\**" />
-      <None Remove="UserSubscriptions\Events\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Carter" Version="8.1.0" />
+        <PackageReference Include="Carter" Version="8.1.0"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -34,6 +23,12 @@
     <ItemGroup>
       <Folder Include="ServicePackages\Features\" />
       <Folder Include="UserSubscriptions\Features\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Protobuf Include="..\..\..\Promotion\Promotion.Grpc\Protos\promotion.proto" GrpcServices="Client">
+        <Link>Protos\promotion.proto</Link>
+      </Protobuf>
     </ItemGroup>
 
 </Project>

@@ -11,6 +11,7 @@
       <Content Include="..\..\..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+      <Content Remove="firebase_notification_key.json" />
     </ItemGroup>
 
     <ItemGroup>
