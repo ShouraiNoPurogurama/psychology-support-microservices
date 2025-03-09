@@ -11,11 +11,10 @@ public class GetAllPatientProfilesEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/patients", async ([AsParameters] PaginationRequest request, ISender sender) =>
+        app.MapGet("/patients", async ([AsParameters] GetAllPatientProfilesQuery request, ISender sender) =>
             {
-                var query = new GetAllPatientProfilesQuery(request);
 
-                var result = await sender.Send(query);
+                var result = await sender.Send(request);
 
                 var response = result.Adapt<GetAllPatientProfilesResponse>();
 

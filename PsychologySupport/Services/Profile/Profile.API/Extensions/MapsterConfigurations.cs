@@ -20,10 +20,12 @@ public static class MapsterConfiguration
          .Map(dest => dest.SpecificMentalDisorders, src => src.SpecificMentalDisorders.Adapt<List<SpecificMentalDisorderDto>>())
          .Map(dest => dest.MedicalHistory.PhysicalSymptoms, src => src.MedicalHistory.PhysicalSymptoms.Adapt<List<PhysicalSymptomDto>>());
 
+
         TypeAdapterConfig<MedicalHistory, MedicalHistoryDto>
             .NewConfig()
             .Map(dest => dest.SpecificMentalDisorders, src => src.SpecificMentalDisorders.Adapt<List<SpecificMentalDisorderDto>>())
             .Map(dest => dest.PhysicalSymptoms, src => src.PhysicalSymptoms.Adapt<List<PhysicalSymptomDto>>());
+
 
         TypeAdapterConfig<SpecificMentalDisorder, SpecificMentalDisorderDto>
             .NewConfig();

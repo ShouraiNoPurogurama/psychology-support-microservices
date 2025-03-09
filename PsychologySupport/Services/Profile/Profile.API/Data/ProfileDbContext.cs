@@ -1,5 +1,8 @@
-﻿using Profile.API.DoctorProfiles.Models;
+﻿using BuildingBlocks.Enums;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Profile.API.DoctorProfiles.Models;
 using Profile.API.MentalDisorders.Models;
+using Profile.API.PatientProfiles.Enum;
 using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.Data;
@@ -63,6 +66,11 @@ public class ProfileDbContext : DbContext
                     .HasColumnName("PhoneNumber");
             });
         });
+
+        builder.Entity<MedicalRecord>()
+            .Property(e => e.Status)
+            .HasConversion(new EnumToStringConverter<MedicalRecordStatus>())
+            .HasColumnType("VARCHAR(20)");
         base.OnModelCreating(builder);
     }
 }

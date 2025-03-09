@@ -1,7 +1,6 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
-using Microsoft.AspNetCore.Mvc;
 using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.GetAllMedicalRecord;
@@ -12,13 +11,9 @@ public class GetAllMedicalRecordsEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/patients/{patientId}/medical-records", async (
-                [FromRoute] Guid patientId,
-                [AsParameters] PaginationRequest request,
-                ISender sender) =>
-        {
-            var query = new GetAllMedicalRecordsQuery(patientId, request);
-            var result = await sender.Send(query);
+        app.MapGet("/patients/{patientId}/medical-records", async ([AsParameters] GetAllMedicalRecordsQuery request,ISender sender) 
+        =>{
+            var result = await sender.Send(request);
             var response = result.Adapt<GetAllMedicalRecordsResponse>();
 
             return Results.Ok(response);

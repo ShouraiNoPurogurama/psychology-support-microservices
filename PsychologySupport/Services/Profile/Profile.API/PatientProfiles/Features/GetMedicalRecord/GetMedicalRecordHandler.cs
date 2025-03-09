@@ -31,17 +31,7 @@ namespace Profile.API.PatientProfiles.Features.GetMedicalRecord
 
             if (medicalRecord is null) throw new KeyNotFoundException("Medical record not found.");
 
-            var medicalRecordDto = new MedicalRecordDto(
-                medicalRecord.Id,
-                medicalRecord.PatientProfileId,
-                medicalRecord.DoctorProfileId,
-                medicalRecord.MedicalHistory?.Adapt<MedicalHistoryDto>(),
-                medicalRecord.Notes,
-                medicalRecord.Status,
-                medicalRecord.SpecificMentalDisorders
-                    .Select(md => new SpecificMentalDisorderDto(md.Id, md.MentalDisorder.Name, md.Name, md.Description))
-                    .ToList()
-            );
+            var medicalRecordDto = medicalRecord.Adapt<MedicalRecordDto>();
 
             return new GetMedicalRecordResult(medicalRecordDto);
         }
