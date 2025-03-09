@@ -29,7 +29,7 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString);
         });
 
-        services.AddScoped<IVNPayService, VNPayService>();
+        services.AddScoped<IVnPayService, VNPayService>();
         services.AddScoped<IPaymentValidatorService, PaymentValidatorService>();
         
         return services;

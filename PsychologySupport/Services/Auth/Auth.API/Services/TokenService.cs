@@ -41,6 +41,7 @@ public class TokenService(UserManager<User> userManager, IConfiguration configur
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    
     public Guid GetUserIdFromHttpContext(HttpContext httpContext)
     {
         if (!httpContext.Request.Headers.ContainsKey("Authorization"))
@@ -59,7 +60,7 @@ public class TokenService(UserManager<User> userManager, IConfiguration configur
         try
         {
             var token = tokenHandler.ReadJwtToken(jwtToken);
-            var userIdClaim = token.Claims.FirstOrDefault(claim => claim.Type == "userid");
+            var userIdClaim = token.Claims.FirstOrDefault(claim => claim.Type == "userId");
 
             if (userIdClaim is null || string.IsNullOrWhiteSpace(userIdClaim.Value))
                 throw new ForbiddenException("Thiếu thông tin User Id trong token.");

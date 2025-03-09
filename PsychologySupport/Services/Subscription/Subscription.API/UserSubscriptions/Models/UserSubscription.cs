@@ -71,7 +71,7 @@ public class UserSubscription : AggregateRoot<Guid>
         }
         
         var userSubscription = new UserSubscription(patientId, servicePackageId, startDate, endDate, promoCodeId, giftId,
-            SubscriptionStatus.Active, servicePackage, finalPrice);
+            SubscriptionStatus.AwaitPayment, servicePackage, finalPrice);
 
         return userSubscription;
     }

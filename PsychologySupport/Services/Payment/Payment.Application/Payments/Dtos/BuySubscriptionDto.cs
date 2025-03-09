@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Enums;
+using Payment.Domain.Enums;
 
 namespace Payment.Application.Payments.Dtos;
 
@@ -9,5 +10,6 @@ public record BuySubscriptionDto(
     decimal TotalAmount,
     Guid PatientId,
     int DurationDays,
-    PaymentMethodName PaymentMethod)
-    : BasePaymentDto(TotalAmount, PatientId, PaymentMethod);
+    PaymentMethodName PaymentMethod,
+    PaymentType PaymentType
+    ) : BasePaymentDto(TotalAmount, PatientId, PaymentMethod);

@@ -12,7 +12,7 @@ public class VNPayService(
     IPaymentValidatorService paymentValidatorService, 
     IHttpContextAccessor contextAccessor,
     IConfiguration configuration
-    ) : IVNPayService
+    ) : IVnPayService
 {
     public async Task<string> CreateVNPayUrlForSubscriptionAsync(BuySubscriptionDto dto)
     {
@@ -22,6 +22,7 @@ public class VNPayService(
         var orderInfo = new StringBuilder();
         orderInfo.Append($"UserId={HttpUtility.UrlEncode(dto.PatientId.ToString())}&");
         orderInfo.Append($"PaymentMethod={dto.PaymentMethod}&");
+        orderInfo.Append($"PaymentType={dto.PaymentType}&");
         orderInfo.Append($"ServicePackageId={HttpUtility.UrlEncode(dto.ServicePackageId.ToString())}&");
         orderInfo.Append($"DurationDays={HttpUtility.UrlEncode(dto.DurationDays.ToString())}");
         

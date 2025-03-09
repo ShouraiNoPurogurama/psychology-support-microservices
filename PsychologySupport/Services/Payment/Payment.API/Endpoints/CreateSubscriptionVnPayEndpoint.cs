@@ -14,7 +14,7 @@ public class CreateSubscriptionVnPayEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/payment/vnpay/subscription", async (CreateSubscriptionVnPayRequest request, ISender sender) =>
+        app.MapPost("/payments/vnpay/subscription", async (CreateSubscriptionVnPayRequest request, ISender sender) =>
             {
                 var command = new CreateSubscriptionVnPayCommand(request.BuySubscription);
                 

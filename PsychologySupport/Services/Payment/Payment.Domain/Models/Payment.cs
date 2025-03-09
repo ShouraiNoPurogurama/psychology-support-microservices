@@ -12,6 +12,8 @@ public class Payment : AggregateRoot<Guid>
 
     public Guid? BookingId { get; set; }
     public PaymentStatus Status { get; set; }
+    
+    public PaymentType PaymentType { get; set; }
 
     public Guid PaymentMethodId { get; set; }
 
