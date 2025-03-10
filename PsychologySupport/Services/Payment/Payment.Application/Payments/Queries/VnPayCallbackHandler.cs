@@ -3,12 +3,10 @@ using System.Web;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
-using BuildingBlocks.Messaging.Events.Notification;
 using BuildingBlocks.Messaging.Events.Subscription;
 using MassTransit;
+using Payment.Application.Data;
 using Payment.Application.Payments.Dtos;
-using Payment.Application.ServiceContracts;
-using Payment.Domain.Enums;
 
 namespace Payment.Application.Payments.Queries;
 
@@ -16,7 +14,7 @@ public record VnPayCallbackQuery(VnPayCallbackDto VnPayCallback) : IQuery<VnPayC
 
 public record VnPayCallbackResult(string CallbackUrl);
 
-public class VnPayCallbackHandler(IVnPayService vnPayService, IPublishEndpoint publishEndpoint)
+public class VnPayCallbackHandler(IPaymentDbContext dbContext)
     : IQueryHandler<VnPayCallbackQuery, VnPayCallbackResult>
 {
     public async Task<VnPayCallbackResult> Handle(VnPayCallbackQuery request, CancellationToken cancellationToken)
@@ -24,15 +22,34 @@ public class VnPayCallbackHandler(IVnPayService vnPayService, IPublishEndpoint p
         var orderInfo = HttpUtility.UrlDecode(request.VnPayCallback.OrderInfo);
         var parameters = HttpUtility.ParseQueryString(orderInfo!);
 
-        var dummy = Enum.TryParse(parameters[nameof(BuySubscriptionDto.PaymentMethod)], true, out PaymentMethodName paymentMethodName);
-        
-        if(paymentMethodName != PaymentMethodName.VNPay)
+        Enum.TryParse(parameters[nameof(BuySubscriptionDto.PaymentMethod)], true, out PaymentMethodName paymentMethodName);
+
+        if (paymentMethodName != PaymentMethodName.VNPay)
             throw new BadRequestException("Invalid payment method");
 
         if (!Enum.TryParse(parameters[nameof(BuySubscriptionDto.PaymentType)], true, out PaymentType paymentType))
         {
             throw new BadRequestException("Invalid payment type");
         }
+
+        var promoCode = string.IsNullOrWhiteSpace(parameters[nameof(BuySubscriptionDto.PromoCode)])
+            ? null
+            : parameters[nameof(BuySubscriptionDto.PromoCode)];
+
+        Guid? giftCodeId = string.IsNullOrWhiteSpace(parameters[nameof(BuySubscriptionDto.GiftId)])
+            ? null
+            : Guid.Parse(parameters[nameof(BuySubscriptionDto.GiftId)]!);
+
+        Guid? subscriptionId = string.IsNullOrWhiteSpace(parameters[nameof(BuySubscriptionDto.SubscriptionId)])
+            ? null
+            : Guid.Parse(parameters[nameof(BuySubscriptionDto.SubscriptionId)]!);
+
+        var paymentId = Guid.Parse(parameters[nameof(Domain.Models.Payment.Id)]!);
+        var patientEmail = parameters[nameof(BuySubscriptionDto.PatientEmail)];
+
+        var finalPrice = 0.01m * request.VnPayCallback.Amount;
+        var payment = await dbContext.Payments.FindAsync([paymentId], cancellationToken: cancellationToken)
+                      ?? throw new NotFoundException("Payment", paymentId);
 
         if (request.VnPayCallback.Success)
         {
@@ -41,17 +58,18 @@ public class VnPayCallbackHandler(IVnPayService vnPayService, IPublishEndpoint p
                 switch (paymentType)
                 {
                     case PaymentType.BuySubscription:
-                        //TODO Activate subscription for patient by adjusting the status
+                        //TODO
+                        //Store payment details to db
+                        //Activate subscription for patient by adjusting the status
                         //Send notification to patient Email and web account
-                        var subscriptionId = Guid.Parse(parameters[nameof(BuySubscriptionDto.SubscriptionId)]);
-                        var activateSubscriptionEvent = new ActivateSubscriptionIntegrationEvent(subscriptionId);
-                        
-                        var patientEmail = parameters[nameof(BuySubscriptionDto.PatientEmail)];
-                        var sendEmailEvent = new SendEmailIntegrationEvent(patientEmail, "Subscription Activated",
-                            "Your subscription has been activated successfully.");
 
-                        await publishEndpoint.Publish(activateSubscriptionEvent, cancellationToken);
-                        await publishEndpoint.Publish(sendEmailEvent, cancellationToken);
+                        payment.AddPaymentDetail(
+                            PaymentDetail.Of(finalPrice, request.VnPayCallback.TransactionCode).MarkAsSuccess()
+                        );
+
+                        payment.MarkAsCompleted(patientEmail!);
+
+                        await dbContext.SaveChangesAsync(cancellationToken);
                         break;
 
                     case PaymentType.Booking:
@@ -59,6 +77,8 @@ public class VnPayCallbackHandler(IVnPayService vnPayService, IPublishEndpoint p
                         //Send notification to patient Email and web account
                         break;
                 }
+
+                scope.Complete();
             }
         }
         //Handle payment failure
@@ -71,8 +91,17 @@ public class VnPayCallbackHandler(IVnPayService vnPayService, IPublishEndpoint p
                 switch (paymentType)
                 {
                     case PaymentType.BuySubscription:
-                        //TODO Activate subscription for patient by adjusting the status
+                        //TODO remove subscription for patient by adjusting the status
                         //Send notification to patient Email and web account
+
+                        var paymentDetail = PaymentDetail.Of(finalPrice, request.VnPayCallback.TransactionCode);
+
+                        payment.AddFailedPaymentDetail(
+                            paymentDetail, patientEmail!, promoCode, giftCodeId
+                        );
+
+                        await dbContext.SaveChangesAsync(cancellationToken);
+
                         break;
 
                     case PaymentType.Booking:
@@ -80,6 +109,8 @@ public class VnPayCallbackHandler(IVnPayService vnPayService, IPublishEndpoint p
                         //Send notification to patient Email and web account
                         break;
                 }
+
+                scope.Complete();
             }
         }
 

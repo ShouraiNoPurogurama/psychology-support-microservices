@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Payment.Domain.Enums;
+namespace BuildingBlocks.Enums;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PaymentType

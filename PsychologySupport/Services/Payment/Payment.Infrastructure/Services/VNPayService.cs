@@ -14,16 +14,15 @@ public class VNPayService(
     IConfiguration configuration
     ) : IVnPayService
 {
-    public async Task<string> CreateVNPayUrlForSubscriptionAsync(BuySubscriptionDto dto)
+    public async Task<string> CreateVNPayUrlForSubscriptionAsync(BuySubscriptionDto dto, Guid paymentId)
     {
         paymentValidatorService.ValidateVNPayMethod(dto.PaymentMethod);
         await paymentValidatorService.ValidateSubscriptionRequestAsync(dto);
         
         var orderInfo = new StringBuilder();
-        orderInfo.Append($"{nameof(BuySubscriptionDto.PatientId)}={HttpUtility.UrlEncode(dto.PatientId.ToString())}&");
+        orderInfo.Append($"{nameof(Domain.Models.Payment.Id)}={HttpUtility.UrlEncode(paymentId.ToString())}&");
         orderInfo.Append($"{nameof(BuySubscriptionDto.PatientEmail)}={HttpUtility.UrlEncode(dto.PatientEmail)}&");
         orderInfo.Append($"{nameof(BuySubscriptionDto.PaymentType)}={HttpUtility.UrlEncode(dto.PaymentType.ToString())}&");
-        orderInfo.Append($"{nameof(BuySubscriptionDto.SubscriptionId)}={HttpUtility.UrlEncode(dto.SubscriptionId.ToString())}&");
         orderInfo.Append($"{nameof(BuySubscriptionDto.PromoCode)}={HttpUtility.UrlEncode(dto.PromoCode ?? "")}&");
         orderInfo.Append($"{nameof(BuySubscriptionDto.GiftId)}={HttpUtility.UrlEncode(dto.GiftId?.ToString() ?? "")}&");
         orderInfo.Append($"{nameof(BuySubscriptionDto.DurationDays)}={HttpUtility.UrlEncode(dto.DurationDays.ToString())}");

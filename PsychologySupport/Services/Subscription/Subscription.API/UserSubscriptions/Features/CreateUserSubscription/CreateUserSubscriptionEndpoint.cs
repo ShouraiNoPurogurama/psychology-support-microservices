@@ -8,7 +8,7 @@ namespace Subscription.API.UserSubscriptions.Features.CreateUserSubscription;
 
 public record CreateUserSubscriptionRequest(CreateUserSubscriptionDto UserSubscription);
 
-public record CreateUserSubscriptionResponse(Guid Id);
+public record CreateUserSubscriptionResponse(Guid Id, string PaymentUrl);
 
 public class CreateUserSubscriptionEndpoint : ICarterModule
 {

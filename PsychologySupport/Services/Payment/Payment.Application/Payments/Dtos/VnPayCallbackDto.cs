@@ -20,8 +20,7 @@ public record VnPayCallbackDto
     public string? OrderInfo { get; set; }
 
     [FromQuery(Name = "vnp_Amount")]
-    public float Amount { get; set; }
+    public decimal Amount { get; set; }
     
-
     public bool Success => "00".Equals(ResponseCode);
 }

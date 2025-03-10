@@ -7,28 +7,28 @@ using Payment.Application.Payments.Dtos;
 
 namespace Payment.API.Endpoints;
 
-public record CreateSubscriptionVnPayRequest(BuySubscriptionDto BuySubscription);
+public record CreateVnPayCallBackUrlForSubscriptionRequest(BuySubscriptionDto BuySubscription);
 
-public record CreateSubscriptionVnPayResponse(string Url);
+public record CreateVnPayCallBackUrlForSubscriptionResponse(string Url);
 
-public class CreateSubscriptionVnPayEndpoint : ICarterModule
+public class CreateVnPayCallBackUrlForSubscriptionEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/payments/vnpay/subscription", async ([FromBody]CreateSubscriptionVnPayRequest request, ISender sender) =>
+        app.MapPost("/payments/vnpay/subscription", async ([FromBody]CreateVnPayCallBackUrlForSubscriptionRequest request, ISender sender) =>
             {
-                var command = new CreateSubscriptionVnPayCommand(request.BuySubscription);
+                var command = new CreateVnPayCallBackUrlForSubscriptionCommand(request.BuySubscription);
                 
                 var result = await sender.Send(command);
 
-                var response = result.Adapt<CreateSubscriptionVnPayResponse>();
+                var response = result.Adapt<CreateVnPayCallBackUrlForSubscriptionResponse>();
                 
                 return Results.Ok(response);
             })
-            .WithName("CreateSubscriptionVnPay")
-            .Produces<CreateSubscriptionVnPayResponse>()
+            .WithName("CreateVnPayCallBackUrlForSubscription")
+            .Produces<CreateVnPayCallBackUrlForSubscriptionResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .WithDescription("Create a new subscription using VNPay")
-            .WithSummary("Create Subscription VnPay");
+            .WithDescription("Create VnPay CallBack Url For Subscription")
+            .WithSummary("Create VnPay CallBack Url For Subscription");
     }
 }

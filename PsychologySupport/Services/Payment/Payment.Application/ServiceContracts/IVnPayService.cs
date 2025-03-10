@@ -4,6 +4,6 @@ namespace Payment.Application.ServiceContracts;
 
 public interface IVnPayService
 {
-    Task<string> CreateVNPayUrlForSubscriptionAsync(BuySubscriptionDto dto);
+    Task<string> CreateVNPayUrlForSubscriptionAsync(BuySubscriptionDto dto, Guid paymentId);
     Task<bool> ValidateSignatureAsync(string queryString, string signature);
 }

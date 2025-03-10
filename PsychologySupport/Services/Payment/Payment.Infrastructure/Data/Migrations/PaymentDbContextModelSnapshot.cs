@@ -69,7 +69,7 @@ namespace Payment.Infrastructure.Data.Migrations
 
                     b.HasIndex("PaymentMethodId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("Payment.Domain.Models.PaymentDetail", b =>
@@ -100,7 +100,7 @@ namespace Payment.Infrastructure.Data.Migrations
 
                     b.HasIndex("PaymentId");
 
-                    b.ToTable("PaymentDetails");
+                    b.ToTable("PaymentDetails", (string)null);
                 });
 
             modelBuilder.Entity("Payment.Domain.Models.PaymentMethod", b =>
@@ -118,7 +118,7 @@ namespace Payment.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PaymentMethods");
+                    b.ToTable("PaymentMethods", (string)null);
                 });
 
             modelBuilder.Entity("Payment.Domain.Models.Payment", b =>

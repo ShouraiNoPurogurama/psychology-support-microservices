@@ -1,0 +1,28 @@
+﻿using BuildingBlocks.Enums;
+using BuildingBlocks.Messaging.Events.Profile;
+using Mapster;
+using Profile.API.PatientProfiles.Models;
+
+namespace Profile.API.EventHandlers;
+
+public class GetPatientProfileHandler(ProfileDbContext dbContext) : IConsumer<GetPatientProfileRequest>
+{
+    public async Task Consume(ConsumeContext<GetPatientProfileRequest> context)
+    {
+        PatientProfile? patientProfile = await dbContext.PatientProfiles.FindAsync(context.Message.PatientId); 
+        
+        if (patientProfile is null)
+        {
+            await context.RespondAsync(new GetPatientProfileResponse(false, string.Empty, UserGender.Else, string.Empty, string.Empty, string.Empty, string.Empty, String.Empty));
+            return;
+        }
+
+        await context.RespondAsync(patientProfile.Adapt<GetPatientProfileResponse>() with
+        {
+            Email = patientProfile.ContactInfo.Email,
+            Address = patientProfile.ContactInfo.Address,
+            PhoneNumber = patientProfile.ContactInfo.PhoneNumber,
+            PatientExists = true
+        });
+    }
+}

@@ -1,8 +1,10 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Payment;
+using BuildingBlocks.Messaging.Events.Profile;
 using Mapster;
 using MassTransit;
+using Profile.API.PatientProfiles.Models;
 using Promotion.Grpc;
 using Subscription.API.Data;
 using Subscription.API.ServicePackages.Models;
@@ -13,22 +15,32 @@ namespace Subscription.API.UserSubscriptions.Features.CreateUserSubscription;
 
 public record CreateUserSubscriptionCommand(CreateUserSubscriptionDto UserSubscription) : ICommand<CreateUserSubscriptionResult>;
 
-public record CreateUserSubscriptionResult(Guid Id);
+public record CreateUserSubscriptionResult(Guid Id, string PaymentUrl);
 
 public class CreateUserSubscriptionHandler(
     SubscriptionDbContext context,
-    IPublishEndpoint publishEndpoint,
+    IRequestClient<GeneratePaymentUrlRequest> generatePaymentUrlClient,
+    IRequestClient<GetPatientProfileRequest> getPatientProfileClient,
     PromotionService.PromotionServiceClient promotionService)
     : ICommandHandler<CreateUserSubscriptionCommand, CreateUserSubscriptionResult>
 {
     public async Task<CreateUserSubscriptionResult> Handle(CreateUserSubscriptionCommand request,
         CancellationToken cancellationToken)
     {
+        var patient =
+            await getPatientProfileClient.GetResponse<GetPatientProfileResponse>(
+                new GetPatientProfileRequest(request.UserSubscription.PatientId), cancellationToken);
+
+        if (!patient.Message.PatientExists)
+        {
+            throw new NotFoundException(nameof(PatientProfile), request.UserSubscription.PatientId);
+        }
+
         var dto = request.UserSubscription;
 
-        var servicePackage = await context.ServicePackages
-                                 .FindAsync([dto.ServicePackageId], cancellationToken)
-                             ?? throw new NotFoundException(nameof(ServicePackage), dto.ServicePackageId);
+        ServicePackage servicePackage = await context.ServicePackages
+                                            .FindAsync([dto.ServicePackageId], cancellationToken)
+                                        ?? throw new NotFoundException(nameof(ServicePackage), dto.ServicePackageId);
 
         #region Calculate price after deducting promo code and gift code
 
@@ -43,20 +55,29 @@ public class CreateUserSubscriptionHandler(
         await context.SaveChangesAsync(cancellationToken);
 
         #endregion
-        
+
         #region Publish event to Payment
 
-        var subscriptionCreatedEvent = dto.Adapt<UserSubscriptionCreatedIntegrationEvent>();
-        servicePackage.Adapt(subscriptionCreatedEvent);
+        var subscriptionCreatedEvent = dto.Adapt<GeneratePaymentUrlRequest>();
         subscriptionCreatedEvent.SubscriptionId = userSubscription.Id;
+        subscriptionCreatedEvent.ServicePackageId = servicePackage.Id;
+        subscriptionCreatedEvent.PatientId = userSubscription.PatientId;
+        subscriptionCreatedEvent.PatientEmail = patient.Message.Email;
+        subscriptionCreatedEvent.DurationDays = servicePackage.DurationDays;
         subscriptionCreatedEvent.FinalPrice = finalPrice;
-        subscriptionCreatedEvent.PromoCodeId = promoCodeId;
+        subscriptionCreatedEvent.PromoCode = promoCode?.Code;
 
-            #endregion
+        #endregion
 
-        await publishEndpoint.Publish(subscriptionCreatedEvent, cancellationToken);
+        // await publishEndpoint.Publish(subscriptionCreatedEvent, cancellationToken);
+        var paymentUrl =
+            await generatePaymentUrlClient.GetResponse<GeneratePaymentUrlResponse>(
+                subscriptionCreatedEvent.Adapt<GeneratePaymentUrlRequest>(), cancellationToken);
 
-        return new CreateUserSubscriptionResult(userSubscription.Id);
+        if (paymentUrl.Message is null)
+            throw new BadRequestException("Cannot create payment url.");
+
+        return new CreateUserSubscriptionResult(userSubscription.Id, paymentUrl.Message.Url);
     }
 
     private async Task<(decimal finalPrice, PromoCodeActivateDto? promotion)> CalculateFinalPriceAsync(
