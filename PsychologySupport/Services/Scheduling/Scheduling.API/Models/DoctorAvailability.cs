@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace Scheduling.API.Models
+﻿namespace Scheduling.API.Models
 {
     public class DoctorAvailability
     {

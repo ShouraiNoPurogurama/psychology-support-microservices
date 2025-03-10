@@ -35,6 +35,28 @@ public class VNPayService(
         return await GenerateVNPayUrl(dto.FinalPrice, orderInfo.ToString());
     }
 
+    public async Task<string> CreateVNPayUrlForBookingAsync(BuyBookingDto dto, Guid paymentId)
+    {
+        paymentValidatorService.ValidateVNPayMethod(dto.PaymentMethod);
+        await paymentValidatorService.ValidateBookingRequestAsync(dto);
+        
+        var orderInfo = new StringBuilder();
+        orderInfo.Append($"{nameof(Domain.Models.Payment.Id)}={HttpUtility.UrlEncode(paymentId.ToString())}&");
+        orderInfo.Append($"{nameof(BuyBookingDto.BookingId)}={HttpUtility.UrlEncode(dto.BookingId.ToString())}&");
+        orderInfo.Append($"{nameof(BuyBookingDto.PatientEmail)}={HttpUtility.UrlEncode(dto.PatientEmail)}&");
+        orderInfo.Append($"{nameof(BuyBookingDto.PaymentType)}={HttpUtility.UrlEncode(dto.PaymentType.ToString())}&");
+        orderInfo.Append($"{nameof(BuyBookingDto.PromoCode)}={HttpUtility.UrlEncode(dto.PromoCode ?? "")}&");
+        orderInfo.Append($"{nameof(BuyBookingDto.GiftCodeId)}={HttpUtility.UrlEncode(dto.GiftCodeId?.ToString() ?? "")}&");
+        
+        
+        if (orderInfo[^1] == '&')
+        {
+            orderInfo.Length--;
+        }
+        
+        return await GenerateVNPayUrl(dto.FinalPrice, orderInfo.ToString());
+    }
+
     public async Task<bool> ValidateSignatureAsync(string queryString, string signature)
     {
         var vnPayLibrary = new VnPayLibrary();

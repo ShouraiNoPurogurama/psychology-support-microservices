@@ -19,7 +19,7 @@ public record CreateUserSubscriptionResult(Guid Id, string PaymentUrl);
 
 public class CreateUserSubscriptionHandler(
     SubscriptionDbContext context,
-    IRequestClient<GeneratePaymentUrlRequest> generatePaymentUrlClient,
+    IRequestClient<GenerateSubscriptionPaymentUrlRequest> paymentClient,
     IRequestClient<GetPatientProfileRequest> getPatientProfileClient,
     PromotionService.PromotionServiceClient promotionService)
     : ICommandHandler<CreateUserSubscriptionCommand, CreateUserSubscriptionResult>
@@ -58,7 +58,7 @@ public class CreateUserSubscriptionHandler(
 
         #region Publish event to Payment
 
-        var subscriptionCreatedEvent = dto.Adapt<GeneratePaymentUrlRequest>();
+        var subscriptionCreatedEvent = dto.Adapt<GenerateSubscriptionPaymentUrlRequest>();
         subscriptionCreatedEvent.SubscriptionId = userSubscription.Id;
         subscriptionCreatedEvent.ServicePackageId = servicePackage.Id;
         subscriptionCreatedEvent.PatientId = userSubscription.PatientId;
@@ -67,15 +67,15 @@ public class CreateUserSubscriptionHandler(
         subscriptionCreatedEvent.FinalPrice = finalPrice;
         subscriptionCreatedEvent.PromoCode = promoCode?.Code;
 
-        #endregion
-
         // await publishEndpoint.Publish(subscriptionCreatedEvent, cancellationToken);
         var paymentUrl =
-            await generatePaymentUrlClient.GetResponse<GeneratePaymentUrlResponse>(
-                subscriptionCreatedEvent.Adapt<GeneratePaymentUrlRequest>(), cancellationToken);
+            await paymentClient.GetResponse<GenerateSubscriptionPaymentUrlResponse>(
+                subscriptionCreatedEvent.Adapt<GenerateSubscriptionPaymentUrlRequest>(), cancellationToken);
 
         if (paymentUrl.Message is null)
             throw new BadRequestException("Cannot create payment url.");
+
+        #endregion
 
         return new CreateUserSubscriptionResult(userSubscription.Id, paymentUrl.Message.Url);
     }
@@ -86,6 +86,9 @@ public class CreateUserSubscriptionHandler(
         CreateUserSubscriptionDto dto)
     {
         var finalPrice = servicePackage.Price;
+
+        if (string.IsNullOrEmpty(dto.PromoCode) && string.IsNullOrEmpty(dto.GiftId.ToString()))
+            return (finalPrice, null);
 
         //Apply promotion
         var promotion = (await promotionService.GetPromotionByCodeAsync(new GetPromotionByCodeRequest()
@@ -117,6 +120,7 @@ public class CreateUserSubscriptionHandler(
 
         finalPrice -= (decimal)giftCode.MoneyValue;
         finalPrice = Math.Max(finalPrice, 0);
+
         await promotionService.ConsumeGiftCodeAsync(new ConsumeGiftCodeRequest()
         {
             GiftCodeId = giftCode.Id

@@ -20,7 +20,6 @@ public class ValidateSubscriptionRequestHandler(
         GetPromotionByCodeResponse? promotion = null;
         GiftCodeActivateDto? appliedGift = null;
         List<string> errors = [];
-        bool isSuccess = true;
 
         var servicePackage = await dbContext.ServicePackages.FindAsync(request.ServicePackageId);
 
@@ -34,7 +33,6 @@ public class ValidateSubscriptionRequestHandler(
         if (request.DurationDays != servicePackage.DurationDays)
         {
             errors.Add("Invalid duration days");
-            isSuccess = false;
         }
 
         if (!string.IsNullOrWhiteSpace(request.PromoCode))
@@ -48,7 +46,6 @@ public class ValidateSubscriptionRequestHandler(
             if (promotion.PromoCode is null)
             {
                 errors.Add("Promotion code is not valid");
-                isSuccess = false;
             }
         }
 
@@ -65,7 +62,6 @@ public class ValidateSubscriptionRequestHandler(
             if (appliedGift is null)
             {
                 errors.Add("Gift code is not valid");
-                isSuccess = false;
             }
         }
 
@@ -78,7 +74,7 @@ public class ValidateSubscriptionRequestHandler(
             errors.Add("Final price is not valid");
         }
 
-        switch (isSuccess)
+        switch (errors.Count == 0)
         {
             case true:
                 await context.RespondAsync(ValidateSubscriptionResponse.Success());

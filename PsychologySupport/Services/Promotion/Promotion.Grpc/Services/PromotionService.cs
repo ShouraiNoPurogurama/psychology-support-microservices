@@ -60,6 +60,14 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
     public override async Task<GetPromotionByCodeResponse> GetPromotionByCode(GetPromotionByCodeRequest request,
         ServerCallContext context)
     {
+        if (request.Code is null)
+        {
+            return new GetPromotionByCodeResponse
+            {
+                PromoCode = null
+            };
+        }
+        
         var promoCode = await dbContext.PromoCodes
             .Include(p => p.Promotion)
             .ThenInclude(p => p.PromotionType)

@@ -1,6 +1,8 @@
 ﻿using System.Reflection;
+using BuildingBlocks.Messaging.Events.Payment;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
+using Payment.Application.Payments.Dtos;
 
 namespace Payment.Infrastructure.Extensions;
 

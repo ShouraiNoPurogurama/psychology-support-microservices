@@ -7,9 +7,9 @@ using Payment.Application.Payments.Dtos;
 
 namespace Payment.Application.Payments.EventHandlers;
 
-public class GeneratePaymentUrlHandler(ISender sender) : IConsumer<GeneratePaymentUrlRequest>
+public class GenerateSubscriptionPaymentUrlHandler(ISender sender) : IConsumer<GenerateSubscriptionPaymentUrlRequest>
 {
-    public async Task Consume(ConsumeContext<GeneratePaymentUrlRequest> context)
+    public async Task Consume(ConsumeContext<GenerateSubscriptionPaymentUrlRequest> context)
     {
         var dto = context.Message.Adapt<BuySubscriptionDto>();
 
@@ -17,6 +17,6 @@ public class GeneratePaymentUrlHandler(ISender sender) : IConsumer<GeneratePayme
         
         var result = await sender.Send(command);
 
-        await context.RespondAsync(new GeneratePaymentUrlResponse(result.Url));
+        await context.RespondAsync(new GenerateSubscriptionPaymentUrlResponse(result.Url));
     }
 }

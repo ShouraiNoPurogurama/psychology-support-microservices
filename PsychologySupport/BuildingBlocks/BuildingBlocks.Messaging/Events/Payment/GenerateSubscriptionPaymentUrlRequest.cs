@@ -2,7 +2,7 @@
 
 namespace BuildingBlocks.Messaging.Events.Payment
 {
-    public record GeneratePaymentUrlRequest
+    public record GenerateSubscriptionPaymentUrlRequest
     {
         //Subscription
         public Guid SubscriptionId { get; set; }
@@ -24,5 +24,5 @@ namespace BuildingBlocks.Messaging.Events.Payment
         public PaymentMethodName PaymentMethodName { get; set; }
         public PaymentType PaymentType { get; set; }
         public decimal FinalPrice { get; set; }
-    };
+    }
 }

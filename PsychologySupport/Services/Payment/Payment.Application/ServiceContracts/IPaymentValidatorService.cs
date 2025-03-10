@@ -14,7 +14,7 @@ public interface IPaymentValidatorService
     #region Validate Payment Requests
 
     Task ValidateSubscriptionRequestAsync(BuySubscriptionDto dto);
-    Task ValidateBookingRequestAsync(BuySubscriptionDto dto);
+    Task ValidateBookingRequestAsync(BuyBookingDto dto);
 
     #endregion
 

@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Profile;
+using BuildingBlocks.Messaging.Events.Scheduling;
 using BuildingBlocks.Messaging.Events.Subscription;
 using Mapster;
 using MassTransit;
@@ -9,17 +10,12 @@ using Payment.Application.ServiceContracts;
 
 namespace Payment.Infrastructure.Services;
 
-public class PaymentValidatorService : IPaymentValidatorService
+public class PaymentValidatorService(
+    IRequestClient<PatientProfileExistenceRequest> checkProfileClient,
+    IRequestClient<ValidateSubscriptionRequest> checkSubscriptionClient,
+    IRequestClient<ValidateBookingRequest> checkBookingClient)
+    : IPaymentValidatorService
 {
-    private readonly IRequestClient<PatientProfileExistenceRequest> _checkProfileClient;
-    private readonly IRequestClient<ValidateSubscriptionRequest> _checkSubscriptionClient;
-
-    public PaymentValidatorService(IRequestClient<PatientProfileExistenceRequest> checkProfileClient, IRequestClient<ValidateSubscriptionRequest> checkSubscriptionClient)
-    {
-        _checkProfileClient = checkProfileClient;
-        _checkSubscriptionClient = checkSubscriptionClient;
-    }
-
     public void ValidateVNPayMethod(PaymentMethodName paymentMethod)
     {
         if (paymentMethod != PaymentMethodName.VNPay)
@@ -33,18 +29,19 @@ public class PaymentValidatorService : IPaymentValidatorService
         ValidateVNPayMethod(dto.PaymentMethod);
         await ValidatePatientAsync(dto.PatientId);
         await ValidateSubscriptionAsync(dto);
-
     }
 
-    public Task ValidateBookingRequestAsync(BuySubscriptionDto dto)
+    public async Task ValidateBookingRequestAsync(BuyBookingDto dto)
     {
-        throw new NotImplementedException();
+        ValidateVNPayMethod(dto.PaymentMethod);
+        await ValidatePatientAsync(dto.PatientId);
+        await ValidateBookingAsync(dto);
     }
 
     public async Task ValidatePatientAsync(Guid patientId)
     {
         var patient =
-            await _checkProfileClient.GetResponse<PatientProfileExistenceResponse>(new PatientProfileExistenceRequest(patientId));
+            await checkProfileClient.GetResponse<PatientProfileExistenceResponse>(new PatientProfileExistenceRequest(patientId));
 
         if (!patient.Message.IsExist)
         {
@@ -55,7 +52,25 @@ public class PaymentValidatorService : IPaymentValidatorService
     public async Task ValidateSubscriptionAsync(BuySubscriptionDto dto)
     {
         var validationResult =
-            await _checkSubscriptionClient.GetResponse<ValidateSubscriptionResponse>(dto.Adapt<ValidateSubscriptionRequest>());
+            await checkSubscriptionClient.GetResponse<ValidateSubscriptionResponse>(dto.Adapt<ValidateSubscriptionRequest>());
+
+        if (!validationResult.Message.IsSuccess)
+        {
+            throw new BadRequestException(string.Join(", ", validationResult.Message.Errors));
+        }
+    }
+
+    public async Task ValidateBookingAsync(BuyBookingDto dto)
+    {
+        var validationResult =
+            await checkBookingClient.GetResponse<ValidateBookingResponse>
+            (dto.Adapt<ValidateBookingRequest>() with
+                {
+                    FinalPrice = dto.FinalPrice,
+                    Date = dto.Date,
+                    StartTime = dto.StartTime,
+                }
+            );
 
         if (!validationResult.Message.IsSuccess)
         {
