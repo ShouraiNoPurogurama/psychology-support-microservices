@@ -2,7 +2,7 @@
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Scheduling.API.Data.Common;
+using Scheduling.API.Enums;
 
 namespace Scheduling.API.Features.UpdateBooking
 {

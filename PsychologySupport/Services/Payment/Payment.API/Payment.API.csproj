@@ -8,7 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Carter" Version="8.1.0"/>
+      <_ContentIncludedByDefault Remove="appsettings.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Carter" Version="8.1.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -22,9 +26,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj"/>
-        <ProjectReference Include="..\Payment.Application\Payment.Application.csproj"/>
-        <ProjectReference Include="..\Payment.Infrastructure\Payment.Infrastructure.csproj"/>
+        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
+        <ProjectReference Include="..\Payment.Application\Payment.Application.csproj" />
+        <ProjectReference Include="..\Payment.Infrastructure\Payment.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

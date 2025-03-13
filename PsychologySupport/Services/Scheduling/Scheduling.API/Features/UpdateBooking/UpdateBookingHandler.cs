@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using MassTransit;
-using Scheduling.API.Data.Common;
+using Scheduling.API.Enums;
 
 namespace Scheduling.API.Features.UpdateBooking
 {
