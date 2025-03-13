@@ -1,6 +1,6 @@
 ﻿using Subscription.API.Data.Common;
 
-namespace Subscription.API.Dtos;
+namespace Subscription.API.UserSubscriptions.Dtos;
 
 public record GetUserSubscriptionDto(
     Guid Id,

@@ -9,7 +9,7 @@ namespace Payment.API.Endpoints;
 
 public record CreateVnPayCallBackUrlForBookingRequest(BuyBookingDto BuyBooking);
 
-public record CreateVnPayCallBackUrlForBookingResponse(string Url);
+public record CreateVnPayCallBackUrlForBookingResponse(string Url, Guid PaymentId);
 
 public class CreateVnPayCallBackUrlForBookingEndpoint : ICarterModule
 {

@@ -2,7 +2,9 @@
 
 namespace Payment.Domain.Events;
 
-public record SubscriptionPaymentDetailCompletedEvent(
+public record SubscriptionPaymentDetailFailedEvent(
     Guid SubscriptionId,
     string PatientEmail,
+    string? PromoCode,
+    Guid? GiftId,
     decimal FinalPrice) : IDomainEvent;

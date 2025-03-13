@@ -1,10 +1,9 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
-using Scheduling.API.Data.Common;
 using Scheduling.API.Dtos;
+using Scheduling.API.Enums;
 
-
-namespace Scheduling.API.Features.DoctorSchedule
+namespace Scheduling.API.Features.GetDoctorSchedule
 {
     public record GetDoctorScheduleQuery(Guid DoctorId, DateOnly Date) : IQuery<GetDoctorScheduleResult>;
     public record GetDoctorScheduleResult(List<TimeSlotDto> TimeSlots);

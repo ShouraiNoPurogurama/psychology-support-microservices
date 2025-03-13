@@ -10,13 +10,14 @@ namespace Payment.Application.Payments.EventHandlers;
 public class SubscriptionPaymentCompletedEventHandler(
     ILogger<SubscriptionPaymentCompletedEventHandler> logger,
     IPublishEndpoint publishEndpoint
-) : INotificationHandler<SubscriptionPaymentCompletedEvent>
+) : INotificationHandler<SubscriptionPaymentDetailCompletedEvent>
 {
-    public async Task Handle(SubscriptionPaymentCompletedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(SubscriptionPaymentDetailCompletedEvent notification, CancellationToken cancellationToken)
     {
-        logger.LogInformation("*** Handling SubscriptionPaymentCompletedEvent for SubscriptionId: {SubscriptionId}", notification.SubscriptionId);
+        logger.LogInformation("*** Handling SubscriptionPaymentDetailCompletedEvent for SubscriptionId: {SubscriptionId}", notification.SubscriptionId);
         
         var activateSubscriptionEvent = new SubscriptionPaymentSuccessIntegrationEvent(notification.SubscriptionId);
+        
         var sendEmailEvent = new SendEmailIntegrationEvent(notification.PatientEmail, "Subscription Activated",
             "Your subscription has been activated successfully.");
 

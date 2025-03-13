@@ -11,21 +11,21 @@ namespace Payment.Application.Payments.EventHandlers;
 public class SubscriptionPaymentDetailFailedEventHandler(
     IPublishEndpoint publishEndpoint,
     ILogger<SubscriptionPaymentDetailFailedEventHandler> logger)
-    : INotificationHandler<PaymentDetailFailedEvent>
+    : INotificationHandler<SubscriptionPaymentDetailFailedEvent>
 {
-    public async Task Handle(PaymentDetailFailedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(SubscriptionPaymentDetailFailedEvent notification, CancellationToken cancellationToken)
     {
         logger.LogInformation("*** Domain Event handled: {DomainEvent}", notification.GetType());
-
-        SubscriptionPaymentFailedIntegrationEvent paymentDetailFailedEvent =
-            notification.Adapt<SubscriptionPaymentFailedIntegrationEvent>();
+        
+        SubscriptionPaymentDetailFailedIntegrationEvent paymentDetailDetailFailedEvent =
+            notification.Adapt<SubscriptionPaymentDetailFailedIntegrationEvent>();
 
         SendEmailIntegrationEvent sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
             notification.PatientEmail,
             "Subscription Payment Failed",
             "Your subscription payment has failed. Please check your payment details and try again.");
 
-        await publishEndpoint.Publish(paymentDetailFailedEvent, cancellationToken);
+        await publishEndpoint.Publish(paymentDetailDetailFailedEvent, cancellationToken);
         await publishEndpoint.Publish(sendEmailIntegrationEvent, cancellationToken);
     }
 }

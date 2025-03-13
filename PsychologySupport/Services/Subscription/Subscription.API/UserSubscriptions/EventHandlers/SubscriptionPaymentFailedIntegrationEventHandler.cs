@@ -1,13 +1,20 @@
 ﻿using BuildingBlocks.Messaging.Events.Subscription;
 using MassTransit;
+using MediatR;
 using Promotion.Grpc;
+using Subscription.API.Data;
+using Subscription.API.Data.Common;
+using Subscription.API.UserSubscriptions.Features.UpdateSubscriptionStatus;
+using Subscription.API.UserSubscriptions.Features.UpdateUserSubscription;
 
 namespace Subscription.API.UserSubscriptions.EventHandlers;
 
-public class SubscriptionPaymentFailedIntegrationEventHandler(PromotionService.PromotionServiceClient promotionService)
-    : IConsumer<SubscriptionPaymentFailedIntegrationEvent>
+public class SubscriptionPaymentFailedIntegrationEventHandler(
+    PromotionService.PromotionServiceClient promotionService,
+    ISender sender)
+    : IConsumer<SubscriptionPaymentDetailFailedIntegrationEvent>
 {
-    public async Task Consume(ConsumeContext<SubscriptionPaymentFailedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<SubscriptionPaymentDetailFailedIntegrationEvent> context)
     {
         var message = context.Message;
 
@@ -28,5 +35,7 @@ public class SubscriptionPaymentFailedIntegrationEventHandler(PromotionService.P
                 GiftId = giftId
             });
         }
+
+        await sender.Send(new UpdateUserSubscriptionStatusCommand(message.SubscriptionId, SubscriptionStatus.Cancelled));
     }
 }

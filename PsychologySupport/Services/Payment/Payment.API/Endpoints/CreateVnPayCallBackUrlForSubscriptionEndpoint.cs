@@ -9,7 +9,7 @@ namespace Payment.API.Endpoints;
 
 public record CreateVnPayCallBackUrlForSubscriptionRequest(BuySubscriptionDto BuySubscription);
 
-public record CreateVnPayCallBackUrlForSubscriptionResponse(string Url);
+public record CreateVnPayCallBackUrlForSubscriptionResponse(string Url, Guid PaymentId);
 
 public class CreateVnPayCallBackUrlForSubscriptionEndpoint : ICarterModule
 {

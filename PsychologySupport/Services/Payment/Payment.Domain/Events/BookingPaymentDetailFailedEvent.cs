@@ -2,8 +2,8 @@
 
 namespace Payment.Domain.Events;
 
-public record PaymentDetailFailedEvent(
-    Guid SubscriptionId,
+public record BookingPaymentDetailFailedEvent(
+    Guid BookingId,
     string PatientEmail,
     string? PromoCode,
     Guid? GiftId,

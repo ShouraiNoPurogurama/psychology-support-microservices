@@ -4,6 +4,7 @@ namespace BuildingBlocks.Messaging.Events.Profile;
 
 public record GetPatientProfileResponse(
     bool PatientExists,
+    Guid Id,
     string FullName,
     UserGender Gender,
     string? Allergies,

@@ -24,7 +24,6 @@
 
     <ItemGroup>
       <Folder Include="ServicePackages\Features\" />
-      <Folder Include="UserSubscriptions\Features\" />
     </ItemGroup>
 
     <ItemGroup>

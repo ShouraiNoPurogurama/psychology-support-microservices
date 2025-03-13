@@ -70,21 +70,24 @@ public class Payment : AggregateRoot<Guid>
     public void AddFailedPaymentDetail(PaymentDetail paymentDetail, string patientEmail, string? promoCode, Guid? giftId)
     {
         _paymentDetails.Add(paymentDetail.MarkAsFailed());
-
+        
+        MarkAsFailed();
+        
         switch (PaymentType)
         {
             case PaymentType.BuySubscription:
             {
-                var paymentDetailFailedEvent =
-                    new PaymentDetailFailedEvent(SubscriptionId!.Value, patientEmail, promoCode, giftId, TotalAmount);
+                var subscriptionPaymentDetailFailedEvent =
+                    new SubscriptionPaymentDetailFailedEvent(SubscriptionId!.Value, patientEmail, promoCode, giftId, TotalAmount);
 
-                AddDomainEvent(paymentDetailFailedEvent);
+                AddDomainEvent(subscriptionPaymentDetailFailedEvent);
                 break;
             }
             case PaymentType.Booking:
-                //Todo Handle booking logic
-                break;
-            default:
+                var bookingPaymentDetailFailedEvent =
+                    new BookingPaymentDetailFailedEvent(BookingId!.Value, patientEmail, promoCode, giftId, TotalAmount);
+                
+                AddDomainEvent(bookingPaymentDetailFailedEvent);
                 break;
         }
     }
@@ -100,17 +103,25 @@ public class Payment : AggregateRoot<Guid>
         {
             case PaymentType.BuySubscription:
             {
-                var paymentCompletedEvent = new SubscriptionPaymentCompletedEvent(
+                var subscriptionPaymentCompletedEvent = new SubscriptionPaymentDetailCompletedEvent(
                     SubscriptionId!.Value, patientEmail, TotalAmount);
 
-                AddDomainEvent(paymentCompletedEvent);
+                AddDomainEvent(subscriptionPaymentCompletedEvent);
                 break;
             }
             case PaymentType.Booking:
-                //Todo Handle booking logic
+                var bookingPaymentCompletedEvent = new BookingPaymentDetailCompletedEvent(
+                    BookingId!.Value, patientEmail, TotalAmount);
+
+                AddDomainEvent(bookingPaymentCompletedEvent);
                 break;
             default:
                 break;
         }
+    }
+    
+    public void MarkAsFailed()
+    {
+        Status = PaymentStatus.Failed;
     }
 }

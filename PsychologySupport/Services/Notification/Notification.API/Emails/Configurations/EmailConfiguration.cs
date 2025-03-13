@@ -1,4 +1,4 @@
-﻿namespace Notification.API;
+﻿namespace Notification.API.Emails.Configurations;
 
 //This one will merge with the original one in AppSettings
 public partial class FeatureConfiguration

@@ -2,7 +2,7 @@
 using Carter;
 using Mapster;
 using MediatR;
-using Subscription.API.Dtos;
+using Subscription.API.UserSubscriptions.Dtos;
 
 namespace Subscription.API.UserSubscriptions.Features.GetUserSubscriptions;
 

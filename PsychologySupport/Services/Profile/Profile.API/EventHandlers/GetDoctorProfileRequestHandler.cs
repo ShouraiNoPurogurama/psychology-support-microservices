@@ -10,9 +10,15 @@ public class GetDoctorProfileRequestHandler(ProfileDbContext dbContext) : IConsu
     {
         var doctorProfile = await dbContext.DoctorProfiles.FindAsync(context.Message.DoctorId);
 
+        if (context.Message.UserId is not null)
+        {
+            doctorProfile = await dbContext.DoctorProfiles.FirstOrDefaultAsync(p => p.UserId == context.Message.UserId);
+        }
+
         if (doctorProfile is null)
         {
-            await context.RespondAsync(new GetDoctorProfileResponse(false, default, UserGender.Else, default, default, default));
+            await context.RespondAsync(new GetDoctorProfileResponse(false, Guid.Empty, default, UserGender.Else, default, default,
+                default));
             return;
         }
 

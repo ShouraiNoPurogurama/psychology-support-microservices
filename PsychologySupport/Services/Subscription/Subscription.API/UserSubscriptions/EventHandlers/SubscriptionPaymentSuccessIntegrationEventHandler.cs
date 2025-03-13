@@ -1,16 +1,15 @@
 ﻿using BuildingBlocks.Messaging.Events.Subscription;
 using MassTransit;
-using Subscription.API.Data;
+using MediatR;
 using Subscription.API.Data.Common;
+using Subscription.API.UserSubscriptions.Features.UpdateSubscriptionStatus;
 
 namespace Subscription.API.UserSubscriptions.EventHandlers;
 
-public class SubscriptionPaymentSuccessIntegrationEventHandler(SubscriptionDbContext dbContext) : IConsumer<SubscriptionPaymentSuccessIntegrationEvent>
+public class SubscriptionPaymentSuccessIntegrationEventHandler(ISender sender) : IConsumer<SubscriptionPaymentSuccessIntegrationEvent>
 {
     public async Task Consume(ConsumeContext<SubscriptionPaymentSuccessIntegrationEvent> context)
     {
-        var subscription = await dbContext.UserSubscriptions.FindAsync(context.Message.SubscriptionId);
-        subscription!.Status = SubscriptionStatus.Active;
-        await dbContext.SaveChangesAsync();
+        await sender.Send(new UpdateUserSubscriptionStatusCommand(context.Message.SubscriptionId, SubscriptionStatus.Active));
     }
 }

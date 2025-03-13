@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Scheduling.API.Data.Common
+namespace Scheduling.API.Enums
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum ScheduleActivityStatus

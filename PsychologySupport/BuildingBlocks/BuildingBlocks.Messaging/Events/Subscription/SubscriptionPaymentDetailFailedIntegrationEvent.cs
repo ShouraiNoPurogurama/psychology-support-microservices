@@ -1,6 +1,6 @@
 ﻿namespace BuildingBlocks.Messaging.Events.Subscription;
 
-public record SubscriptionPaymentFailedIntegrationEvent(
+public record SubscriptionPaymentDetailFailedIntegrationEvent(
     Guid SubscriptionId,
     string PatientEmail,
     string? PromoCode,

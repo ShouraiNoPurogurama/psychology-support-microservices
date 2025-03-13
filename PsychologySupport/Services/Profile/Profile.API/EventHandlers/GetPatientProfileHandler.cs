@@ -11,9 +11,14 @@ public class GetPatientProfileHandler(ProfileDbContext dbContext) : IConsumer<Ge
     {
         PatientProfile? patientProfile = await dbContext.PatientProfiles.FindAsync(context.Message.PatientId); 
         
+        if (context.Message.UserId is not null)
+        {
+            patientProfile = await dbContext.PatientProfiles.FirstOrDefaultAsync(p => p.UserId == context.Message.UserId);
+        }
+        
         if (patientProfile is null)
         {
-            await context.RespondAsync(new GetPatientProfileResponse(false, string.Empty, UserGender.Else, string.Empty, string.Empty, string.Empty, string.Empty, String.Empty));
+            await context.RespondAsync(new GetPatientProfileResponse( false,Guid.Empty,  string.Empty, UserGender.Else, string.Empty, string.Empty, string.Empty, string.Empty, String.Empty));
             return;
         }
 

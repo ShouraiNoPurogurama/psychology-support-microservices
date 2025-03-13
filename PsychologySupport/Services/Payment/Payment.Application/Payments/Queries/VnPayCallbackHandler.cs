@@ -75,6 +75,14 @@ public class VnPayCallbackHandler(IPaymentDbContext dbContext)
                     case PaymentType.Booking:
                         //TODO Activate booking for patient by adjusting the status
                         //Send notification to patient Email and web account
+                        
+                        payment.AddPaymentDetail(
+                            PaymentDetail.Of(finalPrice, request.VnPayCallback.TransactionCode).MarkAsSuccess()
+                        );
+
+                        payment.MarkAsCompleted(patientEmail!);
+
+                        await dbContext.SaveChangesAsync(cancellationToken);
                         break;
                 }
 
@@ -85,30 +93,33 @@ public class VnPayCallbackHandler(IPaymentDbContext dbContext)
         else if (!request.VnPayCallback.Success)
         {
             //TODO Re-enable promo code and gift code used by the patient
-            //Delete user subscription if payment is expired
+            //Send notification to patient Email and web account
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                switch (paymentType)
-                {
-                    case PaymentType.BuySubscription:
-                        //TODO remove subscription for patient by adjusting the status
-                        //Send notification to patient Email and web account
+                var paymentDetail = PaymentDetail.Of(finalPrice, request.VnPayCallback.TransactionCode);
 
-                        var paymentDetail = PaymentDetail.Of(finalPrice, request.VnPayCallback.TransactionCode);
+                payment.AddFailedPaymentDetail(
+                    paymentDetail, patientEmail!, promoCode, giftCodeId
+                );
 
-                        payment.AddFailedPaymentDetail(
-                            paymentDetail, patientEmail!, promoCode, giftCodeId
-                        );
+                await dbContext.SaveChangesAsync(cancellationToken);
 
-                        await dbContext.SaveChangesAsync(cancellationToken);
-
-                        break;
-
-                    case PaymentType.Booking:
-                        //TODO Activate booking for patient by adjusting the status
-                        //Send notification to patient Email and web account
-                        break;
-                }
+                //
+                // switch (paymentType)
+                // {
+                //     case PaymentType.BuySubscription:
+                //         //TODO remove subscription for patient by adjusting the status
+                //         
+                //         
+                //         
+                //         break;
+                //
+                //     case PaymentType.Booking:
+                //         //Revert booking for patient by adjusting the status
+                //         //Cancel booking for doctors
+                //         
+                //         break;
+                // }
 
                 scope.Complete();
             }

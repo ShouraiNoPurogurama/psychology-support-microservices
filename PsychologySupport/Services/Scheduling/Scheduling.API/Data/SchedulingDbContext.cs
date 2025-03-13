@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Scheduling.API.Data.Common;
+using Scheduling.API.Enums;
 using Scheduling.API.Models;
 
 namespace Scheduling.API.Data

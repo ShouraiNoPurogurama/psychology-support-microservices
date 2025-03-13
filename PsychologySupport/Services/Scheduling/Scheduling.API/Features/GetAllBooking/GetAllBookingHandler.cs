@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
 using Microsoft.AspNetCore.Mvc;
-using Scheduling.API.Data.Common;
 using Scheduling.API.Dtos;
+using Scheduling.API.Enums;
 
 namespace Scheduling.API.Features.GetAllBooking
 {

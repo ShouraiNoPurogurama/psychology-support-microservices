@@ -2,7 +2,7 @@
 
 namespace Payment.Domain.Events;
 
-public record SubscriptionPaymentDetailCompletedEvent(
-    Guid SubscriptionId,
+public record BookingPaymentDetailCompletedEvent(
+    Guid BookingId,
     string PatientEmail,
     decimal FinalPrice) : IDomainEvent;

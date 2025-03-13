@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Payment;
 using BuildingBlocks.Messaging.Events.Profile;
@@ -6,8 +7,8 @@ using BuildingBlocks.Utils;
 using Mapster;
 using MassTransit;
 using Promotion.Grpc;
-using Scheduling.API.Data.Common;
 using Scheduling.API.Dtos;
+using Scheduling.API.Enums;
 using Scheduling.API.Models;
 
 namespace Scheduling.API.Features.CreateBooking
@@ -93,6 +94,7 @@ namespace Scheduling.API.Features.CreateBooking
             bookingCreatedEvent.FinalPrice = finalPrice;
             bookingCreatedEvent.PromoCode = promoCodeDto?.Code;
             bookingCreatedEvent.GiftId = dto.GiftCodeId;
+            bookingCreatedEvent.PaymentType = PaymentType.Booking;
 
             var paymentUrl = await paymentClient.GetResponse<GenerateBookingPaymentUrlResponse>(
                 bookingCreatedEvent.Adapt<GenerateBookingPaymentUrlRequest>(), cancellationToken);

@@ -1,4 +1,4 @@
-﻿using Scheduling.API.Data.Common;
+﻿using Scheduling.API.Enums;
 
 namespace Scheduling.API.Dtos
 {
