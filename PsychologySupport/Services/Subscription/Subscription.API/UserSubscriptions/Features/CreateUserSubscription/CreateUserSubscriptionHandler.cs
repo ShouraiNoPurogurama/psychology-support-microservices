@@ -1,8 +1,10 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Payment;
+using BuildingBlocks.Messaging.Events.Profile;
 using Mapster;
 using MassTransit;
+using Profile.API.PatientProfiles.Models;
 using Promotion.Grpc;
 using Subscription.API.Data;
 using Subscription.API.ServicePackages.Models;
@@ -13,22 +15,32 @@ namespace Subscription.API.UserSubscriptions.Features.CreateUserSubscription;
 
 public record CreateUserSubscriptionCommand(CreateUserSubscriptionDto UserSubscription) : ICommand<CreateUserSubscriptionResult>;
 
-public record CreateUserSubscriptionResult(Guid Id);
+public record CreateUserSubscriptionResult(Guid Id, string PaymentUrl);
 
 public class CreateUserSubscriptionHandler(
     SubscriptionDbContext context,
-    IPublishEndpoint publishEndpoint,
+    IRequestClient<GenerateSubscriptionPaymentUrlRequest> paymentClient,
+    IRequestClient<GetPatientProfileRequest> getPatientProfileClient,
     PromotionService.PromotionServiceClient promotionService)
     : ICommandHandler<CreateUserSubscriptionCommand, CreateUserSubscriptionResult>
 {
     public async Task<CreateUserSubscriptionResult> Handle(CreateUserSubscriptionCommand request,
         CancellationToken cancellationToken)
     {
+        var patient =
+            await getPatientProfileClient.GetResponse<GetPatientProfileResponse>(
+                new GetPatientProfileRequest(request.UserSubscription.PatientId), cancellationToken);
+
+        if (!patient.Message.PatientExists)
+        {
+            throw new NotFoundException(nameof(PatientProfile), request.UserSubscription.PatientId);
+        }
+
         var dto = request.UserSubscription;
 
-        var servicePackage = await context.ServicePackages
-                                 .FindAsync([dto.ServicePackageId], cancellationToken)
-                             ?? throw new NotFoundException(nameof(ServicePackage), dto.ServicePackageId);
+        ServicePackage servicePackage = await context.ServicePackages
+                                            .FindAsync([dto.ServicePackageId], cancellationToken)
+                                        ?? throw new NotFoundException(nameof(ServicePackage), dto.ServicePackageId);
 
         #region Calculate price after deducting promo code and gift code
 
@@ -43,20 +55,29 @@ public class CreateUserSubscriptionHandler(
         await context.SaveChangesAsync(cancellationToken);
 
         #endregion
-        
+
         #region Publish event to Payment
 
-        var subscriptionCreatedEvent = dto.Adapt<UserSubscriptionCreatedIntegrationEvent>();
-        servicePackage.Adapt(subscriptionCreatedEvent);
+        var subscriptionCreatedEvent = dto.Adapt<GenerateSubscriptionPaymentUrlRequest>();
         subscriptionCreatedEvent.SubscriptionId = userSubscription.Id;
+        subscriptionCreatedEvent.ServicePackageId = servicePackage.Id;
+        subscriptionCreatedEvent.PatientId = userSubscription.PatientId;
+        subscriptionCreatedEvent.PatientEmail = patient.Message.Email;
+        subscriptionCreatedEvent.DurationDays = servicePackage.DurationDays;
         subscriptionCreatedEvent.FinalPrice = finalPrice;
-        subscriptionCreatedEvent.PromoCodeId = promoCodeId;
+        subscriptionCreatedEvent.PromoCode = promoCode?.Code;
 
-            #endregion
+        // await publishEndpoint.Publish(subscriptionCreatedEvent, cancellationToken);
+        var paymentUrl =
+            await paymentClient.GetResponse<GenerateSubscriptionPaymentUrlResponse>(
+                subscriptionCreatedEvent.Adapt<GenerateSubscriptionPaymentUrlRequest>(), cancellationToken);
 
-        await publishEndpoint.Publish(subscriptionCreatedEvent, cancellationToken);
+        if (paymentUrl.Message is null)
+            throw new BadRequestException("Cannot create payment url.");
 
-        return new CreateUserSubscriptionResult(userSubscription.Id);
+        #endregion
+
+        return new CreateUserSubscriptionResult(userSubscription.Id, paymentUrl.Message.Url);
     }
 
     private async Task<(decimal finalPrice, PromoCodeActivateDto? promotion)> CalculateFinalPriceAsync(
@@ -66,15 +87,19 @@ public class CreateUserSubscriptionHandler(
     {
         var finalPrice = servicePackage.Price;
 
+        if (string.IsNullOrEmpty(dto.PromoCode) && string.IsNullOrEmpty(dto.GiftId.ToString()))
+            return (finalPrice, null);
+
         //Apply promotion
         var promotion = (await promotionService.GetPromotionByCodeAsync(new GetPromotionByCodeRequest()
         {
-            Code = dto.PromoCode
+            Code = dto.PromoCode,
+            IgnoreExpired = false
         }, cancellationToken: cancellationToken)).PromoCode;
 
         if (promotion is not null)
         {
-            finalPrice *= promotion.Value;
+            finalPrice *= 0.01m * promotion.Value;
             await promotionService.ConsumePromoCodeAsync(new ConsumePromoCodeRequest()
             {
                 PromoCodeId = promotion.Id,
@@ -95,6 +120,7 @@ public class CreateUserSubscriptionHandler(
 
         finalPrice -= (decimal)giftCode.MoneyValue;
         finalPrice = Math.Max(finalPrice, 0);
+
         await promotionService.ConsumeGiftCodeAsync(new ConsumeGiftCodeRequest()
         {
             GiftCodeId = giftCode.Id

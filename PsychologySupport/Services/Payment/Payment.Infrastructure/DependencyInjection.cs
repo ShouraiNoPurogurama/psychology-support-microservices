@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Payment.Application.Data;
 using Payment.Application.ServiceContracts;
 using Payment.Infrastructure.Data;
+using Payment.Infrastructure.Extensions;
 using Payment.Infrastructure.Services;
 
 namespace Payment.Infrastructure;
@@ -22,7 +23,8 @@ public static class DependencyInjection
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
         services.AddScoped<IPaymentDbContext, PaymentDbContext>();
-
+        services.RegisterMapsterConfiguration();
+        
         services.AddDbContext<PaymentDbContext>((serviceProvider, options) =>
         {
             options.AddInterceptors(serviceProvider.GetServices<ISaveChangesInterceptor>());

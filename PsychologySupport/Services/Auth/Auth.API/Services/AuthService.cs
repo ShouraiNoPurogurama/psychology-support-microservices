@@ -5,8 +5,10 @@ using Auth.API.Models;
 using Auth.API.ServiceContracts;
 using BuildingBlocks.Constants;
 using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.Profile;
 using BuildingBlocks.Utils;
 using Mapster;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

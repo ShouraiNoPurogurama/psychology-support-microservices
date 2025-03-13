@@ -5,7 +5,7 @@ public class AppSettings
     public ServiceDbContextConfiguration ServiceDbContext { get; set; } = null!;
     
     // public BrokerConfiguration BrokerConfiguration { get; set; } = null!;
-    public FeatureConfiguration Features { get; set; } = null!;
+    public Emails.Configurations.FeatureConfiguration Features { get; set; } = null!;
     public string BaseUrl { get; set; } = null!;
 }
 

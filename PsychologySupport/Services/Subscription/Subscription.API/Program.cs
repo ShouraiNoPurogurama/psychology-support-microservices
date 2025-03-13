@@ -16,9 +16,9 @@ services.AddExceptionHandler<CustomExceptionHandler>();
 services.RegisterMapsterConfiguration();
 
 services.AddGrpcClient<PromotionService.PromotionServiceClient>(options =>
-{
-    options.Address = new Uri(builder.Configuration["GrpcSettings:PromotionUrl"]!);
-})
+    {
+        options.Address = new Uri(builder.Configuration["GrpcSettings:PromotionUrl"]!);
+    })
     .ConfigurePrimaryHttpMessageHandler(() =>
     {
         var handler = new HttpClientHandler

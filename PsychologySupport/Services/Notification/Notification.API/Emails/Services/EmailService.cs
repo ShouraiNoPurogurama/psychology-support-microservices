@@ -2,6 +2,7 @@
 using System.Text;
 using Microsoft.Extensions.Options;
 using Notification.API.Data;
+using Notification.API.Emails.Configurations;
 using Notification.API.Emails.ServiceContracts;
 
 namespace Notification.API.Emails.Services;

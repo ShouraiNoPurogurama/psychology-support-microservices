@@ -3,9 +3,10 @@ using System.Web;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.Subscription;
+using MassTransit;
+using Payment.Application.Data;
 using Payment.Application.Payments.Dtos;
-using Payment.Application.ServiceContracts;
-using Payment.Domain.Enums;
 
 namespace Payment.Application.Payments.Queries;
 
@@ -13,26 +14,43 @@ public record VnPayCallbackQuery(VnPayCallbackDto VnPayCallback) : IQuery<VnPayC
 
 public record VnPayCallbackResult(string CallbackUrl);
 
-public class VnPayCallbackHandler(IVnPayService vnPayService) : IQueryHandler<VnPayCallbackQuery, VnPayCallbackResult>
+public class VnPayCallbackHandler(IPaymentDbContext dbContext)
+    : IQueryHandler<VnPayCallbackQuery, VnPayCallbackResult>
 {
     public async Task<VnPayCallbackResult> Handle(VnPayCallbackQuery request, CancellationToken cancellationToken)
     {
-        var orderInfo = request.VnPayCallback.OrderInfo;
+        var orderInfo = HttpUtility.UrlDecode(request.VnPayCallback.OrderInfo);
         var parameters = HttpUtility.ParseQueryString(orderInfo!);
-        var patientId = Guid.Parse(parameters["PatientId"]);
 
-        if (!Enum.TryParse(parameters["PaymentMethod"], true, out PaymentMethodName paymentMethodName))
-        {
+        Enum.TryParse(parameters[nameof(BuySubscriptionDto.PaymentMethod)], true, out PaymentMethodName paymentMethodName);
+
+        if (paymentMethodName != PaymentMethodName.VNPay)
             throw new BadRequestException("Invalid payment method");
-        }
 
-        // Parse PaymentType
-        if (!Enum.TryParse(parameters["PaymentType"], true, out PaymentType paymentType))
+        if (!Enum.TryParse(parameters[nameof(BuySubscriptionDto.PaymentType)], true, out PaymentType paymentType))
         {
             throw new BadRequestException("Invalid payment type");
         }
 
-        //Handle payment success
+        var promoCode = string.IsNullOrWhiteSpace(parameters[nameof(BuySubscriptionDto.PromoCode)])
+            ? null
+            : parameters[nameof(BuySubscriptionDto.PromoCode)];
+
+        Guid? giftCodeId = string.IsNullOrWhiteSpace(parameters[nameof(BuySubscriptionDto.GiftId)])
+            ? null
+            : Guid.Parse(parameters[nameof(BuySubscriptionDto.GiftId)]!);
+
+        Guid? subscriptionId = string.IsNullOrWhiteSpace(parameters[nameof(BuySubscriptionDto.SubscriptionId)])
+            ? null
+            : Guid.Parse(parameters[nameof(BuySubscriptionDto.SubscriptionId)]!);
+
+        var paymentId = Guid.Parse(parameters[nameof(Domain.Models.Payment.Id)]!);
+        var patientEmail = parameters[nameof(BuySubscriptionDto.PatientEmail)];
+
+        var finalPrice = 0.01m * request.VnPayCallback.Amount;
+        var payment = await dbContext.Payments.FindAsync([paymentId], cancellationToken: cancellationToken)
+                      ?? throw new NotFoundException("Payment", paymentId);
+
         if (request.VnPayCallback.Success)
         {
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
@@ -40,36 +58,70 @@ public class VnPayCallbackHandler(IVnPayService vnPayService) : IQueryHandler<Vn
                 switch (paymentType)
                 {
                     case PaymentType.BuySubscription:
-                        //TODO Activate subscription for patient by adjusting the status
+                        //TODO
+                        //Store payment details to db
+                        //Activate subscription for patient by adjusting the status
                         //Send notification to patient Email and web account
+
+                        payment.AddPaymentDetail(
+                            PaymentDetail.Of(finalPrice, request.VnPayCallback.TransactionCode).MarkAsSuccess()
+                        );
+
+                        payment.MarkAsCompleted(patientEmail!);
+
+                        await dbContext.SaveChangesAsync(cancellationToken);
                         break;
 
                     case PaymentType.Booking:
                         //TODO Activate booking for patient by adjusting the status
                         //Send notification to patient Email and web account
+                        
+                        payment.AddPaymentDetail(
+                            PaymentDetail.Of(finalPrice, request.VnPayCallback.TransactionCode).MarkAsSuccess()
+                        );
+
+                        payment.MarkAsCompleted(patientEmail!);
+
+                        await dbContext.SaveChangesAsync(cancellationToken);
                         break;
                 }
+
+                scope.Complete();
             }
         }
         //Handle payment failure
         else if (!request.VnPayCallback.Success)
         {
             //TODO Re-enable promo code and gift code used by the patient
-            //Delete user subscription if payment is expired
+            //Send notification to patient Email and web account
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                switch (paymentType)
-                {
-                    case PaymentType.BuySubscription:
-                        //TODO Activate subscription for patient by adjusting the status
-                        //Send notification to patient Email and web account
-                        break;
+                var paymentDetail = PaymentDetail.Of(finalPrice, request.VnPayCallback.TransactionCode);
 
-                    case PaymentType.Booking:
-                        //TODO Activate booking for patient by adjusting the status
-                        //Send notification to patient Email and web account
-                        break;
-                }
+                payment.AddFailedPaymentDetail(
+                    paymentDetail, patientEmail!, promoCode, giftCodeId
+                );
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+
+                //
+                // switch (paymentType)
+                // {
+                //     case PaymentType.BuySubscription:
+                //         //TODO remove subscription for patient by adjusting the status
+                //         
+                //         
+                //         
+                //         break;
+                //
+                //     case PaymentType.Booking:
+                //         //Revert booking for patient by adjusting the status
+                //         //Cancel booking for doctors
+                //         
+                //         break;
+                // }
+
+                scope.Complete();
             }
         }
 

@@ -1,100 +1,157 @@
-﻿namespace Scheduling.API.Features.CreateBooking
+﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Enums;
+using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.Payment;
+using BuildingBlocks.Messaging.Events.Profile;
+using BuildingBlocks.Utils;
+using Mapster;
+using MassTransit;
+using Promotion.Grpc;
+using Scheduling.API.Dtos;
+using Scheduling.API.Enums;
+using Scheduling.API.Models;
+
+namespace Scheduling.API.Features.CreateBooking
 {
-    using BuildingBlocks.CQRS;
-    using BuildingBlocks.Messaging.Events.Profile;
-    using MassTransit;
-    using Scheduling.API.Data.Common;
-    using Scheduling.API.Exceptions;
-    using Scheduling.API.Models;
+    public record CreateBookingCommand(CreateBookingDto BookingDto) : ICommand<CreateBookingResult>;
 
-    public record CreateBookingCommand(
-        Guid DoctorId,
-        Guid PatientId,
-        DateOnly Date,
-        TimeOnly StartTime,
-        int Duration,
-        decimal Price,
-        Guid? PromoCodeId,
-        Guid? GiftCodeId
-    ) : ICommand<CreateBookingResult>;
+    public record CreateBookingResult(Guid BookingId, string BookingCode, string PaymentUrl);
 
-    public record CreateBookingResult(Guid BookingId, string BookingCode);
-
-    public class CreateBookingHandler : ICommandHandler<CreateBookingCommand, CreateBookingResult>
+    public class CreateBookingHandler(
+        IRequestClient<GetPatientProfileRequest> patientClient,
+        IRequestClient<GetDoctorProfileRequest> doctorClient,
+        IRequestClient<GenerateBookingPaymentUrlRequest> paymentClient,
+        PromotionService.PromotionServiceClient promotionService,
+        SchedulingDbContext dbContext)
+        : ICommandHandler<CreateBookingCommand, CreateBookingResult>
     {
-        private readonly IRequestClient<PatientProfileExistenceRequest> _patientClient;
-        private readonly IRequestClient<DoctorProfileExistenceRequest> _doctorClient;
-        private readonly SchedulingDbContext _context;
-
-        public CreateBookingHandler(
-            SchedulingDbContext context,
-            IRequestClient<PatientProfileExistenceRequest> patientClient,
-            IRequestClient<DoctorProfileExistenceRequest> doctorClient)
+        public async Task<CreateBookingResult> Handle(CreateBookingCommand command, CancellationToken cancellationToken)
         {
-            _context = context;
-            _patientClient = patientClient;
-            _doctorClient = doctorClient;
-        }
-
-        public async Task<CreateBookingResult> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
-        {
+            var dto = command.BookingDto;
             // check patient
-            var patientResponse = await _patientClient.GetResponse<PatientProfileExistenceResponse>(
-                new PatientProfileExistenceRequest(request.PatientId), cancellationToken);
+            var patient = await patientClient.GetResponse<GetPatientProfileResponse>(
+                new GetPatientProfileRequest(dto.PatientId), cancellationToken);
 
-            if (!patientResponse.Message.IsExist)
-                throw new SchedulingNotFoundException("Patient", request.PatientId);
+            if (!patient.Message.PatientExists)
+                throw new NotFoundException("Patient", dto.PatientId);
 
             // check doctor
-            var doctorResponse = await _doctorClient.GetResponse<DoctorProfileExistenceResponse>(
-                new DoctorProfileExistenceRequest(request.DoctorId), cancellationToken);
+            var doctor = await doctorClient.GetResponse<GetDoctorProfileResponse>(
+                new GetDoctorProfileRequest(dto.DoctorId), cancellationToken);
 
-            if (!doctorResponse.Message.IsExist)
-                throw new SchedulingNotFoundException("Doctor", request.DoctorId);
+            if (!doctor.Message.DoctorExists)
+                throw new NotFoundException("Doctor", dto.DoctorId);
 
-            
-            var bookingCode = GenerateBookingCode(request.Date);
+            var isValidSlotDuration = await dbContext.DoctorSlotDurations
+                .AnyAsync(d => d.DoctorId == dto.DoctorId && d.SlotDuration == dto.Duration, cancellationToken);
+
+            if (!isValidSlotDuration)
+                throw new BadRequestException("Slot duration does not match with doctor's slot duration");
+
+            // check booking time
+            var bookingExistInSameTime = await dbContext.Bookings
+                .AnyAsync(b => b.DoctorId == dto.DoctorId && b.Date == dto.Date && b.StartTime == dto.StartTime,
+                    cancellationToken);
+
+            if (bookingExistInSameTime)
+            {
+                throw new BadRequestException("Doctor is not available in this time");
+            }
+
+            //TODO Check price per hour of doctor matching with Experience and Pricing Service
+
+            var (finalPrice, promoCodeDto) = await CalculateFinalPriceAsync(cancellationToken, dto);
+
+            Guid.TryParse(promoCodeDto?.Code, out var promoCodeId);
+
+            var bookingCode = CoreUtils.GenerateBookingCode(dto.Date);
 
             var booking = new Booking
             {
                 Id = Guid.NewGuid(),
                 BookingCode = bookingCode,
-                DoctorId = request.DoctorId,
-                PatientId = request.PatientId,
-                Date = request.Date,
-                StartTime = request.StartTime,
-                Duration = request.Duration,
-                Price = request.Price,
-                PromoCodeId = request.PromoCodeId,
-                GiftCodeId = request.GiftCodeId,
+                DoctorId = dto.DoctorId,
+                PatientId = dto.PatientId,
+                Date = dto.Date,
+                StartTime = dto.StartTime,
+                Duration = dto.Duration,
+                Price = finalPrice,
+                PromoCodeId = promoCodeId != Guid.Empty ? promoCodeId : null,
+                GiftCodeId = dto.GiftCodeId,
                 Status = BookingStatus.Pending
             };
 
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync(cancellationToken);
+            dbContext.Bookings.Add(booking);
+            await dbContext.SaveChangesAsync(cancellationToken);
 
-            return new CreateBookingResult(booking.Id, bookingCode);
+            #region Publish event to Payment
+
+            var bookingCreatedEvent = dto.Adapt<GenerateBookingPaymentUrlRequest>();
+            bookingCreatedEvent.BookingId = booking.Id;
+            bookingCreatedEvent.PatientId = dto.PatientId;
+            bookingCreatedEvent.PatientEmail = patient.Message.Email;
+            bookingCreatedEvent.DoctorEmail = doctor.Message.Email;
+            bookingCreatedEvent.FinalPrice = finalPrice;
+            bookingCreatedEvent.PromoCode = promoCodeDto?.Code;
+            bookingCreatedEvent.GiftId = dto.GiftCodeId;
+            bookingCreatedEvent.PaymentType = PaymentType.Booking;
+
+            var paymentUrl = await paymentClient.GetResponse<GenerateBookingPaymentUrlResponse>(
+                bookingCreatedEvent.Adapt<GenerateBookingPaymentUrlRequest>(), cancellationToken);
+
+            if (paymentUrl.Message is null)
+                throw new BadRequestException("Cannot create payment url.");
+
+            #endregion
+
+            return new CreateBookingResult(booking.Id, bookingCode, paymentUrl.Message.Url);
         }
 
-        private string GenerateBookingCode(DateOnly date)
+        private async Task<(decimal finalPrice, PromoCodeActivateDto? promotion)> CalculateFinalPriceAsync(
+            CancellationToken cancellationToken,
+            CreateBookingDto dto)
         {
-            var randomString = GenerateRandomString();
-            return $"EE-{randomString}-{date:yyyyMMdd}";
-        }
+            var finalPrice = dto.Price;
 
-        private static string GenerateRandomString(int length = 6)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            Random random = new Random();
-            char[] stringChars = new char[length];
+            if (string.IsNullOrEmpty(dto.PromoCode) && string.IsNullOrEmpty(dto.GiftCodeId.ToString())) 
+                return (finalPrice, null);
 
-            for (int i = 0; i < length; i++)
+            var promotion = (await promotionService.GetPromotionByCodeAsync(new GetPromotionByCodeRequest
             {
-                stringChars[i] = chars[random.Next(chars.Length)];
+                Code = dto.PromoCode,
+                IgnoreExpired = false
+            }, cancellationToken: cancellationToken)).PromoCode;
+
+            if (promotion is not null)
+            {
+                finalPrice *= 0.01m * promotion.Value;
+                await promotionService.ConsumePromoCodeAsync(new ConsumePromoCodeRequest()
+                {
+                    PromoCodeId = promotion.Id,
+                });
             }
 
-            return new string(stringChars);
+            //Apply Gift
+            if (dto.GiftCodeId is null) return (finalPrice, promotion);
+
+            var giftCode = (await promotionService.GetGiftCodeByPatientIdAsync(new GetGiftCodeByPatientIdRequest()
+                {
+                    Id = dto.PatientId.ToString()
+                }, cancellationToken: cancellationToken))
+                .GiftCode
+                .FirstOrDefault(g => g.Id == dto.GiftCodeId.ToString());
+
+            if (giftCode is null) return (finalPrice, promotion);
+
+            finalPrice -= (decimal)giftCode.MoneyValue;
+            finalPrice = Math.Max(finalPrice, 0);
+
+            await promotionService.ConsumeGiftCodeAsync(new ConsumeGiftCodeRequest()
+            {
+                GiftCodeId = giftCode.Id
+            });
+
+            return (finalPrice, promotion);
         }
     }
-
 }

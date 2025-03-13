@@ -2,7 +2,6 @@
 using Mapster;
 using MediatR;
 using Scheduling.API.Dtos;
-using Scheduling.API.Features.DoctorSchedule;
 
 namespace Scheduling.API.Features.GetDoctorSchedule
 {

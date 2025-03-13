@@ -5,13 +5,19 @@ using System.Text;
 using Auth.API.Models;
 using Auth.API.ServiceContracts;
 using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.Profile;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Exception = System.Exception;
 
 namespace Auth.API.Services;
 
-public class TokenService(UserManager<User> userManager, IConfiguration configuration) : ITokenService
+public class TokenService(
+    UserManager<User> userManager,
+    IConfiguration configuration,
+    IRequestClient<GetPatientProfileRequest> patientClient,
+    IRequestClient<GetDoctorProfileRequest> doctorClient) : ITokenService
 {
     private readonly PasswordHasher<User> _passwordHasher = new();
 
@@ -22,12 +28,26 @@ public class TokenService(UserManager<User> userManager, IConfiguration configur
         var roles = await userManager.GetRolesAsync(user);
         var role = roles.FirstOrDefault() ?? "User";
 
+        var profileId = Guid.Empty;
+
+        if (roles.Contains("Doctor"))
+        {
+            var doctorProfile = await doctorClient.GetResponse<GetDoctorProfileResponse>(new GetDoctorProfileRequest(Guid.Empty, user.Id));
+            profileId = doctorProfile.Message.Id;
+        }
+        else if (roles.Contains("User"))
+        {
+            var patientProfile = await patientClient.GetResponse<GetPatientProfileResponse>(new GetPatientProfileRequest(Guid.Empty, user.Id));
+            profileId = patientProfile.Message.Id;
+        }
+
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Email!),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("userId", user.Id.ToString()),
-            new Claim("role", role),
+            new Claim("profileId", profileId.ToString()),
+            new Claim("role", string.Join(",", roles)),
             new Claim("name", user.UserName!)
         };
 
@@ -42,7 +62,7 @@ public class TokenService(UserManager<User> userManager, IConfiguration configur
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    
+
     public Guid GetUserIdFromHttpContext(HttpContext httpContext)
     {
         if (!httpContext.Request.Headers.ContainsKey("Authorization"))

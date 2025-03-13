@@ -2,4 +2,4 @@
 
 namespace Payment.Application.Payments.Dtos;
 
-public record BasePaymentDto(decimal TotalAmount, Guid PatientId, PaymentMethodName PaymentMethod);
+public record BasePaymentDto(decimal FinalPrice, Guid PatientId, PaymentMethodName PaymentMethod);

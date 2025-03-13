@@ -1,19 +1,18 @@
 ﻿using Carter;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Payment.Application.Payments.Dtos;
 using Payment.Application.Payments.Queries;
 
 namespace Payment.API.Endpoints;
 
-public record VnPayCallbackRequest(VnPayCallbackDto VnPayCallback);
-
 public class VnPayCallbackEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("payments/callback", async (VnPayCallbackRequest request, ISender sender) =>
+        app.MapGet("payments/callback/{vnPayCallbackRequest}", async ([AsParameters] VnPayCallbackDto vnPayCallbackRequest, ISender sender) =>
         {
-            var query = new VnPayCallbackQuery(request.VnPayCallback);
+            var query = new VnPayCallbackQuery(vnPayCallbackRequest);
 
             var result = await sender.Send(query);
 

@@ -60,12 +60,19 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
     public override async Task<GetPromotionByCodeResponse> GetPromotionByCode(GetPromotionByCodeRequest request,
         ServerCallContext context)
     {
-        PromoCode promoCode = await dbContext.PromoCodes
-                                  .Include(p => p.Promotion)
-                                  .ThenInclude(p => p.PromotionType)
-                                  .Where(p => p.Promotion.IsActive == true && p.IsActive == true)
-                                  .FirstOrDefaultAsync(p => p.Code.Equals(request.Code.Trim()))
-                              ?? throw new RpcException(new Status(StatusCode.NotFound, "Promo code not found"));
+        if (request.Code is null)
+        {
+            return new GetPromotionByCodeResponse
+            {
+                PromoCode = null
+            };
+        }
+        
+        var promoCode = await dbContext.PromoCodes
+            .Include(p => p.Promotion)
+            .ThenInclude(p => p.PromotionType)
+            .Where(p => p.Promotion.IsActive == true && (request.IgnoreExpired || p.IsActive == true))
+            .FirstOrDefaultAsync(p => p.Code.Equals(request.Code.Trim()));
 
         return new GetPromotionByCodeResponse
         {
@@ -100,8 +107,12 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
 
         var promotion = request.Adapt<Models.Promotion>();
 
-        var promotionType = await dbContext.PromotionTypes.FindAsync(request.PromotionTypeId)
-                            ?? throw new RpcException(new Status(StatusCode.NotFound, "Promotion type not found"));
+        var promotionType = await dbContext.PromotionTypes.FindAsync(request.PromotionTypeId);
+
+        if (promotionType is null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Promotion type not found"));
+        }
 
         promotion.Id = Guid.NewGuid().ToString();
         promotion.PromotionType = promotionType;
@@ -154,9 +165,16 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
         validator.ValidateGuid(request.PromotionId, "Promotion");
 
         var promotion = dbContext.Promotions
-                            .Include(p => p.PromoCodes)
-                            .FirstOrDefault(p => p.Id.Equals(request.PromotionId))
-                        ?? throw new RpcException(new Status(StatusCode.NotFound, "Promotion not found"));
+            .Include(p => p.PromoCodes)
+            .FirstOrDefault(p => p.Id.Equals(request.PromotionId));
+
+        if (promotion is null)
+        {
+            return new AddPromoCodesToPromotionResponse()
+            {
+                IsSuccess = false
+            };
+        }
 
         AddPromoCodesToPromotion(request.PromoCode, promotion);
 
@@ -171,8 +189,15 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
     public override async Task<AddGiftCodesToPromotionResponse> AddGiftCodesToPromotion(AddGiftCodesToPromotionRequest request,
         ServerCallContext context)
     {
-        var promotion = await dbContext.Promotions.FindAsync(request.PromotionId)
-                        ?? throw new RpcException(new Status(StatusCode.NotFound, "Promotion not found"));
+        var promotion = await dbContext.Promotions.FindAsync(request.PromotionId);
+
+        if (promotion is null)
+        {
+            return new AddGiftCodesToPromotionResponse()
+            {
+                IsSuccess = false
+            };
+        }
 
         var giftCode = request.CreateGiftCodeDto.Adapt<GiftCode>();
 
@@ -190,8 +215,15 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
 
     public override async Task<DeletePromotionResponse> DeletePromotion(DeletePromotionRequest request, ServerCallContext context)
     {
-        var promotion = await dbContext.Promotions.FindAsync(request.PromotionId)
-                        ?? throw new RpcException(new Status(StatusCode.NotFound, "Promotion not found"));
+        var promotion = await dbContext.Promotions.FindAsync(request.PromotionId);
+
+        if (promotion is null)
+        {
+            return new DeletePromotionResponse()
+            {
+                IsSuccess = false
+            };
+        }
 
         promotion.IsActive = false;
 
@@ -231,6 +263,50 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
         return new ConsumeGiftCodeResponse()
         {
             IsSuccess = true
+        };
+    }
+
+    public override async Task<ReactivatePromoCodeResponse> ReactivatePromoCode(ReactivatePromoCodeRequest request,
+        ServerCallContext context)
+    {
+        var promoCode = await dbContext.PromoCodes
+            .FirstOrDefaultAsync(p => p.Code.Equals(request.PromoCode.Trim()));
+
+        if(promoCode is null) 
+        {
+            return new ReactivatePromoCodeResponse
+            {
+                IsSuccess = false
+            };
+        }
+        
+        promoCode.IsActive = true;
+
+        return new ReactivatePromoCodeResponse
+        {
+            IsSuccess = await dbContext.SaveChangesAsync() > 0
+        };
+    }
+
+    public override async Task<ReactivateGiftCodeResponse> ReactivateGiftCode(ReactivateGiftCodeRequest request,
+        ServerCallContext context)
+    {
+        var giftCode = await dbContext.GiftCodes
+            .FindAsync(request.GiftId);
+        
+        if(giftCode is null) 
+        {
+            return new ReactivateGiftCodeResponse
+            {
+                IsSuccess = false
+            };
+        }
+        
+        giftCode.IsActive = true;
+        
+        return new ReactivateGiftCodeResponse
+        {
+            IsSuccess = await dbContext.SaveChangesAsync() > 0
         };
     }
 }

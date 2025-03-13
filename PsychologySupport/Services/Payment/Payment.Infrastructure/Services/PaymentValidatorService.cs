@@ -1,23 +1,21 @@
 ﻿using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Profile;
+using BuildingBlocks.Messaging.Events.Scheduling;
+using BuildingBlocks.Messaging.Events.Subscription;
+using Mapster;
 using MassTransit;
 using Payment.Application.Payments.Dtos;
 using Payment.Application.ServiceContracts;
-using Payment.Domain.Enums;
-using Payment.Domain.Models;
 
 namespace Payment.Infrastructure.Services;
 
-public class PaymentValidatorService : IPaymentValidatorService
+public class PaymentValidatorService(
+    IRequestClient<PatientProfileExistenceRequest> checkProfileClient,
+    IRequestClient<ValidateSubscriptionRequest> checkSubscriptionClient,
+    IRequestClient<ValidateBookingRequest> checkBookingClient)
+    : IPaymentValidatorService
 {
-    private readonly IRequestClient<PatientProfileExistenceRequest> _client;
-
-    public PaymentValidatorService(IRequestClient<PatientProfileExistenceRequest> client)
-    {
-        _client = client;
-    }
-
     public void ValidateVNPayMethod(PaymentMethodName paymentMethod)
     {
         if (paymentMethod != PaymentMethodName.VNPay)
@@ -30,23 +28,53 @@ public class PaymentValidatorService : IPaymentValidatorService
     {
         ValidateVNPayMethod(dto.PaymentMethod);
         await ValidatePatientAsync(dto.PatientId);
-        
-        // var servicePackage = 
-        
+        await ValidateSubscriptionAsync(dto);
     }
 
-    public Task ValidateBookingRequestAsync(BuySubscriptionDto dto)
+    public async Task ValidateBookingRequestAsync(BuyBookingDto dto)
     {
-        throw new NotImplementedException();
+        ValidateVNPayMethod(dto.PaymentMethod);
+        await ValidatePatientAsync(dto.PatientId);
+        await ValidateBookingAsync(dto);
     }
 
     public async Task ValidatePatientAsync(Guid patientId)
     {
-        var patient = await _client.GetResponse<PatientProfileExistenceResponse>(new PatientProfileExistenceRequest(patientId));
-        
+        var patient =
+            await checkProfileClient.GetResponse<PatientProfileExistenceResponse>(new PatientProfileExistenceRequest(patientId));
+
         if (!patient.Message.IsExist)
         {
             throw new BadRequestException("Patient not found");
+        }
+    }
+
+    public async Task ValidateSubscriptionAsync(BuySubscriptionDto dto)
+    {
+        var validationResult =
+            await checkSubscriptionClient.GetResponse<ValidateSubscriptionResponse>(dto.Adapt<ValidateSubscriptionRequest>());
+
+        if (!validationResult.Message.IsSuccess)
+        {
+            throw new BadRequestException(string.Join(", ", validationResult.Message.Errors));
+        }
+    }
+
+    public async Task ValidateBookingAsync(BuyBookingDto dto)
+    {
+        var validationResult =
+            await checkBookingClient.GetResponse<ValidateBookingResponse>
+            (dto.Adapt<ValidateBookingRequest>() with
+                {
+                    FinalPrice = dto.FinalPrice,
+                    Date = dto.Date,
+                    StartTime = dto.StartTime,
+                }
+            );
+
+        if (!validationResult.Message.IsSuccess)
+        {
+            throw new BadRequestException(string.Join(", ", validationResult.Message.Errors));
         }
     }
 }

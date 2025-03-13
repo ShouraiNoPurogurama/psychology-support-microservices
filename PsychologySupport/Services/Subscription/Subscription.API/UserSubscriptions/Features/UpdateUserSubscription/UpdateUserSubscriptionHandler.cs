@@ -11,26 +11,20 @@ public record UpdateUserSubscriptionCommand(UserSubscriptionDto UserSubscription
 
 public record UpdateUserSubscriptionResult(bool IsSuccess);
 
-public class UpdateUserSubscriptionHandler : ICommandHandler<UpdateUserSubscriptionCommand, UpdateUserSubscriptionResult>
+public class UpdateUserSubscriptionHandler(SubscriptionDbContext context)
+    : ICommandHandler<UpdateUserSubscriptionCommand, UpdateUserSubscriptionResult>
 {
-    private readonly SubscriptionDbContext _context;
-
-    public UpdateUserSubscriptionHandler(SubscriptionDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<UpdateUserSubscriptionResult> Handle(UpdateUserSubscriptionCommand request,
         CancellationToken cancellationToken)
     {
-        var existingSubscription = await _context.UserSubscriptions.FindAsync(request.UserSubscription.Id, cancellationToken)
+        var existingSubscription = await context.UserSubscriptions.FindAsync(request.UserSubscription.Id, cancellationToken)
                                    ?? throw new SubscriptionNotFoundException("User Subscription", request.UserSubscription.Id);
 
         existingSubscription = request.UserSubscription.Adapt(existingSubscription);
 
-        _context.Update(existingSubscription);
+        context.Update(existingSubscription);
 
-        var result = await _context.SaveChangesAsync(cancellationToken) > 0;
+        var result = await context.SaveChangesAsync(cancellationToken) > 0;
 
         return new UpdateUserSubscriptionResult(result);
     }

@@ -2,12 +2,16 @@
 
 namespace BuildingBlocks.Messaging.Events.Payment
 {
-    public record UserSubscriptionCreatedIntegrationEvent : IntegrationEvents
+    public record GenerateSubscriptionPaymentUrlRequest
     {
         //Subscription
         public Guid SubscriptionId { get; set; }
+        public Guid ServicePackageId { get; set; }
+        
         public Guid PatientId { get; set; }
-        public Guid? PromoCodeId { get; set; }
+        public string PatientEmail { get; set; }
+        
+        public string? PromoCode { get; set; }
         public Guid? GiftId { get; set; }
         
         //Service Package
@@ -18,6 +22,7 @@ namespace BuildingBlocks.Messaging.Events.Payment
         
         //Payment
         public PaymentMethodName PaymentMethodName { get; set; }
+        public PaymentType PaymentType { get; set; }
         public decimal FinalPrice { get; set; }
-    };
+    }
 }

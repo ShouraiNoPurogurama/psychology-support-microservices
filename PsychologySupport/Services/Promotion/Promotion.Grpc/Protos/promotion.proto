@@ -18,6 +18,8 @@ service PromotionService {
   rpc DeletePromotion(DeletePromotionRequest) returns (DeletePromotionResponse);
   rpc ConsumePromoCode(ConsumePromoCodeRequest) returns (ConsumePromoCodeResponse);
   rpc ConsumeGiftCode(ConsumeGiftCodeRequest) returns (ConsumeGiftCodeResponse);
+  rpc ReactivatePromoCode(ReactivatePromoCodeRequest) returns (ReactivatePromoCodeResponse);
+  rpc ReactivateGiftCode(ReactivateGiftCodeRequest) returns (ReactivateGiftCodeResponse);
 }
 
 message GetPromotionsByServicePackageIdRequest {
@@ -30,6 +32,7 @@ message GetPromotionsByServicePackageIdResponse {
 
 message GetPromotionByCodeRequest {
   string code = 1;
+  bool ignoreExpired = 2; //If true, it will ignore expired promotions
 }
 
 message GetPromotionByCodeResponse {
@@ -173,5 +176,21 @@ message ConsumeGiftCodeRequest {
 }
 
 message ConsumeGiftCodeResponse {
+  bool isSuccess = 1;
+}
+
+message ReactivatePromoCodeRequest {
+  string promoCode = 1;
+}
+
+message ReactivatePromoCodeResponse {
+  bool isSuccess = 1;
+}
+
+message ReactivateGiftCodeRequest {
+  string giftId = 1;
+}
+
+message ReactivateGiftCodeResponse {
   bool isSuccess = 1;
 }
