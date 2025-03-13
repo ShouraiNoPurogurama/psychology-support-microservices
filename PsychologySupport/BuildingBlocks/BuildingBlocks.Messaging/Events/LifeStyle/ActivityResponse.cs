@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 
 namespace BuildingBlocks.Messaging.Events.LifeStyle
 {
-    public record ActivityRequestResponse(IActivityDto Activity);
+    public record ActivityRequestResponse<T>(T Activity) where T : IActivityDto;
 
 }

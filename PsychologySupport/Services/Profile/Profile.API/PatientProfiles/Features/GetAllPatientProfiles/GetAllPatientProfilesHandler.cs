@@ -12,13 +12,12 @@ public record GetAllPatientProfilesQuery(
         [FromQuery] int PageIndex,
         [FromQuery] int PageSize,
         [FromQuery] string? Search = "", // FullName,PhoneNumber
-        [FromQuery] string? SortBy = "fullname", // sort fullname
+        [FromQuery] string? SortBy = "fullname", // sort fullname or createdat(MedicalRecord)
         [FromQuery] string? SortOrder = "asc", // asc or desc
         [FromQuery] UserGender? Gender = null, // filter
+        [FromQuery] MedicalRecordStatus? MedicalRecordStatusStatus = null, // filter Processing,Done
         [FromQuery] PersonalityTrait? PersonalityTrait = null) : IQuery<GetAllPatientProfilesResult>;
   
-
-
 public record GetAllPatientProfilesResult(PaginatedResult<GetPatientProfileDto> PaginatedResult);
 
 public class GetAllPatientProfilesHandler : IQueryHandler<GetAllPatientProfilesQuery, GetAllPatientProfilesResult>
@@ -43,25 +42,32 @@ public class GetAllPatientProfilesHandler : IQueryHandler<GetAllPatientProfilesQ
             .Include(p => p.MedicalHistory)
                 .ThenInclude(m => m.PhysicalSymptoms);
 
-        // Filter by Gender 
+        // Filter 
         if (request.Gender.HasValue)
         {
             query = query.Where(p => p.Gender == request.Gender.Value);
         }
 
-        // Filter by PersonalityTrait 
         if (request.PersonalityTrait.HasValue)
         {
             query = query.Where(p => p.PersonalityTraits == request.PersonalityTrait.Value);
         }
 
-        // Search by FullName or PhoneNumber
+        if (request.MedicalRecordStatusStatus.HasValue)
+        {
+            query = query.Where(p => p.MedicalRecords.Any(mr => mr.Status == request.MedicalRecordStatusStatus.Value));
+        }
+
+
+
+
+        // Search 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             query = query.Where(p => p.FullName.Contains(request.Search) || p.ContactInfo.PhoneNumber.Contains(request.Search));
         }
 
-        // Sorting based on SortBy and SortOrder
+        // Sorting 
         if (!string.IsNullOrEmpty(request.SortBy))
         {
             if (request.SortBy.ToLower() == "fullname")
@@ -70,6 +76,12 @@ public class GetAllPatientProfilesHandler : IQueryHandler<GetAllPatientProfilesQ
                     ? query.OrderBy(p => p.FullName)
                     : query.OrderByDescending(p => p.FullName);
             }
+        }
+        else if (request.SortBy.ToLower() == "createdat") 
+        {
+            query = request.SortOrder.ToLower() == "asc"
+                ? query.OrderBy(p => p.MedicalRecords.Min(mr => mr.CreatedAt))
+                : query.OrderByDescending(p => p.MedicalRecords.Max(mr => mr.CreatedAt));
         }
 
         var totalCount = await query.CountAsync(cancellationToken);

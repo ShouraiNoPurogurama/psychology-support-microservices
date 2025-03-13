@@ -13,12 +13,10 @@ public class GetAllTestResultsEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapGet("/test-results/{patientId:guid}", async (
-                Guid patientId,
-                [AsParameters] PaginationRequest request,
+                [AsParameters] GetAllTestResultsQuery request,
                 ISender sender) =>
             {
-                var query = new GetAllTestResultsQuery(patientId, request);
-                var result = await sender.Send(query);
+                var result = await sender.Send(request);
                 var response = new GetAllTestResultsResponse(result.TestResults);
 
                 return Results.Ok(response);
@@ -26,7 +24,7 @@ public class GetAllTestResultsEndpoint : ICarterModule
             .WithName("GetAllTestResults")
             .Produces<GetAllTestResultsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .WithDescription("Get paginated test results for a specific patient")
-            .WithSummary("Get Paginated Test Results");
+            .WithDescription("Get All TestResults")
+            .WithSummary("Get All TestResults");
     }
 }

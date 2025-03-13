@@ -1,4 +1,6 @@
 ﻿using Mapster;
+using Scheduling.API.Dtos;
+using Scheduling.API.Models;
 using System.Reflection;
 
 namespace Scheduling.API.Extensions
@@ -9,8 +11,10 @@ namespace Scheduling.API.Extensions
         {
             TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
 
-           /* TypeAdapterConfig<SpecificMentalDisorder, SpecificMentalDisorderDto>
-            .NewConfig();*/
+           TypeAdapterConfig<Booking, BookingDto>
+            .NewConfig();
+            TypeAdapterConfig<Session, SessionDto>
+            .NewConfig();
         }
     }
 }

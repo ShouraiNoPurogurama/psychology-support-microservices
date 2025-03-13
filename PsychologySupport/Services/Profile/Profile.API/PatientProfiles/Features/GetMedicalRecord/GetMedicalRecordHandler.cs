@@ -1,5 +1,4 @@
 ﻿using Mapster;
-using Profile.API.MentalDisorders.Dtos;
 using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.GetMedicalRecord

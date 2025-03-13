@@ -7,9 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.Features.PhysicalActivity.GetAllPhysicalActivity;
 
-public record GetAllPhysicalActivitiesQuery(PaginationRequest PaginationRequest) : IQuery<GetAllPhysicalActivitiesResult>;
 
-public record GetAllPhysicalActivitiesResult(IEnumerable<PhysicalActivityDto> PhysicalActivities);
+public record GetAllPhysicalActivitiesQuery(PaginationRequest PaginationRequest)
+: IQuery<GetAllPhysicalActivitiesResult>;
+
+public record GetAllPhysicalActivitiesResult(PaginatedResult<PhysicalActivityDto> PhysicalActivities);
 
 public class GetAllPhysicalActivityHandler : IQueryHandler<GetAllPhysicalActivitiesQuery, GetAllPhysicalActivitiesResult>
 {
@@ -24,23 +26,32 @@ public class GetAllPhysicalActivityHandler : IQueryHandler<GetAllPhysicalActivit
         CancellationToken cancellationToken)
     {
         var pageSize = request.PaginationRequest.PageSize;
-        var pageIndex = request.PaginationRequest.PageIndex;
+        var pageIndex = Math.Max(0, request.PaginationRequest.PageIndex - 1);
 
-        var activities = await _context.PhysicalActivities
+        var query = _context.PhysicalActivities
             .OrderBy(pa => pa.Name)
-            .Skip((pageIndex - 1) * pageSize)
-            .Take(pageSize)
             .Select(pa => new PhysicalActivityDto(
                 pa.Id,
                 pa.Name,
                 pa.Description,
                 pa.IntensityLevel,
                 pa.ImpactLevel
-            ))
+            ));
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var activities = await query
+            .Skip(pageIndex * pageSize)
+            .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var result = activities.Adapt<IEnumerable<PhysicalActivityDto>>();
+        var paginatedResult = new PaginatedResult<PhysicalActivityDto>(
+            pageIndex + 1,
+            pageSize,
+            totalCount,
+            activities
+        );
 
-        return new GetAllPhysicalActivitiesResult(result);
+        return new GetAllPhysicalActivitiesResult(paginatedResult);
     }
 }

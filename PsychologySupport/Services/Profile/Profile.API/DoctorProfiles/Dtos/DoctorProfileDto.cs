@@ -11,5 +11,6 @@ public record DoctorProfileDto(
     List<SpecialtyDto> Specialties,
     string Qualifications,
     int YearsOfExperience,
-    string Bio
+    string Bio,
+    float Rating
 );

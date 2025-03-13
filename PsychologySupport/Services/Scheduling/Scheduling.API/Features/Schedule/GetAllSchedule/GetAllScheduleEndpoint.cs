@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Pagination;
+using Carter;
 using Mapster;
 using MediatR;
 using Scheduling.API.Dtos;
@@ -6,7 +7,7 @@ using Scheduling.API.Dtos;
 namespace Scheduling.API.Features.Schedule.GetAllSchedule
 {
     public record GetAllSchedulesResponse(PaginatedResult<ScheduleDto> Schedules);
-    public class GetAllScheduleEndpoint
+    public class GetAllScheduleEndpoint : ICarterModule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {

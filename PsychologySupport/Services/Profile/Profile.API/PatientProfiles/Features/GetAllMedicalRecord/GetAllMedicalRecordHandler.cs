@@ -39,17 +39,15 @@ public class GetAllMedicalRecordsHandler : IRequestHandler<GetAllMedicalRecordsQ
             throw new ProfileNotFoundException("Patient", request.PatientId);
 
         var pageSize = request.PageSize;
-        var pageIndex = Math.Max(0, request.PageIndex - 1); 
+        var pageIndex = Math.Max(0, request.PageIndex - 1);
 
-        IQueryable<MedicalRecord> query = patient.MedicalRecords.AsQueryable();
+        IQueryable<MedicalRecord> query = _context.MedicalRecords
+            .Where(m => m.PatientProfileId == request.PatientId);
+
 
         // search  
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            /*if (Guid.TryParse(request.Search, out var doctorId))
-            {
-                query = query.Where(m => m.DoctorProfileId == doctorId);
-            }*/
             query = query.Where(m =>
                      m.DoctorProfileId.ToString() == request.Search 
             );

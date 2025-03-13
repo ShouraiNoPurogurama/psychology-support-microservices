@@ -21,17 +21,33 @@ namespace LifeStyles.API.EventHandler
             var activityRequest = context.Message;
 
             // Depending on ActivityType, fetch the appropriate entity
-            IActivityDto activityDto = activityRequest.ActivityType switch
+            switch (activityRequest.ActivityType)
             {
-                "Entertainment" => await GetEntertainmentActivity(activityRequest.Id),
-                "Physical" => await GetPhysicalActivity(activityRequest.Id),
-                "Food" => await GetFoodActivity(activityRequest.Id),
-                "Therapeutic" => await GetTherapeuticActivity(activityRequest.Id),
-                _ => throw new ArgumentException($"Unknown activity type: {activityRequest.ActivityType}")
-            };
+                case "Entertainment":
+                    var entertainmentActivity = await GetEntertainmentActivity(activityRequest.Id);
+                    await context.RespondAsync(new ActivityRequestResponse<EntertainmentActivityDto>(entertainmentActivity));
+                    break;
 
-            await context.RespondAsync(new ActivityRequestResponse(activityDto));
+                case "Physical":
+                    var physicalActivity = await GetPhysicalActivity(activityRequest.Id);
+                    await context.RespondAsync(new ActivityRequestResponse<PhysicalActivityDto>(physicalActivity));
+                    break;
+
+                case "Food":
+                    var foodActivity = await GetFoodActivity(activityRequest.Id);
+                    await context.RespondAsync(new ActivityRequestResponse<FoodActivityDto>(foodActivity));
+                    break;
+
+                case "Therapeutic":
+                    var therapeuticActivity = await GetTherapeuticActivity(activityRequest.Id);
+                    await context.RespondAsync(new ActivityRequestResponse<TherapeuticActivityDto>(therapeuticActivity));
+                    break;
+
+                default:
+                    throw new ArgumentException($"Unknown activity type: {activityRequest.ActivityType}");
+            }
         }
+
 
         private async Task<EntertainmentActivityDto> GetEntertainmentActivity(Guid id)
         {
@@ -66,6 +82,8 @@ namespace LifeStyles.API.EventHandler
         private async Task<FoodActivityDto> GetFoodActivity(Guid id)
         {
             var activity = await _context.FoodActivities
+                .Include(f => f.FoodNutrients)
+                .Include(f => f.FoodCategories)
                 .Where(f => f.Id == id)
                 .FirstOrDefaultAsync();
 

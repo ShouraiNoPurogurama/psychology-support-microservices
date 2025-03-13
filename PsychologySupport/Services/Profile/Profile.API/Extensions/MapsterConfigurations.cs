@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 using Mapster;
+using Profile.API.DoctorProfiles.Dtos;
+using Profile.API.DoctorProfiles.Models;
 using Profile.API.MentalDisorders.Dtos;
 using Profile.API.MentalDisorders.Models;
 using Profile.API.PatientProfiles.Dtos;
@@ -31,6 +33,13 @@ public static class MapsterConfiguration
             .NewConfig();
 
         TypeAdapterConfig<PhysicalSymptom, PhysicalSymptomDto>
+            .NewConfig();
+
+        TypeAdapterConfig<DoctorProfile, DoctorProfileDto>
+           .NewConfig()
+           .Map(dest => dest.Specialties, src => src.Specialties.Adapt<List<SpecialtyDto>>());
+
+        TypeAdapterConfig<Specialty, SpecialtyDto>
             .NewConfig();
     }
 }

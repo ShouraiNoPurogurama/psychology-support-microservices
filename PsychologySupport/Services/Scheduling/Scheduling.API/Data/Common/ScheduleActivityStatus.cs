@@ -6,7 +6,6 @@ namespace Scheduling.API.Data.Common
     public enum ScheduleActivityStatus
     {
         Pending,
-        Confirmed,
         Completed,
         Cancelled
     }

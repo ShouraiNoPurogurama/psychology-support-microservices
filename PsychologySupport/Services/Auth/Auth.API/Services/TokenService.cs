@@ -20,14 +20,15 @@ public class TokenService(UserManager<User> userManager, IConfiguration configur
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha512);
         var roles = await userManager.GetRolesAsync(user);
+        var role = roles.FirstOrDefault() ?? "User";
 
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Email!), //Subject
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), //JwtId
+            new Claim(JwtRegisteredClaimNames.Sub, user.Email!),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("userId", user.Id.ToString()),
-            new Claim(ClaimTypes.Role, string.Join(",", roles)),
-            new Claim(ClaimTypes.Name, user.UserName!)
+            new Claim("role", role),
+            new Claim("name", user.UserName!)
         };
 
         var token = new JwtSecurityToken(

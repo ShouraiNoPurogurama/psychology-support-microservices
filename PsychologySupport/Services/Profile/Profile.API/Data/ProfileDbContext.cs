@@ -33,6 +33,11 @@ public class ProfileDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("Gender");
 
+            typeBuilder.Property(d => d.PersonalityTraits)
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .HasColumnName("PersonalityTraits");
+
             typeBuilder.HasOne(p => p.MedicalHistory)
                 .WithOne()
                 .HasForeignKey<MedicalHistory>(m => m.PatientId);

@@ -2,6 +2,7 @@
 {
     public class SessionDto
     {
+        public Guid Id { get; set; }
         public Guid ScheduleId { get; set; }
         public string Purpose { get; set; }
         public int Order { get; set; }

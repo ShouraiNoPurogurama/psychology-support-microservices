@@ -1,44 +1,82 @@
 ﻿using BuildingBlocks.Pagination;
 using Mapster;
+using Microsoft.AspNetCore.Mvc;
 using Profile.API.DoctorProfiles.Dtos;
+using Profile.API.DoctorProfiles.Models;
 
 namespace Profile.API.DoctorProfiles.Features.GetAllDoctorProfile;
 
-public record GetAllDoctorProfilesQuery(PaginationRequest PaginationRequest) : IRequest<GetAllDoctorProfilesResult>;
+public record GetAllDoctorProfilesQuery(
+    [FromQuery] int PageIndex,
+    [FromQuery] int PageSize,
+    [FromQuery] string? Search = "", // FullName
+    [FromQuery] string? SortBy = "rating", // sort Rating,YearsOfExperience
+    [FromQuery] string? SortOrder = "asc", // asc or desc
+    [FromQuery] string? Specialties = null // Specialties.Id
+) : IRequest<GetAllDoctorProfilesResult>;
 
 public record GetAllDoctorProfilesResult(PaginatedResult<DoctorProfileDto> DoctorProfiles);
 
 public class GetAllDoctorProfilesHandler : IRequestHandler<GetAllDoctorProfilesQuery, GetAllDoctorProfilesResult>
-{
-    private readonly ProfileDbContext _context;
-
-    public GetAllDoctorProfilesHandler(ProfileDbContext context)
     {
-        _context = context;
-    }
+        private readonly ProfileDbContext _context;
 
-    public async Task<GetAllDoctorProfilesResult> Handle(GetAllDoctorProfilesQuery request, CancellationToken cancellationToken)
-    {
-        var pageSize = request.PaginationRequest.PageSize;
-        var pageIndex = Math.Max(1, request.PaginationRequest.PageIndex);
+        public GetAllDoctorProfilesHandler(ProfileDbContext context)
+        {
+            _context = context;
+        }
 
-        var totalRecords = await _context.DoctorProfiles.CountAsync(cancellationToken);
+        public async Task<GetAllDoctorProfilesResult> Handle(GetAllDoctorProfilesQuery request, CancellationToken cancellationToken)
+        {
+            var pageSize = Math.Max(1, request.PageSize);
+            var pageIndex = Math.Max(1, request.PageIndex);
 
-        var doctorProfiles = await _context.DoctorProfiles
-            .Include(d => d.Specialties)
-            .Include(d => d.MedicalRecords)
-            .OrderByDescending(d => d.FullName)
-            .Skip((pageIndex - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
+            IQueryable<DoctorProfile> query = _context.DoctorProfiles
+                .Include(d => d.Specialties)
+                .Include(d => d.MedicalRecords);
 
-        var paginatedResult = new PaginatedResult<DoctorProfileDto>(
-            pageIndex,
-            pageSize,
-            totalRecords,
-            doctorProfiles.Adapt<IEnumerable<DoctorProfileDto>>()
-        );
+            //  Filter by Specialty.Id
+            if (request.Specialties != null && request.Specialties.Any())
+            {
+                query = query.Where(d => d.Specialties.Any(s => request.Specialties.Contains(s.Id.ToString())));
+            }
 
-        return new GetAllDoctorProfilesResult(paginatedResult);
-    }
-}
+            //  Search 
+            if (!string.IsNullOrWhiteSpace(request.Search))
+            {
+                query = query.Where(d => d.FullName.Contains(request.Search));
+            }
+
+            //  Sorting
+            query = ApplySorting(query, request);
+
+            var totalRecords = await query.CountAsync(cancellationToken);
+
+            var doctorProfiles = await query
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            var paginatedResult = new PaginatedResult<DoctorProfileDto>(
+                pageIndex,
+                pageSize,
+                totalRecords,
+                doctorProfiles.Adapt<IEnumerable<DoctorProfileDto>>()
+            );
+
+            return new GetAllDoctorProfilesResult(paginatedResult);
+        }
+
+        private static IQueryable<DoctorProfile> ApplySorting(IQueryable<DoctorProfile> query, GetAllDoctorProfilesQuery request)
+        {
+            bool isAscending = request.SortOrder?.ToLower() != "desc";
+
+            return request.SortBy?.ToLower() switch
+            {
+                "rating" => isAscending ? query.OrderBy(d => d.Rating) : query.OrderByDescending(d => d.Rating),
+                "yearsofexperience" => isAscending ? query.OrderBy(d => d.YearsOfExperience) : query.OrderByDescending(d => d.YearsOfExperience),
+                _ => query // Default case
+            };
+        }
+ }
+

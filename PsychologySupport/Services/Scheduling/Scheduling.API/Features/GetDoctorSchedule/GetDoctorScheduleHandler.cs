@@ -25,7 +25,7 @@ namespace Scheduling.API.Features.DoctorSchedule
 
             var bookedSlots = await context.Bookings
                 .Where(b => b.DoctorId == request.DoctorId && b.Date == vietnamDate)
-                .Select(b => new { b.StartTime, b.Duration })
+                .Select(b => new { b.BookingCode,b.StartTime, b.Duration })
                 .ToListAsync(cancellationToken);
 
             var unavailableSlots = await context.DoctorAvailabilities
@@ -41,18 +41,26 @@ namespace Scheduling.API.Features.DoctorSchedule
                 .Where(t => t.DayOfWeek == dayOfWeek)
                 .ToListAsync(cancellationToken);
 
+            
             timeSlots = dayTemplates
                 .SelectMany(template => GenerateTimeSlots(request.Date, template.StartTime, doctorSlots.SlotDuration, template.EndTime))
-                .Select(slot => slot with
+                .Select(slot =>
                 {
-                    Status = bookedSlots.Any(b => b.StartTime <= slot.StartTime &&
-                                                  b.StartTime.Add(TimeSpan.FromMinutes(b.Duration)) > slot.StartTime)
-                             || unavailableSlots.Contains(slot.StartTime)
-                             ? SlotStatus.Unavailable
-                             : SlotStatus.Available
+                    var bookedSlot = bookedSlots.FirstOrDefault(b => b.StartTime <= slot.StartTime &&
+                                                                     b.StartTime.Add(TimeSpan.FromMinutes(b.Duration)) > slot.StartTime);
+                    bool isUnavailable = bookedSlot != null || unavailableSlots.Contains(slot.StartTime);
+                    string occupiedInfo = bookedSlot != null ? $"BookingCode: {bookedSlot.BookingCode}"
+                                        : (unavailableSlots.Contains(slot.StartTime) ? "Doctor unavailable" : "");
+
+                    return new TimeSlotDto(
+                        isUnavailable ? SlotStatus.Unavailable : SlotStatus.Available,
+                        slot.DayOfWeek,
+                        slot.StartTime,
+                        slot.EndTime,
+                        occupiedInfo
+                    );
                 })
                 .ToList();
-
 
             return new GetDoctorScheduleResult(timeSlots);
         }

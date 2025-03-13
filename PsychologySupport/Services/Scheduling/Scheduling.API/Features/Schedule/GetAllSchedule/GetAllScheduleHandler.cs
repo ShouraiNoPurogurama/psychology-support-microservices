@@ -30,7 +30,9 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
             var pageSize = request.PageSize;
             var pageIndex = Math.Max(0, request.PageIndex - 1);
 
-            var query = _context.Schedules.AsQueryable();
+            var query = _context.Schedules
+                .Include(s => s.Sessions)
+                .AsQueryable();
 
             // Search
             if (!string.IsNullOrEmpty(request.Search))
@@ -83,6 +85,7 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
                      EndDate = schedule.EndDate,
                      Sessions = schedule.Sessions.Select(session => new SessionDto
                      {
+                         Id = session.Id,
                          ScheduleId = session.ScheduleId,
                          Purpose = session.Purpose,
                          Order = session.Order,

@@ -44,27 +44,31 @@ namespace Scheduling.API.Features.Schedule.GetScheduleActivity
                 // Determine the activity type and request the activity details
                 if (scheduleActivity.EntertainmentActivityId.HasValue)
                 {
-                    var activityResponse = await _activityClient.GetResponse<ActivityRequestResponse>(
-                        new ActivityRequest(scheduleActivity.EntertainmentActivityId.Value, "Entertainment"));
-                    scheduleActivityDto.EntertainmentActivity = activityResponse.Message.Activity as EntertainmentActivityDto;
+                    var activityResponse = await _activityClient.GetResponse<ActivityRequestResponse<EntertainmentActivityDto>>(
+                        new ActivityRequest(scheduleActivity.EntertainmentActivityId.Value, "Entertainment")
+                    );
+                    scheduleActivityDto.EntertainmentActivity = activityResponse.Message.Activity;
                 }
                 else if (scheduleActivity.FoodActivityId.HasValue)
                 {
-                    var activityResponse = await _activityClient.GetResponse<ActivityRequestResponse>(
-                        new ActivityRequest(scheduleActivity.FoodActivityId.Value, "Food"));
-                    scheduleActivityDto.FoodActivity = activityResponse.Message.Activity as FoodActivityDto;
+                    var activityResponse = await _activityClient.GetResponse<ActivityRequestResponse<FoodActivityDto>>(
+                        new ActivityRequest(scheduleActivity.FoodActivityId.Value, "Food")
+                    );
+                    scheduleActivityDto.FoodActivity = activityResponse.Message.Activity;
                 }
                 else if (scheduleActivity.PhysicalActivityId.HasValue)
                 {
-                    var activityResponse = await _activityClient.GetResponse<ActivityRequestResponse>(
-                        new ActivityRequest(scheduleActivity.PhysicalActivityId.Value, "Physical"));
-                    scheduleActivityDto.PhysicalActivity = activityResponse.Message.Activity as PhysicalActivityDto;
+                    var activityResponse = await _activityClient.GetResponse<ActivityRequestResponse<PhysicalActivityDto>>(
+                        new ActivityRequest(scheduleActivity.PhysicalActivityId.Value, "Physical")
+                    );
+                    scheduleActivityDto.PhysicalActivity = activityResponse.Message.Activity;
                 }
                 else if (scheduleActivity.TherapeuticActivityId.HasValue)
                 {
-                    var activityResponse = await _activityClient.GetResponse<ActivityRequestResponse>(
-                        new ActivityRequest(scheduleActivity.TherapeuticActivityId.Value, "Therapeutic"));
-                    scheduleActivityDto.TherapeuticActivity = activityResponse.Message.Activity as TherapeuticActivityDto;
+                    var activityResponse = await _activityClient.GetResponse<ActivityRequestResponse<TherapeuticActivityDto>>(
+                        new ActivityRequest(scheduleActivity.TherapeuticActivityId.Value, "Therapeutic")
+                    );
+                    scheduleActivityDto.TherapeuticActivity = activityResponse.Message.Activity;
                 }
 
                 scheduleActivityDtos.Add(scheduleActivityDto);

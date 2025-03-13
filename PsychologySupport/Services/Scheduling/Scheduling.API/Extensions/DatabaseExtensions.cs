@@ -8,7 +8,7 @@
 
             var context = scope.ServiceProvider.GetRequiredService<SchedulingDbContext>();
 
-            context.Database.MigrateAsync().GetAwaiter().GetResult();
+            //context.Database.MigrateAsync().GetAwaiter().GetResult();
         }
     }
 }

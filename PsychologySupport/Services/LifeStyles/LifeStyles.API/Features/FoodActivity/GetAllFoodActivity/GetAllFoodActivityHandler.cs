@@ -5,10 +5,9 @@ using LifeStyles.API.Dtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.Features.FoodActivity.GetAllFoodActivity;
-
 public record GetAllFoodActivitiesQuery(PaginationRequest PaginationRequest) : IQuery<GetAllFoodActivitiesResult>;
 
-public record GetAllFoodActivitiesResult(IEnumerable<FoodActivityDto> FoodActivities);
+public record GetAllFoodActivitiesResult(PaginatedResult<FoodActivityDto> FoodActivities);
 
 public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery, GetAllFoodActivitiesResult>
 {
@@ -22,12 +21,10 @@ public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery
     public async Task<GetAllFoodActivitiesResult> Handle(GetAllFoodActivitiesQuery request, CancellationToken cancellationToken)
     {
         var pageSize = request.PaginationRequest.PageSize;
-        var pageIndex = request.PaginationRequest.PageIndex;
+        var pageIndex = Math.Max(0, request.PaginationRequest.PageIndex - 1);
 
-        var activities = await _context.FoodActivities
+        var query = _context.FoodActivities
             .OrderBy(fa => fa.Name)
-            .Skip((pageIndex - 1) * pageSize)
-            .Take(pageSize)
             .Select(fa => new FoodActivityDto(
                 fa.Id,
                 fa.Name,
@@ -36,9 +33,22 @@ public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery
                 fa.FoodNutrients.Select(fn => fn.Name),
                 fa.FoodCategories.Select(fc => fc.Name),
                 fa.IntensityLevel
-            ))
+            ));
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var activities = await query
+            .Skip(pageIndex * pageSize)
+            .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        return new GetAllFoodActivitiesResult(activities);
+        var paginatedResult = new PaginatedResult<FoodActivityDto>(
+            pageIndex + 1,
+            pageSize,
+            totalCount,
+            activities
+        );
+
+        return new GetAllFoodActivitiesResult(paginatedResult);
     }
 }

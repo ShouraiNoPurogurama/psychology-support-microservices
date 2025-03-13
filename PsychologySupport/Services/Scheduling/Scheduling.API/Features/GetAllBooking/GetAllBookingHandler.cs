@@ -10,10 +10,11 @@ namespace Scheduling.API.Features.GetAllBooking
         [FromQuery] int PageIndex,
         [FromQuery] int PageSize,
         [FromQuery] string? Search = "", // doctorid, patientid, bookingcode
-        [FromQuery] string? SortBy = "date", // sort date or status
+        [FromQuery] string? SortBy = "date", // sort date or time
         [FromQuery] string? SortOrder = "asc", // asc or desc
         [FromQuery] Guid? DoctorId = null, // filter
         [FromQuery] Guid? PatientId = null, // filter
+        [FromQuery] DateOnly? Date = null, // filter
         [FromQuery] BookingStatus? Status = null) : IQuery<GetAllBookingsResult>; // filter Pending,Confirmed, Completed, Cancelled
                                                                           
     public record GetAllBookingsResult(PaginatedResult<BookingDto> Bookings);
@@ -56,6 +57,9 @@ namespace Scheduling.API.Features.GetAllBooking
             if (request.Status.HasValue)
                 query = query.Where(booking => booking.Status == request.Status);
 
+            if (request.Date.HasValue)
+                query = query.Where(b => b.Date == request.Date.Value);
+
             // Sorting 
             if (request.SortBy == "date")
             {
@@ -63,11 +67,11 @@ namespace Scheduling.API.Features.GetAllBooking
                     ? query.OrderBy(booking => booking.Date)
                     : query.OrderByDescending(booking => booking.Date);
             }
-            else if (request.SortBy == "status")
+            else if (request.SortBy == "time")
             {
                 query = request.SortOrder == "asc"
-                    ? query.OrderBy(booking => booking.Status)
-                    : query.OrderByDescending(booking => booking.Status);
+                    ? query.OrderBy(booking => booking.StartTime)
+                    : query.OrderByDescending(booking => booking.StartTime);
             }
 
             // Pagination

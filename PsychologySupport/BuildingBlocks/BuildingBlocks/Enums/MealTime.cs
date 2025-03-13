@@ -9,6 +9,7 @@ namespace BuildingBlocks.Enums
         Breakfast,
         Lunch,
         Dinner,
-        Snack
+        Snack,
+        AllDay
     }
 }
