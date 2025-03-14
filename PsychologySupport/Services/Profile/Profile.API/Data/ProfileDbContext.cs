@@ -29,13 +29,13 @@ public class ProfileDbContext : DbContext
         builder.Entity<PatientProfile>(typeBuilder =>
         {
             typeBuilder.Property(d => d.Gender)
-                .HasConversion<string>()
-                .HasMaxLength(10)
+                .HasConversion(t => t.ToString(),
+                    dbStatus => (UserGender)Enum.Parse(typeof(UserGender), dbStatus))
                 .HasColumnName("Gender");
 
             typeBuilder.Property(d => d.PersonalityTraits)
-                .HasConversion<string>()
-                .HasMaxLength(20)
+                .HasConversion(t => t.ToString(),
+                    dbStatus => (PersonalityTrait)Enum.Parse(typeof(PersonalityTrait), dbStatus))
                 .HasColumnName("PersonalityTraits");
 
             typeBuilder.HasOne(p => p.MedicalHistory)

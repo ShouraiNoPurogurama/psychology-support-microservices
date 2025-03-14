@@ -73,12 +73,35 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
             .ThenInclude(p => p.PromotionType)
             .Where(p => p.Promotion.IsActive == true && (request.IgnoreExpired || p.IsActive == true))
             .FirstOrDefaultAsync(p => p.Code.Equals(request.Code.Trim()));
-
+    
         return new GetPromotionByCodeResponse
         {
             PromoCode = promoCode.Adapt<PromoCodeActivateDto>()
         };
     }
+    
+    // public override async Task<GetPromotionByCodeResponse> GetPromotionByCode(GetPromotionByCodeRequest request,
+    //     ServerCallContext context)
+    // {
+    //     return new GetPromotionByCodeResponse
+    //     {
+    //         PromoCode = new PromoCodeActivateDto()
+    //         {
+    //             Code = "TEST",
+    //             PromotionType = new PromotionTypeDto()
+    //             {
+    //                 Id = "test",
+    //                 Description = "Test",
+    //                 Name = "Test",
+    //             },
+    //             Description = "test",
+    //             Name = "test",
+    //             PromotionId = "test",
+    //             Id = "test",
+    //             Value = 1
+    //         }
+    //     };
+    // }
 
     public override async Task<GetGiftCodeByPatientIdResponse> GetGiftCodeByPatientId(GetGiftCodeByPatientIdRequest request,
         ServerCallContext context)

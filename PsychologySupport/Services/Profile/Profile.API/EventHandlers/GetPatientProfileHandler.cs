@@ -9,7 +9,7 @@ public class GetPatientProfileHandler(ProfileDbContext dbContext) : IConsumer<Ge
 {
     public async Task Consume(ConsumeContext<GetPatientProfileRequest> context)
     {
-        PatientProfile? patientProfile = await dbContext.PatientProfiles.FindAsync(context.Message.PatientId); 
+        var patientProfile = await dbContext.PatientProfiles.FindAsync(context.Message.PatientId); 
         
         if (context.Message.UserId is not null)
         {

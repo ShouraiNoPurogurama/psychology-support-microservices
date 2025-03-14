@@ -8,6 +8,12 @@
 
     <ItemGroup>
       <None Remove="Protos\promotion.proto" />
+      <None Remove="Properties\ServiceDependencies\emoease - FTP\profile.arm.json" />
+      <None Remove="Properties\ServiceDependencies\emoease - Zip Deploy\profile.arm.json" />
+      <None Remove="Properties\ServiceDependencies\PromotionGrpc20250314134141 - Zip Deploy\profile.arm.json" />
+      <None Remove="Properties\PublishProfiles\emoease - FTP.pubxml" />
+      <None Remove="Properties\PublishProfiles\emoease - Zip Deploy.pubxml" />
+      <None Remove="Properties\PublishProfiles\PromotionGrpc20250314134141 - Zip Deploy.pubxml" />
     </ItemGroup>
 
     <ItemGroup>
@@ -24,11 +30,11 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
     </ItemGroup>
 
 </Project>
