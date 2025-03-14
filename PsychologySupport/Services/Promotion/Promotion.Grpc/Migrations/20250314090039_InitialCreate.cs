@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Promotion.Grpc.Data.Migrations
+namespace Promotion.Grpc.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -15,9 +15,9 @@ namespace Promotion.Grpc.Data.Migrations
                 name: "PromotionTypes",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -28,12 +28,12 @@ namespace Promotion.Grpc.Data.Migrations
                 name: "Promotions",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "TEXT", nullable: false),
-                    PromotionTypeId = table.Column<string>(type: "TEXT", nullable: false),
-                    ImageId = table.Column<string>(type: "TEXT", nullable: false),
-                    EffectiveDate = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
-                    EndDate = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    PromotionTypeId = table.Column<string>(type: "text", nullable: false),
+                    ImageId = table.Column<string>(type: "text", nullable: false),
+                    EffectiveDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    EndDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -50,8 +50,8 @@ namespace Promotion.Grpc.Data.Migrations
                 name: "PromotionTypeServicePackages",
                 columns: table => new
                 {
-                    PromotionTypeId = table.Column<string>(type: "TEXT", nullable: false),
-                    ServicePackageId = table.Column<string>(type: "TEXT", nullable: false)
+                    PromotionTypeId = table.Column<string>(type: "text", nullable: false),
+                    ServicePackageId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -68,12 +68,13 @@ namespace Promotion.Grpc.Data.Migrations
                 name: "GiftCodes",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "TEXT", nullable: false),
-                    PromotionId = table.Column<string>(type: "TEXT", nullable: false),
-                    MoneyValue = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Title = table.Column<string>(type: "TEXT", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: true),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    PatientId = table.Column<string>(type: "text", nullable: false),
+                    PromotionId = table.Column<string>(type: "text", nullable: false),
+                    MoneyValue = table.Column<decimal>(type: "numeric", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -90,13 +91,13 @@ namespace Promotion.Grpc.Data.Migrations
                 name: "PromoCodes",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "TEXT", nullable: false),
-                    PromotionId = table.Column<string>(type: "TEXT", nullable: false),
-                    Code = table.Column<string>(type: "TEXT", nullable: false),
-                    Value = table.Column<int>(type: "INTEGER", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: true),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    PromotionId = table.Column<string>(type: "text", nullable: false),
+                    Code = table.Column<string>(type: "text", nullable: false),
+                    Value = table.Column<int>(type: "integer", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
