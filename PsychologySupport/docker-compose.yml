@@ -46,3 +46,9 @@
     build:
       context: .
       dockerfile: Services/Payment/Payment.API/Dockerfile
+
+  chatbox.api:
+    image: chatbox.api
+    build:
+      context: .
+      dockerfile: Services/ChatBox/ChatBox.API/Dockerfile

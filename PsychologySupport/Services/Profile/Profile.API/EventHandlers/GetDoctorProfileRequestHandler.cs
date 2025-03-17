@@ -9,7 +9,6 @@ public class GetDoctorProfileRequestHandler(ProfileDbContext dbContext) : IConsu
     public async Task Consume(ConsumeContext<GetDoctorProfileRequest> context)
     {
         var doctorProfile = await dbContext.DoctorProfiles.AsNoTracking()
-            .Include(doctorProfile => doctorProfile.ContactInfo)
             .FirstOrDefaultAsync(d => d.Id == context.Message.DoctorId);
 
         if (doctorProfile is null)

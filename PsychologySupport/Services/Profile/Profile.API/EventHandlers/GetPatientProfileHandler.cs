@@ -10,23 +10,24 @@ public class GetPatientProfileHandler(ProfileDbContext dbContext) : IConsumer<Ge
     public async Task Consume(ConsumeContext<GetPatientProfileRequest> context)
     {
         var patientProfile = await dbContext.PatientProfiles.AsNoTracking()
-            .Include(patientProfile => patientProfile.ContactInfo)
-            .FirstOrDefaultAsync(p => p.Id == context.Message.PatientId); 
-        
+            .FirstOrDefaultAsync(p => p.Id == context.Message.PatientId);
+
         if (patientProfile is null)
         {
-            await context.RespondAsync(new GetPatientProfileResponse( false,Guid.Empty,  string.Empty, UserGender.Else, string.Empty, string.Empty, string.Empty, string.Empty, String.Empty));
+            await context.RespondAsync(new GetPatientProfileResponse(false, Guid.Empty, string.Empty, UserGender.Else,
+                string.Empty, string.Empty, string.Empty, string.Empty, String.Empty));
             return;
         }
-        
+
         if (context.Message.UserId is not null)
         {
             patientProfile = patientProfile.UserId == context.Message.UserId ? patientProfile : null;
         }
-        
+
         if (patientProfile is null)
         {
-            await context.RespondAsync(new GetPatientProfileResponse( false,Guid.Empty,  string.Empty, UserGender.Else, string.Empty, string.Empty, string.Empty, string.Empty, String.Empty));
+            await context.RespondAsync(new GetPatientProfileResponse(false, Guid.Empty, string.Empty, UserGender.Else,
+                string.Empty, string.Empty, string.Empty, string.Empty, String.Empty));
             return;
         }
 
