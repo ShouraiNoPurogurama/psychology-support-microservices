@@ -8,7 +8,9 @@ public class TestResult : AggregateRoot<Guid>
 {
     private TestResult()
     {
+        SelectedOptions = new List<QuestionOption>();
     }
+
 
     public TestResult(Guid id, Guid patientId, Guid testId, Score depressionScore,
         Score anxietyScore, Score stressScore, SeverityLevel severityLevel, string recommendation)
@@ -37,7 +39,7 @@ public class TestResult : AggregateRoot<Guid>
 
     public static TestResult Create(Guid patientId, Guid testId, Score depressionScore,
         Score anxietyScore, Score stressScore, SeverityLevel severityLevel,
-        string recommendation, List<QuestionOption> selectedOptions)
+        string recommendation, List<QuestionOption>? selectedOptions)
     {
         var newTestResult = new TestResult(Guid.NewGuid(), patientId, testId, depressionScore, anxietyScore, stressScore,
             severityLevel, recommendation);

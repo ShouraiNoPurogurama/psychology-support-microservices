@@ -9,13 +9,14 @@ using Profile.API.PatientProfiles.Models;
 namespace Profile.API.PatientProfiles.Features.GetAllMedicalRecord;
 
 public record GetAllMedicalRecordsQuery(
-        [FromRoute] Guid PatientId,
-        [FromQuery] int PageIndex,
-        [FromQuery] int PageSize,
-        [FromQuery] string? Search = "", // DoctorProfileId
-        [FromQuery] string? SortBy = "CreatedAt", // sort CreatedAt
-        [FromQuery] string? SortOrder = "asc", // asc or desc
-        [FromQuery] MedicalRecordStatus? Status = null): IRequest<GetAllMedicalRecordsResult>; // fiter Processing,Done
+    [FromQuery] Guid? PatientId = null, 
+    [FromQuery] Guid? DoctorId = null, 
+    [FromQuery] int PageIndex = 1,
+    [FromQuery] int PageSize = 10,
+    [FromQuery] string? Search = "", 
+    [FromQuery] string? SortBy = "CreatedAt",
+    [FromQuery] string? SortOrder = "asc",
+    [FromQuery] MedicalRecordStatus? Status = null) : IRequest<GetAllMedicalRecordsResult>;// fiter Processing,Done
 
 public record GetAllMedicalRecordsResult(PaginatedResult<MedicalRecordDto> MedicalRecords);
 
@@ -30,60 +31,59 @@ public class GetAllMedicalRecordsHandler : IRequestHandler<GetAllMedicalRecordsQ
 
     public async Task<GetAllMedicalRecordsResult> Handle(GetAllMedicalRecordsQuery request, CancellationToken cancellationToken)
     {
-        var patient = await _context.PatientProfiles
-            .Include(p => p.MedicalRecords)
-            .ThenInclude(m => m.SpecificMentalDisorders)
-            .FirstOrDefaultAsync(p => p.Id == request.PatientId, cancellationToken);
-
-        if (patient is null)
-            throw new ProfileNotFoundException("Patient", request.PatientId);
-
-        var pageSize = request.PageSize;
-        var pageIndex = Math.Max(0, request.PageIndex - 1);
-
-        IQueryable<MedicalRecord> query = _context.MedicalRecords
-            .Where(m => m.PatientProfileId == request.PatientId);
+  
+        IQueryable<MedicalRecord> query = _context.MedicalRecords.AsQueryable();
 
 
-        // search  
+        if (request.PatientId.HasValue)
+        {
+            query = query.Where(m => m.PatientProfileId == request.PatientId);
+        }
+
+
+        if (request.DoctorId.HasValue)
+        {
+            query = query.Where(m => m.DoctorProfileId == request.DoctorId);
+        }
+
+
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            query = query.Where(m =>
-                     m.DoctorProfileId.ToString() == request.Search 
-            );
+            if (Guid.TryParse(request.Search, out Guid searchId))
+            {
+                query = query.Where(m => m.DoctorProfileId == searchId || m.PatientProfileId == searchId);
+            }
         }
 
-        // Filter by MedicalRecordStatus 
+     
         if (request.Status.HasValue)
         {
-            query = query.Where(m => m.Status == request.Status.Value);
+            query = query.Where(m => m.Status == request.Status);
         }
 
-        // Sorting CreatedAt
-        if (!string.IsNullOrEmpty(request.SortBy))
+        if (!string.IsNullOrEmpty(request.SortBy) && request.SortBy.ToLower() == "createdat")
         {
-            if (request.SortBy.ToLower() == "createdat")
-            {
-                query = request.SortOrder.ToLower() == "asc"
-                    ? query.OrderBy(m => m.CreatedAt)
-                    : query.OrderByDescending(m => m.CreatedAt);
-            }
-
+            query = request.SortOrder.ToLower() == "asc"
+                ? query.OrderBy(m => m.CreatedAt)
+                : query.OrderByDescending(m => m.CreatedAt);
         }
 
+  
         var totalRecords = await query.CountAsync(cancellationToken);
 
-      
+ 
         var medicalRecords = await query
-            .Skip(pageIndex * pageSize)
-            .Take(pageSize)
+            .Skip((request.PageIndex - 1) * request.PageSize)
+            .Take(request.PageSize)
             .ToListAsync(cancellationToken);
+
 
         var medicalRecordsDto = medicalRecords.Adapt<IEnumerable<MedicalRecordDto>>();
 
+
         var paginatedResult = new PaginatedResult<MedicalRecordDto>(
-            pageIndex + 1, 
-            pageSize,
+            request.PageIndex,
+            request.PageSize,
             totalRecords,
             medicalRecordsDto
         );
