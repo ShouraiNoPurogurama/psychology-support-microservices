@@ -6,12 +6,6 @@ namespace Test.Domain.Models;
 
 public class TestResult : AggregateRoot<Guid>
 {
-    private TestResult()
-    {
-        SelectedOptions = new List<QuestionOption>();
-    }
-
-
     public TestResult(Guid id, Guid patientId, Guid testId, Score depressionScore,
         Score anxietyScore, Score stressScore, SeverityLevel severityLevel, string recommendation)
     {
@@ -34,7 +28,7 @@ public class TestResult : AggregateRoot<Guid>
     public Score StressScore { get; private set; }
     public SeverityLevel SeverityLevel { get; private set; }
     public string Recommendation { get; private set; }
-    public virtual ICollection<QuestionOption> SelectedOptions { get; private set; }
+    public virtual ICollection<QuestionOption> SelectedOptions { get; private set; } = [];
 
 
     public static TestResult Create(Guid patientId, Guid testId, Score depressionScore,
@@ -44,10 +38,7 @@ public class TestResult : AggregateRoot<Guid>
         var newTestResult = new TestResult(Guid.NewGuid(), patientId, testId, depressionScore, anxietyScore, stressScore,
             severityLevel, recommendation);
 
-        foreach (var option in selectedOptions)
-        {
-            newTestResult.SelectedOptions.Add(option);
-        }
+        newTestResult.AddSelectedOptions(selectedOptions);
         return newTestResult;
     }
 

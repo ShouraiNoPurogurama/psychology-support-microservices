@@ -18,17 +18,16 @@ public class TestResultCreatedEventHandler : INotificationHandler<TestResultCrea
 
     public async Task Handle(TestResultCreatedEvent notification, CancellationToken cancellationToken)
     {
-        TestResult testResult = await _dbContext.TestResults
-                                    .FindAsync([notification.TestResultId], cancellationToken)
-                                ?? throw new NotFoundException("Test Result", notification.TestResultId);
-
-        List<QuestionOption> testResultOptions = await _dbContext.QuestionOptions
-            .AsNoTracking()
-            .Where(o => notification.SelectedOptionIds.Contains(o.Id))
-            .ToListAsync(cancellationToken);
-
-        testResult.AddSelectedOptions(testResultOptions);
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        // TestResult testResult = await _dbContext.TestResults
+        //                             .FindAsync([notification.TestResultId], cancellationToken)
+        //                         ?? throw new NotFoundException("Test Result", notification.TestResultId);
+        //
+        // List<QuestionOption> testResultOptions = await _dbContext.QuestionOptions
+        //     .Where(o => notification.SelectedOptionIds.Contains(o.Id))
+        //     .ToListAsync(cancellationToken);
+        //
+        // testResult.AddSelectedOptions(testResultOptions);
+        //
+        // await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }
