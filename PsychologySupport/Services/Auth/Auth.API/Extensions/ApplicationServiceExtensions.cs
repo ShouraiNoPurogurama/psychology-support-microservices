@@ -70,6 +70,8 @@ public static class ApplicationServiceExtensions
     {
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
+
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
