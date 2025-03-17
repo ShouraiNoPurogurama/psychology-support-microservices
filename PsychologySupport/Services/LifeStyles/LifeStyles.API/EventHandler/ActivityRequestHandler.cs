@@ -1,13 +1,11 @@
 ﻿using BuildingBlocks.Dtos;
 using BuildingBlocks.Messaging.Events.LifeStyle;
 using LifeStyles.API.Data;
-using LifeStyles.API.Models;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.EventHandler
 {
-
     /*   public class ActivityRequestHandler : IConsumer<ActivityRequest>
        {
            private readonly LifeStylesDbContext _context;
@@ -131,42 +129,58 @@ namespace LifeStyles.API.EventHandler
         {
             var activityRequest = context.Message;
 
-            var activityFetchers = new Dictionary<string, Func<List<Guid>, Task<List<IActivityDto>>>>
-         {
-             { "Entertainment", GetEntertainmentActivities },
-             { "Physical", GetPhysicalActivities },
-             { "Food", GetFoodActivities },
-             { "Therapeutic", GetTherapeuticActivities }
-         };
-
-            if (!activityFetchers.TryGetValue(activityRequest.ActivityType, out var fetcher))
+            switch (activityRequest.ActivityType)
             {
-                throw new ArgumentException($"Unknown activity type: {activityRequest.ActivityType}");
+                case "Entertainment":
+                {
+                    var result = await GetEntertainmentActivities(activityRequest.Ids);
+                    await context.RespondAsync(new ActivityRequestResponse<EntertainmentActivityDto>(result));
+                    return;
+                }
+                case "Physical":
+                {
+                    var result = await GetPhysicalActivities(activityRequest.Ids);
+                    await context.RespondAsync(new ActivityRequestResponse<PhysicalActivityDto>(result));
+                    return;
+                }
+                case "Food":
+                {
+                    var result = await GetFoodActivities(activityRequest.Ids);
+                    await context.RespondAsync(new ActivityRequestResponse<FoodActivityDto>(result));
+                    return;
+                }
+                case "Therapeutic":
+                {
+                    var result = await GetTherapeuticActivities(activityRequest.Ids);
+                    await context.RespondAsync(new ActivityRequestResponse<TherapeuticActivityDto>(result));
+                    return;
+                }
             }
-
-            var activities = await fetcher(activityRequest.Ids);
-            await context.RespondAsync(new ActivityRequestResponse<IActivityDto>(activities));
         }
 
-        private async Task<List<IActivityDto>> GetEntertainmentActivities(List<Guid> ids)
+        private async Task<List<EntertainmentActivityDto>> GetEntertainmentActivities(List<Guid> ids)
         {
-            return await _context.EntertainmentActivities
+            var result = await _context.EntertainmentActivities
                 .Where(e => ids.Contains(e.Id))
                 .Select(e => new EntertainmentActivityDto(e.Id, e.Name, e.Description, e.IntensityLevel, e.ImpactLevel))
-                .ToListAsync<IActivityDto>();
+                .ToListAsync();
+
+            return result;
         }
 
-        private async Task<List<IActivityDto>> GetPhysicalActivities(List<Guid> ids)
+        private async Task<List<PhysicalActivityDto>> GetPhysicalActivities(List<Guid> ids)
         {
-            return await _context.PhysicalActivities
+            var result=  await _context.PhysicalActivities
                 .Where(p => ids.Contains(p.Id))
                 .Select(p => new PhysicalActivityDto(p.Id, p.Name, p.Description, p.IntensityLevel, p.ImpactLevel))
-                .ToListAsync<IActivityDto>();
+                .ToListAsync();
+
+            return result;
         }
 
-        private async Task<List<IActivityDto>> GetFoodActivities(List<Guid> ids)
+        private async Task<List<FoodActivityDto>> GetFoodActivities(List<Guid> ids)
         {
-            return await _context.FoodActivities
+            var result= await _context.FoodActivities
                 .Include(f => f.FoodNutrients)
                 .Include(f => f.FoodCategories)
                 .Where(f => ids.Contains(f.Id))
@@ -175,17 +189,19 @@ namespace LifeStyles.API.EventHandler
                     f.FoodNutrients.Select(fn => fn.Name),
                     f.FoodCategories.Select(fc => fc.Name),
                     f.IntensityLevel))
-                .ToListAsync<IActivityDto>();
+                .ToListAsync();
+
+            return result;
         }
 
-        private async Task<List<IActivityDto>> GetTherapeuticActivities(List<Guid> ids)
+        private async Task<List<TherapeuticActivityDto>> GetTherapeuticActivities(List<Guid> ids)
         {
             return await _context.TherapeuticActivities
                 .Where(t => ids.Contains(t.Id))
                 .Select(t => new TherapeuticActivityDto(
                     t.Id, t.Name, t.Name, t.Description,
                     t.Instructions, t.IntensityLevel, t.ImpactLevel))
-                .ToListAsync<IActivityDto>();
+                .ToListAsync();
         }
     }
 
@@ -233,5 +249,4 @@ namespace LifeStyles.API.EventHandler
              return entity != null ? map(entity) : default;
          }
      }*/
-
 }

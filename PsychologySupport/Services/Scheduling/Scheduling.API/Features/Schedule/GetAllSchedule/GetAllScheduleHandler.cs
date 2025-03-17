@@ -79,6 +79,7 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
                 totalCount,
                  schedules.Select(schedule => new ScheduleDto
                  {
+                     Id = schedule.Id,
                      PatientId = schedule.PatientId,
                      DoctorId = schedule.DoctorId,
                      StartDate = schedule.StartDate,
