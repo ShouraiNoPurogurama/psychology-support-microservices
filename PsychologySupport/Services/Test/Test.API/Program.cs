@@ -1,5 +1,6 @@
 using Test.API;
 using Test.Application;
+using Test.Application.Extensions;
 using Test.Infrastructure;
 using Test.Infrastructure.Data.Extensions;
 
@@ -16,7 +17,8 @@ builder.Services.AddSwaggerGen();
 builder.Services
     .AddApplicationServices(builder.Configuration)
     .AddInfrastructureServices(builder.Configuration)
-    .AddApiServices(builder.Configuration); 
+    .AddApiServices(builder.Configuration)
+    .RegisterMapsterConfiguration();
 
 var app = builder.Build();
 
