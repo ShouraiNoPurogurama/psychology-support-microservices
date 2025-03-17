@@ -9,7 +9,7 @@ namespace Scheduling.API.Features.Schedule.GetScheduleActivity
     public record GetScheduleActivityQuery(Guid SessionId) : IQuery<GetScheduleActivityResult>;
     public record GetScheduleActivityResult(List<ScheduleActivityDto> ScheduleActivities);
 
-    public class GetScheduleActivityHandler : IQueryHandler<GetScheduleActivityQuery, GetScheduleActivityResult>
+    /*public class GetScheduleActivityHandler : IQueryHandler<GetScheduleActivityQuery, GetScheduleActivityResult>
     {
         private readonly SchedulingDbContext _context;
         private readonly IRequestClient<ActivityRequest> _activityClient;
@@ -41,7 +41,7 @@ namespace Scheduling.API.Features.Schedule.GetScheduleActivity
                     Status = scheduleActivity.Status.ToString()
                 };
 
-                // Determine the activity type and request the activity details
+
                 if (scheduleActivity.EntertainmentActivityId.HasValue)
                 {
                     var activityResponse = await _activityClient.GetResponse<ActivityRequestResponse<EntertainmentActivityDto>>(
@@ -77,6 +77,74 @@ namespace Scheduling.API.Features.Schedule.GetScheduleActivity
             return new GetScheduleActivityResult(scheduleActivityDtos);
         }
     }
+*/
 
+    public class GetScheduleActivityHandler : IQueryHandler<GetScheduleActivityQuery, GetScheduleActivityResult>
+    {
+        private readonly SchedulingDbContext _context;
+        private readonly IRequestClient<ActivityRequest> _activityClient;
+
+        public GetScheduleActivityHandler(SchedulingDbContext context, IRequestClient<ActivityRequest> activityClient)
+        {
+            _context = context;
+            _activityClient = activityClient;
+        }
+
+        public async Task<GetScheduleActivityResult> Handle(GetScheduleActivityQuery request, CancellationToken cancellationToken)
+        {
+            var scheduleActivities = await _context.ScheduleActivities
+                .Where(sa => sa.SessionId == request.SessionId)
+                .ToListAsync(cancellationToken);
+
+            var activityRequests = new Dictionary<string, List<Guid>>
+        {
+            { "Entertainment", scheduleActivities.Where(sa => sa.EntertainmentActivityId.HasValue).Select(sa => sa.EntertainmentActivityId.Value).ToList() },
+            { "Food", scheduleActivities.Where(sa => sa.FoodActivityId.HasValue).Select(sa => sa.FoodActivityId.Value).ToList() },
+            { "Physical", scheduleActivities.Where(sa => sa.PhysicalActivityId.HasValue).Select(sa => sa.PhysicalActivityId.Value).ToList() },
+            { "Therapeutic", scheduleActivities.Where(sa => sa.TherapeuticActivityId.HasValue).Select(sa => sa.TherapeuticActivityId.Value).ToList() }
+        };
+
+            var activityTasks = activityRequests
+                .Where(kv => kv.Value.Any())
+                .ToDictionary(
+                    kv => kv.Key,
+                    kv => _activityClient.GetResponse<ActivityRequestResponse<IActivityDto>>(
+                        new ActivityRequest(kv.Value, kv.Key)));
+
+            await Task.WhenAll(activityTasks.Values);
+
+            var activityResponses = activityTasks.ToDictionary(
+                task => task.Key,
+                task => task.Value.Result.Message.Activities);
+
+            var scheduleActivityDtos = scheduleActivities.Select(scheduleActivity => new ScheduleActivityDto
+            {
+                SessionId = scheduleActivity.SessionId,
+                Description = scheduleActivity.Description,
+                TimeRange = scheduleActivity.TimeRange,
+                Duration = scheduleActivity.Duration,
+                DateNumber = scheduleActivity.DateNumber,
+                Status = scheduleActivity.Status.ToString(),
+                EntertainmentActivity = scheduleActivity.EntertainmentActivityId.HasValue && activityResponses.ContainsKey("Entertainment")
+                    ? activityResponses["Entertainment"].OfType<EntertainmentActivityDto>()
+                        .FirstOrDefault(a => a.Id == scheduleActivity.EntertainmentActivityId.Value)
+                    : null,
+                FoodActivity = scheduleActivity.FoodActivityId.HasValue && activityResponses.ContainsKey("Food")
+                    ? activityResponses["Food"].OfType<FoodActivityDto>()
+                        .FirstOrDefault(a => a.Id == scheduleActivity.FoodActivityId.Value)
+                    : null,
+                PhysicalActivity = scheduleActivity.PhysicalActivityId.HasValue && activityResponses.ContainsKey("Physical")
+                    ? activityResponses["Physical"].OfType<PhysicalActivityDto>()
+                        .FirstOrDefault(a => a.Id == scheduleActivity.PhysicalActivityId.Value)
+                    : null,
+                TherapeuticActivity = scheduleActivity.TherapeuticActivityId.HasValue && activityResponses.ContainsKey("Therapeutic")
+                    ? activityResponses["Therapeutic"].OfType<TherapeuticActivityDto>()
+                        .FirstOrDefault(a => a.Id == scheduleActivity.TherapeuticActivityId.Value)
+                    : null
+            }).ToList();
+
+            return new GetScheduleActivityResult(scheduleActivityDtos);
+        }
+    }
 }
 
