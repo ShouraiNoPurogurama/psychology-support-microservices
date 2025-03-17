@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
@@ -19,11 +19,11 @@
       <None Remove="Properties\PublishProfiles\PromotionGrpc20250314134141 - Zip Deploy.pubxml" />
     </ItemGroup>
 
-    <ItemGroup>
+	<ItemGroup>
         <Protobuf Include="Protos\promotion.proto" GrpcServices="Server" />
     </ItemGroup>
 
-    <ItemGroup>
+	<ItemGroup>
         <PackageReference Include="FluentValidation" Version="11.11.0" />
         <PackageReference Include="Grpc.AspNetCore" Version="2.57.0" />
         <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.67.0" />
@@ -39,5 +39,11 @@
         </PackageReference>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
     </ItemGroup>
+
+	<ItemGroup>
+	  <None Update="PromotionDb">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
 
 </Project>

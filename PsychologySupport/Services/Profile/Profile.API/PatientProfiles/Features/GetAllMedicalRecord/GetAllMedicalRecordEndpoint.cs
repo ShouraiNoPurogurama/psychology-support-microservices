@@ -11,18 +11,18 @@ public class GetAllMedicalRecordsEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/patients/{patientId}/medical-records", async ([AsParameters] GetAllMedicalRecordsQuery request,ISender sender) 
-        =>{
+        app.MapGet("/medical-records", async ([AsParameters] GetAllMedicalRecordsQuery request, ISender sender) =>
+        {
             var result = await sender.Send(request);
             var response = result.Adapt<GetAllMedicalRecordsResponse>();
 
             return Results.Ok(response);
         })
-            .WithName("GetAllMedicalRecords")
-            .Produces<GetAllMedicalRecordsResponse>()
-            .ProducesProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .WithDescription("Get All MedicalRecords")
-            .WithSummary("Get All MedicalRecords");
+        .WithName("GetAllMedicalRecords")
+        .Produces<GetAllMedicalRecordsResponse>()
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .WithDescription("Get All MedicalRecords")
+        .WithSummary("Get All MedicalRecords");
     }
 }

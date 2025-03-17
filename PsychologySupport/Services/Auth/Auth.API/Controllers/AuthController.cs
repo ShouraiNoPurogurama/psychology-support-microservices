@@ -12,7 +12,8 @@ public class AuthController(
     UserManager<User> userManager,
     RoleManager<Role> roleManager,
     IConfiguration configuration,
-    IAuthService authService) : ControllerBase
+    IAuthService authService,
+    IFirebaseAuthService firebaseAuthService) : ControllerBase
 {
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
@@ -28,4 +29,12 @@ public class AuthController(
         var result = await authService.RegisterAsync(registerRequest);
         return Ok(result);
     }
+
+    [HttpPost("firebase-login")]
+    public async Task<IActionResult> FirebaseLogin([FromBody] FirebaseLoginRequest request)
+    {
+        var response = await firebaseAuthService.FirebaseLoginAsync(request);
+        return Ok(response);
+    }
+
 }
