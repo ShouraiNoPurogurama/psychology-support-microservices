@@ -10,7 +10,7 @@ public class VnPayCallbackEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("payments/callback/{vnPayCallbackRequest}", async ([AsParameters] VnPayCallbackDto vnPayCallbackRequest, ISender sender) =>
+        app.MapGet("payments/callback", async ([AsParameters] VnPayCallbackDto vnPayCallbackRequest, ISender sender) =>
         {
             var query = new VnPayCallbackQuery(vnPayCallbackRequest);
 

@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
+using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Payment.Application.Data;
 using Payment.Application.Payments.Dtos;
@@ -19,7 +20,8 @@ public class CreateVnPayCallBackUrlForSubscriptionCommandHandler(IVnPayService v
         var dto = request.BuySubscription;
         
         var paymentMethod = await dbContext.PaymentMethods
-            .FirstOrDefaultAsync(p => p.Name == dto.PaymentMethod, cancellationToken: cancellationToken);
+            .FirstOrDefaultAsync(p => p.Name == dto.PaymentMethod, cancellationToken: cancellationToken)
+            ?? throw new NotFoundException(nameof(PaymentMethod), dto.PaymentMethod);
         
         var paymentId = Guid.NewGuid();
         

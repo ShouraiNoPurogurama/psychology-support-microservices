@@ -4,6 +4,7 @@ using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Subscription;
+using Mapster;
 using MassTransit;
 using Payment.Application.Data;
 using Payment.Application.Payments.Dtos;
@@ -12,7 +13,7 @@ namespace Payment.Application.Payments.Queries;
 
 public record VnPayCallbackQuery(VnPayCallbackDto VnPayCallback) : IQuery<VnPayCallbackResult>;
 
-public record VnPayCallbackResult(string CallbackUrl);
+public record VnPayCallbackResult(PaymentDto Payment);
 
 public class VnPayCallbackHandler(IPaymentDbContext dbContext)
     : IQueryHandler<VnPayCallbackQuery, VnPayCallbackResult>
@@ -125,6 +126,6 @@ public class VnPayCallbackHandler(IPaymentDbContext dbContext)
             }
         }
 
-        return new VnPayCallbackResult("https://localhost:5001");
+        return new VnPayCallbackResult(payment.Adapt<PaymentDto>());
     }
 }

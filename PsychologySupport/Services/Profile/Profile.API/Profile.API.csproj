@@ -6,7 +6,9 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
-
+    <PropertyGroup>
+        <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+    </PropertyGroup>
     <ItemGroup>
         <Compile Remove="DoctorProfiles\Events\**" />
         <Content Remove="DoctorProfiles\Events\**" />
