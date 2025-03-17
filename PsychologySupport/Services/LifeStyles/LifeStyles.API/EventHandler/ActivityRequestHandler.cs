@@ -17,10 +17,8 @@ namespace LifeStyles.API.EventHandler
         }
         public async Task Consume(ConsumeContext<ActivityRequest> context)
         {
-            // Extract the request data
             var activityRequest = context.Message;
 
-            // Depending on ActivityType, fetch the appropriate entity
             switch (activityRequest.ActivityType)
             {
                 case "Entertainment":

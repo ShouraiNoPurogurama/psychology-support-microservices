@@ -9,20 +9,30 @@ public class GetPatientProfileHandler(ProfileDbContext dbContext) : IConsumer<Ge
 {
     public async Task Consume(ConsumeContext<GetPatientProfileRequest> context)
     {
-        var patientProfile = await dbContext.PatientProfiles.AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == context.Message.PatientId);
-
-        if (patientProfile is null)
+        PatientProfile? patientProfile = null;
+        if (context.Message.UserId is not null)
         {
-            await context.RespondAsync(new GetPatientProfileResponse(false, Guid.Empty, string.Empty, UserGender.Else,
-                string.Empty, string.Empty, string.Empty, string.Empty, String.Empty));
+            patientProfile = await dbContext.PatientProfiles.FirstOrDefaultAsync(x => x.UserId == context.Message.UserId);
+
+            if (patientProfile is null)
+            {
+                await context.RespondAsync(new GetPatientProfileResponse(false, Guid.Empty, string.Empty, UserGender.Else,
+                    string.Empty, string.Empty, string.Empty, string.Empty, String.Empty));
+                return;
+            }
+
+            await context.RespondAsync(patientProfile.Adapt<GetPatientProfileResponse>() with
+            {
+                Email = patientProfile.ContactInfo.Email,
+                Address = patientProfile.ContactInfo.Address,
+                PhoneNumber = patientProfile.ContactInfo.PhoneNumber,
+                PatientExists = true
+            });
             return;
         }
 
-        if (context.Message.UserId is not null)
-        {
-            patientProfile = patientProfile.UserId == context.Message.UserId ? patientProfile : null;
-        }
+        patientProfile = await dbContext.PatientProfiles.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == context.Message.PatientId);
 
         if (patientProfile is null)
         {

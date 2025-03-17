@@ -40,7 +40,7 @@ namespace Scheduling.API.Features.Schedule.GetScheduleActivity
                     DateNumber = scheduleActivity.DateNumber,
                     Status = scheduleActivity.Status.ToString()
                 };
-
+                
                 // Determine the activity type and request the activity details
                 if (scheduleActivity.EntertainmentActivityId.HasValue)
                 {
