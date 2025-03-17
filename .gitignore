@@ -408,3 +408,8 @@ FodyWeavers.xsd
 PsychologySupport/Promotion/Promotion.Grpc/PromotionDb
 PsychologySupport/Services/Promotion/Promotion.Grpc/PromotionDb
 PromotionDb/
+PsychologySupport/Services/Payment/Payment.API/Properties/ServiceDependencies/psychologysupportpayment - Zip Deploy/profile.arm.json
+PsychologySupport/Services/Subscription/Subscription.API/Properties/ServiceDependencies/psychologysupportsubscription - FTP1/profile.arm.json
+PsychologySupport/Services/Subscription/Subscription.API/Properties/ServiceDependencies/psychologysupportsubscription - ReadOnly - FTP1/profile.arm.json
+PsychologySupport/Services/Subscription/Subscription.API/Properties/ServiceDependencies/psychologysupportsubscription - Zip Deploy/profile.arm.json
+PsychologySupport/Services/Subscription/Subscription.API/Properties/ServiceDependencies/psychologysupportsubscription - Zip Deploy1/profile.arm.json

@@ -60,6 +60,8 @@ public class CreateUserSubscriptionHandler(
 
         var subscriptionCreatedEvent = dto.Adapt<GenerateSubscriptionPaymentUrlRequest>();
         subscriptionCreatedEvent.SubscriptionId = userSubscription.Id;
+        subscriptionCreatedEvent.Name = servicePackage.Name;
+        subscriptionCreatedEvent.Description = servicePackage.Description;
         subscriptionCreatedEvent.ServicePackageId = servicePackage.Id;
         subscriptionCreatedEvent.PatientId = userSubscription.PatientId;
         subscriptionCreatedEvent.PatientEmail = patient.Message.Email;
