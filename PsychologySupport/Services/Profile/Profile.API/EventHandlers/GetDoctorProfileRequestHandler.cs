@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.Enums;
 using BuildingBlocks.Messaging.Events.Profile;
 using Mapster;
+using Profile.API.DoctorProfiles.Models;
 
 namespace Profile.API.EventHandlers;
 
@@ -8,20 +9,32 @@ public class GetDoctorProfileRequestHandler(ProfileDbContext dbContext) : IConsu
 {
     public async Task Consume(ConsumeContext<GetDoctorProfileRequest> context)
     {
-        var doctorProfile = await dbContext.DoctorProfiles.AsNoTracking()
-            .FirstOrDefaultAsync(d => d.Id == context.Message.DoctorId);
-
-        if (doctorProfile is null)
-        {
-            await context.RespondAsync(new GetDoctorProfileResponse(false, Guid.Empty, default, UserGender.Else, default, default,
-                default));
-            return;
-        }
+        DoctorProfile? doctorProfile = null;
 
         if (context.Message.UserId is not null)
         {
-            doctorProfile = doctorProfile.UserId == context.Message.UserId.Value ? doctorProfile : null;
+            doctorProfile = await dbContext.DoctorProfiles.FirstOrDefaultAsync(x => x.UserId == context.Message.UserId);
+
+            if (doctorProfile is null)
+            {
+                await context.RespondAsync(new GetDoctorProfileResponse(false, Guid.Empty, default, UserGender.Else, default,
+                    default,
+                    default));
+                return;
+            }
+
+            await context.RespondAsync(doctorProfile.Adapt<GetDoctorProfileResponse>() with
+            {
+                Address = doctorProfile.ContactInfo.Address,
+                PhoneNumber = doctorProfile.ContactInfo.PhoneNumber,
+                Email = doctorProfile.ContactInfo.Email,
+                DoctorExists = true
+            });
+            return;
         }
+
+        doctorProfile = await dbContext.DoctorProfiles.AsNoTracking()
+            .FirstOrDefaultAsync(d => d.Id == context.Message.DoctorId);
 
         if (doctorProfile is null)
         {

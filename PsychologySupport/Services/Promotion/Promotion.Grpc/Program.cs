@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Promotion.Grpc.BackgroundServices;
 using Promotion.Grpc.Data;
 using Promotion.Grpc.Extensions;

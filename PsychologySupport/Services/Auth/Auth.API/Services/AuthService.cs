@@ -56,11 +56,8 @@ public class AuthService(
         User user;
         if (!string.IsNullOrWhiteSpace(loginRequest.Email))
         {
-            // user = await _userManager.Users
-            //            .FirstOrDefaultAsync(u => u.Email == loginRequest.Email && !u.LockoutEnabled)
-            //        ?? throw new UserNotFoundException(loginRequest.Email);
-       user = await _userManager.Users
-                       .FirstOrDefaultAsync(u => u.Email == loginRequest.Email)
+            user = await _userManager.Users
+                       .FirstOrDefaultAsync(u => u.Email == loginRequest.Email && !u.LockoutEnabled)
                    ?? throw new UserNotFoundException(loginRequest.Email);
 
             if (!user.EmailConfirmed)
