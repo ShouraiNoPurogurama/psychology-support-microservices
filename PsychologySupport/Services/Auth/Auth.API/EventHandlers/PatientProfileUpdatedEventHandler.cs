@@ -27,6 +27,8 @@ public class PatientProfileUpdatedEventHandler : IConsumer<PatientProfileUpdated
             user.FullName = message.FullName;
             user.Gender = message.Gender;
             await _userManager.SetEmailAsync(user, message.Email);
+            user.EmailConfirmed = true;
+            user.PhoneNumberConfirmed = true;
             await _userManager.SetPhoneNumberAsync(user, message.PhoneNumber);
 
             await _context.SaveChangesAsync();
