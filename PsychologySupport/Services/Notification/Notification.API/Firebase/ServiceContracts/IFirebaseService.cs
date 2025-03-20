@@ -2,5 +2,5 @@
 
 public interface IFirebaseService
 {
-    Task SendPushNotification(string FCMToken, string subject, string body);
+    Task SendPushNotification(IEnumerable<string> FCMTokens, string subject, string body);
 }

@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.Messaging.Events.Notification;
+﻿using BuildingBlocks.Messaging.Events.Auth;
+using BuildingBlocks.Messaging.Events.Notification;
 using BuildingBlocks.Messaging.Events.Subscription;
 using Mapster;
 using MassTransit;
@@ -10,6 +11,7 @@ namespace Payment.Application.Payments.EventHandlers;
 
 public class SubscriptionPaymentDetailFailedEventHandler(
     IPublishEndpoint publishEndpoint,
+    IRequestClient<GetUserDataRequest> authClient,
     ILogger<SubscriptionPaymentDetailFailedEventHandler> logger)
     : INotificationHandler<SubscriptionPaymentDetailFailedEvent>
 {
@@ -25,6 +27,20 @@ public class SubscriptionPaymentDetailFailedEventHandler(
             "Subscription Payment Failed",
             "Your subscription payment has failed. Please check your payment details and try again.");
 
+        var userDataResponse =
+            await authClient.GetResponse<GetUserDataResponse>(new GetUserDataRequest(null, notification.PatientEmail),
+                cancellationToken);
+
+        var FCMTokens = userDataResponse.Message.FCMTokens;
+
+        if (FCMTokens.Any())
+        {
+            var sendMobilePushNotificationEvent = new SendMobilePushNotificationIntegrationEvent(
+                FCMTokens, "Booking Activated", "Your booking has been paid successfully.");
+
+            await publishEndpoint.Publish(sendMobilePushNotificationEvent, cancellationToken);
+        }
+        
         await publishEndpoint.Publish(paymentDetailDetailFailedEvent, cancellationToken);
         await publishEndpoint.Publish(sendEmailIntegrationEvent, cancellationToken);
     }

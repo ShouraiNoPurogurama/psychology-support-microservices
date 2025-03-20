@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.Messaging.Events.Notification;
+﻿using BuildingBlocks.Messaging.Events.Auth;
+using BuildingBlocks.Messaging.Events.Notification;
 using BuildingBlocks.Messaging.Events.Scheduling;
 using Mapster;
 using MassTransit;
@@ -11,6 +12,7 @@ namespace Payment.Application.Payments.EventHandlers;
 
 public class BookingPaymentDetailFailedEventHandler(
     IPublishEndpoint publishEndpoint,
+    IRequestClient<GetUserDataRequest> authClient,
     ILogger<BookingPaymentDetailFailedEventHandler> logger) : INotificationHandler<BookingPaymentDetailFailedEvent>
 {
     public async Task Handle(BookingPaymentDetailFailedEvent notification, CancellationToken cancellationToken)
@@ -25,6 +27,20 @@ public class BookingPaymentDetailFailedEventHandler(
             "Booking Payment Failed",
             "Your booking payment has failed. Please check your payment details and try again.");
 
+        var userDataResponse =
+            await authClient.GetResponse<GetUserDataResponse>(new GetUserDataRequest(null, notification.PatientEmail),
+                cancellationToken);
+
+        var FCMTokens = userDataResponse.Message.FCMTokens;
+        
+        if (FCMTokens.Any())
+        {
+            var sendMobilePushNotificationEvent = new SendMobilePushNotificationIntegrationEvent(
+                FCMTokens, "Booking Activated", "Your booking has been paid successfully.");
+            
+            await publishEndpoint.Publish(sendMobilePushNotificationEvent, cancellationToken);
+        }
+        
         await publishEndpoint.Publish(paymentDetailFailedEvent, cancellationToken);
         await publishEndpoint.Publish(sendEmailIntegrationEvent, cancellationToken);
     }

@@ -1,7 +1,9 @@
-﻿using Auth.API.Models;
+﻿using System.Linq.Expressions;
+using Auth.API.Models;
 using BuildingBlocks.Messaging.Events.Auth;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Auth.API.EventHandlers;
 
@@ -9,14 +11,20 @@ public class GetUserDataRequestHandler(UserManager<User> userManager) : IConsume
 {
     public async Task Consume(ConsumeContext<GetUserDataRequest> context)
     {
-        var user = await userManager.FindByIdAsync(context.Message.UserId);
-        
+        Expression<Func<User, bool>> predicate = u =>
+            u.Id.Equals(context.Message.UserId) || u.Email!.Equals(context.Message.UserEmail);
+
+        var user = await userManager.Users
+            .Include(u => u.Devices)
+            .FirstOrDefaultAsync(predicate);
+
         if (user is null)
         {
-            await context.RespondAsync(new GetUserDataResponse(Guid.Empty, default, default));
+            await context.RespondAsync(new GetUserDataResponse(Guid.Empty, default, default, []));
             return;
         }
-        
-        await context.RespondAsync(new GetUserDataResponse(user.Id, user.UserName, user.Email));
+
+        await context.RespondAsync(new GetUserDataResponse(user.Id, user.UserName, user.Email,
+            user.Devices.Select(d => d.DeviceToken)));
     }
 }

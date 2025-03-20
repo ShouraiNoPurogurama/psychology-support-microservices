@@ -7,7 +7,7 @@ namespace Notification.API.Emails.Features;
 
 public record SendEmailRequest(Guid EventId, string To, string Subject, string Body);
 
-public class SendEmailEndpoint(FirebaseService firebaseService) : ICarterModule
+public class SendEmailEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {

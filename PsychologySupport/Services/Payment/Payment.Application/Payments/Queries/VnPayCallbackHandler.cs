@@ -105,23 +105,6 @@ public class VnPayCallbackHandler(IPaymentDbContext dbContext)
 
                 await dbContext.SaveChangesAsync(cancellationToken);
 
-                //
-                // switch (paymentType)
-                // {
-                //     case PaymentType.BuySubscription:
-                //         //TODO remove subscription for patient by adjusting the status
-                //         
-                //         
-                //         
-                //         break;
-                //
-                //     case PaymentType.Booking:
-                //         //Revert booking for patient by adjusting the status
-                //         //Cancel booking for doctors
-                //         
-                //         break;
-                // }
-
                 scope.Complete();
             }
         }
