@@ -4,6 +4,7 @@ namespace Scheduling.API.Dtos
 {
     public class ScheduleActivityDto
     {
+        public Guid Id { get; set; }
         public Guid SessionId { get; set; }
         public EntertainmentActivityDto? EntertainmentActivity { get; set; }
         public FoodActivityDto? FoodActivity { get; set; }

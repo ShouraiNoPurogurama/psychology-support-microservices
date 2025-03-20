@@ -74,6 +74,7 @@ namespace Scheduling.API.Features.Schedule.GetScheduleActivity
                 var matchingActivity = activities.First(a => a.SpecificActivityId == activity.Id);
                 scheduleActivityDtos.Add(new ScheduleActivityDto
                 {
+                    Id = activity.Id,
                     SessionId = request.SessionId,
                     Description = activity.Description,
                     TimeRange = matchingActivity.ScheduleActivity.TimeRange,
@@ -94,6 +95,7 @@ namespace Scheduling.API.Features.Schedule.GetScheduleActivity
                 var matchingActivity = activities.First(a => a.SpecificActivityId == activity.Id);
                 scheduleActivityDtos.Add(new ScheduleActivityDto
                 {
+                    Id = activity.Id,
                     SessionId = request.SessionId,
                     Description = activity.Description,
                     TimeRange = matchingActivity.ScheduleActivity.TimeRange,
@@ -114,6 +116,7 @@ namespace Scheduling.API.Features.Schedule.GetScheduleActivity
                 var matchingActivity = activities.First(a => a.SpecificActivityId == activity.Id);
                 scheduleActivityDtos.Add(new ScheduleActivityDto
                 {
+                    Id = activity.Id,
                     SessionId = request.SessionId,
                     Description = activity.Description,
                     TimeRange = matchingActivity.ScheduleActivity.TimeRange,
@@ -135,6 +138,7 @@ namespace Scheduling.API.Features.Schedule.GetScheduleActivity
                 var matchingActivity = activities.First(a => a.SpecificActivityId == activity.Id);
                 scheduleActivityDtos.Add(new ScheduleActivityDto
                 {
+                    Id = activity.Id,
                     SessionId = request.SessionId,
                     Description = activity.Description,
                     TimeRange = matchingActivity.ScheduleActivity.TimeRange,

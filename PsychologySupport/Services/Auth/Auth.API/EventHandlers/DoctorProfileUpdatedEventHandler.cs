@@ -28,7 +28,8 @@ public class DoctorProfileUpdatedEventHandler : IConsumer<DoctorProfileUpdatedIn
             user.Gender = message.Gender;
             await _userManager.SetEmailAsync(user, message.Email);
             await _userManager.SetPhoneNumberAsync(user, message.PhoneNumber);
-
+            user.EmailConfirmed = true;
+            user.PhoneNumberConfirmed = true;
             await _context.SaveChangesAsync();
         }
     }
