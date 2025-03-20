@@ -9,7 +9,7 @@ namespace Payment.Application.Payments.Commands;
 public record CreateVnPayCallBackUrlForBookingCommand(BuyBookingDto BuyBooking)
     : ICommand<CreateVnPayCallBackUrlForBookingCommandResult>;
 
-public record CreateVnPayCallBackUrlForBookingCommandResult(string Url, Guid PaymentId);
+public record CreateVnPayCallBackUrlForBookingCommandResult(string Url);
 
 public class CreateVnPayCallBackUrlForBookingCommandHandler(IVnPayService vnPayService, IPaymentDbContext dbContext)
     : ICommandHandler<CreateVnPayCallBackUrlForBookingCommand, CreateVnPayCallBackUrlForBookingCommandResult>
@@ -42,6 +42,6 @@ public class CreateVnPayCallBackUrlForBookingCommandHandler(IVnPayService vnPayS
 
         var vnPayUrl = await vnPayService.CreateVNPayUrlForBookingAsync(request.BuyBooking, payment.Id);
 
-        return new CreateVnPayCallBackUrlForBookingCommandResult(vnPayUrl, paymentId);
+        return new CreateVnPayCallBackUrlForBookingCommandResult(vnPayUrl);
     }
 }

@@ -15,39 +15,6 @@ namespace LifeStyles.API.EventHandler
             _context = context;
         }
 
-        /* public async Task Consume(ConsumeContext<ActivityRequest> context)
-         {
-             var activityRequest = context.Message;
-
-             switch (activityRequest.ActivityType)
-             {
-                 case "Entertainment":
-                 {
-                     var result = await GetEntertainmentActivities(activityRequest.Ids);
-                     await context.RespondAsync(new ActivityRequestResponse<EntertainmentActivityDto>(result));
-                     return;
-                 }
-                 case "Physical":
-                 {
-                     var result = await GetPhysicalActivities(activityRequest.Ids);
-                     await context.RespondAsync(new ActivityRequestResponse<PhysicalActivityDto>(result));
-                     return;
-                 }
-                 case "Food":
-                 {
-                     var result = await GetFoodActivities(activityRequest.Ids);
-                     await context.RespondAsync(new ActivityRequestResponse<FoodActivityDto>(result));
-                     return;
-                 }
-                 case "Therapeutic":
-                 {
-                     var result = await GetTherapeuticActivities(activityRequest.Ids);
-                     await context.RespondAsync(new ActivityRequestResponse<TherapeuticActivityDto>(result));
-                     return;
-                 }
-             }
-         }*/
-
         public async Task Consume(ConsumeContext<ActivityRequest> context)
         {
             var activityRequest = context.Message;
