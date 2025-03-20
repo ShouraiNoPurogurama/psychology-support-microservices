@@ -30,8 +30,8 @@ public class AuthService(
 
         var user = registerRequest.Adapt<User>();
         user.Email = user.UserName = registerRequest.Email;
-        user.EmailConfirmed = false;
-        user.PhoneNumberConfirmed = false;
+        user.EmailConfirmed = true;
+        user.PhoneNumberConfirmed = true;
 
         var result = await _userManager.CreateAsync(user, registerRequest.Password);
         if (!result.Succeeded)

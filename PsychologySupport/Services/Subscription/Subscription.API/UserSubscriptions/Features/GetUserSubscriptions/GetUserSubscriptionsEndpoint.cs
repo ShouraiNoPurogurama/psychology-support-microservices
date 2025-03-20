@@ -14,19 +14,19 @@ public class GetUserSubscriptionsEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/user-subscriptions", async ([AsParameters] PaginationRequest request, ISender sender) =>
-            {
-                var query = new GetUserSubscriptionsQuery(request);
+        app.MapGet("/user-subscriptions", async (
+            [AsParameters] GetUserSubscriptionsQuery request,
+            ISender sender) =>
+        {
+            var result = await sender.Send(request);
+            var response = result.Adapt<GetUserSubscriptionsResult>();
 
-                var result = await sender.Send(query);
-                var response = result.Adapt<GetUserSubscriptionsResponse>();
-
-                return Results.Ok(response);
-            })
-            .WithName("GetUserSubscriptions")
-            .Produces<GetUserSubscriptionsResponse>()
-            .ProducesProblem(StatusCodes.Status400BadRequest)
-            .WithDescription("Get User Subscriptions")
-            .WithSummary("Get User Subscriptions");
+            return Results.Ok(response);
+        })
+        .WithName("GetUserSubscriptions")
+        .Produces<GetUserSubscriptionsResult>()
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .WithDescription("Get All User Subscriptions")
+        .WithSummary("Get All User Subscriptions");
     }
 }

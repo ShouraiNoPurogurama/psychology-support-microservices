@@ -30,7 +30,8 @@ public class PatientProfileUpdatedEventHandler : IConsumer<PatientProfileUpdated
             user.EmailConfirmed = true;
             user.PhoneNumberConfirmed = true;
             await _userManager.SetPhoneNumberAsync(user, message.PhoneNumber);
-
+            user.EmailConfirmed = true;
+            user.PhoneNumberConfirmed = true;
             await _context.SaveChangesAsync();
         }
     }

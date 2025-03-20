@@ -2,7 +2,6 @@
 using BuildingBlocks.Messaging.Events.Auth;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Auth.API.EventHandlers;
 

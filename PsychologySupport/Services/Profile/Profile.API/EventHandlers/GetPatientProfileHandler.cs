@@ -2,7 +2,6 @@
 using BuildingBlocks.Messaging.Events.Profile;
 using Mapster;
 using Profile.API.PatientProfiles.Models;
-
 namespace Profile.API.EventHandlers;
 
 public class GetPatientProfileHandler(ProfileDbContext dbContext) : IConsumer<GetPatientProfileRequest>
