@@ -6,10 +6,8 @@ namespace Notification.API.Firebase.EventHandlers;
 
 public class SendMobilePushNotificationEventHandler(IFirebaseService firebaseService) : INotificationHandler<SendMobilePushNotificationEvent>
 {
-    public Task Handle(SendMobilePushNotificationEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(SendMobilePushNotificationEvent notification, CancellationToken cancellationToken)
     {
-        firebaseService.SendPushNotification(notification.FCMToken, notification.Subject, notification.Body);
-        
-        return Task.CompletedTask;
+        await firebaseService.SendPushNotification(notification.FCMToken, notification.Subject, notification.Body);
     }
 }

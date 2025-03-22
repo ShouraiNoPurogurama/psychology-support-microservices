@@ -408,3 +408,4 @@ FodyWeavers.xsd
 
 ServiceDependencies/
 PsychologySupport/Services/Notification/Notification.API/firebase_key.json
+RSAKeys/

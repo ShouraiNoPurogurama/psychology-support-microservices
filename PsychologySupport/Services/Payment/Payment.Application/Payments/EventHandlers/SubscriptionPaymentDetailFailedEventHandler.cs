@@ -36,7 +36,7 @@ public class SubscriptionPaymentDetailFailedEventHandler(
         if (FCMTokens.Any())
         {
             var sendMobilePushNotificationEvent = new SendMobilePushNotificationIntegrationEvent(
-                FCMTokens, "Booking Activated", "Your booking has been paid successfully.");
+                FCMTokens, "Subscription Payment Failed", "Your subscription payment has failed. Please check your payment details and try again.");
 
             await publishEndpoint.Publish(sendMobilePushNotificationEvent, cancellationToken);
         }

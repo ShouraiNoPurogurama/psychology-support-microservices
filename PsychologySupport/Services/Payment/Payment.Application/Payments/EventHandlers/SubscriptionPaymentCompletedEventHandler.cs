@@ -32,7 +32,7 @@ public class SubscriptionPaymentCompletedEventHandler(
         if (FCMTokens.Any())
         {
             var sendMobilePushNotificationEvent = new SendMobilePushNotificationIntegrationEvent(
-                FCMTokens, "Booking Activated", "Your booking has been paid successfully.");
+                FCMTokens, "Subscription Activated", "Your subscription has been activated successfully.");
 
             await publishEndpoint.Publish(sendMobilePushNotificationEvent, cancellationToken);
         }
