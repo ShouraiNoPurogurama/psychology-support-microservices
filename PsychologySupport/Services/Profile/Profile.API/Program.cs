@@ -13,9 +13,9 @@ services.AddExceptionHandler<CustomExceptionHandler>();
 
 services.RegisterMapsterConfiguration();
 
-
 // Configure the HTTP request pipeline
 var app = builder.Build();
+
 
 app.UseExceptionHandler(options => { });
 

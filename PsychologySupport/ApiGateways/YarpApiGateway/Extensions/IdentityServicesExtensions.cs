@@ -1,9 +1,7 @@
-﻿using System.Security.Cryptography;
-using System.Text.Json;
+﻿using System.Security.Claims;
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace YarpApiGateway.Extensions;
@@ -12,14 +10,15 @@ public static class IdentityServicesExtensions
 {
     public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config)
     {
-        services.AddAuthentication("Bearer")
-            .AddJwtBearer("Bearer", options =>
+        services.AddAuthentication(options =>
             {
-                options.Authority = config["IdentityServer:Authority"];
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateAudience = false
-                };
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                // options.Authority = config["IdentityServer:Authority"];
+
 
                 var rsaKey = RSA.Create();
                 string xmlKey = File.ReadAllText(config.GetSection("Jwt:PublicKeyPath").Value!);
@@ -29,34 +28,13 @@ public static class IdentityServicesExtensions
                 options.RequireHttpsMetadata = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     ClockSkew = TimeSpan.Zero,
-
+                    ValidAudience = config["Jwt:Audience"],
+                    ValidIssuer = config["Jwt:Issuer"],
                     // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!))
                     IssuerSigningKey = new RsaSecurityKey(rsaKey)
-                };
-                
-                options.Events = new JwtBearerEvents
-                {
-                    OnChallenge = context =>
-                    {
-                        context.HandleResponse();
-
-                        var payload = new JObject
-                        {
-                            ["error"] = context.Error,
-                            ["error_description"] = context.ErrorDescription,
-                            ["error_uri"] = context.ErrorUri
-                        };
-
-                        context.Response.ContentType = "application/json";
-                        context.Response.StatusCode = 401;
-
-                        return context.Response.WriteAsync(payload.ToString());
-                    }
                 };
             });
 
@@ -67,15 +45,15 @@ public static class IdentityServicesExtensions
             //     .Build();
 
             options.AddPolicy("RequireAdmin", policy =>
-                policy.RequireClaim("role", "Admin"));
+                policy.RequireClaim(ClaimTypes.Role, "Admin"));
             options.AddPolicy("RequireUser", policy =>
-                policy.RequireClaim("role", "User"));
+                policy.RequireClaim(ClaimTypes.Role, "User"));
             options.AddPolicy("RequireManager", policy =>
-                policy.RequireClaim("role", "Manager"));
+                policy.RequireClaim(ClaimTypes.Role, "Manager"));
             options.AddPolicy("RequireUser", policy =>
-                policy.RequireClaim("role", "User"));
+                policy.RequireClaim(ClaimTypes.Role, "User"));
             options.AddPolicy("RequireDoctor", policy =>
-                policy.RequireClaim("role", "Doctor"));
+                policy.RequireClaim(ClaimTypes.Role, "Doctor"));
         });
 
         return services;

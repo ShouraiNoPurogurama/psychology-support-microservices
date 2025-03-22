@@ -26,7 +26,6 @@ public class TokenService(
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
         var roles = await userManager.GetRolesAsync(user);
-        var role = roles.FirstOrDefault() ?? "User";
 
         var profileId = Guid.Empty;
 
@@ -49,8 +48,8 @@ public class TokenService(
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("userId", user.Id.ToString()),
             new Claim("profileId", profileId.ToString()),
-            new Claim("role", string.Join(",", roles)),
-            new Claim("name", user.UserName!)
+            new Claim(ClaimTypes.Role, string.Join(",", roles)),
+            new Claim(ClaimTypes.Name, user.FullName!)
         };
 
         var rsaSecurityKey = GetRsaSecurityKey();
@@ -62,7 +61,7 @@ public class TokenService(
             configuration["Jwt:Audience"],
             claims,
             expires: DateTime.Now.AddHours(1),
-            signingCredentials: credentials
+            signingCredentials: signingCredential
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -164,43 +163,30 @@ public class TokenService(
         return (newJwtToken, newRefreshToken);
     }
 
-    public ClaimsPrincipal GetPrincipalFromToken(string token)
-    {
-        var securityKey = GetRsaSecurityKey();
-        var validation = new TokenValidationParameters()
-        {
-            ValidateActor = false,
-            ValidateAudience = false, //you might want to validate the audience and issuer depending on your use case
-            ValidateIssuer = false,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = securityKey,
-            ValidateLifetime = false //here we are saying that we don't care about the token's expiration date
-        };
-        
-        return new JwtSecurityTokenHandler().ValidateToken(token, validation, out _);
-    }
-
     public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
     {
+        var securityKey = GetRsaSecurityKey();
         var tokenValidationParameters = new TokenValidationParameters
         {
             ValidateActor = false,
             ValidateAudience = false, //you might want to validate the audience and issuer depending on your use case
             ValidateIssuer = false,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jtw:Key"]!)),
+            // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jtw:Key"]!)),
+            IssuerSigningKey = securityKey,
             ValidateLifetime = false //here we are saying that we don't care about the token's expiration date
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
+        
         SecurityToken securityToken;
 
         var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
 
-        var jwtSecurityToken = securityToken as JwtSecurityToken;
-        if (jwtSecurityToken == null ||
-            !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-            throw new SecurityTokenException("Token không hợp lệ");
+        // var jwtSecurityToken = securityToken as JwtSecurityToken;
+        // if (jwtSecurityToken == null ||
+        //     !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+        //     throw new SecurityTokenException("Token không hợp lệ");
 
         return principal;
     }

@@ -60,8 +60,8 @@ public static class IdentityServiceExtensions
                     ValidateIssuerSigningKey = true,
                     ClockSkew = TimeSpan.Zero,
 
-                    ValidAudience = config["Jwt:ValidAudience"],
-                    ValidIssuer = config["Jwt:ValidIssuer"],
+                    ValidAudience = config["Jwt:Audience"],
+                    ValidIssuer = config["Jwt:Issuer"],
                     // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!))
                     IssuerSigningKey = new RsaSecurityKey(rsaKey)
                 };
