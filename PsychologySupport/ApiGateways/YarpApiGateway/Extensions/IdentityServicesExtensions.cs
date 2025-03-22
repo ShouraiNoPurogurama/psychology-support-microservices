@@ -22,7 +22,7 @@ public static class IdentityServicesExtensions
                 };
 
                 var rsaKey = RSA.Create();
-                string xmlKey = File.ReadAllText(config.GetSection("Jwt:PrivateKeyPath").Value!);
+                string xmlKey = File.ReadAllText(config.GetSection("Jwt:PublicKeyPath").Value!);
                 rsaKey.FromXmlString(xmlKey);
                 
                 options.SaveToken = true;
