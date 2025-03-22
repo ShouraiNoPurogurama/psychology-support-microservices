@@ -45,6 +45,7 @@ public class GetDoctorProfileRequestHandler(ProfileDbContext dbContext) : IConsu
 
         await context.RespondAsync(doctorProfile.Adapt<GetDoctorProfileResponse>() with
         {
+            FullName = doctorProfile.FullName,
             Address = doctorProfile.ContactInfo.Address,
             PhoneNumber = doctorProfile.ContactInfo.PhoneNumber,
             Email = doctorProfile.ContactInfo.Email,

@@ -1,29 +1,46 @@
-﻿using FirebaseAdmin.Messaging;
+﻿using FirebaseAdmin;
+using FirebaseAdmin.Messaging;
+using Google.Apis.Auth.OAuth2;
+using Mapster;
+using Notification.API.Firebase.ServiceContracts;
 
 namespace Notification.API.Firebase.Services;
 
-public class FirebaseService(ILogger<FirebaseService> logger)
+public class FirebaseService(ILogger<FirebaseService> logger) : IFirebaseService
 {
-    public async Task SendPushNotification()
+    public async Task SendPushNotification(IEnumerable<string> FCMTokens, string subject, string body)
     {
-        var registrationToken = "";
+        FirebaseApp.Create(new AppOptions()
+        {
+            Credential = GoogleCredential.FromFile("firebase_key.json")
+        });
 
-        var message = new Message
+        List<Message> messages = [];
+
+        var messageTemplate = new Message
         {
             Data = new Dictionary<string, string>()
             {
-                { "MyData", "hehehehehehe" }
+                { $"{subject}", $"{body}" }
             },
-            Token = registrationToken,
             Notification = new FirebaseAdmin.Messaging.Notification()
             {
-                Title = "Test from NA",
-                Body = "Hello"
+                Title = $"{subject}",
+                Body =  $"{body}"
             }
         };
 
-        string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
-        
-        logger.LogDebug($"Successfully sent message: {response}");
+        foreach (var token in FCMTokens)
+        {
+            messages.Add(new Message
+            {
+                Data = messageTemplate.Data,
+                Notification = messageTemplate.Notification,
+                Token = token
+            });
+        }
+
+        var response = await FirebaseMessaging.DefaultInstance.SendEachAsync(messages);
+        logger.LogInformation("Successfully sent message: {Response}", response);
     }
 }

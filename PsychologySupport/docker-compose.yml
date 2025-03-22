@@ -52,3 +52,15 @@
     build:
       context: .
       dockerfile: Services/ChatBox/ChatBox.API/Dockerfile
+
+  yarpapigateway:
+    image: yarpapigateway
+    build:
+      context: .
+      dockerfile: ApiGateways/YarpApiGateway/Dockerfile
+
+  rsakeygenerator:
+    image: rsakeygenerator
+    build:
+      context: .
+      dockerfile: Services/Auth/RSAKeyGenerator/Dockerfile

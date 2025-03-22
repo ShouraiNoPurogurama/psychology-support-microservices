@@ -21,8 +21,9 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
     public async Task<UpdateDoctorProfileResult> Handle(UpdateDoctorProfileCommand request, CancellationToken cancellationToken)
     {
         var doctorProfile = await _context.DoctorProfiles
-    .FirstOrDefaultAsync(d => d.Id == request.Id, cancellationToken)
-    ?? throw new ProfileNotFoundException("Doctor profile", request.Id);
+            .Include(d => d.Specialties)
+            .FirstOrDefaultAsync(d => d.Id == request.Id, cancellationToken)
+            ?? throw new ProfileNotFoundException("Doctor profile", request.Id);
 
 
         var specialties = await _context.Specialties

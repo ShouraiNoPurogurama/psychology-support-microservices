@@ -56,6 +56,9 @@ public class ChatHub(
             await LoadMessages(receiverId);
         }
 
+        // Add user to SignalR user group
+        await Groups.AddToGroupAsync(Context.ConnectionId, userId);
+        
         await Clients.All.SendAsync("Users", await GetAllUsers());
     }
 
@@ -110,7 +113,7 @@ public class ChatHub(
         dbContext.Messages.Add(newMsg);
         await dbContext.SaveChangesAsync();
 
-        await Clients.User(recipientId.ToString()).SendAsync("ReceiveNewMessage", newMsg);
+        await Clients.Group(recipientId.ToString()).SendAsync("ReceiveNewMessage", newMsg);
     }
 
     public async Task NotifyTyping(string recipientId)
@@ -138,6 +141,9 @@ public class ChatHub(
         if (string.IsNullOrEmpty(userId)) return;
 
         _onlineUsers.TryRemove(userId, out _);
+        
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, userId);
+        
         await Clients.All.SendAsync("OnlineUsers", await GetAllUsers());
     }
 
@@ -180,8 +186,8 @@ public class ChatHub(
                 await dbContext.SaveChangesAsync();
             }
         }
-
-        await Clients.User(currentUserId).SendAsync("ReceiveMessageList", messages);
+        
+        await Clients.Client(_onlineUsers[currentUserId].ConnectionId).SendAsync("ReceiveMessageList", messages);
     }
 
     private ClaimsPrincipal? GetUserFromToken()

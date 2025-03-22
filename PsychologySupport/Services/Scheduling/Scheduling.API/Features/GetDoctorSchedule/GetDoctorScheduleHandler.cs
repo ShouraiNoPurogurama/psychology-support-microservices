@@ -23,7 +23,7 @@ namespace Scheduling.API.Features.GetDoctorSchedule
                 ?? throw new NotFoundException("Doctor Slot Duration", request.DoctorId);
 
             var bookedSlots = await context.Bookings
-                .Where(b => b.DoctorId == request.DoctorId && b.Date == vietnamDate)
+                .Where(b => b.DoctorId == request.DoctorId && b.Date == vietnamDate && b.Status != BookingStatus.Cancelled)
                 .Select(b => new { b.BookingCode,b.StartTime, b.Duration })
                 .ToListAsync(cancellationToken);
 

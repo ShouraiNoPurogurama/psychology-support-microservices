@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Security.Cryptography;
+using System.Text;
 using Auth.API.Data;
 using Auth.API.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -45,6 +46,10 @@ public static class IdentityServiceExtensions
             //Currently just authenticate requests from localhost:5000
             .AddJwtBearer(options =>
             {
+                var rsaKey = RSA.Create();
+                string xmlKey = File.ReadAllText(config.GetSection("Jwt:PrivateKeyPath").Value!);
+                rsaKey.FromXmlString(xmlKey);
+                
                 options.SaveToken = true;
                 options.RequireHttpsMetadata = false;
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -57,7 +62,8 @@ public static class IdentityServiceExtensions
 
                     ValidAudience = config["Jwt:ValidAudience"],
                     ValidIssuer = config["Jwt:ValidIssuer"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!))
+                    // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!))
+                    IssuerSigningKey = new RsaSecurityKey(rsaKey)
                 };
             });
         services.AddAuthorization();
