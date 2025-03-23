@@ -20,28 +20,29 @@ namespace Scheduling.API.Features.CreateDoctorAvailability
 
         public async Task<CreateDoctorAvailabilityResult> Handle(CreateDoctorAvailabilityCommand request, CancellationToken cancellationToken)
         {
-
             var dto = request.DoctorAvailabilityCreate;
 
-            // Check the same time
-            if (_context.DoctorAvailabilities.Any(d => d.DoctorId == dto.DoctorId && d.Date == dto.Date && d.StartTime == dto.StartTime))
-                throw new BadRequestException("Doctor is already booked for this time slot.");
+            var existingAvailabilities = _context.DoctorAvailabilities
+                .Where(d => d.DoctorId == dto.DoctorId && d.Date == dto.Date && dto.StartTimes.Contains(d.StartTime))
+                .Select(d => d.StartTime)
+                .ToList();
 
-            var doctorAvailability = new DoctorAvailability
+            if (existingAvailabilities.Any())
+                throw new BadRequestException($"Doctor is already booked for the following time slots: {string.Join(", ", existingAvailabilities)}");
+
+            var doctorAvailabilities = dto.StartTimes.Select(startTime => new DoctorAvailability
             {
                 Id = Guid.NewGuid(),
                 DoctorId = dto.DoctorId,
                 Date = dto.Date,
-                StartTime = dto.StartTime
-            };
+                StartTime = startTime
+            }).ToList();
 
-            _context.DoctorAvailabilities.Add(doctorAvailability);
+            _context.DoctorAvailabilities.AddRange(doctorAvailabilities);
             await _context.SaveChangesAsync(cancellationToken);
 
-
-            return new CreateDoctorAvailabilityResult(doctorAvailability.Id);
-
-
+            return new CreateDoctorAvailabilityResult(doctorAvailabilities.First().Id);
         }
     }
 }
+

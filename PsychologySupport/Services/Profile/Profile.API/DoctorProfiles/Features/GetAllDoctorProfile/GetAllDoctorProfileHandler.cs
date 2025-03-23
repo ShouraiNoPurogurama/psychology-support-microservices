@@ -87,7 +87,7 @@ public class GetAllDoctorProfilesHandler : IRequestHandler<GetAllDoctorProfilesQ
         );
 
         var availableDoctorIds = response.Message.AvailabilityMap
-            .Where(kv => kv.Value) 
+            .Where(kv => kv.Value) // check true
             .Select(kv => kv.Key)
             .ToList();
 

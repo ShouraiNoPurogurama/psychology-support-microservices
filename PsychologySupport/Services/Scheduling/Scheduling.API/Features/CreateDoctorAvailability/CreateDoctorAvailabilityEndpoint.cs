@@ -30,4 +30,5 @@ namespace Scheduling.API.Features.CreateDoctorAvailability
                 .WithSummary("Create Doctor Availability");
         }
     }
+
 }

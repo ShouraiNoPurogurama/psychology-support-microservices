@@ -27,7 +27,7 @@ public class GetAllQuestionOptionsHandler
         var query = _context.QuestionOptions
             .AsNoTracking()
             .Where(o => o.QuestionId == request.QuestionId)
-            .OrderBy(o => o.Id);
+            .OrderBy(o => o.OptionValue);
 
         var totalCount = await query.CountAsync(cancellationToken);
 
