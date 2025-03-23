@@ -41,9 +41,14 @@ public class LifeStylesDbContext : DbContext
             .HasConversion(new EnumToStringConverter<IntensityLevel>())
             .HasColumnType("VARCHAR(20)");
 
+        // builder.Entity<PhysicalActivity>()
+        //     .Property(e => e.ImpactLevel)
+        //     .HasConversion(new EnumToStringConverter<ImpactLevel>())
+        //     .HasColumnType("VARCHAR(20)");
         builder.Entity<PhysicalActivity>()
             .Property(e => e.ImpactLevel)
-            .HasConversion(new EnumToStringConverter<ImpactLevel>())
+            .HasConversion(t => t.ToString(),
+                dbStatus => (ImpactLevel)Enum.Parse(typeof(ImpactLevel), dbStatus))
             .HasColumnType("VARCHAR(20)");
 
         builder.Entity<FoodActivity>()

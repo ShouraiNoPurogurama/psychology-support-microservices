@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Enums;
 using BuildingBlocks.Pagination;
 using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
@@ -35,7 +36,7 @@ public class GetAllPhysicalActivityHandler : IQueryHandler<GetAllPhysicalActivit
                 pa.Name,
                 pa.Description,
                 pa.IntensityLevel,
-                pa.ImpactLevel
+                pa.ImpactLevel.ToReadableString()
             ));
 
         var totalCount = await query.CountAsync(cancellationToken);

@@ -2,7 +2,6 @@
 
 namespace BuildingBlocks.Enums
 {
-
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum ImpactLevel
     {
@@ -10,5 +9,17 @@ namespace BuildingBlocks.Enums
         Medium,
         High,
         VeryHigh
+    }
+
+    public static class ImpactLevelExtensions
+    {
+        public static string ToReadableString(this ImpactLevel impactLevel)
+        {
+            return impactLevel switch
+            {
+                ImpactLevel.VeryHigh => "Very High",
+                _ => impactLevel.ToString()
+            };
+        }
     }
 }
