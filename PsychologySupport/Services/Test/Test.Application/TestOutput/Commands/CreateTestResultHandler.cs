@@ -57,8 +57,9 @@ public class CreateTestResultHandler : IRequestHandler<CreateTestResultCommand, 
         var severityLevel = DetermineSeverity(depressionScore, anxietyScore, stressScore);
 
         //TODO Raise IRequestClient to AI Recommendations microservices to get recommendation
-        var recommendation = "Recommendation goes here";
+        var recommendation = "Your scores indicate normal levels. Continue maintaining your mental well-being with healthy habits.";
         
+
         var testResult = TestResult.Create(
             request.PatientId,
             request.TestId,
