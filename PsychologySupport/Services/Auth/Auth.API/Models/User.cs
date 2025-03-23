@@ -7,4 +7,6 @@ public class User : IdentityUser<Guid>
 {
     public string FullName { get; set; } = default!;
     public UserGender Gender { get; set; } = default!;
+    
+    public virtual ICollection<Device> Devices { get; set; } = [];
 }

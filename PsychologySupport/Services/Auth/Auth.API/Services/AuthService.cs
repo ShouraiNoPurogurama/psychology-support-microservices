@@ -1,4 +1,5 @@
-﻿using Auth.API.Dtos.Requests;
+﻿using Auth.API.Data;
+using Auth.API.Dtos.Requests;
 using Auth.API.Dtos.Responses;
 using Auth.API.Exceptions;
 using Auth.API.Models;
@@ -17,7 +18,9 @@ namespace Auth.API.Services;
 public class AuthService(
     UserManager<User> _userManager,
     IConfiguration configuration,
-    ITokenService tokenService) : IAuthService
+    ITokenService tokenService,
+    AuthDbContext authDbContext
+    ) : IAuthService
 {
     private const int LockoutTimeInMinutes = 15;
 
@@ -62,6 +65,7 @@ public class AuthService(
 
             if (!user.EmailConfirmed)
                 throw new ForbiddenException("Tài khoản chưa được xác nhận. Vui lòng kiểm tra email để xác nhận tài khoản.");
+            
         }
         else
         {
@@ -99,6 +103,20 @@ public class AuthService(
             throw new ForbiddenException("Email hoặc mật khẩu không hợp lệ.");
         }
 
+        if (!string.IsNullOrWhiteSpace(loginRequest.DeviceToken))
+        {
+            var device = new Device
+            {
+                UserId = user.Id,
+                DeviceToken = loginRequest.DeviceToken,
+                DeviceType = loginRequest.DeviceType!.Value,
+                LastUsedAt = DateTime.UtcNow
+            };
+
+            authDbContext.Devices.Add(device);
+            await authDbContext.SaveChangesAsync();
+        }
+        
         user.AccessFailedCount = 0;
         user.LockoutEnd = null;
         await _userManager.UpdateAsync(user);

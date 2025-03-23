@@ -8,6 +8,8 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using Notification.API.Data.Processors;
+using Notification.API.Firebase.ServiceContracts;
+using Notification.API.Firebase.Services;
 using Notification.API.Outbox.Services;
 
 namespace Notification.API.Extensions;
@@ -82,6 +84,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<OutboxProcessor>();
         services.AddScoped<OutboxService>();
         services.AddHostedService<OutboxProcessor>();
+        services.AddSingleton<IFirebaseService, FirebaseService>();
     }
     
 }

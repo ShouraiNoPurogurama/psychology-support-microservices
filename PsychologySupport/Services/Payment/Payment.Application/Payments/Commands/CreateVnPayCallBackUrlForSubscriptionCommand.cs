@@ -10,7 +10,7 @@ namespace Payment.Application.Payments.Commands;
 
 public record CreateVnPayCallBackUrlForSubscriptionCommand(BuySubscriptionDto BuySubscription) : ICommand<CreateVnPayCallBackUrlForSubscriptionResult>;
 
-public record CreateVnPayCallBackUrlForSubscriptionResult(string Url, Guid PaymentId);
+public record CreateVnPayCallBackUrlForSubscriptionResult(string Url);
 
 public class CreateVnPayCallBackUrlForSubscriptionCommandHandler(IVnPayService vnPayService, IPaymentDbContext dbContext)
     : ICommandHandler<CreateVnPayCallBackUrlForSubscriptionCommand, CreateVnPayCallBackUrlForSubscriptionResult>
@@ -43,6 +43,6 @@ public class CreateVnPayCallBackUrlForSubscriptionCommandHandler(IVnPayService v
         
         await dbContext.SaveChangesAsync(cancellationToken);
         
-        return new CreateVnPayCallBackUrlForSubscriptionResult(vnPayUrl, paymentId);
+        return new CreateVnPayCallBackUrlForSubscriptionResult(vnPayUrl);
     }
 }

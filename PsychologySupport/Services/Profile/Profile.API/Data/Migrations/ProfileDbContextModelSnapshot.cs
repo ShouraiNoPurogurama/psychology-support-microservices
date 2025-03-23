@@ -328,7 +328,8 @@ namespace Profile.API.Data.Migrations
 
                     b.Property<string>("Gender")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
                         .HasColumnName("Gender");
 
                     b.Property<DateTimeOffset?>("LastModified")
@@ -342,7 +343,8 @@ namespace Profile.API.Data.Migrations
 
                     b.Property<string>("PersonalityTraits")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("PersonalityTraits");
 
                     b.Property<Guid>("UserId")

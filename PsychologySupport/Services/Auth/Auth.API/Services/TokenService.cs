@@ -24,7 +24,7 @@ public class TokenService(
     public async Task<string> GenerateJWTToken(User user)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
-        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha512);
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
         var roles = await userManager.GetRolesAsync(user);
         var role = roles.FirstOrDefault() ?? "User";
 
@@ -32,12 +32,14 @@ public class TokenService(
 
         if (roles.Contains("Doctor"))
         {
-            var doctorProfile = await doctorClient.GetResponse<GetDoctorProfileResponse>(new GetDoctorProfileRequest(Guid.Empty, user.Id));
+            var doctorProfile =
+                await doctorClient.GetResponse<GetDoctorProfileResponse>(new GetDoctorProfileRequest(Guid.Empty, user.Id));
             profileId = doctorProfile.Message.Id;
         }
         else if (roles.Contains("User"))
         {
-            var patientProfile = await patientClient.GetResponse<GetPatientProfileResponse>(new GetPatientProfileRequest(Guid.Empty, user.Id));
+            var patientProfile =
+                await patientClient.GetResponse<GetPatientProfileResponse>(new GetPatientProfileRequest(Guid.Empty, user.Id));
             profileId = patientProfile.Message.Id;
         }
 
@@ -51,6 +53,10 @@ public class TokenService(
             new Claim("name", user.UserName!)
         };
 
+        var rsaSecurityKey = GetRsaSecurityKey();
+
+        var signingCredential = new SigningCredentials(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
+
         var token = new JwtSecurityToken(
             configuration["Jwt:Issuer"],
             configuration["Jwt:Audience"],
@@ -60,6 +66,15 @@ public class TokenService(
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private RsaSecurityKey GetRsaSecurityKey()
+    {
+        var rsaKeys = RSA.Create();
+        string xmlKey = File.ReadAllText(configuration.GetSection("Jwt:PrivateKeyPath").Value!);
+        rsaKeys.FromXmlString(xmlKey);
+        var rsaSecurityKey = new RsaSecurityKey(rsaKeys);
+        return rsaSecurityKey;
     }
 
 
@@ -102,7 +117,7 @@ public class TokenService(
     }
 
     /// <summary>
-    ///     Hashes the provided password using the HMACSHA512 algorithm with a salt.
+    ///     Hashes the provided password using the HMACSHA256 algorithm with a salt.
     ///     - Salt size: 16 bytes (128 bits).
     ///     - Hash size: 32 bytes (256 bits).
     /// </summary>
@@ -116,7 +131,7 @@ public class TokenService(
 
     public string GenerateRefreshToken()
     {
-        var randomNumber = new byte[64]; //Needed for HMAC-SHA512 (512-bit length)
+        var randomNumber = new byte[32]; //Needed for HMAC-SHA512 (256-bit length)
         using var randomNumberGenerator = RandomNumberGenerator.Create();
         randomNumberGenerator.GetBytes(randomNumber);
         return Convert.ToBase64String(randomNumber);
@@ -149,10 +164,27 @@ public class TokenService(
         return (newJwtToken, newRefreshToken);
     }
 
+    public ClaimsPrincipal GetPrincipalFromToken(string token)
+    {
+        var securityKey = GetRsaSecurityKey();
+        var validation = new TokenValidationParameters()
+        {
+            ValidateActor = false,
+            ValidateAudience = false, //you might want to validate the audience and issuer depending on your use case
+            ValidateIssuer = false,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = securityKey,
+            ValidateLifetime = false //here we are saying that we don't care about the token's expiration date
+        };
+        
+        return new JwtSecurityTokenHandler().ValidateToken(token, validation, out _);
+    }
+
     public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
     {
         var tokenValidationParameters = new TokenValidationParameters
         {
+            ValidateActor = false,
             ValidateAudience = false, //you might want to validate the audience and issuer depending on your use case
             ValidateIssuer = false,
             ValidateIssuerSigningKey = true,
@@ -167,7 +199,7 @@ public class TokenService(
 
         var jwtSecurityToken = securityToken as JwtSecurityToken;
         if (jwtSecurityToken == null ||
-            !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha512, StringComparison.InvariantCultureIgnoreCase))
+            !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
             throw new SecurityTokenException("Token không hợp lệ");
 
         return principal;
