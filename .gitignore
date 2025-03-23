@@ -413,3 +413,6 @@ PsychologySupport/Services/Subscription/Subscription.API/Properties/ServiceDepen
 PsychologySupport/Services/Subscription/Subscription.API/Properties/ServiceDependencies/psychologysupportsubscription - ReadOnly - FTP1/profile.arm.json
 PsychologySupport/Services/Subscription/Subscription.API/Properties/ServiceDependencies/psychologysupportsubscription - Zip Deploy/profile.arm.json
 PsychologySupport/Services/Subscription/Subscription.API/Properties/ServiceDependencies/psychologysupportsubscription - Zip Deploy1/profile.arm.json
+RSAKeys/
+PsychologySupport/Services/Notification/Notification.API/firebase_key.json
+ServiceDependencies/
