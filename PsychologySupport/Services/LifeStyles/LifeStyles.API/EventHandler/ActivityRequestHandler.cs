@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Dtos;
+using BuildingBlocks.Enums;
 using BuildingBlocks.Messaging.Events.LifeStyle;
 using LifeStyles.API.Data;
 using MassTransit;
@@ -60,7 +61,7 @@ namespace LifeStyles.API.EventHandler
             var result=  await _context.PhysicalActivities
                 .AsNoTracking()
                 .Where(p => ids.Contains(p.Id))
-                .Select(p => new PhysicalActivityDto(p.Id, p.Name, p.Description, p.IntensityLevel, p.ImpactLevel))
+                .Select(p => new PhysicalActivityDto(p.Id, p.Name, p.Description, p.IntensityLevel, p.ImpactLevel.ToReadableString()))
                 .ToListAsync();
 
             return result;
