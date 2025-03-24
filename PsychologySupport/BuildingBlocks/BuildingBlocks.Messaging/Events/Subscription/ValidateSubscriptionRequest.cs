@@ -7,4 +7,5 @@ public record ValidateSubscriptionRequest(
     Guid? GiftId,
     decimal FinalPrice,
     Guid PatientId,
-    int DurationDays);
+    int DurationDays,
+    decimal OldSubscriptionPrice);
