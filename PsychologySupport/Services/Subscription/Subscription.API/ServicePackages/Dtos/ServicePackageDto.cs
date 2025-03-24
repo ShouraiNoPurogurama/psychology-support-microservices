@@ -7,5 +7,9 @@ public record ServicePackageDto(
     decimal Price,
     int DurationDays,
     Guid ImageId,
-    bool IsActive
-);
+    bool IsActive,
+    bool? IsPurchased = null
+)
+{
+    public bool? IsPurchased { get; set; } = IsPurchased;
+}

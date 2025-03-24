@@ -2,6 +2,7 @@
 using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Subscription.API.ServicePackages.Dtos;
 
 namespace Subscription.API.ServicePackages.Features.GetServicePackages;
@@ -12,15 +13,16 @@ public class GetServicePackagesEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/service-packages", async ([AsParameters] PaginationRequest request, ISender sender) =>
-            {
-                var query = new GetServicePackagesQuery(request);
-                var result = await sender.Send(query);
+        app.MapGet("/service-packages",
+                async ([FromQuery] Guid? patientId, [AsParameters] PaginationRequest request, ISender sender) =>
+                {
+                    var query = new GetServicePackagesQuery(request, patientId);
+                    var result = await sender.Send(query);
 
-                var response = result.Adapt<GetServicePackagesResponse>();
+                    var response = result.Adapt<GetServicePackagesResponse>();
 
-                return Results.Ok(response);
-            })
+                    return Results.Ok(response);
+                })
             .WithName("GetServicePackages")
             .Produces<GetServicePackagesResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)

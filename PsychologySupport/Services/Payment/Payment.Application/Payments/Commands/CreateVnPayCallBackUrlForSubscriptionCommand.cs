@@ -32,7 +32,7 @@ public class CreateVnPayCallBackUrlForSubscriptionCommandHandler(IVnPayService v
             PaymentType.BuySubscription,
             paymentMethod.Id,
             paymentMethod,
-            dto.FinalPrice,
+            dto.FinalPrice - dto.OldSubscriptionPrice,
             dto.SubscriptionId,
             null
         );

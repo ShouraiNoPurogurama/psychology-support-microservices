@@ -1,14 +1,16 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Test.Application.Data;
+using Test.Application.Dtos;
 using Test.Domain.Models;
 
 namespace Test.Application.Tests.Queries;
 
 public record GetAllTestQuestionsQuery(Guid TestId, PaginationRequest PaginationRequest) : IQuery<GetAllTestQuestionsResult>;
 
-public record GetAllTestQuestionsResult(PaginatedResult<TestQuestion> TestQuestions);
+public record GetAllTestQuestionsResult(PaginatedResult<TestQuestionDto> TestQuestions);
 
 public class GetAllTestQuestionsHandler : IQueryHandler<GetAllTestQuestionsQuery, GetAllTestQuestionsResult>
 {
@@ -23,7 +25,8 @@ public class GetAllTestQuestionsHandler : IQueryHandler<GetAllTestQuestionsQuery
     {
         var query = _context.TestQuestions.AsNoTracking()
             .Where(q => q.TestId == request.TestId)
-            .OrderBy(q => q.Order);
+            .OrderBy(q => q.Order)
+            .ProjectToType<TestQuestionDto>();
 
         var totalCount = await query.CountAsync(cancellationToken);
 
@@ -32,7 +35,7 @@ public class GetAllTestQuestionsHandler : IQueryHandler<GetAllTestQuestionsQuery
             .Take(request.PaginationRequest.PageSize)
             .ToListAsync(cancellationToken);
 
-        var paginatedResult = new PaginatedResult<TestQuestion>(
+        var paginatedResult = new PaginatedResult<TestQuestionDto>(
             request.PaginationRequest.PageIndex,
             request.PaginationRequest.PageSize,
             totalCount,

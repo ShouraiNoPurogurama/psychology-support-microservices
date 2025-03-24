@@ -2,4 +2,4 @@
 
 namespace Test.Application.Dtos;
 
-public record QuestionOptionDto(string Content, OptionValue OptionValue);
+public record QuestionOptionDto(Guid Id, string Content, OptionValue OptionValue);

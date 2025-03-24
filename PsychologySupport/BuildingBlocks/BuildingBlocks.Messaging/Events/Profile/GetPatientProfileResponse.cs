@@ -11,4 +11,6 @@ public record GetPatientProfileResponse(
     string PersonalityTraits,
     string Address,
     string PhoneNumber,
-    string Email);
+    string Email,
+    Guid UserId
+    );

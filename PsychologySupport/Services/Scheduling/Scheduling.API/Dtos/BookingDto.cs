@@ -12,6 +12,6 @@ namespace Scheduling.API.Dtos
         decimal Price,
         Guid? PromoCodeId,
         Guid? GiftCodeId,
-        BookingStatus Status
+        string Status
     );
 }

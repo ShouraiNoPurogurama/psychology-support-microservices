@@ -69,6 +69,8 @@ public class ValidateSubscriptionRequestHandler(
                          - (promotion?.PromoCode != null ? 0.01m * promotion.PromoCode.Value * servicePackage.Price : 0)
                          - (appliedGift != null ? (decimal)appliedGift.MoneyValue : 0);
 
+        finalPrice -= request.OldSubscriptionPrice;
+
         if (finalPrice != request.FinalPrice)
         {
             errors.Add("Final price is not valid");

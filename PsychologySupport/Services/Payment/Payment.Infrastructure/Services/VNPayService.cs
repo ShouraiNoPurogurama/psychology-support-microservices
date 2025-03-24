@@ -32,7 +32,7 @@ public class VNPayService(
             orderInfo.Length--;
         }
         
-        return await GenerateVNPayUrl(dto.FinalPrice, orderInfo.ToString());
+        return await GenerateVNPayUrl(dto.FinalPrice - dto.OldSubscriptionPrice, orderInfo.ToString());
     }
 
     public async Task<string> CreateVNPayUrlForBookingAsync(BuyBookingDto dto, Guid paymentId)

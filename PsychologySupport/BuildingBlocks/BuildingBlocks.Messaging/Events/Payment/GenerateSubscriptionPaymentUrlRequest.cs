@@ -18,11 +18,13 @@ namespace BuildingBlocks.Messaging.Events.Payment
         public string Name { get; set; }
         public string Description { get; set; }
         public int DurationDays { get; set; }
-        public Guid ImageId { get; set; }
         
         //Payment
         public PaymentMethodName PaymentMethodName { get; set; }
         public PaymentType PaymentType { get; set; }
         public decimal FinalPrice { get; set; }
+        
+        public decimal OldSubscriptionPrice { get; set; } = 0;
+
     }
 }

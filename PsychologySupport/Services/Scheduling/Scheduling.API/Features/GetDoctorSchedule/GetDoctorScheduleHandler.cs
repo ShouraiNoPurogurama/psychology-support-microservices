@@ -23,7 +23,7 @@ namespace Scheduling.API.Features.GetDoctorSchedule
                 ?? throw new NotFoundException("Doctor Slot Duration", request.DoctorId);
 
             var bookedSlots = await context.Bookings
-                .Where(b => b.DoctorId == request.DoctorId && b.Date == vietnamDate && b.Status != BookingStatus.Cancelled)
+                .Where(b => b.DoctorId == request.DoctorId && b.Date == vietnamDate && b.Status != BookingStatus.PaymentFailed && b.Status != BookingStatus.Cancelled)
                 .Select(b => new { b.BookingCode,b.StartTime, b.Duration })
                 .ToListAsync(cancellationToken);
 
@@ -36,6 +36,9 @@ namespace Scheduling.API.Features.GetDoctorSchedule
 
             var dayOfWeek = vietnamDate.DayOfWeek;
 
+            var dummyTemplate = await context.TimeSlotTemplates
+                .ToListAsync(cancellationToken);
+            
             var dayTemplates = await context.TimeSlotTemplates
                 .Where(t => t.DayOfWeek == dayOfWeek)
                 .ToListAsync(cancellationToken);

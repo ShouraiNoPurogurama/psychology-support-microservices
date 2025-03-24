@@ -16,7 +16,7 @@ public class GetPatientProfileHandler(ProfileDbContext dbContext) : IConsumer<Ge
             if (patientProfile is null)
             {
                 await context.RespondAsync(new GetPatientProfileResponse(false, Guid.Empty, string.Empty, UserGender.Else,
-                    string.Empty, string.Empty, string.Empty, string.Empty, String.Empty));
+                    string.Empty, string.Empty, string.Empty, string.Empty, String.Empty, Guid.Empty));
                 return;
             }
 
@@ -25,7 +25,8 @@ public class GetPatientProfileHandler(ProfileDbContext dbContext) : IConsumer<Ge
                 Email = patientProfile.ContactInfo.Email,
                 Address = patientProfile.ContactInfo.Address,
                 PhoneNumber = patientProfile.ContactInfo.PhoneNumber,
-                PatientExists = true
+                PatientExists = true,
+                UserId = patientProfile.UserId
             });
             return;
         }
@@ -36,7 +37,7 @@ public class GetPatientProfileHandler(ProfileDbContext dbContext) : IConsumer<Ge
         if (patientProfile is null)
         {
             await context.RespondAsync(new GetPatientProfileResponse(false, Guid.Empty, string.Empty, UserGender.Else,
-                string.Empty, string.Empty, string.Empty, string.Empty, String.Empty));
+                string.Empty, string.Empty, string.Empty, string.Empty, String.Empty, Guid.Empty));
             return;
         }
 
@@ -45,7 +46,8 @@ public class GetPatientProfileHandler(ProfileDbContext dbContext) : IConsumer<Ge
             Email = patientProfile.ContactInfo.Email,
             Address = patientProfile.ContactInfo.Address,
             PhoneNumber = patientProfile.ContactInfo.PhoneNumber,
-            PatientExists = true
+            PatientExists = true,
+            UserId = patientProfile.UserId
         });
     }
 }
