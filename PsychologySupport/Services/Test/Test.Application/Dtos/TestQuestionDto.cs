@@ -1,3 +1,3 @@
 ﻿namespace Test.Application.Dtos;
 
-public record TestQuestionDto(int Order, string Content);
+public record TestQuestionDto(Guid Id ,int Order, string Content, List<QuestionOptionDto> Options);

@@ -1,7 +1,6 @@
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
 using Profile.API.Extensions;
-using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
