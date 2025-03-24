@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.ChatBox;
 using BuildingBlocks.Messaging.Events.Payment;
 using BuildingBlocks.Messaging.Events.Profile;
 using BuildingBlocks.Utils;
@@ -22,7 +23,9 @@ namespace Scheduling.API.Features.CreateBooking
         IRequestClient<GetDoctorProfileRequest> doctorClient,
         IRequestClient<GenerateBookingPaymentUrlRequest> paymentClient,
         PromotionService.PromotionServiceClient promotionService,
-        SchedulingDbContext dbContext)
+        SchedulingDbContext dbContext,
+        IPublishEndpoint publisher
+    )
         : ICommandHandler<CreateBookingCommand, CreateBookingResult>
     {
         public async Task<CreateBookingResult> Handle(CreateBookingCommand command, CancellationToken cancellationToken)
@@ -78,8 +81,17 @@ namespace Scheduling.API.Features.CreateBooking
                 Price = finalPrice,
                 PromoCodeId = promoCodeId != Guid.Empty ? promoCodeId : null,
                 GiftCodeId = dto.GiftCodeId,
-                Status = BookingStatus.Pending
+                Status = BookingStatus.AwaitPayment
             };
+
+            //Publish event to ChatBox
+            var bookingCreatedIntegrationEvent = new BookingCreatedIntegrationEvent(
+                doctor.Message.UserId,
+                patient.Message.UserId,
+                booking.Id
+            );
+
+            await publisher.Publish(bookingCreatedIntegrationEvent, cancellationToken);
 
             dbContext.Bookings.Add(booking);
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -113,7 +125,7 @@ namespace Scheduling.API.Features.CreateBooking
         {
             var finalPrice = dto.Price;
 
-            if (string.IsNullOrEmpty(dto.PromoCode) && string.IsNullOrEmpty(dto.GiftCodeId.ToString())) 
+            if (string.IsNullOrEmpty(dto.PromoCode) && string.IsNullOrEmpty(dto.GiftCodeId.ToString()))
                 return (finalPrice, null);
 
             var promotion = (await promotionService.GetPromotionByCodeAsync(new GetPromotionByCodeRequest

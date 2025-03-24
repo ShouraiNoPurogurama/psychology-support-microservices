@@ -10,6 +10,6 @@ public class BookingPaymentDetailSuccessIntegrationEventHandler(ISender sender) 
 {
     public async Task Consume(ConsumeContext<BookingPaymentDetailSuccessIntegrationEvent> context)
     {
-        await sender.Send(new UpdateBookingStatusCommand(context.Message.BookingId, BookingStatus.Paid));
+        await sender.Send(new UpdateBookingStatusCommand(context.Message.BookingId, BookingStatus.AwaitMeeting));
     }
 }

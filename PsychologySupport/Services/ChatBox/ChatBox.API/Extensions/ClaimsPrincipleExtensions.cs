@@ -31,4 +31,13 @@ public static class ClaimsPrincipalExtensions
         var identity = new ClaimsIdentity(jwtToken.Claims);
         return new ClaimsPrincipal(identity);
     }
+    
+    public static IEnumerable<string> GetUserRoles(this ClaimsPrincipal user)
+    {
+        var roleClaims = user
+            .FindAll(ClaimTypes.Role)
+            .Select(r => r.Value);
+        
+        return roleClaims;
+    }
 }

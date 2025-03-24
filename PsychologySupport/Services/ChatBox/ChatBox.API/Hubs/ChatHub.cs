@@ -24,6 +24,7 @@ public class ChatHub(
         if (principal == null) return;
 
         var userId = principal.GetUserId();
+        var roles = principal.GetUserRoles();
         var userName = principal.GetUserName();
         var receiverId = Context.GetHttpContext()?.Request.Query["receiverId"].ToString();
         var connectionId = Context.ConnectionId;
@@ -43,12 +44,18 @@ public class ChatHub(
             {
                 Id = Guid.Parse(userId),
                 ConnectionId = connectionId,
-                UserName = userName,
-                FullName = currentUser.FullName
+                FullName = currentUser.FullName,
+                Roles = roles
             };
 
             _onlineUsers.TryAdd(userId, user);
-            await Clients.AllExcept(connectionId).SendAsync("NotifyUserConnected", currentUser);
+            // await Clients.AllExcept(connectionId).SendAsync("NotifyUserConnected", user);
+            
+            // Chỉ thông báo cho bác sĩ nếu người kết nối là bệnh nhân
+            if (roles.Contains("User") && !string.IsNullOrEmpty(receiverId))
+            {
+                await Clients.Client(_onlineUsers[receiverId].ConnectionId).SendAsync("NotifyUserConnected", user);
+            }
         }
 
         if (!string.IsNullOrEmpty(receiverId))
@@ -68,17 +75,22 @@ public class ChatHub(
         if (principal == null) return Enumerable.Empty<OnlineUserDto>();
 
         var userId = principal.GetUserId();
+        var role = principal.FindFirst(ClaimTypes.Role)?.Value;
         var onlineUsersSet = new HashSet<string>(_onlineUsers.Keys);
 
         var users =
             await getAllUsersDataClient.GetResponse<GetOnlineUsersDataResponse>(new GetAllUsersDataRequest())
                 .ContinueWith(u => u.Result.Message);
 
+        // if (role.Contains("Doctor"))
+        // {
+        //     var bookedPatients = 
+        // }
+        
         var onlineUsers = users.Users
             .Select(u => new OnlineUserDto
             {
                 Id = u.Id,
-                UserName = u.UserName,
                 FullName = u.FullName,
                 IsOnline = onlineUsersSet.Contains(u.Id.ToString()),
                 UnreadCount = dbContext.Messages.Count(

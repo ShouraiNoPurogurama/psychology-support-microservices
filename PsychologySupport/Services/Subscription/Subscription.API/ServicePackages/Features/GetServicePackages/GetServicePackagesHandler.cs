@@ -2,11 +2,12 @@
 using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Subscription.API.Data;
+using Subscription.API.Data.Common;
 using Subscription.API.ServicePackages.Dtos;
 
 namespace Subscription.API.ServicePackages.Features.GetServicePackages;
 
-public record GetServicePackagesQuery(PaginationRequest PaginationRequest) : IQuery<GetServicePackagesResult>;
+public record GetServicePackagesQuery(PaginationRequest PaginationRequest, Guid? PatientId) : IQuery<GetServicePackagesResult>;
 
 public record GetServicePackagesResult(PaginatedResult<ServicePackageDto> ServicePackages);
 
@@ -38,9 +39,25 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
                 sp.Price,
                 sp.DurationDays,
                 sp.ImageId,
-                sp.IsActive
+                sp.IsActive,
+                false
             ))
             .ToListAsync(cancellationToken);
+
+        if (request.PatientId is not null)
+        {
+            foreach (var servicePackage in servicePackages)
+            {
+                bool isPurchased = _dbContext.UserSubscriptions
+                    .Any(u => u.PatientId == request.PatientId
+                              && u.ServicePackageId == servicePackage.Id
+                              && u.EndDate >= DateTime.UtcNow
+                              && u.Status == SubscriptionStatus.Active
+                    );
+
+                servicePackage.IsPurchased = isPurchased;
+            }
+        }
 
         return new GetServicePackagesResult(
             new PaginatedResult<ServicePackageDto>(pageIndex, pageSize, totalCount, servicePackages));

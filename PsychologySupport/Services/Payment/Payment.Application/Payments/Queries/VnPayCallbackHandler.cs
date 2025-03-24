@@ -3,6 +3,7 @@ using System.Web;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.ChatBox;
 using BuildingBlocks.Messaging.Events.Subscription;
 using Mapster;
 using MassTransit;
