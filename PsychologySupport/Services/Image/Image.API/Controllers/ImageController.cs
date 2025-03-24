@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Image.API.Controllers
 {
     [ApiController]
-    [Route("api/images")]
+    [Route("image")]
     public class ImageController : ControllerBase
     {
         private readonly IImageService _imageService;
