@@ -1,35 +1,39 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Exceptions;
+using MassTransit;
 using Subscription.API.Data;
+using Subscription.API.ServicePackages.Dtos;
 using Subscription.API.ServicePackages.Models;
 
 namespace Subscription.API.ServicePackages.Features.CreateServicePackage;
 
-public record CreateServicePackageCommand(
-    Guid Id,
-    string Name,
-    string Description,
-    decimal Price,
-    int DurationDays,
-    Guid ImageId
-) : ICommand<CreateServicePackageResult>;
+public record CreateServicePackageCommand(CreateServicePackageDto ServicePackage) : ICommand<CreateServicePackageResult>;
 
 public record CreateServicePackageResult(Guid Id);
 
-public class CreateServicePackageHandler : ICommandHandler<CreateServicePackageCommand, CreateServicePackageResult>
+public class CreateServicePackageHandler(SubscriptionDbContext context)
+    : ICommandHandler<CreateServicePackageCommand, CreateServicePackageResult>
 {
-    private readonly SubscriptionDbContext _context;
-
-    public CreateServicePackageHandler(SubscriptionDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<CreateServicePackageResult> Handle(CreateServicePackageCommand request, CancellationToken cancellationToken)
     {
-        var servicePackage = ServicePackage.Create(request.Id, request.Name, request.Description, request.Price, request.DurationDays, request.ImageId, true);
+        var dto = request.ServicePackage;
 
-        _context.ServicePackages.Add(servicePackage);
-        await _context.SaveChangesAsync(cancellationToken);
+        if (context.ServicePackages.Any(p => p.Name == dto.Name))
+            throw new BadRequestException("Service package already exists.");
+
+        var servicePackageId = Guid.NewGuid();
+        var servicePackage = ServicePackage.Create(
+            servicePackageId,
+            dto.Name,
+            dto.Description,
+            dto.Price,
+            dto.DurationDays,
+            Guid.Empty,
+            true
+        );
+
+        context.ServicePackages.Add(servicePackage);
+        await context.SaveChangesAsync(cancellationToken);
 
         return new CreateServicePackageResult(servicePackage.Id);
     }

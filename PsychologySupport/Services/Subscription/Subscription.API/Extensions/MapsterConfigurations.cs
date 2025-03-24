@@ -13,5 +13,7 @@ public static class MapsterConfigurations
 
         TypeAdapterConfig<ServicePackageDto, ServicePackage>.NewConfig()
             .IgnoreNullValues(true);
+        TypeAdapterConfig<UpdateServicePackageDto, ServicePackage>.NewConfig()
+            .IgnoreNullValues(true);
     }
 }

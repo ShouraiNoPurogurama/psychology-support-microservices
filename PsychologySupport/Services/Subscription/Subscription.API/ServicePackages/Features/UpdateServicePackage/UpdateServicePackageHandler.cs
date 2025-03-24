@@ -6,7 +6,7 @@ using Subscription.API.ServicePackages.Dtos;
 
 namespace Subscription.API.ServicePackages.Features.UpdateServicePackage;
 
-public record UpdateServicePackageCommand(ServicePackageDto ServicePackage) : ICommand<UpdateServicePackageResult>;
+public record UpdateServicePackageCommand(Guid Id, UpdateServicePackageDto ServicePackage) : ICommand<UpdateServicePackageResult>;
 
 public record UpdateServicePackageResult(bool IsSuccess);
 
@@ -21,12 +21,13 @@ public class UpdateServicePackageHandler : ICommandHandler<UpdateServicePackageC
 
     public async Task<UpdateServicePackageResult> Handle(UpdateServicePackageCommand request, CancellationToken cancellationToken)
     {
-        var existingPackage = await _context.ServicePackages.FindAsync(request.ServicePackage.Id, cancellationToken)
-                              ?? throw new SubscriptionNotFoundException("Service Package", request.ServicePackage.Id);
+        var existingPackage = await _context.ServicePackages.FindAsync(request.Id)
+                              ?? throw new SubscriptionNotFoundException("Service Package", request.Id);
 
-        existingPackage = request.ServicePackage.Adapt(existingPackage);
+        existingPackage.LastModified = DateTime.UtcNow;
+        existingPackage.LastModifiedBy = "manager";
 
-        _context.Update(existingPackage);
+        request.ServicePackage.Adapt(existingPackage);
 
         var result = await _context.SaveChangesAsync(cancellationToken) > 0;
 

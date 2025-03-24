@@ -10,4 +10,5 @@ public record CreateUserSubscriptionDto(
     DateTime StartDate,
     DateTime EndDate,
     PaymentMethodName PaymentMethodName
+
 );
