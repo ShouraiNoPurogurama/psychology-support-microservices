@@ -7,7 +7,13 @@ using Subscription.API.ServicePackages.Dtos;
 
 namespace Subscription.API.ServicePackages.Features.GetServicePackages;
 
-public record GetServicePackagesQuery(PaginationRequest PaginationRequest, Guid? PatientId) : IQuery<GetServicePackagesResult>;
+public record GetServicePackagesQuery(
+        int PageIndex,
+        int PageSize,
+        string? Search = "", // Name vs Description
+        bool? Status = null, // filter
+        Guid? PatientId = null // filter
+    ) : IQuery<GetServicePackagesResult>;
 
 public record GetServicePackagesResult(PaginatedResult<ServicePackageDto> ServicePackages);
 
@@ -22,15 +28,27 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
 
     public async Task<GetServicePackagesResult> Handle(GetServicePackagesQuery request, CancellationToken cancellationToken)
     {
-        var pageSize = request.PaginationRequest.PageSize;
-        var pageIndex = request.PaginationRequest.PageIndex;
-        var skip = (pageIndex - 1) * pageSize;
+        var pageSize = request.PageSize;
+        var pageIndex = request.PageIndex;
+        var search = request.Search?.Trim().ToLower();
 
-        var totalCount = await _dbContext.ServicePackages.LongCountAsync(cancellationToken);
+        var query = _dbContext.ServicePackages.AsQueryable();
 
-        var servicePackages = await _dbContext.ServicePackages
+        if (request.Status.HasValue)
+        {
+            query = query.Where(sp => sp.IsActive == request.Status.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(sp => sp.Name.ToLower().Contains(search) || sp.Description.ToLower().Contains(search));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var servicePackages = await query
             .OrderByDescending(sp => sp.CreatedAt)
-            .Skip(skip)
+            .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .Select(sp => new ServicePackageDto(
                 sp.Id,
@@ -40,26 +58,24 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
                 sp.DurationDays,
                 sp.ImageId,
                 sp.IsActive,
-                false
+                false 
             ))
             .ToListAsync(cancellationToken);
 
         if (request.PatientId is not null)
         {
+            var patientSubscriptions = await _dbContext.UserSubscriptions
+                .Where(u => u.PatientId == request.PatientId && u.EndDate >= DateTime.UtcNow && u.Status == SubscriptionStatus.Active)
+                .Select(u => u.ServicePackageId)
+                .ToListAsync(cancellationToken);
+
             foreach (var servicePackage in servicePackages)
             {
-                bool isPurchased = _dbContext.UserSubscriptions
-                    .Any(u => u.PatientId == request.PatientId
-                              && u.ServicePackageId == servicePackage.Id
-                              && u.EndDate >= DateTime.UtcNow
-                              && u.Status == SubscriptionStatus.Active
-                    );
-
-                servicePackage.IsPurchased = isPurchased;
+                servicePackage.IsPurchased = patientSubscriptions.Contains(servicePackage.Id);
             }
         }
 
-        return new GetServicePackagesResult(
-            new PaginatedResult<ServicePackageDto>(pageIndex, pageSize, totalCount, servicePackages));
+        var result = new PaginatedResult<ServicePackageDto>(pageIndex, pageSize, totalCount, servicePackages);
+        return new GetServicePackagesResult(result);
     }
 }

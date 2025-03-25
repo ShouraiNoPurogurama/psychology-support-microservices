@@ -3,6 +3,7 @@ using BuildingBlocks.Enums;
 using Profile.API.MentalDisorders.Models;
 using Profile.API.PatientProfiles.Events;
 using Profile.API.PatientProfiles.Enum;
+using BuildingBlocks.Data.Common;
 
 namespace Profile.API.PatientProfiles.Models;
 

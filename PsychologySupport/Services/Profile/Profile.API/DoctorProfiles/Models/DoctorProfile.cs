@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.DDD;
+﻿using BuildingBlocks.Data.Common;
+using BuildingBlocks.DDD;
 using BuildingBlocks.Enums;
 using Profile.API.PatientProfiles.Models;
 

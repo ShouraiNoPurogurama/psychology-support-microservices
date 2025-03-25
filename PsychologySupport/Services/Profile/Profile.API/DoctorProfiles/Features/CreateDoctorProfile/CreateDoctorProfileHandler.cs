@@ -1,4 +1,5 @@
-﻿using Profile.API.DoctorProfiles.Dtos;
+﻿using BuildingBlocks.Data.Common;
+using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.DoctorProfiles.Models;
 
 namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile;
