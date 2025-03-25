@@ -41,7 +41,8 @@ public class CreateDoctorProfileHandler(ProfileDbContext context, IPublishEndpoi
             doctorProfile.FullName,
             doctorProfile.Gender,
             doctorProfile.ContactInfo.Email,
-            doctorProfile.ContactInfo.PhoneNumber
+            doctorProfile.ContactInfo.PhoneNumber,
+            "None"
         );
 
         await publishEndpoint.Publish(doctorProfileCreatedEvent, cancellationToken);
