@@ -12,7 +12,6 @@ namespace BuildingBlocks.Messaging.Events.Auth
     ) : SendEmailIntegrationEvent(Email, "Welcome to Psychology Support", "Hello world");
 */
     public record DoctorProfileCreatedIntegrationEvent(
-        Guid UserId,
         string FullName,
         UserGender Gender,
         string Email,

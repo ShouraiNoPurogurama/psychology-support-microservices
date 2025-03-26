@@ -28,20 +28,19 @@ public class DoctorProfileCreatedEventHandler : IConsumer<DoctorProfileCreatedIn
             throw new InvalidDataException("Email or phone number already exists in the system");
         }
 
-        // Generate a random password if not provided
-        var password = string.IsNullOrEmpty(message.Password) ? GenerateRandomPassword() : message.Password;
+        //var password = string.IsNullOrEmpty(message.Password) ? GenerateRandomPassword() : message.Password;
+        var password = "Doctor001";
 
-        // Create a new user
         var user = new User
         {
-            Id = message.UserId,
+            Id = Guid.NewGuid(),
             FullName = message.FullName,
             Gender = message.Gender,
             Email = message.Email,
             UserName = message.Email,
             PhoneNumber = message.PhoneNumber,
-            EmailConfirmed = true, 
-            PhoneNumberConfirmed = true 
+            EmailConfirmed = true,
+            PhoneNumberConfirmed = true
         };
 
         var result = await _userManager.CreateAsync(user, password);
@@ -57,19 +56,33 @@ public class DoctorProfileCreatedEventHandler : IConsumer<DoctorProfileCreatedIn
             throw new InvalidDataException("Role assignment failed");
         }
 
- 
-        await context.Publish(new DoctorProfileCreatedIntegrationEvent(
-            message.UserId,
-            message.FullName,
-            message.Gender,
-            message.Email,
-            message.PhoneNumber,
-            password 
-        ));
+        // Publish success response
+        await context.Publish(new DoctorProfileCreatedResponseEvent(user.Id, true));
     }
 
     private string GenerateRandomPassword()
     {
-        return Guid.NewGuid().ToString("N").Substring(0, 8) + "Ab@1"; 
+        const string lowerCase = "abcdefghijklmnopqrstuvwxyz";
+        const string upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const string digits = "0123456789";
+        const string specialChars = "@#$%^&*!";
+
+        Random random = new Random();
+
+        char[] password = new char[8];
+        password[0] = lowerCase[random.Next(lowerCase.Length)];
+        password[1] = upperCase[random.Next(upperCase.Length)];
+        password[2] = digits[random.Next(digits.Length)];
+        password[3] = specialChars[random.Next(specialChars.Length)];
+
+        string allChars = lowerCase + upperCase + digits + specialChars;
+        for (int i = 4; i < password.Length; i++)
+        {
+            password[i] = allChars[random.Next(allChars.Length)];
+        }
+
+        return new string(password.OrderBy(_ => random.Next()).ToArray());
     }
+
 }
+

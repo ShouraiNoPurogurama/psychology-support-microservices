@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.Data.Common;
 using BuildingBlocks.DDD;
 using BuildingBlocks.Enums;
+using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.DoctorProfiles.Models;
@@ -18,7 +19,7 @@ public class DoctorProfile : AggregateRoot<Guid>
         string fullName,
         UserGender gender,
         ContactInfo contactInfo,
-        List<Specialty> specialties,
+        List<Specialty>? specialties,
         string qualifications,
         int yearsOfExperience,
         string? bio,
@@ -63,7 +64,6 @@ public class DoctorProfile : AggregateRoot<Guid>
         string fullName,
         UserGender gender,
         ContactInfo contactInfo,
-        List<Specialty> specialties,
         string qualifications,
         int yearsOfExperience,
         string? bio,
@@ -84,7 +84,7 @@ public class DoctorProfile : AggregateRoot<Guid>
             fullName,
             gender,
             contactInfo,
-            specialties,
+            null,
             qualifications,
             yearsOfExperience,
             bio,
