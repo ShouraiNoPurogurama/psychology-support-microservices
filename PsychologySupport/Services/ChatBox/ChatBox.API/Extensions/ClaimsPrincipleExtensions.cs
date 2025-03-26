@@ -32,12 +32,11 @@ public static class ClaimsPrincipalExtensions
         return new ClaimsPrincipal(identity);
     }
     
-    public static IEnumerable<string> GetUserRoles(this ClaimsPrincipal user)
+    public static string GetUserRole(this ClaimsPrincipal user)
     {
         var roleClaims = user
-            .FindAll(ClaimTypes.Role)
-            .Select(r => r.Value);
+            .FindFirst(ClaimTypes.Role);
         
-        return roleClaims;
+        return roleClaims.Value;
     }
 }
