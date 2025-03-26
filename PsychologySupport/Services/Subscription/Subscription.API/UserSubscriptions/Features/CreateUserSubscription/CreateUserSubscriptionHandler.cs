@@ -4,9 +4,11 @@ using BuildingBlocks.Messaging.Events.Payment;
 using BuildingBlocks.Messaging.Events.Profile;
 using Mapster;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Profile.API.PatientProfiles.Models;
 using Promotion.Grpc;
 using Subscription.API.Data;
+using Subscription.API.Data.Common;
 using Subscription.API.ServicePackages.Models;
 using Subscription.API.UserSubscriptions.Dtos;
 using Subscription.API.UserSubscriptions.Models;
@@ -36,6 +38,15 @@ public class CreateUserSubscriptionHandler(
             throw new NotFoundException(nameof(PatientProfile), request.UserSubscription.PatientId);
         }
 
+        //Check if there is an existing subscription
+        
+        var existingSubscription = context.UserSubscriptions
+            .Any(x => x.PatientId == request.UserSubscription.PatientId &&
+                                      x.Status == SubscriptionStatus.Active);
+        
+        if(existingSubscription) 
+            throw new BadRequestException("Patient already has an active subscription.");
+        
         var dto = request.UserSubscription;
 
         ServicePackage servicePackage = await context.ServicePackages
@@ -51,6 +62,9 @@ public class CreateUserSubscriptionHandler(
         var userSubscription = UserSubscription.Create(dto.PatientId, dto.ServicePackageId, dto.StartDate, dto.EndDate,
             promoCodeId, dto.GiftId, servicePackage, finalPrice);
 
+        
+        //Validate subscription simulation
+        
         context.UserSubscriptions.Add(userSubscription);
         await context.SaveChangesAsync(cancellationToken);
 
@@ -58,7 +72,7 @@ public class CreateUserSubscriptionHandler(
 
         #region Publish event to Payment
 
-        var subscriptionCreatedEvent = dto.Adapt<GenerateSubscriptionPaymentUrlRequest>();
+        GenerateSubscriptionPaymentUrlRequest subscriptionCreatedEvent = dto.Adapt<GenerateSubscriptionPaymentUrlRequest>();
         subscriptionCreatedEvent.SubscriptionId = userSubscription.Id;
         subscriptionCreatedEvent.Name = servicePackage.Name;
         subscriptionCreatedEvent.Description = servicePackage.Description;

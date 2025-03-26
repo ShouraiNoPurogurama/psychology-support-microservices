@@ -32,6 +32,27 @@ public class VNPayService(
             orderInfo.Length--;
         }
         
+        return await GenerateVNPayUrl(dto.FinalPrice, orderInfo.ToString());
+    }
+    
+    public async Task<string> CreateVNPayUrlForUpgradeSubscriptionAsync(UpgradeSubscriptionDto dto, Guid paymentId)
+    {
+        paymentValidatorService.ValidateVNPayMethod(dto.PaymentMethod);
+        await paymentValidatorService.ValidateSubscriptionRequestAsync(dto);
+        
+        var orderInfo = new StringBuilder();
+        orderInfo.Append($"{nameof(Domain.Models.Payment.Id)}={HttpUtility.UrlEncode(paymentId.ToString())}&");
+        orderInfo.Append($"{nameof(UpgradeSubscriptionDto.PatientEmail)}={HttpUtility.UrlEncode(dto.PatientEmail)}&");
+        orderInfo.Append($"{nameof(UpgradeSubscriptionDto.PaymentType)}={HttpUtility.UrlEncode(dto.PaymentType.ToString())}&");
+        orderInfo.Append($"{nameof(UpgradeSubscriptionDto.PromoCode)}={HttpUtility.UrlEncode(dto.PromoCode ?? "")}&");
+        orderInfo.Append($"{nameof(UpgradeSubscriptionDto.GiftId)}={HttpUtility.UrlEncode(dto.GiftId?.ToString() ?? "")}&");
+        orderInfo.Append($"{nameof(UpgradeSubscriptionDto.DurationDays)}={HttpUtility.UrlEncode(dto.DurationDays.ToString())}");
+        
+        if (orderInfo[^1] == '&')
+        {
+            orderInfo.Length--;
+        }
+        
         return await GenerateVNPayUrl(dto.FinalPrice - dto.OldSubscriptionPrice, orderInfo.ToString());
     }
 

@@ -21,6 +21,8 @@ builder.Services
 
 var app = builder.Build();
 
+app.UseExceptionHandler(options => { });
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -37,8 +39,6 @@ app.UseCors(config =>
     config.AllowAnyMethod();
     config.AllowAnyOrigin();
 });
-
-app.UseExceptionHandler(options => { });
 
 app.MapCarter();
 

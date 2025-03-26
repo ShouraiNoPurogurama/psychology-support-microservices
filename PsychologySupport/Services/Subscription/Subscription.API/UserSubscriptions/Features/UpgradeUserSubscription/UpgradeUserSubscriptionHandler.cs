@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Payment;
 using BuildingBlocks.Messaging.Events.Profile;
@@ -23,7 +24,7 @@ public record UpgradeUserSubscriptionResult(Guid Id, string PaymentUrl);
 
 public class UpgradeUserSubscriptionHandler(
     SubscriptionDbContext dbContext,
-    IRequestClient<GenerateSubscriptionPaymentUrlRequest> paymentClient,
+    IRequestClient<GenerateUpgradeSubscriptionPaymentUrlRequest> paymentClient,
     IRequestClient<GetPatientProfileRequest> getPatientProfileClient,
     PromotionService.PromotionServiceClient promotionService)
     : ICommandHandler<UpgradeUserSubscriptionCommand, UpgradeUserSubscriptionResult>
@@ -66,7 +67,8 @@ public class UpgradeUserSubscriptionHandler(
 
         #region Publish event to Payment
 
-        var subscriptionCreatedEvent = dto.Adapt<GenerateSubscriptionPaymentUrlRequest>();
+        var subscriptionCreatedEvent = dto.Adapt<GenerateUpgradeSubscriptionPaymentUrlRequest>();
+        subscriptionCreatedEvent.PaymentType = PaymentType.UpgradeSubscription;
         subscriptionCreatedEvent.SubscriptionId = newUserSubscription.Id;
         subscriptionCreatedEvent.Name = servicePackage.Name;
         subscriptionCreatedEvent.Description = servicePackage.Description;
@@ -80,7 +82,7 @@ public class UpgradeUserSubscriptionHandler(
 
         // await publishEndpoint.Publish(subscriptionCreatedEvent, cancellationToken);
         var paymentUrl =
-            await paymentClient.GetResponse<GenerateSubscriptionPaymentUrlResponse>(
+            await paymentClient.GetResponse<GenerateUpgradeSubscriptionPaymentUrlResponse>(
                 subscriptionCreatedEvent,
                 cancellationToken);
 

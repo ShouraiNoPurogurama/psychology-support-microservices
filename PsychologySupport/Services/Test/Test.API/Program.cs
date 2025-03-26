@@ -11,8 +11,6 @@ builder.Services.AddCors();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
-
 //Add services to the container
 builder.Services
     .AddApplicationServices(builder.Configuration)

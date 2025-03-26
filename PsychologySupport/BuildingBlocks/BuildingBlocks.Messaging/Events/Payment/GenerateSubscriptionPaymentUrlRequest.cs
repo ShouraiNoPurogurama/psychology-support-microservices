@@ -23,8 +23,5 @@ namespace BuildingBlocks.Messaging.Events.Payment
         public PaymentMethodName PaymentMethodName { get; set; }
         public PaymentType PaymentType { get; set; }
         public decimal FinalPrice { get; set; }
-        
-        public decimal OldSubscriptionPrice { get; set; } = 0;
-
     }
 }

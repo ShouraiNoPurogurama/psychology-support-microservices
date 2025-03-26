@@ -9,18 +9,18 @@ using Payment.Domain.Events;
 
 namespace Payment.Application.Payments.EventHandlers;
 
-public class SubscriptionPaymentDetailFailedEventHandler(
+public class UpgradeSubscriptionPaymentDetailFailedEventHandler(
     IPublishEndpoint publishEndpoint,
     IRequestClient<GetUserDataRequest> authClient,
-    ILogger<SubscriptionPaymentDetailFailedEventHandler> logger)
-    : INotificationHandler<SubscriptionPaymentDetailFailedEvent>
+    ILogger<UpgradeSubscriptionPaymentDetailFailedEventHandler> logger)
+    : INotificationHandler<UpgradeSubscriptionPaymentDetailFailedEvent>
 {
-    public async Task Handle(SubscriptionPaymentDetailFailedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(UpgradeSubscriptionPaymentDetailFailedEvent notification, CancellationToken cancellationToken)
     {
         logger.LogInformation("*** Domain Event handled: {DomainEvent}", notification.GetType());
-        
-        SubscriptionPaymentFailedIntegrationEvent paymentFailedEvent =
-            notification.Adapt<SubscriptionPaymentFailedIntegrationEvent>();
+
+        UpgradeSubscriptionPaymentFailedIntegrationEvent paymentDetailDetailFailedEvent =
+            notification.Adapt<UpgradeSubscriptionPaymentFailedIntegrationEvent>();
 
         SendEmailIntegrationEvent sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
             notification.PatientEmail,
@@ -36,12 +36,13 @@ public class SubscriptionPaymentDetailFailedEventHandler(
         if (FCMTokens.Any())
         {
             var sendMobilePushNotificationEvent = new SendMobilePushNotificationIntegrationEvent(
-                FCMTokens, "Subscription Payment Failed", "Your subscription payment has failed. Please check your payment details and try again.");
+                FCMTokens, "Subscription Payment Failed",
+                "Your subscription payment has failed. Please check your payment details and try again.");
 
             await publishEndpoint.Publish(sendMobilePushNotificationEvent, cancellationToken);
         }
-        
-        await publishEndpoint.Publish(paymentFailedEvent, cancellationToken);
+
+        await publishEndpoint.Publish(paymentDetailDetailFailedEvent, cancellationToken);
         await publishEndpoint.Publish(sendEmailIntegrationEvent, cancellationToken);
     }
 }

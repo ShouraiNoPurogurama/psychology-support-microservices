@@ -86,6 +86,20 @@ public class VnPayCallbackHandler(IPaymentDbContext dbContext)
 
                         await dbContext.SaveChangesAsync(cancellationToken);
                         break;
+                    case PaymentType.UpgradeSubscription:
+                        
+                        //TODO deactivate old subscription
+                        // activate new subscription
+                        // send notification to patient Email and web account
+                        // store payment details to db
+                    
+                        payment.AddPaymentDetail(
+                            PaymentDetail.Of(finalPrice, request.VnPayCallback.TransactionCode).MarkAsSuccess()
+                            );
+                        
+                        payment.MarkAsCompleted(patientEmail!);
+                        await dbContext.SaveChangesAsync(cancellationToken);
+                        break;
                 }
 
                 scope.Complete();
