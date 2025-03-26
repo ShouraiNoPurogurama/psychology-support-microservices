@@ -11,8 +11,7 @@ namespace LifeStyles.API.Features.FoodActivity.GetAllFoodActivity;
 public record GetAllFoodActivitiesQuery(
      [FromQuery] int PageIndex,
      [FromQuery] int PageSize,
-     [FromQuery] string? Search = null, // Search by FoodActivity.Name or FoodCategory.Name
-     [FromQuery] Guid? FoodNutrientId = null // Filter by FoodNutrient
+     [FromQuery] string? Search = null // Search by FoodActivity.Name or FoodCategory.Name OR FoodNutries.Name
 ) : IQuery<GetAllFoodActivitiesResult>;
 
 public record GetAllFoodActivitiesResult(PaginatedResult<FoodActivityDto> FoodActivities);
@@ -41,15 +40,11 @@ public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery
         {
             query = query.Where(fa =>
                 fa.Name.Contains(request.Search) ||
-                fa.FoodCategories.Any(fc => fc.Name.Contains(request.Search))
+                fa.FoodCategories.Any(fc => fc.Name.Contains(request.Search)) ||
+                fa.FoodNutrients.Any(fn => fn.Name.Contains(request.Search))
             );
         }
 
-        // Filter by FoodNutrient
-        if (request.FoodNutrientId.HasValue)
-        {
-            query = query.Where(fa => fa.FoodNutrients.Any(fn => fn.Id == request.FoodNutrientId.Value));
-        }
 
         var totalCount = await query.CountAsync(cancellationToken);
 

@@ -1,12 +1,14 @@
 ﻿using BuildingBlocks.CQRS;
 using Microsoft.AspNetCore.Mvc;
+using Scheduling.API.Enums;
 
 namespace Scheduling.API.Features.GetTotalBooking
 {
     public record GetTotalBookingQuery(
         [FromQuery] DateOnly StartDate,
         [FromQuery] DateOnly EndDate,
-        [FromQuery] Guid? DoctorId = null
+        [FromQuery] Guid? DoctorId = null,
+        [FromQuery] BookingStatus? BookingStatus = null
     ) : IQuery<GetTotalBookingResult>;
 
     public record GetTotalBookingResult(int TotalBookings);
@@ -33,6 +35,11 @@ namespace Scheduling.API.Features.GetTotalBooking
             if (request.DoctorId.HasValue)
             {
                 query = query.Where(booking => booking.DoctorId == request.DoctorId);
+            }
+
+            if (request.BookingStatus.HasValue)
+            {
+                query = query.Where(booking => booking.Status == request.BookingStatus);
             }
 
             var totalCount = await query.CountAsync(cancellationToken);

@@ -7,7 +7,7 @@ using Scheduling.API.Dtos;
 
 namespace Scheduling.API.Features.CreateBooking
 {
-    public record CreateBookingResponse(CreateBookingDto BookingDto);
+    public record CreateBookingResponse(Guid BookingId, string BookingCode, string PaymentUrl);
 
     public class CreateBookingEndpoint : ICarterModule
     {
@@ -15,15 +15,14 @@ namespace Scheduling.API.Features.CreateBooking
         {
             app.MapPost("/bookings", async (
                 [FromBody] CreateBookingCommand request,
-                IValidator<CreateBookingDto> validator, 
                 ISender sender) =>
             {
-                var validationResult = await validator.ValidateAsync(request.Adapt<CreateBookingDto>());
+               /* var validationResult = await validator.ValidateAsync(request.Adapt<CreateBookingDto>());
                 if (!validationResult.IsValid)
                 {
                     return Results.ValidationProblem(validationResult.ToDictionary());
                 }
-
+*/
                 var result = await sender.Send(request);
                 var response = result.Adapt<CreateBookingResponse>();
 

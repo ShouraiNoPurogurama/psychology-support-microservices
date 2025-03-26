@@ -1,6 +1,5 @@
 ﻿using Carter;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Payment.Application.Payments.Dtos;
 using Payment.Application.Payments.Queries;
 
