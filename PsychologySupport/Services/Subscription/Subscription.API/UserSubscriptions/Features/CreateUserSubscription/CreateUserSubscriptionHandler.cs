@@ -39,7 +39,6 @@ public class CreateUserSubscriptionHandler(
         }
 
         //Check if there is an existing subscription
-        
         var existingSubscription = context.UserSubscriptions
             .Any(x => x.PatientId == request.UserSubscription.PatientId &&
                                       x.Status == SubscriptionStatus.Active);
@@ -59,7 +58,7 @@ public class CreateUserSubscriptionHandler(
 
         Guid.TryParse(promoCode?.Id, out var promoCodeId);
 
-        var userSubscription = UserSubscription.Create(dto.PatientId, dto.ServicePackageId, dto.StartDate, dto.EndDate,
+        var userSubscription = UserSubscription.Create(dto.PatientId, dto.ServicePackageId, dto.StartDate,
             promoCodeId, dto.GiftId, servicePackage, finalPrice);
 
         

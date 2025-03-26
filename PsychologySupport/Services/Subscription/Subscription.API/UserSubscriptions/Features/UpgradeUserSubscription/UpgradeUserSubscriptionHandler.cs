@@ -41,24 +41,28 @@ public class UpgradeUserSubscriptionHandler(
             throw new NotFoundException(nameof(PatientProfile), request.UpgradeUserSubscriptionDto.PatientId);
         }
 
+        //Validate if there is an existing subscription
+        
         var dto = request.UpgradeUserSubscriptionDto;
 
-        ServicePackage servicePackage = await dbContext.ServicePackages
+        ServicePackage newServicePackage = await dbContext.ServicePackages
                                             .FindAsync([dto.NewServicePackageId], cancellationToken)
                                         ?? throw new NotFoundException(nameof(ServicePackage), dto.NewServicePackageId);
 
+        var currentSubscription = await ValidateCurrentSubscription(request, cancellationToken, newServicePackage);
+        
         #region Calculate price after deducting promo code and gift code
 
         var (priceAfterAppliedPromotions, promoCode) =
-            await CalculatePriceAfterAppliedPromotionsAsync(cancellationToken, servicePackage, dto);
+            await CalculatePriceAfterAppliedPromotionsAsync(cancellationToken, newServicePackage, dto);
 
         var (priceDiff, currentSubscriptionPriceLeft) =
-            await CalculatePriceDiff(request, cancellationToken, priceAfterAppliedPromotions);
+            await CalculatePriceDiff(request, cancellationToken, priceAfterAppliedPromotions, currentSubscription);
 
         Guid.TryParse(promoCode?.Id, out var promoCodeId);
 
-        var newUserSubscription = UserSubscription.Create(dto.PatientId, dto.NewServicePackageId, dto.StartDate, dto.EndDate,
-            promoCodeId, dto.GiftId, servicePackage, priceAfterAppliedPromotions);
+        var newUserSubscription = UserSubscription.Create(dto.PatientId, dto.NewServicePackageId, dto.StartDate, 
+            promoCodeId, dto.GiftId, newServicePackage, priceAfterAppliedPromotions);
 
         dbContext.UserSubscriptions.Add(newUserSubscription);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -70,12 +74,12 @@ public class UpgradeUserSubscriptionHandler(
         var subscriptionCreatedEvent = dto.Adapt<GenerateUpgradeSubscriptionPaymentUrlRequest>();
         subscriptionCreatedEvent.PaymentType = PaymentType.UpgradeSubscription;
         subscriptionCreatedEvent.SubscriptionId = newUserSubscription.Id;
-        subscriptionCreatedEvent.Name = servicePackage.Name;
-        subscriptionCreatedEvent.Description = servicePackage.Description;
-        subscriptionCreatedEvent.ServicePackageId = servicePackage.Id;
+        subscriptionCreatedEvent.Name = newServicePackage.Name;
+        subscriptionCreatedEvent.Description = newServicePackage.Description;
+        subscriptionCreatedEvent.ServicePackageId = newServicePackage.Id;
         subscriptionCreatedEvent.PatientId = newUserSubscription.PatientId;
         subscriptionCreatedEvent.PatientEmail = patient.Message.Email;
-        subscriptionCreatedEvent.DurationDays = servicePackage.DurationDays;
+        subscriptionCreatedEvent.DurationDays = newServicePackage.DurationDays;
         subscriptionCreatedEvent.FinalPrice = priceAfterAppliedPromotions;
         subscriptionCreatedEvent.PromoCode = promoCode?.Code;
         subscriptionCreatedEvent.OldSubscriptionPrice = currentSubscriptionPriceLeft;
@@ -96,19 +100,8 @@ public class UpgradeUserSubscriptionHandler(
 
     private async Task<(decimal, decimal)> CalculatePriceDiff(UpgradeUserSubscriptionCommand request,
         CancellationToken cancellationToken,
-        decimal finalPrice)
+        decimal finalPrice, UserSubscription currentSubscription)
     {
-        var currentSubscription =
-            await dbContext.UserSubscriptions
-                .Include(u => u.ServicePackage)
-                .FirstOrDefaultAsync(
-                    x => x.PatientId == request.UpgradeUserSubscriptionDto.PatientId && x.Status == SubscriptionStatus.Active,
-                    cancellationToken);
-
-        if (currentSubscription == null)
-        {
-            throw new NotFoundException("The patient does not have an active subscription.");
-        }
 
         var remainingDays = (int)Math.Floor((currentSubscription.EndDate - DateTime.UtcNow).TotalDays);
         var currSubscriptionFinalPrice = currentSubscription.FinalPrice;
@@ -121,6 +114,27 @@ public class UpgradeUserSubscriptionHandler(
         decimal priceDiff = finalPrice - currSubscriptionPriceLeft;
 
         return (Math.Round(priceDiff, 2, MidpointRounding.AwayFromZero), currSubscriptionPriceLeft);
+    }
+
+    private async Task<UserSubscription> ValidateCurrentSubscription(UpgradeUserSubscriptionCommand request, CancellationToken cancellationToken,
+        ServicePackage newServicePackage)
+    {
+        var currentSubscription =
+            await dbContext.UserSubscriptions
+                .Include(u => u.ServicePackage)
+                .FirstOrDefaultAsync(
+                    x => x.PatientId == request.UpgradeUserSubscriptionDto.PatientId && x.Status == SubscriptionStatus.Active,
+                    cancellationToken);
+
+        if (currentSubscription == null)
+        {
+            throw new NotFoundException("The patient does not have an active subscription.");
+        }
+        
+        if(currentSubscription.ServicePackage.Price < newServicePackage.Price)
+            throw new BadRequestException("The new subscription price must be greater than the current subscription price.");
+        
+        return currentSubscription;
     }
 
 
