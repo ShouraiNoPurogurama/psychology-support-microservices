@@ -2,10 +2,18 @@
 using BuildingBlocks.Pagination;
 using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
+using Mapster;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.Features.FoodActivity.GetAllFoodActivity;
-public record GetAllFoodActivitiesQuery(PaginationRequest PaginationRequest) : IQuery<GetAllFoodActivitiesResult>;
+
+public record GetAllFoodActivitiesQuery(
+     [FromQuery] int PageIndex,
+     [FromQuery] int PageSize,
+     [FromQuery] string? Search = null, // Search by FoodActivity.Name or FoodCategory.Name
+     [FromQuery] Guid? FoodNutrientId = null // Filter by FoodNutrient
+) : IQuery<GetAllFoodActivitiesResult>;
 
 public record GetAllFoodActivitiesResult(PaginatedResult<FoodActivityDto> FoodActivities);
 
@@ -20,35 +28,45 @@ public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery
 
     public async Task<GetAllFoodActivitiesResult> Handle(GetAllFoodActivitiesQuery request, CancellationToken cancellationToken)
     {
-        var pageSize = request.PaginationRequest.PageSize;
-        var pageIndex = Math.Max(0, request.PaginationRequest.PageIndex - 1);
+        var pageSize = request.PageSize;
+        var pageIndex = request.PageIndex;
 
         var query = _context.FoodActivities
-            .OrderBy(fa => fa.Name)
-            .Select(fa => new FoodActivityDto(
-                fa.Id,
-                fa.Name,
-                fa.Description,
-                fa.MealTime,
-                fa.FoodNutrients.Select(fn => fn.Name),
-                fa.FoodCategories.Select(fc => fc.Name),
-                fa.IntensityLevel
-            ));
+            .Include(fa => fa.FoodNutrients)
+            .Include(fa => fa.FoodCategories)
+            .AsQueryable();
+
+        // Search by FoodActivity.Name or FoodCategory.Name
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            query = query.Where(fa =>
+                fa.Name.Contains(request.Search) ||
+                fa.FoodCategories.Any(fc => fc.Name.Contains(request.Search))
+            );
+        }
+
+        // Filter by FoodNutrient
+        if (request.FoodNutrientId.HasValue)
+        {
+            query = query.Where(fa => fa.FoodNutrients.Any(fn => fn.Id == request.FoodNutrientId.Value));
+        }
 
         var totalCount = await query.CountAsync(cancellationToken);
 
         var activities = await query
-            .Skip(pageIndex * pageSize)
+            .OrderBy(fa => fa.Name)
+            .Skip((pageIndex - 1) * pageSize) 
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var paginatedResult = new PaginatedResult<FoodActivityDto>(
-            pageIndex + 1,
+     
+        var result = new PaginatedResult<FoodActivityDto>(
+            pageIndex,
             pageSize,
             totalCount,
-            activities
+            activities.Adapt<IEnumerable<FoodActivityDto>>() 
         );
 
-        return new GetAllFoodActivitiesResult(paginatedResult);
+        return new GetAllFoodActivitiesResult(result);
     }
 }

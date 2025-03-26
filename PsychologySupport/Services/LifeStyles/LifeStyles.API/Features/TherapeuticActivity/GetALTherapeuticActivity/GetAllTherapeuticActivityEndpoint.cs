@@ -12,10 +12,9 @@ public class GetAllTherapeuticActivityEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/therapeutic-activities", async ([AsParameters] PaginationRequest request, ISender sender) =>
+        app.MapGet("/therapeutic-activities", async ([AsParameters] GetAllTherapeuticActivitiesQuery request, ISender sender) =>
         {
-            var query = new GetAllTherapeuticActivitiesQuery(request);
-            var result = await sender.Send(query);
+            var result = await sender.Send(request);
             var response = result.Adapt<GetAllTherapeuticActivitiesResponse>();
 
             return Results.Ok(response);

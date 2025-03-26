@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+﻿/*using BuildingBlocks.CQRS;
 using Scheduling.API.Dtos;
 using Scheduling.API.Models;
 
@@ -81,3 +81,4 @@ namespace Scheduling.API.Features.Schedule.ImportSchedule
         }
     }
 }
+*/
