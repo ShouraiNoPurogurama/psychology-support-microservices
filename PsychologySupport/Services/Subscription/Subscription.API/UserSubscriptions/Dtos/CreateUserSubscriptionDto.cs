@@ -8,7 +8,5 @@ public record CreateUserSubscriptionDto(
     string? PromoCode,
     Guid? GiftId,
     DateTime StartDate,
-    DateTime EndDate,
     PaymentMethodName PaymentMethodName
-
 );

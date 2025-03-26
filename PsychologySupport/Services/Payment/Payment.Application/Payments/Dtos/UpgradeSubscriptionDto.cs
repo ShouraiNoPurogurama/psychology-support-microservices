@@ -2,7 +2,7 @@
 
 namespace Payment.Application.Payments.Dtos;
 
-public record BuySubscriptionDto(
+public record UpgradeSubscriptionDto(
     Guid SubscriptionId,
     Guid ServicePackageId,
     Guid PatientId,
@@ -12,5 +12,6 @@ public record BuySubscriptionDto(
     decimal FinalPrice,
     int DurationDays,
     PaymentMethodName PaymentMethod,
-    PaymentType PaymentType
+    PaymentType PaymentType,
+    decimal OldSubscriptionPrice
 ) : BasePaymentDto(FinalPrice, PatientId, PaymentMethod);

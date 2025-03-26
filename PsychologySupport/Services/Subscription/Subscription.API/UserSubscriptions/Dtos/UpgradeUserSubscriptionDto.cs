@@ -8,5 +8,4 @@ public record UpgradeUserSubscriptionDto(
     string? PromoCode,
     Guid? GiftId,
     DateTime StartDate,
-    DateTime EndDate,
     PaymentMethodName PaymentMethodName);

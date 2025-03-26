@@ -2,19 +2,16 @@
 using MassTransit;
 using MediatR;
 using Promotion.Grpc;
-using Subscription.API.Data;
 using Subscription.API.Data.Common;
 using Subscription.API.UserSubscriptions.Features.UpdateSubscriptionStatus;
-using Subscription.API.UserSubscriptions.Features.UpdateUserSubscription;
 
 namespace Subscription.API.UserSubscriptions.EventHandlers;
 
-public class SubscriptionPaymentFailedIntegrationEventHandler(
+public class UpgradeSubscriptionPaymentFailedIntegrationEventHandler(
     PromotionService.PromotionServiceClient promotionService,
-    ISender sender)
-    : IConsumer<SubscriptionPaymentFailedIntegrationEvent>
+    ISender sender) : IConsumer<UpgradeSubscriptionPaymentFailedIntegrationEvent>
 {
-    public async Task Consume(ConsumeContext<SubscriptionPaymentFailedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<UpgradeSubscriptionPaymentFailedIntegrationEvent> context)
     {
         var message = context.Message;
 
