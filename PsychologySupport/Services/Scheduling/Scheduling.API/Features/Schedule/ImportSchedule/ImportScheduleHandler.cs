@@ -2,13 +2,12 @@
 using Scheduling.API.Dtos;
 using Scheduling.API.Models;
 using Scheduling.API.Enums;
-using MassTransit;
 using Newtonsoft.Json;
 
 
 namespace Scheduling.API.Features.Schedule.ImportSchedule
 {
-    public record ImportScheduleCommand(Guid PatientId, Guid DoctorId, string JsonFilePath) : ICommand<ImportScheduleResult>;
+    public record ImportScheduleCommand(Guid PatientId, string JsonData) : ICommand<ImportScheduleResult>;
 
     public record ImportScheduleResult(Guid ScheduleId);
 
@@ -23,22 +22,21 @@ namespace Scheduling.API.Features.Schedule.ImportSchedule
 
         public async Task<ImportScheduleResult> Handle(ImportScheduleCommand request, CancellationToken cancellationToken)
         {
-            string jsonData = await File.ReadAllTextAsync(request.JsonFilePath);
-            var scheduleDto = JsonConvert.DeserializeObject<ScheduleDto>(jsonData);
+            var data = request.JsonData.Replace("```json", "");
+            data = data.Replace("```", "");
+            var scheduleDto = JsonConvert.DeserializeObject<ScheduleDto>(data);
 
             if (scheduleDto == null)
             {
                 throw new Exception("Invalid JSON data");
             }
-
-
-
+            
 
             var schedule = new Models.Schedule
             {
                 Id = scheduleDto.Id != Guid.Empty ? scheduleDto.Id : Guid.NewGuid(),
                 PatientId = request.PatientId,
-                DoctorId = request.DoctorId,
+                DoctorId = Guid.Empty,
                 StartDate = scheduleDto.StartDate,
                 EndDate = scheduleDto.EndDate
             };

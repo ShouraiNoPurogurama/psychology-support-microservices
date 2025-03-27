@@ -1,6 +1,7 @@
 ﻿using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Subscription.API.UserSubscriptions.Dtos;
 
 namespace Subscription.API.UserSubscriptions.Features.GetUserSubscription;
@@ -11,7 +12,7 @@ public class GetUserSubscriptionEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/user-subscriptions/{id}", async (Guid id, ISender sender) =>
+        app.MapGet("/user-subscriptions/{id}", async ([FromRoute]Guid id, ISender sender) =>
             {
                 var query = new GetUserSubscriptionQuery(id);
 

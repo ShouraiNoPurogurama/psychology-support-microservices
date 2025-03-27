@@ -2,7 +2,6 @@
 using OpenAI.API.Dtos;
 using OpenAI.API.Services;
 using System.Text.Json;
-using OpenAI.Chat;
 
 namespace OpenAI.API.Controllers
 {

@@ -17,6 +17,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="OpenAI" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,6 +29,12 @@
     <Protobuf Include="..\..\Promotion\Promotion.Grpc\Protos\promotion.proto" GrpcServices="Client">
       <Link>Protos\promotion.proto</Link>
     </Protobuf>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="clustering_patterns.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -60,6 +60,7 @@ namespace Auth.API.Services
                     Email = email,
                     FirebaseUserId = firebaseUserId,
                     EmailConfirmed = true,
+                    UserName = email
                 };
 
                 var result = await userManager.CreateAsync(user);

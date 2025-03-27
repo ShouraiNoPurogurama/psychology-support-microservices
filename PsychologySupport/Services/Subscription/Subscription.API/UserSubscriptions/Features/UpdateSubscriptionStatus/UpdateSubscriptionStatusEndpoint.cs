@@ -3,7 +3,6 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Subscription.API.Data.Common;
-using Subscription.API.UserSubscriptions.Features.UpdateUserSubscription;
 
 namespace Subscription.API.UserSubscriptions.Features.UpdateSubscriptionStatus;
 
