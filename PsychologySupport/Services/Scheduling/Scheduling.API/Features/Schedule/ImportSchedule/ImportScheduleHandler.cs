@@ -1,10 +1,14 @@
-﻿/*using BuildingBlocks.CQRS;
+﻿using BuildingBlocks.CQRS;
 using Scheduling.API.Dtos;
 using Scheduling.API.Models;
+using Scheduling.API.Enums;
+using MassTransit;
+using Newtonsoft.Json;
+
 
 namespace Scheduling.API.Features.Schedule.ImportSchedule
 {
-    public record ImportScheduleCommand(string JsonFilePath) : ICommand<ImportScheduleResult>;
+    public record ImportScheduleCommand(Guid PatientId, Guid DoctorId, string JsonFilePath) : ICommand<ImportScheduleResult>;
 
     public record ImportScheduleResult(Guid ScheduleId);
 
@@ -27,58 +31,52 @@ namespace Scheduling.API.Features.Schedule.ImportSchedule
                 throw new Exception("Invalid JSON data");
             }
 
-            var schedule = new Schedule
+
+
+
+            var schedule = new Models.Schedule
             {
                 Id = scheduleDto.Id != Guid.Empty ? scheduleDto.Id : Guid.NewGuid(),
-                PatientId = scheduleDto.PatientId,
-                DoctorId = scheduleDto.DoctorId,
+                PatientId = request.PatientId,
+                DoctorId = request.DoctorId,
                 StartDate = scheduleDto.StartDate,
-                EndDate = scheduleDto.EndDate,
+                EndDate = scheduleDto.EndDate
             };
 
             _context.Schedules.Add(schedule);
 
-            var sessions = new List<Session>();
-            foreach (var sessionDto in scheduleDto.Sessions)
+            var sessions = scheduleDto.Sessions.Select(sessionDto => new Session
             {
-                var session = new Session
-                {
-                    Id = sessionDto.Id != Guid.Empty ? sessionDto.Id : Guid.NewGuid(),
-                    ScheduleId = schedule.Id,
-                    Purpose = sessionDto.Purpose,
-                    Order = sessionDto.Order,
-                    StartDate = sessionDto.StartDate,
-                    EndDate = sessionDto.EndDate
-                };
-                sessions.Add(session);
-            }
+                Id = sessionDto.Id != Guid.Empty ? sessionDto.Id : Guid.NewGuid(),
+                ScheduleId = schedule.Id,
+                Purpose = sessionDto.Purpose,
+                Order = sessionDto.Order,
+                StartDate = sessionDto.StartDate,
+                EndDate = sessionDto.EndDate
+            }).ToList();
 
-            await _context.Sessions.AddRangeAsync(sessions);
+            await _context.Sessions.AddRangeAsync(sessions, cancellationToken);
 
-            var activities = new List<ScheduleActivity>();
-            foreach (var sessionDto in scheduleDto.Sessions)
+            var activities = scheduleDto.Sessions.SelectMany(sessionDto => sessionDto.Activities.Select(activityDto => new ScheduleActivity
             {
-                foreach (var activityDto in sessionDto.Activities)
-                {
-                    var activity = new ScheduleActivity
-                    {
-                        Id = activityDto.Id != Guid.Empty ? activityDto.Id : Guid.NewGuid(),
-                        SessionId = sessionDto.Id,
-                        Description = activityDto.Purpose,
-                        TimeRange = activityDto.StartDate,
-                        Duration = (activityDto.EndDate - activityDto.StartDate).ToString(),
-                        DateNumber = activityDto.Order,
-                        Status = Scheduling.API.Enums.ScheduleActivityStatus.Pending
-                    };
-                    activities.Add(activity);
-                }
-            }
+                Id = activityDto.Id != Guid.Empty ? activityDto.Id : Guid.NewGuid(),
+                SessionId = sessionDto.Id,
+                Description = activityDto.Description,
+                TimeRange = activityDto.TimeRange, 
+                Duration = activityDto.Duration,   
+                DateNumber = sessionDto.Order,
+                Status = ScheduleActivityStatus.Pending,
+                EntertainmentActivityId = activityDto.EntertainmentActivity?.Id,
+                FoodActivityId = activityDto.FoodActivity?.Id,
+                PhysicalActivityId = activityDto.PhysicalActivity?.Id,
+                TherapeuticActivityId = activityDto.TherapeuticActivity?.Id
+            })).ToList();
 
-            await _context.ScheduleActivities.AddRangeAsync(activities);
+
+            await _context.ScheduleActivities.AddRangeAsync(activities, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
             return new ImportScheduleResult(schedule.Id);
         }
     }
 }
-*/
