@@ -12,7 +12,7 @@ namespace Payment.Application.Payments.Queries
 {
     public record GetDailyRevenueQuery(DateOnly StartTime, DateOnly EndTime) : IRequest<GetDailyRevenueResult>;
 
-    public record DailyRevenue(DateOnly Date, decimal TotalRevenue);
+    public record DailyRevenue(DateOnly Date, decimal TotalRevenue, float TotalPayment);
 
     public record GetDailyRevenueResult(List<DailyRevenue> Revenues);
 
@@ -30,7 +30,7 @@ namespace Payment.Application.Payments.Queries
 
             var revenueByDate = payments
                 .GroupBy(p => DateOnly.FromDateTime(p.CreatedAt.Value.UtcDateTime))
-                .Select(g => new DailyRevenue(g.Key, g.Sum(p => p.TotalAmount)))
+                .Select(g => new DailyRevenue(g.Key, g.Sum(p => p.TotalAmount), g.Count()))
                 .ToList();
 
             return new GetDailyRevenueResult(revenueByDate);

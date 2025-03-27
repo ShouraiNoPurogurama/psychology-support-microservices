@@ -3,6 +3,7 @@ using BuildingBlocks.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Scheduling.API.Dtos;
 using Scheduling.API.Enums;
+using System.Linq;
 
 namespace Scheduling.API.Features.GetAllBooking
 {
