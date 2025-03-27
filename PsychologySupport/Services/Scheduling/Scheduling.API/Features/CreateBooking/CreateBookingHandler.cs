@@ -90,7 +90,7 @@ namespace Scheduling.API.Features.CreateBooking
                 patient.Message.UserId,
                 booking.Id
             );
-
+            
             await publisher.Publish(bookingCreatedIntegrationEvent, cancellationToken);
 
             dbContext.Bookings.Add(booking);
