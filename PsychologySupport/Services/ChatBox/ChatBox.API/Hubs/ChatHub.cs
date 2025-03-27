@@ -84,9 +84,8 @@ public class ChatHub(
         {
             var onlinePatientIdsOfDoctor = await dbContext.DoctorPatients
                 .Where(d => d.DoctorUserId == Guid.Parse(currentUserId))
-                .GroupBy(d => d.PatientUserId)
-                .Select(d => d.First())
                 .Select(d => d.PatientUserId)
+                .Distinct()
                 .ToListAsync();
 
             users = await getAllUsersDataClient
@@ -113,9 +112,8 @@ public class ChatHub(
         {
             var onlineDoctorIdsOfPatient = await dbContext.DoctorPatients
                 .Where(d => d.PatientUserId == Guid.Parse(currentUserId))
-                .GroupBy(d => d.DoctorUserId)
-                .Select(d => d.First())
                 .Select(d => d.DoctorUserId)
+                .Distinct()
                 .ToListAsync();
 
             users = await getAllUsersDataClient

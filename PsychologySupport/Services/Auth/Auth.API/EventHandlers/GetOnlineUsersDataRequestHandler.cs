@@ -28,6 +28,7 @@ public class GetAllUsersDataRequestHandler(UserManager<User> userManager) : ICon
         if (message.UserIds is not null)
         {
             if (message.UserIds.Count == 0) await context.RespondAsync(new GetOnlineUsersDataResponse(new List<UserDto>()));
+            
             var matchingUsers = await userManager.Users
                 .Where(u => message.UserIds.Contains(u.Id))
                 .ProjectToType<UserDto>()
