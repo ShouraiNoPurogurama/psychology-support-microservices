@@ -1,4 +1,5 @@
 using Microsoft.OpenApi.Models;
+using OpenAI.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "OpenAI.API", Version = "v1" });
+});
+
+builder.Services.AddScoped<OpenAIService>();
+builder.Services.AddHttpClient<OpenAIService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.openai.com/v1/");
 });
 
 var app = builder.Build();

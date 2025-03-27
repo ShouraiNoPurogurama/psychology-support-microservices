@@ -409,3 +409,7 @@ FodyWeavers.xsd
 ServiceDependencies/
 PsychologySupport/Services/Notification/Notification.API/firebase_key.json
 RSAKeys/
+PsychologySupport/Services/Auth/Auth.API/firebase_key (2).json
+PsychologySupport/Services/OpenAI/OpenAI.API/clusters.json
+PsychologySupport/Services/OpenAI/OpenAI.API/clustering_patterns.csv
+PsychologySupport/Services/Auth/Auth.API/firebase_key.json

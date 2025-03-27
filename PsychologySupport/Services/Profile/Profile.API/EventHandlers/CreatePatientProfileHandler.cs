@@ -35,7 +35,10 @@ namespace Profile.API.EventHandlers
 
                  _dbContext.PatientProfiles.Add(newProfile);
                 await _dbContext.SaveChangesAsync();
-
+                
+                await _publishEndpoint.Publish(new SendEmailIntegrationEvent(request.ContactInfo.Email, "Patient Profile Created!",
+                    "Your profile has been created successfully."));
+                
                 await context.RespondAsync(new CreatePatientProfileResponse(
                     newProfile.Id,
                     true,
@@ -51,10 +54,6 @@ namespace Profile.API.EventHandlers
                 ));
                 return;
             }
-
-            await _publishEndpoint.Publish(new SendEmailIntegrationEvent(request.ContactInfo.Email, "Patient Profile Created!",
-            "Your profile has been created successfully."));
-
         }
     }
 

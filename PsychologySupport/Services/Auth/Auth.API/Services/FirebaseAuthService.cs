@@ -4,61 +4,77 @@ using Auth.API.Models;
 using Auth.API.ServiceContracts;
 using BuildingBlocks.Constants;
 using BuildingBlocks.Exceptions;
+using FirebaseAdmin;
 using FirebaseAdmin.Auth;
+using Google.Apis.Auth;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Auth.API.Services
 {
-
     public class FirebaseAuthService(
-    UserManager<User> _userManager,
-    ITokenService _tokenService) : IFirebaseAuthService
+        UserManager<User> userManager,
+        ITokenService tokenService,
+        IConfiguration config
+    ) : IFirebaseAuthService
     {
         public async Task<LoginResponse> FirebaseLoginAsync(FirebaseLoginRequest request)
         {
             if (string.IsNullOrEmpty(request.FirebaseToken))
                 throw new BadRequestException("Firebase token không hợp lệ.");
 
-            // Verify the Firebase ID Token
-            FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(request.FirebaseToken);
-            string uid = decodedToken.Uid;
+            var projectId = config["Firebase:ProjectId"];
+            string serviceAccountPath = config["Firebase:ServiceAccountPath"];
+            
+            
+            FirebaseApp.Create(new AppOptions
+                {
+                    Credential = GoogleCredential.FromFile(serviceAccountPath),
+                    ProjectId = projectId
+                });
+            
+            FirebaseToken decodedToken;
+            try
+            {
+                decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(request.FirebaseToken);
+            }
+            catch (Exception ex)
+            {
+                throw new UnauthorizedAccessException("Invalid Firebase token.", ex);
+            }
 
-            // Get user details from Firebase
-            var userRecord = await FirebaseAuth.DefaultInstance.GetUserAsync(uid);
-            var fullName = userRecord.DisplayName;  
-            var email = userRecord.Email;
-            //string email = decodedToken.Claims.ContainsKey("email") ? decodedToken.Claims["email"].ToString() : null;
+            string firebaseUserId = decodedToken.Uid;
+            string email = decodedToken.Claims.ContainsKey("email") ? decodedToken.Claims["email"].ToString() : null;
+            string fullName = decodedToken.Claims.ContainsKey("name") ? decodedToken.Claims["name"].ToString() : null;
 
-
-            // Check user in db
-            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id.ToString() == uid || u.Email == email);
+            var user = await userManager.Users.FirstOrDefaultAsync(u =>
+                u.FirebaseUserId == firebaseUserId || u.Email == email);
 
             if (user == null)
             {
-                // Create
                 user = new User
                 {
-                    //Id = uid,
                     FullName = fullName,
                     Email = email,
-                    EmailConfirmed = true // auto
+                    FirebaseUserId = firebaseUserId,
+                    EmailConfirmed = true,
                 };
 
-                var result = await _userManager.CreateAsync(user);
+                var result = await userManager.CreateAsync(user);
                 if (!result.Succeeded)
                 {
-                    var errors = string.Join("; ", result.Errors.Select(ie => ie.Description));
-                    throw new InvalidDataException($"Tạo tài khoản thất bại: {errors}");
+                    var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+                    throw new BadRequestException($"Failed to create user: {errors}");
                 }
 
-                await _userManager.AddToRoleAsync(user, Roles.UserRole);
+                await userManager.AddToRoleAsync(user, Roles.UserRole);
             }
 
-            // Create JWT token
-            var accessToken = await _tokenService.GenerateJWTToken(user);
-            var refreshToken = _tokenService.GenerateRefreshToken();
-            await _tokenService.SaveRefreshToken(user, refreshToken);
+            var accessToken = await tokenService.GenerateJWTToken(user);
+            var refreshToken = tokenService.GenerateRefreshToken();
+            await tokenService.SaveRefreshToken(user, refreshToken);
 
             return new LoginResponse(accessToken, refreshToken);
         }

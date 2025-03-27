@@ -1,40 +1,50 @@
 ﻿using System.Text.Json;
 using System.Text;
+using OpenAI.API.Utils;
+using OpenAI.Chat;
 
 namespace OpenAI.API.Services
 {
     public class OpenAIService
     {
+        private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
-        private readonly string _apiKey;
 
         public OpenAIService(IConfiguration configuration, HttpClient httpClient)
         {
-            _apiKey = configuration["OpenAI:ApiKey"] ?? throw new ArgumentNullException("API Key is missing");
+            var apiKey = configuration["OpenAI:ApiKey"] ?? throw new ArgumentNullException("API Key is missing");
+            _configuration = configuration;
             _httpClient = httpClient;
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
         }
 
         public async Task<string> GeneratePlanAsync(string scheduleJson)
         {
-            var prompt = $"Dựa trên thông tin lịch trình sau, hãy tạo kế hoạch sức khỏe trong 14 ngày:\n\n{scheduleJson}\n\nTrả về kết quả dưới dạng JSON.";
+            var clusteringPattern = await File.ReadAllTextAsync("clustering_patterns.csv");
+            var clusters = await File.ReadAllTextAsync("clusters.json");
+            
+            var prompt = PromptUtils.GetCreateScheduleTemplate(scheduleJson, clusteringPattern, clusters);
 
-            var requestBody = new
-            {
-                model = "gpt-4-turbo",
-                messages = new[] { new { role = "user", content = prompt } },
-                temperature = 0.7
-            };
+            ChatClient client = new(
+                model: "gpt-4o-mini",
+                apiKey: _configuration["OpenAI:ApiKey"]
+            );
 
-            var jsonRequest = JsonSerializer.Serialize(requestBody);
-            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+            ChatCompletion completion = await client.CompleteChatAsync(prompt);
+            var responseString = completion.Content[0].Text;
 
-            var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
-            response.EnsureSuccessStatusCode();
-
-            var responseString = await response.Content.ReadAsStringAsync();
-            using JsonDocument doc = JsonDocument.Parse(responseString);
-            return doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
+            
+            return responseString;
+            // Console.WriteLine($"[ASSISTANT]: {responseString}");
+            //
+            // try
+            // {
+            //     return JsonDocument.Parse(responseString);
+            // }
+            // catch (JsonException)
+            // {
+            //     throw new Exception("Invalid JSON response from OpenAI.");
+            // }
         }
     }
 }

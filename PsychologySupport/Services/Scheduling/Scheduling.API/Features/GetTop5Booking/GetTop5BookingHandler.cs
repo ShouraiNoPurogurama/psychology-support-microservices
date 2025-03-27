@@ -26,7 +26,7 @@ namespace Scheduling.API.Features.GetTop5Booking
             GetTopDoctorsQuery request, CancellationToken cancellationToken)
         {
             var query = _context.Bookings
-                .Where(b => b.Date >= request.StartDate && b.Date <= request.EndDate && b.Status == BookingStatus.Completed);
+                .Where(b => b.Date >= request.StartDate && b.Date <= request.EndDate && b.Status != BookingStatus.PaymentFailed && b.Status !=BookingStatus.AwaitPayment);
 
             var doctorBookings = await query
                 .GroupBy(b => b.DoctorId)
