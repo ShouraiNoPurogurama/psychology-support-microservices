@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.Messaging.Events.Profile;
+﻿using BuildingBlocks.Messaging.Events.Notification;
+using BuildingBlocks.Messaging.Events.Profile;
 using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.EventHandlers
@@ -7,10 +8,12 @@ namespace Profile.API.EventHandlers
     public class CreatePatientProfileHandler : IConsumer<CreatePatientProfileRequest>
     {
         private readonly ProfileDbContext _dbContext;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public CreatePatientProfileHandler(ProfileDbContext dbContext)
+        public CreatePatientProfileHandler(ProfileDbContext dbContext, IPublishEndpoint publishEndpoint)
         {
             _dbContext = dbContext;
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task Consume(ConsumeContext<CreatePatientProfileRequest> context)
@@ -30,7 +33,7 @@ namespace Profile.API.EventHandlers
                     ContactInfo = request.ContactInfo
                 };
 
-                await _dbContext.PatientProfiles.AddAsync(newProfile);
+                 _dbContext.PatientProfiles.Add(newProfile);
                 await _dbContext.SaveChangesAsync();
 
                 await context.RespondAsync(new CreatePatientProfileResponse(
@@ -46,7 +49,12 @@ namespace Profile.API.EventHandlers
                     false,
                     $"Failed to create patient profile: {ex.Message}"
                 ));
+                return;
             }
+
+            await _publishEndpoint.Publish(new SendEmailIntegrationEvent(request.ContactInfo.Email, "Patient Profile Created!",
+            "Your profile has been created successfully."));
+
         }
     }
 

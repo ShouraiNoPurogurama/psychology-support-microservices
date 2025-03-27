@@ -1,22 +1,25 @@
 ﻿using Auth.API.Models;
 using BuildingBlocks.Constants;
 using BuildingBlocks.Messaging.Events.Auth;
+using BuildingBlocks.Messaging.Events.Notification;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Auth.API.EventHandlers;
 
-public class DoctorProfileCreatedEventHandler : IConsumer<DoctorProfileCreatedIntegrationEvent>
+public class DoctorProfileCreatedEventHandler : IConsumer<DoctorProfileCreatedRequestEvent>
 {
     private readonly UserManager<User> _userManager;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public DoctorProfileCreatedEventHandler(UserManager<User> userManager)
+    public DoctorProfileCreatedEventHandler(UserManager<User> userManager, IPublishEndpoint publishEndpoint)
     {
         _userManager = userManager;
+        _publishEndpoint = publishEndpoint;
     }
 
-    public async Task Consume(ConsumeContext<DoctorProfileCreatedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<DoctorProfileCreatedRequestEvent> context)
     {
         var message = context.Message;
 
@@ -56,8 +59,13 @@ public class DoctorProfileCreatedEventHandler : IConsumer<DoctorProfileCreatedIn
             throw new InvalidDataException("Role assignment failed");
         }
 
-        // Publish success response
-        await context.Publish(new DoctorProfileCreatedResponseEvent(user.Id, true));
+        await context.RespondAsync(new DoctorProfileCreatedResponseEvent(user.Id, true));
+
+        await _publishEndpoint.Publish(new SendEmailIntegrationEvent(
+            message.Email,
+            "Welcome to Psychology Support",
+            $"Dear {message.FullName},\n\nYour account has been created.\n\nLogin: {message.Email}\nPassword: {password}\n\nPlease change your password after logging in."));
+
     }
 
     private string GenerateRandomPassword()

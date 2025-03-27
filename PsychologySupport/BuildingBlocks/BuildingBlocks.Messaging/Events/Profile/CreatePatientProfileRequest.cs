@@ -12,5 +12,5 @@ namespace BuildingBlocks.Messaging.Events.Profile
        string? Allergies,
        PersonalityTrait PersonalityTraits,
        ContactInfo ContactInfo
-   ): SendEmailIntegrationEvent(ContactInfo.Email, "Hello", FullName);
+   );
 }

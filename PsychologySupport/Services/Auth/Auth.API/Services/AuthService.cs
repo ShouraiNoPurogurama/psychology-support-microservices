@@ -6,7 +6,6 @@ using Auth.API.Models;
 using Auth.API.ServiceContracts;
 using BuildingBlocks.Constants;
 using BuildingBlocks.Data.Common;
-using BuildingBlocks.Dtos;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Profile;
