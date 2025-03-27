@@ -1,5 +1,8 @@
 ﻿using BuildingBlocks.Messaging.Masstransit;
 using Carter;
+using FluentValidation;
+using Profile.API.DoctorProfiles.Validators;
+using Profile.API.PatientProfiles.Validators;
 
 namespace Profile.API.Extensions;
 
@@ -22,6 +25,9 @@ public static class ApplicationServiceExtensions
         AddServiceDependencies(services);
 
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+
+        services.AddValidatorsFromAssemblyContaining<UpdateDoctorProfileValidator>();
+        services.AddValidatorsFromAssemblyContaining<UpdatePatientProfileValidator>();
 
         return services;
     }

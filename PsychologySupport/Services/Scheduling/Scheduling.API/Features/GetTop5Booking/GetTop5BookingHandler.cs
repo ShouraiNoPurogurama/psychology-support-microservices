@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Messaging.Events.Profile;
 using MassTransit;
-using Microsoft.AspNetCore.Mvc;
 using Scheduling.API.Dtos;
+using Scheduling.API.Enums;
 
 namespace Scheduling.API.Features.GetTop5Booking
 {
@@ -26,7 +26,7 @@ namespace Scheduling.API.Features.GetTop5Booking
             GetTopDoctorsQuery request, CancellationToken cancellationToken)
         {
             var query = _context.Bookings
-                .Where(b => b.Date >= request.StartDate && b.Date <= request.EndDate);
+                .Where(b => b.Date >= request.StartDate && b.Date <= request.EndDate && b.Status == BookingStatus.Completed);
 
             var doctorBookings = await query
                 .GroupBy(b => b.DoctorId)

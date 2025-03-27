@@ -1,11 +1,13 @@
 ﻿using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Messaging.Masstransit;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using Promotion.Grpc;
 using Subscription.API.Data;
+using Subscription.API.ServicePackages.Validators;
 using Subscription.API.Services;
 
 namespace Subscription.API.Extensions;
@@ -24,6 +26,9 @@ public static class ApplicationServiceExtensions
         AddServiceDependencies(services);
 
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+
+        services.AddValidatorsFromAssemblyContaining<CreateServicePackageValidator>();
+        services.AddValidatorsFromAssemblyContaining<UpdateServicePackageValidator>();
 
         return services;
     }

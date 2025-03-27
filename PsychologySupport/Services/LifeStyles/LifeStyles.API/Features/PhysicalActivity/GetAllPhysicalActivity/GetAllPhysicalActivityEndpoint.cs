@@ -12,10 +12,9 @@ public class GetAllPhysicalActivityEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/physical-activities", async ([AsParameters] PaginationRequest request, ISender sender) =>
+        app.MapGet("/physical-activities", async ([AsParameters] GetAllPhysicalActivitiesQuery request, ISender sender) =>
         {
-            var query = new GetAllPhysicalActivitiesQuery(request);
-            var result = await sender.Send(query);
+            var result = await sender.Send(request);
             var response = result.Adapt<GetAllPhysicalActivitiesResponse>();
 
             return Results.Ok(response);

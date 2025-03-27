@@ -1,8 +1,9 @@
 ﻿using Carter;
+using FluentValidation;
 using Mapster;
 using MediatR;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Scheduling.API.Dtos;
 
 namespace Scheduling.API.Features.CreateBooking
 {
@@ -12,19 +13,26 @@ namespace Scheduling.API.Features.CreateBooking
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPost("/bookings", async ([FromBody] CreateBookingCommand request, ISender sender) =>
+            app.MapPost("/bookings", async (
+                [FromBody] CreateBookingCommand request,
+                ISender sender) =>
+            {
+               /* var validationResult = await validator.ValidateAsync(request.Adapt<CreateBookingDto>());
+                if (!validationResult.IsValid)
                 {
-                    var result = await sender.Send(request);
+                    return Results.ValidationProblem(validationResult.ToDictionary());
+                }
+*/
+                var result = await sender.Send(request);
+                var response = result.Adapt<CreateBookingResponse>();
 
-                    var response = result.Adapt<CreateBookingResponse>();
-
-                    return Results.Ok(response);
-                })
-                .WithName("CreateBooking")
-                .Produces<CreateBookingResponse>()
-                .ProducesProblem(StatusCodes.Status400BadRequest)
-                .WithDescription("Create Booking")
-                .WithSummary("Create Booking");
+                return Results.Ok(response);
+            })
+            .WithName("CreateBooking")
+            .Produces<CreateBookingResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .WithDescription("Create Booking")
+            .WithSummary("Create Booking");
         }
     }
 }

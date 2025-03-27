@@ -1,4 +1,6 @@
 ﻿using Carter;
+using FluentValidation;
+using Scheduling.API.Validators;
 
 namespace Scheduling.API.Extensions
 {
@@ -21,6 +23,10 @@ namespace Scheduling.API.Extensions
             AddServiceDependencies(services);
 
             services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+
+            services.AddValidatorsFromAssemblyContaining<RegisterDoctorBusyAllDayValidator>();
+            services.AddValidatorsFromAssemblyContaining<CreateBookingValidator>();
+            services.AddValidatorsFromAssemblyContaining<CreateDoctorAvailabilityValidator>();
 
             return services;
         }

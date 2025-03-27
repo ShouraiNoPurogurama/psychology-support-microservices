@@ -12,16 +12,15 @@ public class GetAllEntertainmentActivityEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/entertainment-activities", async ([AsParameters] PaginationRequest request, ISender sender) =>
-            {
-                var query = new GetAllEntertainmentActivitiesQuery(request);
-                var result = await sender.Send(query);
-                var response = result.Adapt<GetAllEntertainmentActivitiesResponse>();
+        app.MapGet("/entertainment-activities", async ([AsParameters] GetAllEntertainmentActivitiesQuery request, ISender sender) =>
+        {
+            var result = await sender.Send(request);
+            var response = result.Adapt<GetAllEntertainmentActivitiesResult>();
 
-                return Results.Ok(response);
-            })
+            return Results.Ok(response);
+        })
             .WithName("GetAllEntertainmentActivities")
-            .Produces<GetAllEntertainmentActivitiesResponse>()
+            .Produces<GetAllEntertainmentActivitiesResult>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("GetAll Entertainment Activities")
             .WithSummary("GetAll Entertainment Activities");

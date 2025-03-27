@@ -7,5 +7,5 @@ public record PhysicalActivityDto(
     string Name,
     string Description,
     IntensityLevel IntensityLevel,
-    string ImpactLevel
+    ImpactLevel ImpactLevel
 );

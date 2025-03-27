@@ -1,10 +1,7 @@
 ﻿using BuildingBlocks.Data.Common;
 using BuildingBlocks.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using BuildingBlocks.Messaging.Events.Notification;
+
 
 namespace BuildingBlocks.Messaging.Events.Profile
 {
@@ -15,5 +12,5 @@ namespace BuildingBlocks.Messaging.Events.Profile
        string? Allergies,
        PersonalityTrait PersonalityTraits,
        ContactInfo ContactInfo
-   );
+   ): SendEmailIntegrationEvent(ContactInfo.Email, "Hello", FullName);
 }

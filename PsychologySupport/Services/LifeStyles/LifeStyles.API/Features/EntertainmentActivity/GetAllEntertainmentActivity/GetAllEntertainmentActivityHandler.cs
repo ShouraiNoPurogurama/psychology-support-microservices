@@ -1,18 +1,25 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Enums;
 using BuildingBlocks.Pagination;
 using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
+using Mapster;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.Features.EntertainmentActivity.GetAllEntertainmentActivity;
 
-public record GetAllEntertainmentActivitiesQuery(PaginationRequest PaginationRequest)
-    : IQuery<GetAllEntertainmentActivitiesResult>;
+public record GetAllEntertainmentActivitiesQuery(
+    [FromQuery] int PageIndex,
+    [FromQuery] int PageSize,
+    [FromQuery] string? Search = null, // Search by Name
+    [FromQuery] IntensityLevel? IntensityLevel = null, // Filter by IntensityLevel
+    [FromQuery] ImpactLevel? ImpactLevel  = null // Filter by ImpactLevel
+) : IQuery<GetAllEntertainmentActivitiesResult>;
 
 public record GetAllEntertainmentActivitiesResult(PaginatedResult<EntertainmentActivityDto> EntertainmentActivities);
 
-public class GetAllEntertainmentActivityHandler : IQueryHandler<GetAllEntertainmentActivitiesQuery,
-    GetAllEntertainmentActivitiesResult>
+public class GetAllEntertainmentActivityHandler : IQueryHandler<GetAllEntertainmentActivitiesQuery, GetAllEntertainmentActivitiesResult>
 {
     private readonly LifeStylesDbContext _context;
 
@@ -21,28 +28,45 @@ public class GetAllEntertainmentActivityHandler : IQueryHandler<GetAllEntertainm
         _context = context;
     }
 
-    public async Task<GetAllEntertainmentActivitiesResult> Handle(GetAllEntertainmentActivitiesQuery request,
-        CancellationToken cancellationToken)
+    public async Task<GetAllEntertainmentActivitiesResult> Handle(GetAllEntertainmentActivitiesQuery request, CancellationToken cancellationToken)
     {
-        var pageSize = request.PaginationRequest.PageSize;
-        var pageIndex = request.PaginationRequest.PageIndex;
+        var pageSize = request.PageSize;
+        var pageIndex = request.PageIndex;
 
-        var totalCount = await _context.EntertainmentActivities.CountAsync(cancellationToken);
+        var query = _context.EntertainmentActivities.AsQueryable();
 
-        var activities = await _context.EntertainmentActivities
+        // Search by Name
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            query = query.Where(ea => ea.Name.Contains(request.Search));
+        }
+
+        // Filter by IntensityLevel
+        if (request.IntensityLevel.HasValue)
+        {
+            query = query.Where(ea => ea.IntensityLevel == request.IntensityLevel.Value);
+        }
+
+        // Filter by ImpactLevel
+        if (request.ImpactLevel.HasValue)
+        {
+            query = query.Where(ea => ea.ImpactLevel == request.ImpactLevel.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var activities = await query
             .OrderBy(ea => ea.Name)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
-            .Select(ea => new EntertainmentActivityDto(
-                ea.Id,
-                ea.Name,
-                ea.Description,
-                ea.IntensityLevel,
-                ea.ImpactLevel
-            ))
             .ToListAsync(cancellationToken);
 
-        var result = new PaginatedResult<EntertainmentActivityDto>(pageIndex, pageSize, totalCount, activities);
+        var result = new PaginatedResult<EntertainmentActivityDto>(
+           pageIndex,
+           pageSize,
+           totalCount,
+           activities.Adapt<IEnumerable<EntertainmentActivityDto>>()
+       );
 
         return new GetAllEntertainmentActivitiesResult(result);
     }
