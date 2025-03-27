@@ -8,14 +8,15 @@ public record CreateDoctorProfileCommand(CreateDoctorProfileDto DoctorProfile) :
 
 public record CreateDoctorProfileResult(Guid Id);
 
-public class CreateDoctorProfileHandler(ProfileDbContext context, IPublishEndpoint publishEndpoint, IRequestClient<DoctorProfileCreatedIntegrationEvent> requestClient)
+public class CreateDoctorProfileHandler(ProfileDbContext context,
+    IRequestClient<DoctorProfileCreatedResponseEvent> requestClient)
     : ICommandHandler<CreateDoctorProfileCommand, CreateDoctorProfileResult>
 {
     public async Task<CreateDoctorProfileResult> Handle(CreateDoctorProfileCommand request, CancellationToken cancellationToken)
     {
         var dto = request.DoctorProfile;
 
-        var doctorProfileCreatedEvent = new DoctorProfileCreatedIntegrationEvent(
+        var doctorProfileCreatedEvent = new DoctorProfileCreatedRequestEvent(
             dto.FullName,
             dto.Gender,
             dto.ContactInfo.Email,
