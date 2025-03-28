@@ -36,4 +36,8 @@
       </Protobuf>
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="UserSubscriptions\Dtos\ValidateSubscriptionResultDto.cs" />
+    </ItemGroup>
+
 </Project>

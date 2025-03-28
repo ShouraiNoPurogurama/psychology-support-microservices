@@ -17,7 +17,7 @@ public class ValidateSubscriptionRequestHandler(
         //Validate Gift
         //Validate Final Price
 
-        GetPromotionByCodeResponse? promotion = null;
+        GetPromotionByCodeResponse? promoResponse = null;
         GiftCodeActivateDto? appliedGift = null;
         List<string> errors = [];
 
@@ -37,13 +37,13 @@ public class ValidateSubscriptionRequestHandler(
 
         if (!string.IsNullOrWhiteSpace(request.PromoCode))
         {
-            promotion = await promotionService.GetPromotionByCodeAsync(new GetPromotionByCodeRequest
+            promoResponse = await promotionService.GetPromotionByCodeAsync(new GetPromotionByCodeRequest
             {
                 Code = request.PromoCode,
                 IgnoreExpired = true
             });
 
-            if (promotion.PromoCode is null)
+            if (promoResponse.PromoCode is null)
             {
                 errors.Add("Promotion code is not valid");
             }
@@ -51,12 +51,12 @@ public class ValidateSubscriptionRequestHandler(
 
         if (!string.IsNullOrWhiteSpace(request.GiftId.ToString()))
         {
-            var gifts = await promotionService.GetGiftCodeByPatientIdAsync(new GetGiftCodeByPatientIdRequest()
+            var giftResponse = await promotionService.GetGiftCodeByPatientIdAsync(new GetGiftCodeByPatientIdRequest()
             {
                 Id = request.PatientId.ToString()
             });
 
-            appliedGift = gifts.GiftCode
+            appliedGift = giftResponse.GiftCode
                 .FirstOrDefault(g => g.Id != request.GiftId.ToString());
 
             if (appliedGift is null)
@@ -65,11 +65,13 @@ public class ValidateSubscriptionRequestHandler(
             }
         }
 
-        var finalPrice = servicePackage.Price
-                         - (promotion?.PromoCode != null ? 0.01m * promotion.PromoCode.Value * servicePackage.Price : 0)
+        var calculatedFinalPrice = servicePackage.Price
+                         - (promoResponse?.PromoCode != null ? 0.01m * promoResponse.PromoCode.Value * servicePackage.Price : 0)
                          - (appliedGift != null ? (decimal)appliedGift.MoneyValue : 0);
 
-        if (finalPrice != request.FinalPrice)
+        calculatedFinalPrice -= request.OldSubscriptionPrice;
+        
+        if (calculatedFinalPrice != request.FinalPrice - request.OldSubscriptionPrice)
         {
             errors.Add("Final price is not valid");
         }

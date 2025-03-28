@@ -2,11 +2,10 @@
 
 namespace Subscription.API.UserSubscriptions.Dtos;
 
-public record CreateUserSubscriptionDto(
+public record UpgradeUserSubscriptionDto(
     Guid PatientId,
-    Guid ServicePackageId,
+    Guid NewServicePackageId,
     string? PromoCode,
     Guid? GiftId,
     DateTime StartDate,
-    PaymentMethodName PaymentMethodName
-);
+    PaymentMethodName PaymentMethodName);
