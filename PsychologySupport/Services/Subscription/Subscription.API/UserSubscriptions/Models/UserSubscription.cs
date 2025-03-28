@@ -69,8 +69,8 @@ public class UserSubscription : AggregateRoot<Guid>
             giftId = null;
         }
 
-        var userSubscription = new UserSubscription(patientId, servicePackageId, startDate,
-            startDate.AddDays(servicePackage.DurationDays), promoCodeId, giftId,
+        var userSubscription = new UserSubscription(patientId, servicePackageId, startDate.ToUniversalTime(),
+            startDate.AddDays(servicePackage.DurationDays).ToUniversalTime(), promoCodeId, giftId,
             SubscriptionStatus.AwaitPayment, servicePackage, finalPrice);
 
         return userSubscription;

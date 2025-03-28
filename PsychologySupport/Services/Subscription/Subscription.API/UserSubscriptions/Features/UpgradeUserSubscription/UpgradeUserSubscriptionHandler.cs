@@ -6,7 +6,7 @@ using BuildingBlocks.Messaging.Events.Profile;
 using Mapster;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Profile.API.PatientProfiles.Models;
+// using Profile.API.PatientProfiles.Models;
 using Promotion.Grpc;
 using Subscription.API.Data;
 using Subscription.API.Data.Common;
@@ -38,7 +38,7 @@ public class UpgradeUserSubscriptionHandler(
 
         if (!patient.Message.PatientExists)
         {
-            throw new NotFoundException(nameof(PatientProfile), request.UpgradeUserSubscriptionDto.PatientId);
+            // throw new NotFoundException(request.UpgradeUserSubscriptionDto.PatientId);
         }
 
         //Validate if there is an existing subscription
@@ -63,7 +63,7 @@ public class UpgradeUserSubscriptionHandler(
 
         var newUserSubscription = UserSubscription.Create(dto.PatientId, dto.NewServicePackageId, dto.StartDate, 
             promoCodeId, dto.GiftId, newServicePackage, priceAfterAppliedPromotions);
-
+        
         dbContext.UserSubscriptions.Add(newUserSubscription);
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -131,7 +131,7 @@ public class UpgradeUserSubscriptionHandler(
             throw new NotFoundException("The patient does not have an active subscription.");
         }
         
-        if(currentSubscription.ServicePackage.Price < newServicePackage.Price)
+        if(currentSubscription.ServicePackage.Price > newServicePackage.Price)
             throw new BadRequestException("The new subscription price must be greater than the current subscription price.");
         
         return currentSubscription;
