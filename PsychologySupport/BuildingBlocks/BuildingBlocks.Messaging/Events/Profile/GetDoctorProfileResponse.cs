@@ -9,4 +9,5 @@ public record GetDoctorProfileResponse(
     UserGender Gender,
     string Address,
     string PhoneNumber,
-    string Email);
+    string Email,
+    Guid UserId);

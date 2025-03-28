@@ -15,7 +15,7 @@ namespace Scheduling.API.Features.GetAllBooking
         [FromQuery] Guid? DoctorId = null, // filter
         [FromQuery] Guid? PatientId = null, // filter
         [FromQuery] DateOnly? Date = null, // filter
-        [FromQuery] BookingStatus? Status = null) : IQuery<GetAllBookingsResult>; // filter Pending,Confirmed, Completed, Cancelled
+        [FromQuery] BookingStatus? Status = null) : IQuery<GetAllBookingsResult>; // filter AwaitPayment,Confirmed, Completed, PaymentFailed
                                                                           
     public record GetAllBookingsResult(PaginatedResult<BookingDto> Bookings);
 
@@ -96,7 +96,7 @@ namespace Scheduling.API.Features.GetAllBooking
                     booking.Price,
                     booking.PromoCodeId,
                     booking.GiftCodeId,
-                    booking.Status
+                    booking.Status.ToReadableString()
                 )).ToList()
             );
 

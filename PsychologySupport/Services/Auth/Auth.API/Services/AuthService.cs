@@ -5,6 +5,8 @@ using Auth.API.Exceptions;
 using Auth.API.Models;
 using Auth.API.ServiceContracts;
 using BuildingBlocks.Constants;
+using BuildingBlocks.Data.Common;
+using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Profile;
 using BuildingBlocks.Utils;
@@ -19,6 +21,7 @@ public class AuthService(
     UserManager<User> _userManager,
     IConfiguration configuration,
     ITokenService tokenService,
+    IRequestClient<CreatePatientProfileRequest> _profileClient,
     AuthDbContext authDbContext
     ) : IAuthService
 {
@@ -46,10 +49,20 @@ public class AuthService(
         var roleResult = await _userManager.AddToRoleAsync(user, Roles.UserRole);
         if (!roleResult.Succeeded) throw new InvalidDataException("Gán vai trò thất bại");
 
-        // var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        // var confirmationUrlTemplate = configuration["Mail:ConfirmationUrl"];
-        // var callbackUrl = string.Format(confirmationUrlTemplate, token, registerRequest.Email);
-        // await _sendMail.SendConfirmationEmailAsync(registerRequest.Email, callbackUrl);
+        // Create PatientProfile
+       var createProfileRequest = new CreatePatientProfileRequest(
+           user.Id,
+           registerRequest.FullName,
+           registerRequest.Gender,
+           null,
+           PersonalityTrait.None, 
+           new ContactInfo("None",registerRequest.PhoneNumber, registerRequest.Email)
+        );
+
+        var profileResponse = await _profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
+
+        if (!profileResponse.Message.Success)
+            throw new InvalidDataException($"Patient profile creation failed: {profileResponse.Message.Message}");
 
         return true;
     }

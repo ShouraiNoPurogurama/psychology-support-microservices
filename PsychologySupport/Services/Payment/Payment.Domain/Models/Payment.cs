@@ -70,9 +70,9 @@ public class Payment : AggregateRoot<Guid>
     public void AddFailedPaymentDetail(PaymentDetail paymentDetail, string patientEmail, string? promoCode, Guid? giftId)
     {
         _paymentDetails.Add(paymentDetail.MarkAsFailed());
-        
+
         MarkAsFailed();
-        
+
         switch (PaymentType)
         {
             case PaymentType.BuySubscription:
@@ -86,8 +86,16 @@ public class Payment : AggregateRoot<Guid>
             case PaymentType.Booking:
                 var bookingPaymentDetailFailedEvent =
                     new BookingPaymentDetailFailedEvent(BookingId!.Value, patientEmail, promoCode, giftId, TotalAmount);
-                
+
                 AddDomainEvent(bookingPaymentDetailFailedEvent);
+                break;
+
+            case PaymentType.UpgradeSubscription:
+                var upgradeSubscriptionPaymentDetailFailedEvent =
+                    new UpgradeSubscriptionPaymentDetailFailedEvent(SubscriptionId!.Value, patientEmail, promoCode, giftId,
+                        TotalAmount);
+
+                AddDomainEvent(upgradeSubscriptionPaymentDetailFailedEvent);
                 break;
         }
     }
@@ -115,11 +123,16 @@ public class Payment : AggregateRoot<Guid>
 
                 AddDomainEvent(bookingPaymentCompletedEvent);
                 break;
+            case PaymentType.UpgradeSubscription:
+                var upgradeSubscriptionPaymentCompletedEvent = new UpgradeSubscriptionPaymentDetailCompletedEvent(
+                    SubscriptionId!.Value, patientEmail, TotalAmount);
+                AddDomainEvent(upgradeSubscriptionPaymentCompletedEvent);
+                break;
             default:
                 break;
         }
     }
-    
+
     public void MarkAsFailed()
     {
         Status = PaymentStatus.Failed;

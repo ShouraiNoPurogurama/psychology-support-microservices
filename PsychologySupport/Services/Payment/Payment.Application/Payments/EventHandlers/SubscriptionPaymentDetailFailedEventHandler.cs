@@ -19,8 +19,8 @@ public class SubscriptionPaymentDetailFailedEventHandler(
     {
         logger.LogInformation("*** Domain Event handled: {DomainEvent}", notification.GetType());
         
-        SubscriptionPaymentDetailFailedIntegrationEvent paymentDetailDetailFailedEvent =
-            notification.Adapt<SubscriptionPaymentDetailFailedIntegrationEvent>();
+        SubscriptionPaymentFailedIntegrationEvent paymentFailedEvent =
+            notification.Adapt<SubscriptionPaymentFailedIntegrationEvent>();
 
         SendEmailIntegrationEvent sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
             notification.PatientEmail,
@@ -41,7 +41,7 @@ public class SubscriptionPaymentDetailFailedEventHandler(
             await publishEndpoint.Publish(sendMobilePushNotificationEvent, cancellationToken);
         }
         
-        await publishEndpoint.Publish(paymentDetailDetailFailedEvent, cancellationToken);
+        await publishEndpoint.Publish(paymentFailedEvent, cancellationToken);
         await publishEndpoint.Publish(sendEmailIntegrationEvent, cancellationToken);
     }
 }

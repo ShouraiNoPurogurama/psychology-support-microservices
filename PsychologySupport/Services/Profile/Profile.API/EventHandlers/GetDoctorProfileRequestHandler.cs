@@ -19,7 +19,7 @@ public class GetDoctorProfileRequestHandler(ProfileDbContext dbContext) : IConsu
             {
                 await context.RespondAsync(new GetDoctorProfileResponse(false, Guid.Empty, default, UserGender.Else, default,
                     default,
-                    default));
+                    default, Guid.Empty));
                 return;
             }
 
@@ -28,7 +28,8 @@ public class GetDoctorProfileRequestHandler(ProfileDbContext dbContext) : IConsu
                 Address = doctorProfile.ContactInfo.Address,
                 PhoneNumber = doctorProfile.ContactInfo.PhoneNumber,
                 Email = doctorProfile.ContactInfo.Email,
-                DoctorExists = true
+                DoctorExists = true,
+                UserId = doctorProfile.UserId
             });
             return;
         }
@@ -39,7 +40,7 @@ public class GetDoctorProfileRequestHandler(ProfileDbContext dbContext) : IConsu
         if (doctorProfile is null)
         {
             await context.RespondAsync(new GetDoctorProfileResponse(false, Guid.Empty, default, UserGender.Else, default, default,
-                default));
+                default, Guid.Empty));
             return;
         }
 
@@ -49,7 +50,8 @@ public class GetDoctorProfileRequestHandler(ProfileDbContext dbContext) : IConsu
             Address = doctorProfile.ContactInfo.Address,
             PhoneNumber = doctorProfile.ContactInfo.PhoneNumber,
             Email = doctorProfile.ContactInfo.Email,
-            DoctorExists = true
+            DoctorExists = true,
+            UserId = doctorProfile.UserId
         });
     }
 }

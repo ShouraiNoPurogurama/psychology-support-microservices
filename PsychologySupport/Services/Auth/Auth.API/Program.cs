@@ -14,6 +14,8 @@ services.AddIdentityServices(builder.Configuration);
 // Configure the HTTP request pipeline
 var app = builder.Build();
 
+app.UseExceptionHandler(options => { });
+
 app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())

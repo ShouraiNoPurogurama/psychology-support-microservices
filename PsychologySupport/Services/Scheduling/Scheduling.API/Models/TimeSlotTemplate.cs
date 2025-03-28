@@ -7,6 +7,4 @@
         public TimeOnly StartTime { get; set; } // (08:00)
         public TimeOnly EndTime { get; set; } // (17:00)
     }
-
-    // fix
 }

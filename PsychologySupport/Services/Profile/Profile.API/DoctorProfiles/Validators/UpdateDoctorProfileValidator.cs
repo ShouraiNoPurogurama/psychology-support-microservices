@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using BuildingBlocks.Data.Common;
+using FluentValidation;
 using Profile.API.DoctorProfiles.Dtos;
 
 namespace Profile.API.DoctorProfiles.Validators

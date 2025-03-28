@@ -1,13 +1,20 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Enums;
 using BuildingBlocks.Pagination;
 using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
+using Mapster;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.Features.TherapeuticActivity.GetALTherapeuticActivity;
 
-public record GetAllTherapeuticActivitiesQuery(PaginationRequest PaginationRequest)
-            : IQuery<GetAllTherapeuticActivitiesResult>;
+public record GetAllTherapeuticActivitiesQuery([FromQuery] int PageIndex,
+    [FromQuery] int PageSize,
+    [FromQuery] string? Search = null, // Search by Name
+    [FromQuery] IntensityLevel? IntensityLevel = null, // Filter by IntensityLevel
+    [FromQuery] ImpactLevel? ImpactLevel = null) // Filter by ImpactLevel
+    : IQuery<GetAllTherapeuticActivitiesResult>;
 
 public record GetAllTherapeuticActivitiesResult(PaginatedResult<TherapeuticActivityDto> TherapeuticActivities);
 
@@ -25,36 +32,44 @@ public class GetAllTherapeuticActivityHandler
         GetAllTherapeuticActivitiesQuery request,
         CancellationToken cancellationToken)
     {
-        var pageSize = request.PaginationRequest.PageSize;
-        var pageIndex = Math.Max(0, request.PaginationRequest.PageIndex - 1);
+        var pageSize = request.PageSize;
+        var pageIndex = request.PageIndex;
 
-        var query = _context.TherapeuticActivities
-            .Include(ta => ta.TherapeuticType)
-            .OrderBy(ta => ta.Name)
-            .Select(ta => new TherapeuticActivityDto(
-                ta.Id,
-                ta.TherapeuticType.Name,
-                ta.Name,
-                ta.Description,
-                ta.Instructions,
-                ta.IntensityLevel,
-                ta.ImpactLevel
-            ));
+        var query = _context.TherapeuticActivities.AsQueryable();
+
+        // Search by Name
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            query = query.Where(ea => ea.Name.Contains(request.Search));
+        }
+
+        // Filter by IntensityLevel
+        if (request.IntensityLevel.HasValue)
+        {
+            query = query.Where(ea => ea.IntensityLevel == request.IntensityLevel.Value);
+        }
+
+        // Filter by ImpactLevel
+        if (request.ImpactLevel.HasValue)
+        {
+            query = query.Where(ea => ea.ImpactLevel == request.ImpactLevel.Value);
+        }
 
         var totalCount = await query.CountAsync(cancellationToken);
 
         var activities = await query
-            .Skip(pageIndex * pageSize)
+            .OrderBy(ea => ea.Name)
+            .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var paginatedResult = new PaginatedResult<TherapeuticActivityDto>(
-            pageIndex + 1,
-            pageSize,
-            totalCount,
-            activities
-        );
+        var result = new PaginatedResult<TherapeuticActivityDto>(
+           pageIndex,
+           pageSize,
+           totalCount,
+           activities.Adapt<IEnumerable<TherapeuticActivityDto>>()
+       );
 
-        return new GetAllTherapeuticActivitiesResult(paginatedResult);
+        return new GetAllTherapeuticActivitiesResult(result);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Profile.API.DoctorProfiles.Dtos;
+﻿using BuildingBlocks.Data.Common;
+using Profile.API.DoctorProfiles.Dtos;
 using Profile.API.DoctorProfiles.Models;
 
 namespace Profile.API.DoctorProfiles.Features.CreateDoctorProfile;
@@ -7,18 +8,32 @@ public record CreateDoctorProfileCommand(CreateDoctorProfileDto DoctorProfile) :
 
 public record CreateDoctorProfileResult(Guid Id);
 
-public class CreateDoctorProfileHandler(ProfileDbContext context, IPublishEndpoint publishEndpoint)
+public class CreateDoctorProfileHandler(ProfileDbContext context,
+    IRequestClient<DoctorProfileCreatedResponseEvent> requestClient)
     : ICommandHandler<CreateDoctorProfileCommand, CreateDoctorProfileResult>
 {
     public async Task<CreateDoctorProfileResult> Handle(CreateDoctorProfileCommand request, CancellationToken cancellationToken)
     {
         var dto = request.DoctorProfile;
 
-        if (context.DoctorProfiles.Any(p => p.UserId == dto.UserId))
-            throw new BadRequestException("Doctor profile already exists.");
+        var doctorProfileCreatedEvent = new DoctorProfileCreatedRequestEvent(
+            dto.FullName,
+            dto.Gender,
+            dto.ContactInfo.Email,
+            dto.ContactInfo.PhoneNumber,
+            "None"
+        );
+
+        // Send event and wait for response
+        var response = await requestClient.GetResponse<DoctorProfileCreatedResponseEvent>(doctorProfileCreatedEvent);
+
+        if (!response.Message.Success)
+        {
+            throw new InvalidOperationException("User creation failed. Cannot create DoctorProfile.");
+        }
 
         var doctorProfile = DoctorProfile.Create(
-            dto.UserId,
+            response.Message.UserId, 
             dto.FullName,
             dto.Gender,
             new ContactInfo(
@@ -26,7 +41,6 @@ public class CreateDoctorProfileHandler(ProfileDbContext context, IPublishEndpoi
                 dto.ContactInfo.PhoneNumber,
                 dto.ContactInfo.Email
             ),
-            dto.Specialties,
             dto.Qualifications,
             dto.YearsOfExperience,
             dto.Bio
@@ -35,16 +49,6 @@ public class CreateDoctorProfileHandler(ProfileDbContext context, IPublishEndpoi
         context.DoctorProfiles.Add(doctorProfile);
         await context.SaveChangesAsync(cancellationToken);
 
-        var doctorProfileCreatedEvent = new DoctorProfileCreatedIntegrationEvent(
-            doctorProfile.UserId,
-            doctorProfile.FullName,
-            doctorProfile.Gender,
-            doctorProfile.ContactInfo.Email,
-            doctorProfile.ContactInfo.PhoneNumber
-        );
-
-        await publishEndpoint.Publish(doctorProfileCreatedEvent, cancellationToken);
-
-        return new CreateDoctorProfileResult(doctorProfile.Id);
+        return new CreateDoctorProfileResult(response.Message.UserId);
     }
 }

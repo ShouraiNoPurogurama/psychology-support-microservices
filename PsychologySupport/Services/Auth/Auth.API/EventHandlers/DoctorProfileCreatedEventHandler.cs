@@ -1,35 +1,96 @@
-﻿using Auth.API.Data;
-using Auth.API.Models;
+﻿using Auth.API.Models;
+using BuildingBlocks.Constants;
 using BuildingBlocks.Messaging.Events.Auth;
+using BuildingBlocks.Messaging.Events.Notification;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Auth.API.EventHandlers;
 
-public class DoctorProfileCreatedEventHandler : IConsumer<DoctorProfileCreatedIntegrationEvent>
+public class DoctorProfileCreatedEventHandler : IConsumer<DoctorProfileCreatedRequestEvent>
 {
-    private readonly AuthDbContext _context;
     private readonly UserManager<User> _userManager;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public DoctorProfileCreatedEventHandler(AuthDbContext context, UserManager<User> userManager)
+    public DoctorProfileCreatedEventHandler(UserManager<User> userManager, IPublishEndpoint publishEndpoint)
     {
-        _context = context;
         _userManager = userManager;
+        _publishEndpoint = publishEndpoint;
     }
 
-    public async Task Consume(ConsumeContext<DoctorProfileCreatedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<DoctorProfileCreatedRequestEvent> context)
     {
         var message = context.Message;
 
-        var user = await _context.Users.FindAsync(message.UserId);
-        if (user != null)
-        {
-            user.FullName = message.FullName;
-            user.Gender = message.Gender;
-            await _userManager.SetEmailAsync(user, message.Email);
-            await _userManager.SetPhoneNumberAsync(user, message.PhoneNumber);
+        var existingUser = await _userManager.FindByEmailAsync(message.Email);
+        existingUser ??= await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == message.PhoneNumber);
 
-            await _context.SaveChangesAsync();
+        if (existingUser is not null)
+        {
+            throw new InvalidDataException("Email or phone number already exists in the system");
         }
+
+        //var password = string.IsNullOrEmpty(message.Password) ? GenerateRandomPassword() : message.Password;
+        var password = "Doctor001";
+
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            FullName = message.FullName,
+            Gender = message.Gender,
+            Email = message.Email,
+            UserName = message.Email,
+            PhoneNumber = message.PhoneNumber,
+            EmailConfirmed = true,
+            PhoneNumberConfirmed = true
+        };
+
+        var result = await _userManager.CreateAsync(user, password);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            throw new InvalidDataException($"User registration failed: {errors}");
+        }
+
+        var roleResult = await _userManager.AddToRoleAsync(user, Roles.DoctorRole);
+        if (!roleResult.Succeeded)
+        {
+            throw new InvalidDataException("Role assignment failed");
+        }
+
+        await context.RespondAsync(new DoctorProfileCreatedResponseEvent(user.Id, true));
+
+        await _publishEndpoint.Publish(new SendEmailIntegrationEvent(
+            message.Email,
+            "Welcome to Psychology Support",
+            $"Dear {message.FullName},\n\nYour account has been created.\n\nLogin: {message.Email}\nPassword: {password}\n\nPlease change your password after logging in."));
+
     }
+
+    private string GenerateRandomPassword()
+    {
+        const string lowerCase = "abcdefghijklmnopqrstuvwxyz";
+        const string upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const string digits = "0123456789";
+        const string specialChars = "@#$%^&*!";
+
+        Random random = new Random();
+
+        char[] password = new char[8];
+        password[0] = lowerCase[random.Next(lowerCase.Length)];
+        password[1] = upperCase[random.Next(upperCase.Length)];
+        password[2] = digits[random.Next(digits.Length)];
+        password[3] = specialChars[random.Next(specialChars.Length)];
+
+        string allChars = lowerCase + upperCase + digits + specialChars;
+        for (int i = 4; i < password.Length; i++)
+        {
+            password[i] = allChars[random.Next(allChars.Length)];
+        }
+
+        return new string(password.OrderBy(_ => random.Next()).ToArray());
+    }
+
 }
+

@@ -36,6 +36,6 @@ public class BookingPaymentDetailFailedIntegrationEventHandler(
             });
         }
 
-        await sender.Send(new UpdateBookingStatusCommand(message.BookingId, BookingStatus.Cancelled));
+        await sender.Send(new UpdateBookingStatusCommand(message.BookingId, BookingStatus.PaymentFailed));
     }
 }

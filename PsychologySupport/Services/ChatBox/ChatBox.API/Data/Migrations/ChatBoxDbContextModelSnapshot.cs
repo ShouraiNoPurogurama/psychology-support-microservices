@@ -23,6 +23,26 @@ namespace ChatBox.API.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ChatBox.API.Models.DoctorPatientBooking", b =>
+                {
+                    b.Property<Guid>("BookingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DoctorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PatientUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("BookingId");
+
+                    b.ToTable("DoctorPatients", "public");
+                });
+
             modelBuilder.Entity("ChatBox.API.Models.Message", b =>
                 {
                     b.Property<Guid>("Id")

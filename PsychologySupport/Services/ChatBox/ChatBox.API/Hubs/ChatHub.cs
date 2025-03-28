@@ -24,7 +24,8 @@ public class ChatHub(
         if (principal == null) return;
 
         var userId = principal.GetUserId();
-        var userName = principal.GetUserName();
+        var roles = principal.GetUserRole();
+        // var userName = principal.GetUserName();
         var receiverId = Context.GetHttpContext()?.Request.Query["receiverId"].ToString();
         var connectionId = Context.ConnectionId;
 
@@ -43,12 +44,18 @@ public class ChatHub(
             {
                 Id = Guid.Parse(userId),
                 ConnectionId = connectionId,
-                UserName = userName,
-                FullName = currentUser.FullName
+                FullName = currentUser.FullName,
+                Role = roles
             };
 
             _onlineUsers.TryAdd(userId, user);
-            await Clients.AllExcept(connectionId).SendAsync("NotifyUserConnected", currentUser);
+            // await Clients.AllExcept(connectionId).SendAsync("NotifyUserConnected", user);
+
+            // Chỉ thông báo cho bác sĩ nếu người kết nối là bệnh nhân
+            if (roles.Contains("User") && !string.IsNullOrEmpty(receiverId))
+            {
+                await Clients.Client(_onlineUsers[receiverId].ConnectionId).SendAsync("NotifyUserConnected", user);
+            }
         }
 
         if (!string.IsNullOrEmpty(receiverId))
@@ -58,7 +65,7 @@ public class ChatHub(
 
         // Add user to SignalR user group
         await Groups.AddToGroupAsync(Context.ConnectionId, userId);
-        
+
         await Clients.All.SendAsync("Users", await GetAllUsers());
     }
 
@@ -67,28 +74,70 @@ public class ChatHub(
         var principal = GetUserFromToken();
         if (principal == null) return Enumerable.Empty<OnlineUserDto>();
 
-        var userId = principal.GetUserId();
+        var currentUserId = principal.GetUserId();
+        var currentUserRole = principal.FindFirst(ClaimTypes.Role)?.Value;
         var onlineUsersSet = new HashSet<string>(_onlineUsers.Keys);
 
-        var users =
-            await getAllUsersDataClient.GetResponse<GetOnlineUsersDataResponse>(new GetAllUsersDataRequest())
+        GetOnlineUsersDataResponse? users = null;
+
+        if (currentUserRole.Contains("Doctor"))
+        {
+            var onlinePatientIdsOfDoctor = await dbContext.DoctorPatients
+                .Where(d => d.DoctorUserId == Guid.Parse(currentUserId))
+                .Select(d => d.PatientUserId)
+                .Distinct()
+                .ToListAsync();
+
+            users = await getAllUsersDataClient
+                .GetResponse<GetOnlineUsersDataResponse>(new GetAllUsersDataRequest(onlinePatientIdsOfDoctor))
                 .ContinueWith(u => u.Result.Message);
 
-        var onlineUsers = users.Users
-            .Select(u => new OnlineUserDto
-            {
-                Id = u.Id,
-                UserName = u.UserName,
-                FullName = u.FullName,
-                IsOnline = onlineUsersSet.Contains(u.Id.ToString()),
-                UnreadCount = dbContext.Messages.Count(
-                    x => x.ReceiverUserId.ToString() == userId && x.SenderUserId == u.Id && !x.IsRead)
-            })
-            .OrderByDescending(a => a.IsOnline)
-            .ThenByDescending(a => a.UnreadCount)
-            .ToList();
+            var onlineUsers = users.Users
+                .Select(u => new OnlineUserDto
+                {
+                    Id = u.Id,
+                    FullName = u.FullName,
+                    IsOnline = onlineUsersSet.Contains(u.Id.ToString()),
+                    UnreadCount = dbContext.Messages.Count(
+                        x => x.ReceiverUserId.ToString() == currentUserId && x.SenderUserId == u.Id && !x.IsRead)
+                })
+                .OrderByDescending(a => a.IsOnline)
+                .ThenByDescending(a => a.UnreadCount)
+                .ToList()
+                ;
 
-        return onlineUsers;
+            return onlineUsers;
+        }
+        else if (currentUserRole.Contains("User"))
+        {
+            var onlineDoctorIdsOfPatient = await dbContext.DoctorPatients
+                .Where(d => d.PatientUserId == Guid.Parse(currentUserId))
+                .Select(d => d.DoctorUserId)
+                .Distinct()
+                .ToListAsync();
+
+            users = await getAllUsersDataClient
+                .GetResponse<GetOnlineUsersDataResponse>(new GetAllUsersDataRequest(onlineDoctorIdsOfPatient))
+                .ContinueWith(u => u.Result.Message);
+
+            var onlineUsers = users.Users
+                .Select(u => new OnlineUserDto
+                {
+                    Id = u.Id,
+                    FullName = u.FullName,
+                    IsOnline = onlineUsersSet.Contains(u.Id.ToString()),
+                    UnreadCount = dbContext.Messages.Count(
+                        x => x.ReceiverUserId.ToString() == currentUserId && x.SenderUserId == u.Id && !x.IsRead)
+                })
+                .OrderByDescending(a => a.IsOnline)
+                .ThenByDescending(a => a.UnreadCount)
+                .ToList()
+                ;
+
+            return onlineUsers;
+        }
+
+        return new List<OnlineUserDto>();
     }
 
     public async Task SendMessage(MessageRequestDto message)
@@ -141,9 +190,9 @@ public class ChatHub(
         if (string.IsNullOrEmpty(userId)) return;
 
         _onlineUsers.TryRemove(userId, out _);
-        
+
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, userId);
-        
+
         await Clients.All.SendAsync("OnlineUsers", await GetAllUsers());
     }
 
@@ -186,7 +235,7 @@ public class ChatHub(
                 await dbContext.SaveChangesAsync();
             }
         }
-        
+
         await Clients.Client(_onlineUsers[currentUserId].ConnectionId).SendAsync("ReceiveMessageList", messages);
     }
 

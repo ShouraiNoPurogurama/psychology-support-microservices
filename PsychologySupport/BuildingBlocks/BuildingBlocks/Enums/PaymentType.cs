@@ -6,5 +6,6 @@ namespace BuildingBlocks.Enums;
 public enum PaymentType
 {
     BuySubscription,
-    Booking
+    Booking,
+    UpgradeSubscription
 }

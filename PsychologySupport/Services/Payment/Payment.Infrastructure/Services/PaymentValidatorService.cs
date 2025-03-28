@@ -31,6 +31,13 @@ public class PaymentValidatorService(
         await ValidateSubscriptionAsync(dto);
     }
 
+    public async Task ValidateSubscriptionRequestAsync(UpgradeSubscriptionDto dto)
+    {
+        ValidateVNPayMethod(dto.PaymentMethod);
+        await ValidatePatientAsync(dto.PatientId);
+        await ValidateUpgradeSubscriptionAsync(dto);
+    }
+
     public async Task ValidateBookingRequestAsync(BuyBookingDto dto)
     {
         ValidateVNPayMethod(dto.PaymentMethod);
@@ -50,6 +57,20 @@ public class PaymentValidatorService(
     }
 
     public async Task ValidateSubscriptionAsync(BuySubscriptionDto dto)
+    {
+        var validationResult =
+            await checkSubscriptionClient.GetResponse<ValidateSubscriptionResponse>(dto.Adapt<ValidateSubscriptionRequest>() with
+            {
+                OldSubscriptionPrice = 0
+            });
+
+        if (!validationResult.Message.IsSuccess)
+        {
+            throw new BadRequestException(string.Join(", ", validationResult.Message.Errors));
+        }
+    }
+
+    public async Task ValidateUpgradeSubscriptionAsync(UpgradeSubscriptionDto dto)
     {
         var validationResult =
             await checkSubscriptionClient.GetResponse<ValidateSubscriptionResponse>(dto.Adapt<ValidateSubscriptionRequest>());
