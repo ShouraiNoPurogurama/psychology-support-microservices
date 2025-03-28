@@ -58,7 +58,7 @@ public static class ApplicationServiceExtensions
         services.AddMediatR(options =>
         {
             options.RegisterServicesFromAssembly(typeof(Program).Assembly);
-            options.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            // options.AddOpenBehavior(typeof(ValidationBehavior<,>));
             options.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
     }

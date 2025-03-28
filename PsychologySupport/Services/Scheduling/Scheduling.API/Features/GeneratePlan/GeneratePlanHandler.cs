@@ -26,8 +26,8 @@ public class GeneratePlanCommandHandler : ICommandHandler<GeneratePlanCommand, G
         var prompt = PromptUtils.GetCreateScheduleTemplate(request.ScheduleJson, clusteringPattern, clusters);
 
         ChatClient client = new(
-            // model: "gpt-4o-mini",
-            model: "o3-mini",
+            model: "gpt-4o-mini",
+            // model: "gpt-4o",
             apiKey: _configuration["OpenAI:ApiKey"]
         );
 

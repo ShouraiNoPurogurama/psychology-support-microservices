@@ -132,18 +132,14 @@ public static class PromptUtils
                                    - **Ưu tiên các hoạt động có lợi nhất** theo sở thích của người dùng.
                                    - **Mục đích của từng session** phải phản ánh đúng ý nghĩa của cụm được chọn.
                                    - **Đảm bảo JSON đầu ra đúng định dạng** để sử dụng trực tiếp.
-                                   - ** Ngày tháng phải bắt đầu từ 28/03/2025, với format id chung "id": "20e46224-67de-4f72-a413-258ba27c419c",
-                       "patientId": "46b861bb-8ba3-4fe4-8bc5-65aa754a6365",
-                       "doctorId": null,
-                       "startDate": "2025-03-14T07:00:00Z",
-                       "endDate": "2025-03-28T07:00:00Z",
+                                   - ** Ngày tháng phải bắt đầu từ 28/03/2025
                        """
                        +
                        $"""
                            **Dữ liệu đầu vào**:
-                           - `userPreferences`
+                           - `userPreferences`: {userPreferences}
                            - `clusteringPattern`
-                           - `clusters`: {clusters}
+                           - `clusters`
                        """;
         
         return template2;
