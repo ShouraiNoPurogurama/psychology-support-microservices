@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using Promotion.Grpc;
 using Subscription.API.Data;
-using Subscription.API.ServicePackages.Validators;
 using Subscription.API.Services;
 
 namespace Subscription.API.Extensions;
@@ -26,10 +25,7 @@ public static class ApplicationServiceExtensions
         AddServiceDependencies(services);
 
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
-
-        services.AddValidatorsFromAssemblyContaining<CreateServicePackageValidator>();
-        services.AddValidatorsFromAssemblyContaining<UpdateServicePackageValidator>();
-
+        
         return services;
     }
 
@@ -62,7 +58,7 @@ public static class ApplicationServiceExtensions
         services.AddMediatR(options =>
         {
             options.RegisterServicesFromAssembly(typeof(Program).Assembly);
-            options.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            // options.AddOpenBehavior(typeof(ValidationBehavior<,>));
             options.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
     }

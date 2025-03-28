@@ -21,9 +21,14 @@ app.UseStaticFiles();
 if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();
-    app.UseSwagger();
-    app.UseSwaggerUI();
 }
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.RoutePrefix = string.Empty;
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1");
+});
 
 // Apply CORS policy
 app.UseCors(config =>

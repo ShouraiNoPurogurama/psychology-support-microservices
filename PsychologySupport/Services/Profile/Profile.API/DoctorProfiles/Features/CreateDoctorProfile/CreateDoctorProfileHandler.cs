@@ -9,7 +9,7 @@ public record CreateDoctorProfileCommand(CreateDoctorProfileDto DoctorProfile) :
 public record CreateDoctorProfileResult(Guid Id);
 
 public class CreateDoctorProfileHandler(ProfileDbContext context,
-    IRequestClient<DoctorProfileCreatedResponseEvent> requestClient)
+    IRequestClient<DoctorProfileCreatedRequestEvent> requestClient)
     : ICommandHandler<CreateDoctorProfileCommand, CreateDoctorProfileResult>
 {
     public async Task<CreateDoctorProfileResult> Handle(CreateDoctorProfileCommand request, CancellationToken cancellationToken)
@@ -25,7 +25,7 @@ public class CreateDoctorProfileHandler(ProfileDbContext context,
         );
 
         // Send event and wait for response
-        var response = await requestClient.GetResponse<DoctorProfileCreatedResponseEvent>(doctorProfileCreatedEvent);
+        var response = await requestClient.GetResponse<DoctorProfileCreatedResponseEvent>(doctorProfileCreatedEvent, cancellationToken);
 
         if (!response.Message.Success)
         {

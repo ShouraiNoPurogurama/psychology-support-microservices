@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.DDD;
+using BuildingBlocks.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -25,18 +26,18 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
     {
         if (context is null) return;
 
-        foreach (EntityEntry<IEntity> entry in context.ChangeTracker.Entries<IEntity>()) //this will give us all the entity entries that implement IEntity
+        foreach (EntityEntry<IEntity> entry in context.ChangeTracker.Entries<IEntity>())
         {
             if (entry.State == EntityState.Added)
             {
                 entry.Entity.CreatedBy = "NA";
-                entry.Entity.CreatedAt = DateTimeOffset.UtcNow;
+                entry.Entity.CreatedAt = DateTimeOffset.UtcNow.AddHours(7);
             }
 
             if (entry.State == EntityState.Added || entry.State == EntityState.Modified || entry.HasChangedOwnedEntities())
             {
                 entry.Entity.LastModifiedBy = "NA";
-                entry.Entity.LastModified = DateTimeOffset.UtcNow;
+                entry.Entity.LastModified = DateTimeOffset.UtcNow.AddHours(7);
             }
         }
     }

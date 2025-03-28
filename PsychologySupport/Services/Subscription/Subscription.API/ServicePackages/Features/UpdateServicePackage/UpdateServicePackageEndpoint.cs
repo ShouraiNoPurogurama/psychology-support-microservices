@@ -1,5 +1,4 @@
 ﻿using Carter;
-using FluentValidation;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -17,15 +16,8 @@ public class UpdateServicePackageEndpoint : ICarterModule
         app.MapPut("/service-packages/{id}", async (
             [FromRoute] Guid id,
             [FromBody] UpdateServicePackageDto dto,
-            IValidator<UpdateServicePackageDto> validator,
             ISender sender) =>
         {
-            var validationResult = await validator.ValidateAsync(dto);
-            if (!validationResult.IsValid)
-            {
-                return Results.ValidationProblem(validationResult.ToDictionary());
-            }
-
             var command = new UpdateServicePackageCommand(id, dto);
             var result = await sender.Send(command);
             var response = result.Adapt<UpdateServicePackageResponse>();

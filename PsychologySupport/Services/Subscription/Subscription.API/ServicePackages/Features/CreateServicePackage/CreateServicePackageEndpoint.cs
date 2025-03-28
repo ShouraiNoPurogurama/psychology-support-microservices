@@ -1,5 +1,4 @@
 ﻿using Carter;
-using FluentValidation;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -16,15 +15,8 @@ public class CreateServicePackageEndpoint : ICarterModule
     {
         app.MapPost("service-packages", async (
             [FromBody] CreateServicePackageRequest request,
-            IValidator<CreateServicePackageDto> validator,  
             ISender sender) =>
         {
-
-            var validationResult = await validator.ValidateAsync(request.ServicePackage);
-            if (!validationResult.IsValid)
-            {
-                return Results.ValidationProblem(validationResult.ToDictionary());
-            }
 
             var command = request.Adapt<CreateServicePackageCommand>();
             var result = await sender.Send(command);

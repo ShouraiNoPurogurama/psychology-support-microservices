@@ -2,10 +2,13 @@
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Messaging.Masstransit;
 using Carter;
+using LifeStyles.API.Abstractions;
 using LifeStyles.API.Data;
+using LifeStyles.API.Data.Caching;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 
 namespace LifeStyles.API.Extensions;
 
@@ -24,10 +27,20 @@ public static class ApplicationServiceExtensions
         AddDatabase(services, config);
 
         AddServiceDependencies(services);
+        
+        AddRedisCache(services, config);
 
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
         return services;
+    }
+
+    private static void AddRedisCache(IServiceCollection services, IConfiguration config)
+    {
+        services.AddSingleton<IConnectionMultiplexer>(x =>
+            ConnectionMultiplexer.Connect(config.GetSection("Redis:RedisUrl").Value!));
+        
+        var redisConnectionString = config.GetConnectionString("Redis");
     }
 
     private static void ConfigureSwagger(IServiceCollection services)
@@ -68,6 +81,7 @@ public static class ApplicationServiceExtensions
     {
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        services.AddScoped<IRedisCache, RedisCache>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)

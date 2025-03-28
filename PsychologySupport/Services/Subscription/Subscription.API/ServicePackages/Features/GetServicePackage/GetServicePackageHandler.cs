@@ -1,5 +1,4 @@
 ﻿using BuildingBlocks.CQRS;
-using FluentValidation;
 using Subscription.API.Data;
 using Subscription.API.Exceptions;
 using Subscription.API.ServicePackages.Dtos;
@@ -9,14 +8,6 @@ namespace Subscription.API.ServicePackages.Features.GetServicePackage;
 public record GetServicePackageQuery(Guid Id) : IQuery<GetServicePackageResult>;
 
 public record GetServicePackageResult(ServicePackageDto ServicePackage);
-
-public class GetServicePackageQueryValidator : AbstractValidator<GetServicePackageQuery>
-{
-    public GetServicePackageQueryValidator()
-    {
-        RuleFor(q => q.Id).NotEmpty().WithMessage("Service Package Id cannot be empty");
-    }
-}
 
 public class GetServicePackageHandler : IQueryHandler<GetServicePackageQuery, GetServicePackageResult>
 {

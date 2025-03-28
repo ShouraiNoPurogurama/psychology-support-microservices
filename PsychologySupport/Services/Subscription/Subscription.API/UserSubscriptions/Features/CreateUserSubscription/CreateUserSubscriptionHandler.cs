@@ -5,7 +5,7 @@ using BuildingBlocks.Messaging.Events.Profile;
 using Mapster;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Profile.API.PatientProfiles.Models;
+// using Profile.API.PatientProfiles.Models;
 using Promotion.Grpc;
 using Subscription.API.Data;
 using Subscription.API.Data.Common;
@@ -35,7 +35,7 @@ public class CreateUserSubscriptionHandler(
 
         if (!patient.Message.PatientExists)
         {
-            throw new NotFoundException(nameof(PatientProfile), request.UserSubscription.PatientId);
+            // throw new NotFoundException(nameof(PatientProfile), request.UserSubscription.PatientId);
         }
 
         //Check if there is an existing subscription

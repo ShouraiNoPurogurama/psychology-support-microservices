@@ -19,7 +19,6 @@ public static class IdentityServicesExtensions
             {
                 // options.Authority = config["IdentityServer:Authority"];
 
-
                 var rsaKey = RSA.Create();
                 string xmlKey = File.ReadAllText(config.GetSection("Jwt:PublicKeyPath").Value!);
                 rsaKey.FromXmlString(xmlKey);

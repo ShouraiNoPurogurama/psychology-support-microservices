@@ -3,7 +3,6 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Subscription.API.UserSubscriptions.Dtos;
-using Subscription.API.UserSubscriptions.Features.CreateUserSubscription;
 
 namespace Subscription.API.UserSubscriptions.Features.UpgradeUserSubscription;
 

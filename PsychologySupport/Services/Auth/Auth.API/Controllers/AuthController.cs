@@ -1,6 +1,7 @@
 ﻿using Auth.API.Dtos.Requests;
 using Auth.API.Models;
 using Auth.API.ServiceContracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +16,7 @@ public class AuthController(
     IAuthService authService,
     IFirebaseAuthService firebaseAuthService) : ControllerBase
 {
+    // [Authorize(AuthenticationSchemes = "LocalAuth")]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
     {
@@ -30,11 +32,18 @@ public class AuthController(
         return Ok(result);
     }
 
+    // [Authorize(AuthenticationSchemes = "FirebaseAuth")]
     [HttpPost("firebase-login")]
     public async Task<IActionResult> FirebaseLogin([FromBody] FirebaseLoginRequest request)
     {
         var response = await firebaseAuthService.FirebaseLoginAsync(request);
         return Ok(response);
     }
-
+    
+    [HttpPost("refresh-token")]
+    public async Task<IActionResult> RefreshToken([FromBody] TokenApiRequest refreshTokenRequest)
+    {
+        var result = await authService.RefreshAsync(refreshTokenRequest);
+        return Ok(result);
+    }
 }
