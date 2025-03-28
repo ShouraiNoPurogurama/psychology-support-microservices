@@ -11,5 +11,5 @@ public interface IAuthService
     Task<bool> UnlockAccountAsync(string email);
     Task<bool> ForgotPasswordAsync(string email);
     Task<bool> ResetPasswordAsync(ResetPasswordRequest request);
-    Task<LoginResponse> RefreshAsync(TokenApiRequest TokenApiRequest);
+    Task<LoginResponse> RefreshAsync(TokenApiRequest tokenApiRequest);
 }

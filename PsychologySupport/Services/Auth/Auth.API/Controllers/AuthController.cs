@@ -39,5 +39,11 @@ public class AuthController(
         var response = await firebaseAuthService.FirebaseLoginAsync(request);
         return Ok(response);
     }
-
+    
+    [HttpPost("refresh-token")]
+    public async Task<IActionResult> RefreshToken([FromBody] TokenApiRequest refreshTokenRequest)
+    {
+        var result = await authService.RefreshAsync(refreshTokenRequest);
+        return Ok(result);
+    }
 }

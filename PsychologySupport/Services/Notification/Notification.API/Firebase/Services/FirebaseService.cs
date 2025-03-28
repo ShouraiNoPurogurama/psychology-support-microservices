@@ -10,11 +10,13 @@ public class FirebaseService(ILogger<FirebaseService> logger) : IFirebaseService
 {
     public async Task SendPushNotification(IEnumerable<string> FCMTokens, string subject, string body)
     {
-        FirebaseApp.Create(new AppOptions()
+        if (FirebaseApp.DefaultInstance == null)
         {
-            Credential = GoogleCredential.FromFile("firebase_key.json")
-        });
-
+            FirebaseApp.Create(new AppOptions()
+            {
+                Credential = GoogleCredential.FromFile("firebase_key.json")
+            });
+        }
         List<Message> messages = [];
 
         var messageTemplate = new Message

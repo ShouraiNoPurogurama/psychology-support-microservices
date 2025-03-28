@@ -2,7 +2,6 @@
 using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using OpenAI.API.Dtos;
 using Scheduling.API.Dtos;
 using Scheduling.API.Features.Schedule.ImportSchedule;
 

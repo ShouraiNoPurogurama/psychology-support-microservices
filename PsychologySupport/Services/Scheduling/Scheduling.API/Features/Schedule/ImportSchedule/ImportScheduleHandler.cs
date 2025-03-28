@@ -31,30 +31,33 @@ namespace Scheduling.API.Features.Schedule.ImportSchedule
                 throw new Exception("Invalid JSON data");
             }
             
+            
 
             var schedule = new Models.Schedule
             {
                 Id = scheduleDto.Id != Guid.Empty ? scheduleDto.Id : Guid.NewGuid(),
                 PatientId = request.PatientId,
                 DoctorId = Guid.Empty,
-                StartDate = scheduleDto.StartDate,
-                EndDate = scheduleDto.EndDate
+                StartDate = scheduleDto.StartDate.ToUniversalTime(),
+                EndDate = scheduleDto.EndDate.ToUniversalTime()
             };
 
             _context.Schedules.Add(schedule);
-
+            await _context.SaveChangesAsync(cancellationToken);
+            
             var sessions = scheduleDto.Sessions.Select(sessionDto => new Session
             {
-                Id = sessionDto.Id != Guid.Empty ? sessionDto.Id : Guid.NewGuid(),
+                Id = Guid.NewGuid(),
                 ScheduleId = schedule.Id,
                 Purpose = sessionDto.Purpose,
                 Order = sessionDto.Order,
-                StartDate = sessionDto.StartDate,
-                EndDate = sessionDto.EndDate
+                StartDate = sessionDto.StartDate.ToUniversalTime(),
+                EndDate = sessionDto.EndDate.ToUniversalTime()
             }).ToList();
 
             await _context.Sessions.AddRangeAsync(sessions, cancellationToken);
-
+            await _context.SaveChangesAsync(cancellationToken);
+            
             var activities = scheduleDto.Sessions.SelectMany(sessionDto => sessionDto.Activities.Select(activityDto => new ScheduleActivity
             {
                 Id = activityDto.Id != Guid.Empty ? activityDto.Id : Guid.NewGuid(),

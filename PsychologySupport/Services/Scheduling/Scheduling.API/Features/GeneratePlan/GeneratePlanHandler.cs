@@ -26,12 +26,14 @@ public class GeneratePlanCommandHandler : ICommandHandler<GeneratePlanCommand, G
         var prompt = PromptUtils.GetCreateScheduleTemplate(request.ScheduleJson, clusteringPattern, clusters);
 
         ChatClient client = new(
-            model: "gpt-4o-mini",
-            // model: "gpt-4o",
+            // model: "gpt-4o-mini",
+            model: "gpt-4o",
             apiKey: _configuration["OpenAI:ApiKey"]
         );
+        
+        var message = ChatMessage.CreateAssistantMessage(prompt);
 
-        ChatCompletion completion = await client.CompleteChatAsync(prompt);
+        ChatCompletion completion = await client.CompleteChatAsync(message);
 
         var responseString = completion.Content[0].Text;
 

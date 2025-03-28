@@ -19,7 +19,7 @@ services.AddExceptionHandler<CustomExceptionHandler>();
 
 var app = builder.Build();
 
-app.UseExceptionHandler(options => {});
+app.UseExceptionHandler(options => { });
 
 app.UseStaticFiles();
 
@@ -27,14 +27,15 @@ app.MapCarter();
 
 if (app.Environment.IsDevelopment())
 {
-    app.InitializeDatabaseAsync();    
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Notification API v1");
-    });
+    app.InitializeDatabaseAsync();
 }
 
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.RoutePrefix = string.Empty;
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Notification API v1");
+});
 app.UseCors();
 
 app.Run();
