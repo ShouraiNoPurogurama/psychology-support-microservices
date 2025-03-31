@@ -3,11 +3,12 @@ using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Scheduling.API.Dtos;
+using Scheduling.API.Features.GeneratePlanUsingAI;
 using Scheduling.API.Features.Schedule.ImportSchedule;
 
 namespace Scheduling.API.Features.GeneratePlan;
 
-public class GeneratePlanEndpoint : ICarterModule
+public class GeneratePlanUsingAiEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {

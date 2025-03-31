@@ -2,7 +2,7 @@
 using OpenAI.Chat;
 using Scheduling.API.Utils;
 
-namespace Scheduling.API.Features.GeneratePlan;
+namespace Scheduling.API.Features.GeneratePlanUsingAI;
 
 public record GeneratePlanCommand(string ScheduleJson) : ICommand<GeneratePlanResult>;
 
