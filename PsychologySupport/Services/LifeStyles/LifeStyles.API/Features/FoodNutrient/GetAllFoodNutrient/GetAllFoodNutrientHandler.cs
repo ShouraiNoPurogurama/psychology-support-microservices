@@ -16,12 +16,14 @@ public class GetAllFoodNutrientHandler
     : IQueryHandler<GetAllFoodNutrientQuery, GetAllFoodNutrientResult>
 {
     private readonly LifeStylesDbContext _context;
-    private readonly IRedisCache _redisCache;
+    // private readonly IRedisCache _redisCache;
 
-    public GetAllFoodNutrientHandler(LifeStylesDbContext context, IRedisCache redisCache)
+    public GetAllFoodNutrientHandler(LifeStylesDbContext context
+        // , IRedisCache redisCache
+        )
     {
         _context = context;
-        _redisCache = redisCache;
+        // _redisCache = redisCache;
     }
 
     public async Task<GetAllFoodNutrientResult> Handle(
@@ -33,11 +35,11 @@ public class GetAllFoodNutrientHandler
 
         var cacheKey = $"foodNutrients:page{pageIndex + 1}:size{pageSize}";
 
-        var cachedData = await _redisCache.GetCacheDataAsync<PaginatedResult<FoodNutrientDto>?>(cacheKey);
-        if (cachedData is not null)
-        {
-            return new GetAllFoodNutrientResult(cachedData);
-        }
+        // var cachedData = await _redisCache.GetCacheDataAsync<PaginatedResult<FoodNutrientDto>?>(cacheKey);
+        // if (cachedData is not null)
+        // {
+        //     return new GetAllFoodNutrientResult(cachedData);
+        // }
 
         var query = _context.FoodNutrients
             .OrderBy(fn => fn.Name)
@@ -61,7 +63,7 @@ public class GetAllFoodNutrientHandler
             nutrients
         );
 
-        await _redisCache.SetCacheDataAsync(cacheKey, paginatedResult, TimeSpan.FromMinutes(10));
+        // await _redisCache.SetCacheDataAsync(cacheKey, paginatedResult, TimeSpan.FromMinutes(10));
 
         return new GetAllFoodNutrientResult(paginatedResult);
     }

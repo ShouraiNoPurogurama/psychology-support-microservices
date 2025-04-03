@@ -20,12 +20,14 @@ public record GetAllFoodActivitiesResult(PaginatedResult<FoodActivityDto> FoodAc
 public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery, GetAllFoodActivitiesResult>
 {
     private readonly LifeStylesDbContext _context;
-    private readonly IRedisCache _redisCache;
+    // private readonly IRedisCache _redisCache;
 
-    public GetAllFoodActivityHandler(LifeStylesDbContext context, IRedisCache redisCache)
+    public GetAllFoodActivityHandler(LifeStylesDbContext context
+        // , IRedisCache redisCache
+        )
     {
         _context = context;
-        _redisCache = redisCache;
+        // _redisCache = redisCache;
     }
 
     public async Task<GetAllFoodActivitiesResult> Handle(GetAllFoodActivitiesQuery request, CancellationToken cancellationToken)
@@ -33,13 +35,13 @@ public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery
         var pageSize = request.PageSize;
         var pageIndex = request.PageIndex;
 
-        var cacheKey = $"foodActivities:{request.Search}:page{pageIndex}:size{pageSize}";
-
-        var cachedData = await _redisCache.GetCacheDataAsync<PaginatedResult<FoodActivityDto>?>(cacheKey);
-        if (cachedData is not null)
-        {
-            return new GetAllFoodActivitiesResult(cachedData);
-        }
+        // var cacheKey = $"foodActivities:{request.Search}:page{pageIndex}:size{pageSize}";
+        //
+        // var cachedData = await _redisCache.GetCacheDataAsync<PaginatedResult<FoodActivityDto>?>(cacheKey);
+        // if (cachedData is not null)
+        // {
+        //     return new GetAllFoodActivitiesResult(cachedData);
+        // }
 
         var query = _context.FoodActivities
             .Include(fa => fa.FoodNutrients)
@@ -71,7 +73,7 @@ public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery
             activities.Adapt<IEnumerable<FoodActivityDto>>()
         );
 
-        await _redisCache.SetCacheDataAsync(cacheKey, result, TimeSpan.FromMinutes(10));
+        // await _redisCache.SetCacheDataAsync(cacheKey, result, TimeSpan.FromMinutes(10));
 
         return new GetAllFoodActivitiesResult(result);
     }

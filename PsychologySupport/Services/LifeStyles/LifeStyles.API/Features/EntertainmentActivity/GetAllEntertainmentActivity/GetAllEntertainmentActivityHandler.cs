@@ -24,12 +24,14 @@ public class GetAllEntertainmentActivityHandler : IQueryHandler<GetAllEntertainm
     GetAllEntertainmentActivitiesResult>
 {
     private readonly LifeStylesDbContext _context;
-    private readonly IRedisCache _redisCache;
+    // private readonly IRedisCache _redisCache;
 
-    public GetAllEntertainmentActivityHandler(LifeStylesDbContext context, IRedisCache redisCache)
+    public GetAllEntertainmentActivityHandler(LifeStylesDbContext context
+        // IRedisCache redisCache
+        )
     {
         _context = context;
-        _redisCache = redisCache;
+        // _redisCache = redisCache;
     }
 
     public async Task<GetAllEntertainmentActivitiesResult> Handle(GetAllEntertainmentActivitiesQuery request,
@@ -38,14 +40,14 @@ public class GetAllEntertainmentActivityHandler : IQueryHandler<GetAllEntertainm
         var pageSize = request.PageSize;
         var pageIndex = request.PageIndex;
         
-        var cacheKey = $"entertainmentActivities:{request.Search}:{request.IntensityLevel}:{request.ImpactLevel}:page{pageIndex}:size{pageSize}";
+        // var cacheKey = $"entertainmentActivities:{request.Search}:{request.IntensityLevel}:{request.ImpactLevel}:page{pageIndex}:size{pageSize}";
 
-        var cachedData = await _redisCache.GetCacheDataAsync<PaginatedResult<EntertainmentActivityDto>?>(cacheKey);
+        // var cachedData = await _redisCache.GetCacheDataAsync<PaginatedResult<EntertainmentActivityDto>?>(cacheKey);
         
-        if (cachedData is not null)
-        {
-            return new GetAllEntertainmentActivitiesResult(cachedData);
-        }
+        // if (cachedData is not null)
+        // {
+        //     return new GetAllEntertainmentActivitiesResult(cachedData);
+        // }
         
         var query = _context.EntertainmentActivities.AsQueryable();
 
@@ -82,7 +84,7 @@ public class GetAllEntertainmentActivityHandler : IQueryHandler<GetAllEntertainm
             activities.Adapt<IEnumerable<EntertainmentActivityDto>>()
         );
         
-        await _redisCache.SetCacheDataAsync(cacheKey, result, TimeSpan.FromMinutes(10));
+        // await _redisCache.SetCacheDataAsync(cacheKey, result, TimeSpan.FromMinutes(10));
 
         return new GetAllEntertainmentActivitiesResult(result);
     }
