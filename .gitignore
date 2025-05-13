@@ -416,3 +416,5 @@ PsychologySupport/Services/Auth/Auth.API/firebase_key.json
 PsychologySupport/Services/Scheduling/Scheduling.API/clusters.json
 PsychologySupport/Services/Scheduling/Scheduling.API/clustering_patterns.csv
 PsychologySupport/Services/Scheduling/Scheduling.API/Dtos/ClusterData.cs
+PsychologySupport/Services/Promotion/Promotion.Grpc/PromotionDb
+PsychologySupport/.vscode/
