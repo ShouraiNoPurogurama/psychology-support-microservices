@@ -1,50 +1,48 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
-    </PropertyGroup>
-    <PropertyGroup>
-        <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <None Remove="Protos\promotion.proto" />
-      <None Remove="Properties\ServiceDependencies\emoease - FTP\profile.arm.json" />
-      <None Remove="Properties\ServiceDependencies\emoease - Zip Deploy\profile.arm.json" />
-      <None Remove="Properties\ServiceDependencies\PromotionGrpc20250314134141 - Zip Deploy\profile.arm.json" />
-      <None Remove="Properties\PublishProfiles\emoease - FTP.pubxml" />
-      <None Remove="Properties\PublishProfiles\emoease - Zip Deploy.pubxml" />
-      <None Remove="Properties\PublishProfiles\PromotionGrpc20250314134141 - Zip Deploy.pubxml" />
-    </ItemGroup>
-
-	<ItemGroup>
-        <Protobuf Include="Protos\promotion.proto" GrpcServices="Server" />
-    </ItemGroup>
-
-	<ItemGroup>
-        <PackageReference Include="FluentValidation" Version="11.11.0" />
-        <PackageReference Include="Grpc.AspNetCore" Version="2.57.0" />
-        <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.67.0" />
-        <PackageReference Include="Mapster" Version="7.4.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="8.0.0" />
-    </ItemGroup>
-
-	<ItemGroup>
-	  <None Update="PromotionDb">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	</ItemGroup>
-
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+    <UserSecretsId>beb1f9df-6971-4df2-8068-76d2499e6f0e</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..\..</DockerfileContext>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Protos\promotion.proto" />
+    <None Remove="Properties\ServiceDependencies\emoease - FTP\profile.arm.json" />
+    <None Remove="Properties\ServiceDependencies\emoease - Zip Deploy\profile.arm.json" />
+    <None Remove="Properties\ServiceDependencies\PromotionGrpc20250314134141 - Zip Deploy\profile.arm.json" />
+    <None Remove="Properties\PublishProfiles\emoease - FTP.pubxml" />
+    <None Remove="Properties\PublishProfiles\emoease - Zip Deploy.pubxml" />
+    <None Remove="Properties\PublishProfiles\PromotionGrpc20250314134141 - Zip Deploy.pubxml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Protobuf Include="Protos\promotion.proto" GrpcServices="Server" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Grpc.AspNetCore" />
+    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" />
+    <PackageReference Include="Mapster" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="PromotionDb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

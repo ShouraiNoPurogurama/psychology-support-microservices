@@ -23,12 +23,13 @@ public record GetAllPhysicalActivitiesResult(PaginatedResult<PhysicalActivityDto
 public class GetAllPhysicalActivityHandler : IQueryHandler<GetAllPhysicalActivitiesQuery, GetAllPhysicalActivitiesResult>
 {
     private readonly LifeStylesDbContext _context;
-    private readonly IRedisCache _redisCache;
 
-    public GetAllPhysicalActivityHandler(LifeStylesDbContext context, IRedisCache redisCache)
+    public GetAllPhysicalActivityHandler(LifeStylesDbContext context
+        // , IRedisCache redisCache
+        )
     {
         _context = context;
-        _redisCache = redisCache;
+        // _redisCache = redisCache;
     }
 
     public async Task<GetAllPhysicalActivitiesResult> Handle(GetAllPhysicalActivitiesQuery request,
@@ -39,11 +40,11 @@ public class GetAllPhysicalActivityHandler : IQueryHandler<GetAllPhysicalActivit
 
         var cacheKey = $"physicalActivities:{request.Search}:{request.IntensityLevel}:{request.ImpactLevel}:page{pageIndex}:size{pageSize}";
 
-        var cachedData = await _redisCache.GetCacheDataAsync<PaginatedResult<PhysicalActivityDto>?>(cacheKey);
-        if (cachedData is not null)
-        {
-            return new GetAllPhysicalActivitiesResult(cachedData);
-        }
+        // var cachedData = await _redisCache.GetCacheDataAsync<PaginatedResult<PhysicalActivityDto>?>(cacheKey);
+        // if (cachedData is not null)
+        // {
+        //     return new GetAllPhysicalActivitiesResult(cachedData);
+        // }
 
         var query = _context.PhysicalActivities.AsQueryable();
 
@@ -77,7 +78,7 @@ public class GetAllPhysicalActivityHandler : IQueryHandler<GetAllPhysicalActivit
             activities.Adapt<IEnumerable<PhysicalActivityDto>>()
         );
 
-        await _redisCache.SetCacheDataAsync(cacheKey, result, TimeSpan.FromMinutes(10));
+        // await _redisCache.SetCacheDataAsync(cacheKey, result, TimeSpan.FromMinutes(10));
 
         return new GetAllPhysicalActivitiesResult(result);
     }

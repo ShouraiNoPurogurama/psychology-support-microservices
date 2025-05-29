@@ -7,6 +7,13 @@ using Test.Infrastructure.Data.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var env = builder.Environment.EnvironmentName;
+
+builder.Configuration
+    .AddJsonFile($"appsettings.{env}.json", optional: true,
+        reloadOnChange: true)
+    .AddEnvironmentVariables();
+
 builder.Services.AddCors();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

@@ -81,7 +81,7 @@ public static class ApplicationServiceExtensions
     {
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
-        services.AddScoped<IRedisCache, RedisCache>();
+        // services.AddScoped<IRedisCache, RedisCache>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)

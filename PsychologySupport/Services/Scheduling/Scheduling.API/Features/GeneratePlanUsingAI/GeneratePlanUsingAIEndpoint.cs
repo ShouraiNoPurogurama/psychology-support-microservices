@@ -3,10 +3,9 @@ using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Scheduling.API.Dtos;
-using Scheduling.API.Features.GeneratePlanUsingAI;
 using Scheduling.API.Features.Schedule.ImportSchedule;
 
-namespace Scheduling.API.Features.GeneratePlan;
+namespace Scheduling.API.Features.GeneratePlanUsingAI;
 
 public class GeneratePlanUsingAiEndpoint : ICarterModule
 {
