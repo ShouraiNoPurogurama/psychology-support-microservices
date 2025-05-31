@@ -30,18 +30,51 @@ jobs:
           # Pull latest changes
           git pull origin main
 
-          # Inject appsettings.json from GitHub secrets
-          echo "${{ secrets.APPSETTINGS_AUTH }}" > Services/Auth/Auth.API/appsettings.json
-          echo "${{ secrets.APPSETTINGS_CHATBOX }}" > Services/ChatBox/ChatBox.API/appsettings.json
-          echo "${{ secrets.APPSETTINGS_IMAGE }}" > Services/Image/Image.API/appsettings.json
-          echo "${{ secrets.APPSETTINGS_LIFESTYLES }}" > Services/LifeStyles/LifeStyles.API/appsettings.json
-          echo "${{ secrets.APPSETTINGS_NOTIFICATION }}" > Services/Notification/Notification.API/appsettings.json
-          echo "${{ secrets.APPSETTINGS_PAYMENT }}" > Services/Payment/Payment.API/appsettings.json
-          echo "${{ secrets.APPSETTINGS_PROFILE }}" > Services/Profile/Profile.API/appsettings.json
-          echo "${{ secrets.APPSETTINGS_PROMOTION }}" > Services/Promotion/Promotion.Grpc/appsettings.json
-          echo "${{ secrets.APPSETTINGS_SCHEDULING }}" > Services/Scheduling/Scheduling.API/appsettings.json
-          echo "${{ secrets.APPSETTINGS_SUBSCRIPTION }}" > Services/Subscription/Subscription.API/appsettings.json
-          echo "${{ secrets.APPSETTINGS_TEST }}" > Services/Test/Test.API/appsettings.json
+          # Inject appsettings.json from GitHub secrets safely
+          cat <<EOF > Services/Auth/Auth.API/appsettings.json
+          ${{ secrets.APPSETTINGS_AUTH }}
+          EOF
+
+          cat <<EOF > Services/ChatBox/ChatBox.API/appsettings.json
+          ${{ secrets.APPSETTINGS_CHATBOX }}
+          EOF
+
+          cat <<EOF > Services/Image/Image.API/appsettings.json
+          ${{ secrets.APPSETTINGS_IMAGE }}
+          EOF
+
+          cat <<EOF > Services/LifeStyles/LifeStyles.API/appsettings.json
+          ${{ secrets.APPSETTINGS_LIFESTYLES }}
+          EOF
+
+          cat <<EOF > Services/Notification/Notification.API/appsettings.json
+          ${{ secrets.APPSETTINGS_NOTIFICATION }}
+          EOF
+
+          cat <<EOF > Services/Payment/Payment.API/appsettings.json
+          ${{ secrets.APPSETTINGS_PAYMENT }}
+          EOF
+
+          cat <<EOF > Services/Profile/Profile.API/appsettings.json
+          ${{ secrets.APPSETTINGS_PROFILE }}
+          EOF
+
+          cat <<EOF > Services/Promotion/Promotion.Grpc/appsettings.json
+          ${{ secrets.APPSETTINGS_PROMOTION }}
+          EOF
+
+          cat <<EOF > Services/Scheduling/Scheduling.API/appsettings.json
+          ${{ secrets.APPSETTINGS_SCHEDULING }}
+          EOF
+
+          cat <<EOF > Services/Subscription/Subscription.API/appsettings.json
+          ${{ secrets.APPSETTINGS_SUBSCRIPTION }}
+          EOF
+
+          cat <<EOF > Services/Test/Test.API/appsettings.json
+          ${{ secrets.APPSETTINGS_TEST }}
+          EOF
+
 
           CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -E 'Services/.+?/' | cut -d '/' -f2 | sort -u)
 
