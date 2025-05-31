@@ -14,7 +14,6 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Directory.Packages.props", "."]
 COPY ["ApiGateways/YarpApiGateway/YarpApiGateway.csproj", "ApiGateways/YarpApiGateway/"]
-COPY ApiGateways/YarpApiGateway/RSAKeys ./RSAKeys
 RUN dotnet restore "./ApiGateways/YarpApiGateway/YarpApiGateway.csproj"
 COPY . .
 WORKDIR "/src/ApiGateways/YarpApiGateway"

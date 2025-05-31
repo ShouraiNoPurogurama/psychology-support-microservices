@@ -217,3 +217,4 @@ services:
       dockerfile: ApiGateways/YarpApiGateway/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
+      - ./ApiGateways/YarpApiGateway/RSAKeys:/app/RSAKeys
