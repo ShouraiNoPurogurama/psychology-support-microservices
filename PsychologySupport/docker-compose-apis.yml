@@ -219,3 +219,4 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./ApiGateways/YarpApiGateway/RSAKeys:/app/RSAKeys
+      - /etc/letsencrypt/live/anhtn.id.vn:/https:ro

@@ -1,16 +1,25 @@
-using System.Threading.RateLimiting;
+using System.Security.Cryptography.X509Certificates;
 using YarpApiGateway.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.ConfigureKestrel(options =>
+builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    options.ListenAnyIP(80); // HTTP
-    options.ListenAnyIP(443, listenOptions =>
+    serverOptions.ConfigureHttpsDefaults(httpsOptions =>
     {
-        listenOptions.UseHttps("/https/aspnetapp.pfx", "12345");
+        httpsOptions.ServerCertificate = X509Certificate2.CreateFromPemFile(
+            "/https/fullchain.pem",
+            "/https/privkey.pem"
+        );
+    });
+
+    serverOptions.ListenAnyIP(80);
+    serverOptions.ListenAnyIP(443, listenOptions =>
+    {
+        listenOptions.UseHttps();
     });
 });
+
 
 builder.Services.AddApplicationServices(builder.Configuration);
 
