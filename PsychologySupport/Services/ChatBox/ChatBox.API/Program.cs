@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.LoadConfiguration(builder.Environment);
+
 var services = builder.Services;
 
 services.AddApplicationServices(builder.Configuration);

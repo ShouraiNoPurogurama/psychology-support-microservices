@@ -5,6 +5,8 @@ using Subscription.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.LoadConfiguration(builder.Environment);
+
 var services = builder.Services;
 
 services.AddCarter();

@@ -6,6 +6,8 @@ using Promotion.Grpc.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.LoadConfiguration(builder.Environment);
+
 // Add services to the container.
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();

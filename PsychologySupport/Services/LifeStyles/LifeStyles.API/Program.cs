@@ -4,8 +4,9 @@ using LifeStyles.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var services = builder.Services;
+builder.Configuration.LoadConfiguration(builder.Environment);
 
+var services = builder.Services;
 
 services.AddApplicationServices(builder.Configuration);
 
@@ -16,6 +17,7 @@ services.RegisterMapsterConfiguration();
 // Configure the HTTP request pipeline
 var app = builder.Build();
 
+//Force .NET to use Custom Exception Handler
 app.UseExceptionHandler(options => { });
 
 app.UseStaticFiles();

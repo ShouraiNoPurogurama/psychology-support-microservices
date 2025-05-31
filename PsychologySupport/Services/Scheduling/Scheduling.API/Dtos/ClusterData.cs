@@ -1,4 +1,4 @@
-﻿namespace OpenAI.API.Dtos;
+﻿namespace Scheduling.API.Dtos;
 
 public class ClusterData
 {

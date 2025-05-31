@@ -3,6 +3,7 @@ using BuildingBlocks.Behaviors;
 using BuildingBlocks.Messaging.Masstransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
 
 namespace Test.Application;
@@ -22,5 +23,13 @@ public static class DependencyInjection
         services.AddFeatureManagement();
 
         return services;
+    }
+    
+    public static IConfigurationBuilder LoadConfiguration(this IConfigurationBuilder builder, IHostEnvironment env)
+    {
+        return builder
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables();
     }
 }

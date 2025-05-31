@@ -3,6 +3,8 @@ using BuildingBlocks.Exceptions.Handler;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.LoadConfiguration(builder.Environment);
+
 // Add services to the container
 var services = builder.Services;
 
@@ -18,17 +20,20 @@ app.UseExceptionHandler(options => { });
 
 app.UseStaticFiles();
 
+app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();
+    app.UseSwaggerUI();
 }
-
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+else
 {
-    c.RoutePrefix = string.Empty;
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1");
-});
+    app.UseSwaggerUI(c =>
+    {
+        c.RoutePrefix = string.Empty;
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1");
+    });
+}
 
 // Apply CORS policy
 app.UseCors(config =>

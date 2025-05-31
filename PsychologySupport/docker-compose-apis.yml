@@ -1,0 +1,219 @@
+version: '3.8'
+
+services:
+  auth.api:
+    image: ${DOCKER_REGISTRY-}authapi
+    container_name: auth.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "5000:8080"
+      - "5500:8081"
+    build:
+      context: .
+      dockerfile: Services/Auth/Auth.API/Dockerfile
+    volumes:
+      - ~/.aspnet/https:/https:ro
+
+  chatbox.api:
+    image: ${DOCKER_REGISTRY-}chatboxapi
+    container_name: chatbox.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081 
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "5008:8080"
+      - "5508:8081"
+    build:
+      context: .
+      dockerfile: Services/ChatBox/ChatBox.API/Dockerfile
+    volumes:
+      - ~/.aspnet/https:/https:ro
+
+  image.api:
+    image: ${DOCKER_REGISTRY-}imageapi
+    container_name: image.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081 
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "5011:8080"
+      - "5511:8081"
+    build:
+      context: .
+      dockerfile: Services/Image/Image.API/Dockerfile
+    volumes:
+      - ~/.aspnet/https:/https:ro
+
+  lifestyles.api:
+    image: ${DOCKER_REGISTRY-}lifestylesapi
+    container_name: lifestyles.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081 
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+
+    ports:
+      - "5007:8080"
+      - "5507:8081"
+    build:
+      context: .
+      dockerfile: Services/LifeStyles/LifeStyles.API/Dockerfile
+    volumes:
+      - ~/.aspnet/https:/https:ro
+
+  notification.api:
+    image: ${DOCKER_REGISTRY-}notificationapi
+    container_name: notification.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081 
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "5012:8080"
+      - "5512:8081"
+    build:
+      context: .
+      dockerfile: Services/Notification/Notification.API/Dockerfile
+    volumes:
+      - ~/.aspnet/https:/https:ro
+
+  payment.api:
+    image: ${DOCKER_REGISTRY-}paymentapi
+    container_name: payment.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081 
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "5004:8080"
+      - "5054:8081"
+    build:
+      context: .
+      dockerfile: Services/Payment/Payment.API/Dockerfile
+    volumes:
+      - ~/.aspnet/https:/https:ro
+
+  profile.api:
+    image: ${DOCKER_REGISTRY-}profileapi
+    container_name: profile.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081 
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "5001:8080"
+      - "5501:8081"
+    build:
+      context: .
+      dockerfile: Services/Profile/Profile.API/Dockerfile
+    volumes:
+      - ~/.aspnet/https:/https:ro
+
+  promotion.grpc:
+    image: ${DOCKER_REGISTRY-}promotiongrpc
+    container_name: promotion.grpc
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081 
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "5003:8080"
+      - "5503:8081"
+    build:
+      context: .
+      dockerfile: Services/Promotion/Promotion.Grpc/Dockerfile
+    volumes:
+      - ~/.aspnet/https:/https:ro
+
+  scheduling.api:
+    image: ${DOCKER_REGISTRY-}schedulingapi
+    container_name: scheduling.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081 
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "5002:8080"
+      - "5502:8081"
+    build:
+      context: .
+      dockerfile: Services/Scheduling/Scheduling.API/Dockerfile
+    volumes:
+      - ~/.aspnet/https:/https:ro
+
+  subscription.api:
+    image: ${DOCKER_REGISTRY-}subscriptionapi
+    container_name: subscription.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081 
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "5005:8080"
+      - "5505:8081"
+    build:
+      context: .
+      dockerfile: Services/Subscription/Subscription.API/Dockerfile
+    volumes:
+      - ~/.aspnet/https:/https:ro
+
+  test.api:
+    image: ${DOCKER_REGISTRY-}testapi
+    container_name: test.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081 
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "5006:8080"
+      - "5506:8081"
+    build:
+      context: .
+      dockerfile: Services/Test/Test.API/Dockerfile
+    volumes:
+      - ~/.aspnet/https:/https:ro
+
+  yarpapigateway:
+    image: ${DOCKER_REGISTRY-}yarpapigateway
+    container_name: emoease.yarpapigateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081 
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "5010:8080"
+      - "5510:8081"
+    build:
+      context: .
+      dockerfile: ApiGateways/YarpApiGateway/Dockerfile
+    volumes:
+      - ~/.aspnet/https:/https:ro

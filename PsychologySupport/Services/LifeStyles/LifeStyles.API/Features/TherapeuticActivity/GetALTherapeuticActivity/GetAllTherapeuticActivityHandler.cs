@@ -23,12 +23,14 @@ public class GetAllTherapeuticActivityHandler
     : IQueryHandler<GetAllTherapeuticActivitiesQuery, GetAllTherapeuticActivitiesResult>
 {
     private readonly LifeStylesDbContext _context;
-    private readonly IRedisCache _redisCache;
+    // private readonly IRedisCache _redisCache;
 
-    public GetAllTherapeuticActivityHandler(LifeStylesDbContext context, IRedisCache redisCache)
+    public GetAllTherapeuticActivityHandler(LifeStylesDbContext context
+        // , IRedisCache redisCache
+        )
     {
         _context = context;
-        _redisCache = redisCache;
+        // _redisCache = redisCache;
     }
 
     public async Task<GetAllTherapeuticActivitiesResult> Handle(
@@ -38,14 +40,14 @@ public class GetAllTherapeuticActivityHandler
         var pageSize = request.PageSize;
         var pageIndex = request.PageIndex;
 
-        var cacheKey = $"therapeuticActivities:{request.Search}:{request.IntensityLevel}:{request.ImpactLevel}:page{pageIndex}:size{pageSize}";
+        // var cacheKey = $"therapeuticActivities:{request.Search}:{request.IntensityLevel}:{request.ImpactLevel}:page{pageIndex}:size{pageSize}";
 
         // Try to get cached data
-        var cachedData = await _redisCache.GetCacheDataAsync<PaginatedResult<TherapeuticActivityDto>?>(cacheKey);
-        if (cachedData is not null)
-        {
-            return new GetAllTherapeuticActivitiesResult(cachedData);
-        }
+        // var cachedData = await _redisCache.GetCacheDataAsync<PaginatedResult<TherapeuticActivityDto>?>(cacheKey);
+        // if (cachedData is not null)
+        // {
+        //     return new GetAllTherapeuticActivitiesResult(cachedData);
+        // }
 
         var query = _context.TherapeuticActivities.AsQueryable();
 
@@ -83,7 +85,7 @@ public class GetAllTherapeuticActivityHandler
         );
 
         // Store result in Redis with a 10-minute expiration time
-        await _redisCache.SetCacheDataAsync(cacheKey, result, TimeSpan.FromMinutes(10));
+        // await _redisCache.SetCacheDataAsync(cacheKey, result, TimeSpan.FromMinutes(10));
 
         return new GetAllTherapeuticActivitiesResult(result);
     }

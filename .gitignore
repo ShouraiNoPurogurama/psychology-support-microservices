@@ -405,6 +405,7 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 *appsettings.json
+*appsettings.Development.json
 
 ServiceDependencies/
 PsychologySupport/Services/Notification/Notification.API/firebase_key.json
