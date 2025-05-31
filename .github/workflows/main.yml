@@ -39,11 +39,11 @@ jobs:
           ${{ secrets.APPSETTINGS_CHATBOX }}
           EOF
 
-          cat <<EOF > Services/Auth/RSAKeys/PrivateKey.xml
+          cat <<EOF > Services/Auth/Auth.API/RSAKeys/PrivateKey.xml
           ${{ secrets.RSA_PRIVATE_KEYS }}
           EOF
 
-          cat <<EOF > Services/Auth/RSAKeys/PublicKey.xml
+          cat <<EOF > Services/Auth/Auth.API/RSAKeys/PublicKey.xml
           ${{ secrets.RSA_PUBLIC_KEYS }}
           EOF
 
