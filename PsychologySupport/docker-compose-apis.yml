@@ -18,6 +18,7 @@ services:
       dockerfile: Services/Auth/Auth.API/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
+      - ./Services/Auth/Auth.API/RSAKeys:/app/RSAKeys
 
   chatbox.api:
     image: ${DOCKER_REGISTRY-}chatboxapi
