@@ -43,6 +43,9 @@ jobs:
           echo "${{ secrets.APPSETTINGS_SUBSCRIPTION }}" > Services/Subscription/Subscription.API/appsettings.json
           echo "${{ secrets.APPSETTINGS_TEST }}" > Services/Test/Test.API/appsettings.json
 
+          CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -E 'Services/.+?/' | cut -d '/' -f2 | sort -u)
 
-          # Deploy APIs
-          docker compose -f docker-compose-apis.yml up -d --build
+          for svc in $CHANGED; do
+          docker compose -f docker-compose-apis.yml build ${svc}.api || true
+          docker compose -f docker-compose-apis.yml up -d ${svc}.api || true
+          done
