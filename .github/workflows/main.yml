@@ -39,6 +39,14 @@ jobs:
           ${{ secrets.APPSETTINGS_CHATBOX }}
           EOF
 
+          cat <<EOF > Services/Auth/RSAKeys/PrivateKey.xml
+          ${{ secrets.RSA_PRIVATE_KEYS }}
+          EOF
+
+          cat <<EOF > Services/Auth/RSAKeys/PublicKey.xml
+          ${{ secrets.RSA_PUBLIC_KEYS }}
+          EOF
+
           # Inject appsettings.json from GitHub secrets safely
           cat <<EOF > Services/Auth/Auth.API/appsettings.json
           ${{ secrets.APPSETTINGS_AUTH }}
