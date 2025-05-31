@@ -31,6 +31,11 @@ jobs:
           git pull origin main
 
           # Inject appsettings.json from GitHub secrets safely
+          cat <<EOF > ApiGateways/YarpApiGateway/appsettings.json
+          ${{ secrets.APPSETTINGS_YARP_API_GATEWAY }}
+          EOF
+
+          # Inject appsettings.json from GitHub secrets safely
           cat <<EOF > Services/Auth/Auth.API/appsettings.json
           ${{ secrets.APPSETTINGS_AUTH }}
           EOF
