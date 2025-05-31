@@ -1,0 +1,34 @@
+name: Deploy to VPS on push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: SSH and deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        password: ${{ secrets.VPS_PASSWORD }}
+        script: |
+          # If repo folder doesn't exist, clone it
+          if [ ! -d "/home/root/emoease/PsychologySupport" ]; then
+            git clone https://github.com/ShouraiNoPurogurama/psychology-support-microservices.git /home/root/emoease
+          fi
+
+          cd /home/root/emoease/PsychologySupport
+
+          # Discard any local changes (optional, but safe)
+          git reset --hard HEAD
+
+          # Pull latest changes
+          git pull origin main
+
+          # Run docker compose (build and recreate containers)
+          docker compose up -d --build
