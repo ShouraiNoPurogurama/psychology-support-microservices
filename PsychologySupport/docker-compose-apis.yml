@@ -210,8 +210,8 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
     ports:
-      - "5010:8080"
-      - "5510:8081"
+      - "80:8080"
+      - "443:8081"
     build:
       context: .
       dockerfile: ApiGateways/YarpApiGateway/Dockerfile
