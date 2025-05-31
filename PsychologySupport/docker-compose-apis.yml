@@ -216,4 +216,4 @@ services:
       dockerfile: ApiGateways/YarpApiGateway/Dockerfile
     volumes:
       - ./ApiGateways/YarpApiGateway/RSAKeys:/app/RSAKeys
-      - /etc/letsencrypt/live/anhtn.id.vn:/https:ro
+      - /etc/letsencrypt/archive/anhtn.id.vn:/certs:ro
