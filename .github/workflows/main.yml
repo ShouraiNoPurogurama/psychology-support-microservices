@@ -31,8 +31,12 @@ jobs:
           git pull origin main
 
           # Inject appsettings.json from GitHub secrets safely
-          cat <<EOF > ApiGateways/YarpApiGateway/appsettings.json
-          ${{ secrets.APPSETTINGS_YARP_API_GATEWAY }}
+          cat <<EOF > ApiGateways/YarpApiGateway/RSAKeys/PublicKey.xml
+          ${{ secrets.RSA_PUBLIC_KEYS }}
+          EOF
+
+          cat <<EOF > Services/ChatBox/ChatBox.API/appsettings.json
+          ${{ secrets.APPSETTINGS_CHATBOX }}
           EOF
 
           # Inject appsettings.json from GitHub secrets safely
