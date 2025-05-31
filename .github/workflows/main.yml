@@ -30,5 +30,19 @@ jobs:
           # Pull latest changes
           git pull origin main
 
+          # Inject appsettings.json from GitHub secrets
+          echo "${{ secrets.APPSETTINGS_AUTH }}" > Services/Auth/Auth.API/appsettings.json
+          echo "${{ secrets.APPSETTINGS_CHATBOX }}" > Services/ChatBox/ChatBox.API/appsettings.json
+          echo "${{ secrets.APPSETTINGS_IMAGE }}" > Services/Image/Image.API/appsettings.json
+          echo "${{ secrets.APPSETTINGS_LIFESTYLES }}" > Services/LifeStyles/LifeStyles.API/appsettings.json
+          echo "${{ secrets.APPSETTINGS_NOTIFICATION }}" > Services/Notification/Notification.API/appsettings.json
+          echo "${{ secrets.APPSETTINGS_PAYMENT }}" > Services/Payment/Payment.API/appsettings.json
+          echo "${{ secrets.APPSETTINGS_PROFILE }}" > Services/Profile/Profile.API/appsettings.json
+          echo "${{ secrets.APPSETTINGS_PROMOTION }}" > Services/Promotion/Promotion.Grpc/appsettings.json
+          echo "${{ secrets.APPSETTINGS_SCHEDULING }}" > Services/Scheduling/Scheduling.API/appsettings.json
+          echo "${{ secrets.APPSETTINGS_SUBSCRIPTION }}" > Services/Subscription/Subscription.API/appsettings.json
+          echo "${{ secrets.APPSETTINGS_TEST }}" > Services/Test/Test.API/appsettings.json
+
+
           # Deploy APIs
           docker compose -f docker-compose-apis.yml up -d --build
