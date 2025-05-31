@@ -57,7 +57,7 @@ public static class ApplicationServiceExtensions
                 //     .AllowAnyOrigin()
                 //     .AllowAnyMethod()
                 //     .AllowAnyHeader();
-                builder.WithOrigins("https://localhost:7152") // Change to your frontend's URL
+                builder.AllowAnyOrigin() // Change to your frontend's URL
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials(); // Enable credentials support
