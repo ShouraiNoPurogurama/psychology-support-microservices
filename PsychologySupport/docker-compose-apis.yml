@@ -208,8 +208,6 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081 
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
     ports:
       - "80:80"
       - "443:443"
@@ -217,6 +215,5 @@ services:
       context: .
       dockerfile: ApiGateways/YarpApiGateway/Dockerfile
     volumes:
-      - ~/.aspnet/https:/https:ro
       - ./ApiGateways/YarpApiGateway/RSAKeys:/app/RSAKeys
       - /etc/letsencrypt/live/anhtn.id.vn:/https:ro
