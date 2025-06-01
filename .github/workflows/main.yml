@@ -100,12 +100,12 @@ jobs:
           | grep -E '^Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+/' \
           | awk -F/ '{
           if ($1 == "Services") {
-            print $2 ".api"
+            print tolower($2) ".api"
           } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
-          print $3
+          print tolower($3)
           }
           }' \
-          | sort -u)
+          | sort -u) 
 
           for svc in $CHANGED; do
           docker compose -f docker-compose-apis.yml build "$svc" || true
