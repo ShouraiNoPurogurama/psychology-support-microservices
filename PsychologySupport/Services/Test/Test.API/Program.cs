@@ -14,9 +14,6 @@ builder.Configuration
         reloadOnChange: true)
     .AddEnvironmentVariables();
 
-builder.Services.AddCors();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 //Add services to the container
 builder.Services
@@ -43,11 +40,6 @@ app.UseSwaggerUI(c =>
 });
 
 // Apply CORS policy
-app.UseCors(config =>
-{
-    config.AllowAnyHeader();
-    config.AllowAnyMethod();
-    config.AllowAnyOrigin();
-});
+app.UseCors("CorsPolicy");
 
 app.Run();
