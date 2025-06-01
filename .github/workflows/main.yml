@@ -97,9 +97,11 @@ jobs:
           EOF
 
 
-          CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -E 'Services/.+?/' | cut -d '/' -f2 | sort -u)
+          CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -E '^Services/[^/]+/' | cut -d '/' -f2 | sort -u)
 
           for svc in $CHANGED; do
+          echo "Building and starting service: ${svc}.api"
           docker compose -f docker-compose-apis.yml build ${svc}.api || true
           docker compose -f docker-compose-apis.yml up -d ${svc}.api || true
           done
+
