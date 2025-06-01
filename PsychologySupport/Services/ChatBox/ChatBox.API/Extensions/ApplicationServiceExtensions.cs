@@ -57,7 +57,7 @@ public static class ApplicationServiceExtensions
                 //     .AllowAnyOrigin()
                 //     .AllowAnyMethod()
                 //     .AllowAnyHeader();
-                builder.AllowAnyOrigin() // Change to your frontend's URL
+                builder// Change to your frontend's URL
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials(); // Enable credentials support
