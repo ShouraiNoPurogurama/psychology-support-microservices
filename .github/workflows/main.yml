@@ -105,7 +105,7 @@ jobs:
           print tolower($3)
           }
           }' \
-          | sort -u)
+          | sort -u) 
 
           for svc in $CHANGED; do
           docker compose -f docker-compose-apis.yml build "$svc" || true
