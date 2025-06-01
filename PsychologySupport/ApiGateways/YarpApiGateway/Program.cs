@@ -27,6 +27,8 @@ builder.Services.AddIdentityServices(builder.Configuration);
 
 var app = builder.Build();
 
+app.UseCors("CorsPolicy");
+
 app.UseRateLimiter();
 
 app.UseAuthentication();
