@@ -96,12 +96,18 @@ jobs:
           ${{ secrets.APPSETTINGS_TEST }}
           EOF
 
-
-          CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -E '^Services/[^/]+/' | cut -d '/' -f2 | sort -u)
+          CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD \
+          | grep -E '^Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+/' \
+          | awk -F/ '{
+          if ($1 == "Services") {
+            print $2 ".api"
+          } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
+          print $3
+          }
+          }' \
+          | sort -u)
 
           for svc in $CHANGED; do
-          echo "Building and starting service: ${svc}.api"
-          docker compose -f docker-compose-apis.yml build ${svc}.api || true
-          docker compose -f docker-compose-apis.yml up -d ${svc}.api || true
+          docker compose -f docker-compose-apis.yml build "$svc" || true
+          docker compose -f docker-compose-apis.yml up -d "$svc" || true
           done
-
