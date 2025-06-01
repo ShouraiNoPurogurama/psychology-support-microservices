@@ -27,17 +27,20 @@ var app = builder.Build();
 //Configure the HTTP request pipeline
 app.UseApiServices();
 
+app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
     await app.InitializeDatabaseAsync();
+    app.UseSwaggerUI();
 }
-
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+else
 {
-    c.RoutePrefix = string.Empty;
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API v1");
-});
+    app.UseSwaggerUI(c =>
+    {
+        c.RoutePrefix = string.Empty;
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API v1");
+    });
+}
 
 // Apply CORS policy
 app.UseCors("CorsPolicy");
