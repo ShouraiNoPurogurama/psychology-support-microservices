@@ -36,13 +36,6 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Profile API v1");
 });
 
-
-// Apply CORS policy
-app.UseCors(config =>
-{
-    config.AllowAnyHeader();
-    config.AllowAnyMethod();
-    config.AllowAnyOrigin();
-});
+app.UseCors("CorsPolicy");
 
 app.Run();
