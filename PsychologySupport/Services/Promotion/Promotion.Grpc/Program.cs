@@ -28,11 +28,18 @@ builder.Services.AddScoped<ValidatorService>();
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI(c =>
+if (app.Environment.IsDevelopment())
 {
-    c.RoutePrefix = string.Empty;
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Promotion API v1");
-});
+    app.UseSwaggerUI();
+}
+else
+{
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Promotion API v1");
+        c.RoutePrefix = string.Empty;
+    });
+}
 
 // Configure the HTTP request pipeline.
 app.MapGrpcService<PromotionService>();

@@ -20,6 +20,7 @@ public static class DependencyInjection
             config.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
 
+        ConfigureCORS(services);
         services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
         services.AddFeatureManagement();
         
@@ -32,5 +33,19 @@ public static class DependencyInjection
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables();
+    }
+    
+    private static void ConfigureCORS(IServiceCollection services)
+    {
+        services.AddCors(options =>
+        {
+            options.AddPolicy("CorsPolicy", builder =>
+            {
+                builder
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            });
+        });
     }
 }

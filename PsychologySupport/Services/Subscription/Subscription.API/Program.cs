@@ -36,12 +36,7 @@ var app = builder.Build();
 app.UseExceptionHandler(options => { });
 
 // Apply CORS policy
-app.UseCors(config =>
-{
-    config.AllowAnyHeader();
-    config.AllowAnyMethod();
-    config.AllowAnyOrigin();
-});
+app.UseCors("CorsPolicy");
 
 app.UseStaticFiles();
 

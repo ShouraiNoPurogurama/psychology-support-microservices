@@ -7,13 +7,8 @@ using Test.Infrastructure.Data.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var env = builder.Environment.EnvironmentName;
-
-builder.Configuration
-    .AddJsonFile($"appsettings.{env}.json", optional: true,
-        reloadOnChange: true)
-    .AddEnvironmentVariables();
-
+// Load configuration settings
+builder.Configuration.LoadConfiguration(builder.Environment);
 
 //Add services to the container
 builder.Services
