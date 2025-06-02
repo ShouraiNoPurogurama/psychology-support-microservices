@@ -41,7 +41,7 @@ public class CreateUserSubscriptionHandler(
         //Check if there is an existing subscription
         var existingSubscription = context.UserSubscriptions
             .Any(x => x.PatientId == request.UserSubscription.PatientId &&
-                                      x.Status == SubscriptionStatus.Active);
+                                      x.Status == SubscriptionStatus.Active || x.Status == SubscriptionStatus.AwaitPayment);
         
         if(existingSubscription) 
             throw new BadRequestException("Patient already has an active subscription.");
