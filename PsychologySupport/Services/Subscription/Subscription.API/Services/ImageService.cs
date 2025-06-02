@@ -46,7 +46,7 @@ public class ImageService : IImageService
         return imageId;
     }
 
-    public async Task<bool> DeleteImageAsync(Guid imageId)
+    public bool DeleteImageAsync(Guid imageId)
     {
         var imagePath = Directory.GetFiles(_imageDirectory, $"{imageId}.*").FirstOrDefault();
         if (imagePath is null) return false;
@@ -63,7 +63,7 @@ public class ImageService : IImageService
         }
     }
 
-    public async Task<string?> GetImageUrlAsync(Guid imageId)
+    public string? GetImageUrlAsync(Guid imageId)
     {
         var imagePath = Directory.GetFiles(_imageDirectory, $"{imageId}.*").FirstOrDefault();
         if (imagePath is null) return null;

@@ -6,6 +6,6 @@ namespace Image.API.ServiceContracts
     {
         Task<string> UploadImageAsync(IFormFile file, OwnerType ownerType, Guid ownerId);
         Task<string> UpdateImageAsync(IFormFile file, OwnerType ownerType, Guid ownerId);
-        Task<string> GetImageUrlAsync(OwnerType ownerType, Guid ownerId);
+        Task<string?> GetImageUrlAsync(OwnerType ownerType, Guid ownerId);
     }
 }

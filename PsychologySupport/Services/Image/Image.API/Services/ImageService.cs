@@ -18,7 +18,7 @@ namespace Image.API.Services
         public ImageService(IConfiguration configuration, ImageDbContext dbContext)
         {
             _blobServiceClient = new BlobServiceClient(configuration["AzureBlobStorage:ConnectionString"]);
-            _containerName = configuration["AzureBlobStorage:ContainerName"];
+            _containerName = configuration["AzureBlobStorage:ContainerName"]!;
             _dbContext = dbContext;
         }
 
@@ -40,11 +40,9 @@ namespace Image.API.Services
       
             try
             {
-                using (var image = SixLabors.ImageSharp.Image.Load(file.OpenReadStream()))
-                {
-                    if (image == null)
-                        throw new ArgumentException("Invalid image format.");
-                }
+                using var image = SixLabors.ImageSharp.Image.Load(file.OpenReadStream());
+                if (image == null)
+                    throw new ArgumentException("Invalid image format.");
             }
             catch
             {
@@ -85,16 +83,13 @@ namespace Image.API.Services
             return fileUrl;
         }
 
-        public async Task<string> GetImageUrlAsync(OwnerType ownerType, Guid ownerId)
+        public async Task<string?> GetImageUrlAsync(OwnerType ownerType, Guid ownerId)
         {
             var image = await _dbContext.Images
                 .Where(i => i.OwnerType == ownerType && i.OwnerId == ownerId)
                 .FirstOrDefaultAsync();
 
-            if (image == null)
-                return null;
-
-            return image.Url;
+            return image?.Url;
         }
 
         public async Task<string> UpdateImageAsync(IFormFile file, OwnerType ownerType, Guid ownerId)

@@ -13,21 +13,16 @@ public class RedisCache : IRedisCache
         _database = connection.GetDatabase();
     }
 
-    public async Task<T> GetCacheDataAsync<T>(string key)
+    public async Task<T?> GetCacheDataAsync<T>(string key)
     {
         var value = await _database.StringGetAsync(key);
-        if (!string.IsNullOrEmpty(value))
-        {
-            return JsonSerializer.Deserialize<T>(value);
-        }
-
-        return default;
+        return value.HasValue ? JsonSerializer.Deserialize<T>(value.ToString()) : default;
     }
 
     public async Task<object> RemoveCacheDataAsync(string key)
     {
-        bool _keyExists = await _database.KeyExistsAsync(key);
-        if (_keyExists)
+        bool keyExists = await _database.KeyExistsAsync(key);
+        if (keyExists)
         {
             return _database.KeyDelete(key);
         }

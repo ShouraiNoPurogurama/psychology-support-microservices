@@ -32,7 +32,7 @@ public class VNPayService(
             orderInfo.Length--;
         }
         
-        return await GenerateVNPayUrl(dto.FinalPrice, orderInfo.ToString());
+        return GenerateVNPayUrl(dto.FinalPrice, orderInfo.ToString());
     }
     
     public async Task<string> CreateVNPayUrlForUpgradeSubscriptionAsync(UpgradeSubscriptionDto dto, Guid paymentId)
@@ -53,7 +53,7 @@ public class VNPayService(
             orderInfo.Length--;
         }
         
-        return await GenerateVNPayUrl(dto.FinalPrice - dto.OldSubscriptionPrice, orderInfo.ToString());
+        return GenerateVNPayUrl(dto.FinalPrice - dto.OldSubscriptionPrice, orderInfo.ToString());
     }
 
     public async Task<string> CreateVNPayUrlForBookingAsync(BuyBookingDto dto, Guid paymentId)
@@ -75,7 +75,7 @@ public class VNPayService(
             orderInfo.Length--;
         }
         
-        return await GenerateVNPayUrl(dto.FinalPrice, orderInfo.ToString());
+        return GenerateVNPayUrl(dto.FinalPrice, orderInfo.ToString());
     }
 
     public async Task<bool> ValidateSignatureAsync(string queryString, string signature)
@@ -93,7 +93,7 @@ public class VNPayService(
         return await Task.FromResult(vnPayLibrary.ValidateSignature(configuration["Vnpay:HashSecret"]!, signature));
     }
     
-    public async Task<string> GenerateVNPayUrl(decimal amount, string orderInfo)
+    public string GenerateVNPayUrl(decimal amount, string orderInfo)
     {
         HttpContext context = contextAccessor.HttpContext!;
         var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById(configuration["TimeZoneId"]!);
