@@ -16,99 +16,109 @@ jobs:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
         password: ${{ secrets.VPS_PASSWORD }}
-        shell: /bin/bash
         script: |
-          # If repo folder doesn't exist, clone it
+          bash -c '
+          # Clone repo if it doesn't exist
           if [ ! -d "/home/root/emoease/PsychologySupport" ]; then
             git clone https://github.com/ShouraiNoPurogurama/psychology-support-microservices.git /home/root/emoease
           fi
 
           cd /home/root/emoease/PsychologySupport
 
-          # Discard any local changes (optional, but safe)
           git reset --hard HEAD
-
-          # Pull latest changes
           git pull origin main
 
-          # Inject appsettings.json from GitHub secrets safely
-          cat <<EOF > ApiGateways/YarpApiGateway/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
+          mkdir -p ApiGateways/YarpApiGateway/RSAKeys
+          mkdir -p Services/Auth/Auth.API/RSAKeys
+
+          cat > ApiGateways/YarpApiGateway/RSAKeys/PublicKey.xml <<EOF
+          ${RSA_PUBLIC_KEYS}
           EOF
 
-          cat <<EOF > ApiGateways/YarpApiGateway/appsettings.json
-          ${{ secrets.APPSETTINGS_YARP_API_GATEWAY }}
+          cat > ApiGateways/YarpApiGateway/appsettings.json <<EOF
+          ${APPSETTINGS_YARP_API_GATEWAY}
           EOF
 
-          cat <<EOF > Services/ChatBox/ChatBox.API/appsettings.json
-          ${{ secrets.APPSETTINGS_CHATBOX }}
+          cat > Services/ChatBox/ChatBox.API/appsettings.json <<EOF
+          ${APPSETTINGS_CHATBOX}
           EOF
 
-          cat <<EOF > Services/Auth/Auth.API/RSAKeys/PrivateKey.xml
-          ${{ secrets.RSA_PRIVATE_KEYS }}
+          cat > Services/Auth/Auth.API/RSAKeys/PrivateKey.xml <<EOF
+          ${RSA_PRIVATE_KEYS}
           EOF
 
-          cat <<EOF > Services/Auth/Auth.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
+          cat > Services/Auth/Auth.API/RSAKeys/PublicKey.xml <<EOF
+          ${RSA_PUBLIC_KEYS}
           EOF
 
-          # Inject appsettings.json from GitHub secrets safely
-          cat <<EOF > Services/Auth/Auth.API/appsettings.json
-          ${{ secrets.APPSETTINGS_AUTH }}
+          cat > Services/Auth/Auth.API/appsettings.json <<EOF
+          ${APPSETTINGS_AUTH}
           EOF
 
-          cat <<EOF > Services/ChatBox/ChatBox.API/appsettings.json
-          ${{ secrets.APPSETTINGS_CHATBOX }}
+          cat > Services/Image/Image.API/appsettings.json <<EOF
+          ${APPSETTINGS_IMAGE}
           EOF
 
-          cat <<EOF > Services/Image/Image.API/appsettings.json
-          ${{ secrets.APPSETTINGS_IMAGE }}
+          cat > Services/LifeStyles/LifeStyles.API/appsettings.json <<EOF
+          ${APPSETTINGS_LIFESTYLES}
           EOF
 
-          cat <<EOF > Services/LifeStyles/LifeStyles.API/appsettings.json
-          ${{ secrets.APPSETTINGS_LIFESTYLES }}
+          cat > Services/Notification/Notification.API/appsettings.json <<EOF
+          ${APPSETTINGS_NOTIFICATION}
           EOF
 
-          cat <<EOF > Services/Notification/Notification.API/appsettings.json
-          ${{ secrets.APPSETTINGS_NOTIFICATION }}
+          cat > Services/Payment/Payment.API/appsettings.json <<EOF
+          ${APPSETTINGS_PAYMENT}
           EOF
 
-          cat <<EOF > Services/Payment/Payment.API/appsettings.json
-          ${{ secrets.APPSETTINGS_PAYMENT }}
+          cat > Services/Profile/Profile.API/appsettings.json <<EOF
+          ${APPSETTINGS_PROFILE}
           EOF
 
-          cat <<EOF > Services/Profile/Profile.API/appsettings.json
-          ${{ secrets.APPSETTINGS_PROFILE }}
+          cat > Services/Promotion/Promotion.Grpc/appsettings.json <<EOF
+          ${APPSETTINGS_PROMOTION}
           EOF
 
-          cat <<EOF > Services/Promotion/Promotion.Grpc/appsettings.json
-          ${{ secrets.APPSETTINGS_PROMOTION }}
+          cat > Services/Scheduling/Scheduling.API/appsettings.json <<EOF
+          ${APPSETTINGS_SCHEDULING}
           EOF
 
-          cat <<EOF > Services/Scheduling/Scheduling.API/appsettings.json
-          ${{ secrets.APPSETTINGS_SCHEDULING }}
+          cat > Services/Subscription/Subscription.API/appsettings.json <<EOF
+          ${APPSETTINGS_SUBSCRIPTION}
           EOF
 
-          cat <<EOF > Services/Subscription/Subscription.API/appsettings.json
-          ${{ secrets.APPSETTINGS_SUBSCRIPTION }}
-          EOF
-
-          cat <<EOF > Services/Test/Test.API/appsettings.json
-          ${{ secrets.APPSETTINGS_TEST }}
+          cat > Services/Test/Test.API/appsettings.json <<EOF
+          ${APPSETTINGS_TEST}
           EOF
 
           CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD \
-          | grep -E '^Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+/' \
-          | awk -F/ '{
-          if ($1 == "Services") {
-            print tolower($2) ".api"
-          } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
-          print tolower($3)
-          }
-          }' \
-          | sort -u) 
+          | grep -E "^Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+/" \
+          | awk -F/ '"'"'{
+            if ($1 == "Services") {
+              print tolower($2) ".api"
+            } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
+              print tolower($3)
+            }
+          }'"'"' \
+          | sort -u)
 
           for svc in $CHANGED; do
-          docker compose -f docker-compose-apis.yml build "$svc" || true
-          docker compose -f docker-compose-apis.yml up -d "$svc" || true
+            docker compose -f docker-compose-apis.yml build "$svc" || true
+            docker compose -f docker-compose-apis.yml up -d "$svc" || true
           done
+          '
+      env:
+        RSA_PUBLIC_KEYS: ${{ secrets.RSA_PUBLIC_KEYS }}
+        RSA_PRIVATE_KEYS: ${{ secrets.RSA_PRIVATE_KEYS }}
+        APPSETTINGS_YARP_API_GATEWAY: ${{ secrets.APPSETTINGS_YARP_API_GATEWAY }}
+        APPSETTINGS_CHATBOX: ${{ secrets.APPSETTINGS_CHATBOX }}
+        APPSETTINGS_AUTH: ${{ secrets.APPSETTINGS_AUTH }}
+        APPSETTINGS_IMAGE: ${{ secrets.APPSETTINGS_IMAGE }}
+        APPSETTINGS_LIFESTYLES: ${{ secrets.APPSETTINGS_LIFESTYLES }}
+        APPSETTINGS_NOTIFICATION: ${{ secrets.APPSETTINGS_NOTIFICATION }}
+        APPSETTINGS_PAYMENT: ${{ secrets.APPSETTINGS_PAYMENT }}
+        APPSETTINGS_PROFILE: ${{ secrets.APPSETTINGS_PROFILE }}
+        APPSETTINGS_PROMOTION: ${{ secrets.APPSETTINGS_PROMOTION }}
+        APPSETTINGS_SCHEDULING: ${{ secrets.APPSETTINGS_SCHEDULING }}
+        APPSETTINGS_SUBSCRIPTION: ${{ secrets.APPSETTINGS_SUBSCRIPTION }}
+        APPSETTINGS_TEST: ${{ secrets.APPSETTINGS_TEST }}
