@@ -16,7 +16,7 @@ jobs:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
         password: ${{ secrets.VPS_PASSWORD }}
-        shell: bash
+        shell: /bin/bash
         script: |
           # If repo folder doesn't exist, clone it
           if [ ! -d "/home/root/emoease/PsychologySupport" ]; then
