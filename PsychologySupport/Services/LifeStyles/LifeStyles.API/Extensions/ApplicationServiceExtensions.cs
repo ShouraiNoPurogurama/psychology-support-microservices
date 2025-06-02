@@ -45,6 +45,7 @@ public static class ApplicationServiceExtensions
 
     private static void ConfigureSwagger(IServiceCollection services)
     {
+        services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(options =>
         {
             options.SwaggerDoc("v1", new OpenApiInfo
