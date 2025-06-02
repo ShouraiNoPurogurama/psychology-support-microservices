@@ -53,6 +53,8 @@ public static class IdentityServicesExtensions
                 policy.RequireClaim(ClaimTypes.Role, "User"));
             options.AddPolicy("RequireDoctor", policy =>
                 policy.RequireClaim(ClaimTypes.Role, "Doctor"));
+            options.AddPolicy("AuthenticatedUser", policy => 
+                policy.RequireAuthenticatedUser());
         });
 
         return services;
