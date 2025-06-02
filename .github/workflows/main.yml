@@ -17,7 +17,6 @@ jobs:
         username: ${{ secrets.VPS_USERNAME }}
         password: ${{ secrets.VPS_PASSWORD }}
         script: |
-          bash -c '
           # Clone repo if it doesn't exist
           if [ ! -d "/home/root/emoease/PsychologySupport" ]; then
             git clone https://github.com/ShouraiNoPurogurama/psychology-support-microservices.git /home/root/emoease
@@ -106,7 +105,6 @@ jobs:
             docker compose -f docker-compose-apis.yml build "$svc" || true
             docker compose -f docker-compose-apis.yml up -d "$svc" || true
           done
-          '
       env:
         RSA_PUBLIC_KEYS: ${{ secrets.RSA_PUBLIC_KEYS }}
         RSA_PRIVATE_KEYS: ${{ secrets.RSA_PRIVATE_KEYS }}
