@@ -27,17 +27,21 @@ app.UseStaticFiles();
 
 app.MapCarter();
 
+app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();
+    app.UseSwaggerUI();
+}
+else
+{
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Scheduling API v1");
+        c.RoutePrefix = string.Empty;
+    });
 }
 
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.RoutePrefix = string.Empty;
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Notification API v1");
-});
-app.UseCors();
+app.UseCors("CorsPolicy");
 
 app.Run();

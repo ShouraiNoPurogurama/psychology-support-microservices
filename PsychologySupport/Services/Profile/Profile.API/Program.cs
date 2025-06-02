@@ -24,17 +24,20 @@ app.UseStaticFiles();
 
 app.MapCarter();
 
+app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();
+    app.UseSwaggerUI();
 }
-
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+else
 {
-    c.RoutePrefix = string.Empty;
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Profile API v1");
-});
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Profile API v1");
+        c.RoutePrefix = string.Empty;
+    });
+}
 
 app.UseCors("CorsPolicy");
 

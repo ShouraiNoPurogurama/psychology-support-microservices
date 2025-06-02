@@ -25,18 +25,20 @@ var app = builder.Build();
 
 app.UseExceptionHandler(options => { });
 
-// Configure the HTTP request pipeline.
+app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();
+    app.UseSwaggerUI();
 }
-
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+else
 {
-    c.RoutePrefix = string.Empty;
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Payment API v1");
-});
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Payment API v1");
+        c.RoutePrefix = string.Empty;
+    });
+}
 
 // Apply CORS policy
 app.UseCors("CorsPolicy");

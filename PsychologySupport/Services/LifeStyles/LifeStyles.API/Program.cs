@@ -24,25 +24,23 @@ app.UseStaticFiles();
 
 app.MapCarter();
 
+app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();
+    app.UseSwaggerUI();
+}
+else
+{
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "LifeStyles API v1");
+        c.RoutePrefix = string.Empty;
+    });
 }
 
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.RoutePrefix = string.Empty;
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "LifeStyles API v1");
-});
-
 // Apply CORS policy
-app.UseCors(config =>
-{
-    config.AllowAnyHeader();
-    config.AllowAnyMethod();
-    config.AllowAnyOrigin();
-});
+app.UseCors("CorsPolicy");
 
 
 app.Run();
