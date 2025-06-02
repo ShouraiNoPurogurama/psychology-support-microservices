@@ -9,10 +9,6 @@ builder.Configuration.LoadConfiguration(builder.Environment);
 
 var services = builder.Services;
 
-services.Configure<AppSettings>(builder.Configuration);
-
-// services.AddCarter();
-
 services.AddApplicationServices(builder.Configuration);
 
 services.ConfigureEmailFeature(builder.Configuration);
