@@ -45,6 +45,10 @@ namespace Image.API.Extensions
                     Title = "Image API",
                     Version = "v1"
                 });
+                options.AddServer(new OpenApiServer
+                {
+                    Url = "/image-service/"
+                });
             });
         }
 

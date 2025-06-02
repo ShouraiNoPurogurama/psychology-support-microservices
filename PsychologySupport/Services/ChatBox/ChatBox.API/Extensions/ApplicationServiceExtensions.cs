@@ -29,12 +29,18 @@ public static class ApplicationServiceExtensions
 
     private static void ConfigureSwagger(IServiceCollection services)
     {
-        services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen(options => options.SwaggerDoc("v1", new OpenApiInfo
+        services.AddSwaggerGen(options =>
         {
-            Title = "ChatBox API",
-            Version = "v1"
-        }));
+            options.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "Chatbox API",
+                Version = "v1"
+            });
+            options.AddServer(new OpenApiServer
+            {
+                Url = "/chatbox-service/"
+            });
+        });
     }
 
     // private static void ConfigureMediatR(IServiceCollection services)

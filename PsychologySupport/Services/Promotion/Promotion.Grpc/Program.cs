@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Promotion.Grpc.BackgroundServices;
 using Promotion.Grpc.Data;
 using Promotion.Grpc.Extensions;
 using Promotion.Grpc.Services;
@@ -7,23 +5,7 @@ using Promotion.Grpc.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
-
-// Add services to the container.
-builder.Services.AddGrpc();
-builder.Services.AddGrpcReflection();
-
-var connectionString = builder.Configuration.GetConnectionString("PromotionDb");
-
-builder.Services.AddDbContext<PromotionDbContext>((sp, opt) =>
-{
-    opt.UseNpgsql(connectionString);
-});
-//Background service configurations
-builder.Services.AddHostedService<UpdatePromotionStatusesBackgroundService>();
-
-builder.Services.RegisterMapsterConfigurations();
-
-builder.Services.AddScoped<ValidatorService>();
+builder.Services.AddApplicationServices(builder.Configuration);
 
 var app = builder.Build();
 

@@ -2,6 +2,7 @@
 using Carter;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.OpenApi.Models;
 
 namespace Test.API;
 
@@ -14,6 +15,9 @@ public static class DependencyInjection
         services.AddHealthChecks()
             .AddSqlServer(configuration.GetConnectionString("Database")!);
 
+        ConfigureSwagger(services);
+        ConfigureCors(services);
+        
         return services;
     }
 
@@ -28,5 +32,37 @@ public static class DependencyInjection
             }
         );
         return app;
+    }
+    
+    private static void ConfigureSwagger(IServiceCollection services)
+    {
+        services.AddEndpointsApiExplorer();
+
+        services.AddSwaggerGen(options =>
+        {
+            options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+            {
+                Title = "Test API",
+                Version = "v1"
+            });
+            options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+            {
+                Url = "/test-service/"
+            });
+        });
+    }
+    
+    private static void ConfigureCors(IServiceCollection services)
+    {
+        services.AddCors(options =>
+        {
+            options.AddPolicy("CorsPolicy", builder =>
+            {
+                builder
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            });
+        });
     }
 }

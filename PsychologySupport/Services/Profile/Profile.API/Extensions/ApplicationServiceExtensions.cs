@@ -64,11 +64,18 @@ public static class ApplicationServiceExtensions
 
     private static void ConfigureSwagger(IServiceCollection services)
     {
-        services.AddSwaggerGen(options => options.SwaggerDoc("v1", new OpenApiInfo
+        services.AddSwaggerGen(options =>
         {
-            Title = "Profile API",
-            Version = "v1"
-        }));
+            options.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "Profile API",
+                Version = "v1"
+            });
+            options.AddServer(new OpenApiServer
+            {
+                Url = "/profile-service/"
+            });
+        });
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)

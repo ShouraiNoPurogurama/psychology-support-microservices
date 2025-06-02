@@ -59,11 +59,18 @@ public static class ApplicationServiceExtensions
 
     private static void ConfigureSwagger(IServiceCollection services)
     {
-        services.AddSwaggerGen(options => options.SwaggerDoc("v1", new OpenApiInfo
+        services.AddSwaggerGen(options =>
         {
-            Title = "Auth API",
-            Version = "v1"
-        }));
+            options.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "Auth API",
+                Version = "v1"
+            });
+            options.AddServer(new OpenApiServer
+            {
+                Url = "/auth-service/"
+            });
+        });
     }
 
     private static void AddServiceDependencies(IServiceCollection services)

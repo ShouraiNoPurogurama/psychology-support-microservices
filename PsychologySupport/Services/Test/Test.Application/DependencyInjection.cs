@@ -22,9 +22,6 @@ public static class DependencyInjection
             config.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
         
-        ConfigureSwagger(services);
-        ConfigureCors(services);
-
         services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
         services.AddFeatureManagement();
 
@@ -37,28 +34,5 @@ public static class DependencyInjection
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables();
-    }
-    
-    private static void ConfigureSwagger(IServiceCollection services)
-    {
-        services.AddSwaggerGen(options => options.SwaggerDoc("v1", new OpenApiInfo
-        {
-            Title = "Test API",
-            Version = "v1"
-        }));
-    }
-    
-    private static void ConfigureCors(IServiceCollection services)
-    {
-        services.AddCors(options =>
-        {
-            options.AddPolicy("CorsPolicy", builder =>
-            {
-                builder
-                    .AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
-            });
-        });
     }
 }

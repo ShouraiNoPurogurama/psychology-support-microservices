@@ -1,6 +1,8 @@
 ﻿using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
+using BuildingBlocks.Exceptions.Handler;
 using BuildingBlocks.Messaging.Masstransit;
+using Carter;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -15,28 +17,57 @@ public static class ApplicationServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
-        // services.AddCarter();
-        services.AddEndpointsApiExplorer();
+        services.AddCarter();
+        
+        services.AddExceptionHandler<CustomExceptionHandler>();
 
+        services.RegisterMapsterConfiguration();
+        
         ConfigureSwagger(services);
         ConfigureCORS(services);
         ConfigureMediatR(services);
         AddDatabase(services, config);
         AddServiceDependencies(services);
 
+        AddGrpcServiceDependencies(services, config);
+        
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
         
         return services;
     }
 
+    private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
+    {
+        services.AddGrpcClient<PromotionService.PromotionServiceClient>(options =>
+            {
+                options.Address = new Uri(config["GrpcSettings:PromotionUrl"]!);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                return handler;
+            });
+    }
+
     private static void ConfigureSwagger(IServiceCollection services)
     {
+        services.AddEndpointsApiExplorer();
+
         services.AddSwaggerGen(options =>
-            options.SwaggerDoc("v1", new OpenApiInfo
+        {
+            options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
             {
                 Title = "Subscription API",
                 Version = "v1"
-            }));
+            });
+            options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+            {
+                Url = "/subscription-service/"
+            });
+        });
     }
 
     private static void ConfigureCORS(IServiceCollection services)
