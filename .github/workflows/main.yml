@@ -107,8 +107,10 @@ jobs:
           }' \
           | sort -u) 
 
+          echo  "================= DEBUGGING ================="
           echo "Changed Microservices: $CHANGED"
-
+          
+          
           for svc in $CHANGED; do
           echo "🔧 Building $svc..."
           docker compose -f docker-compose-apis.yml build "$svc" || { echo "❌ Build failed for $svc"; continue; }
@@ -117,4 +119,7 @@ jobs:
           docker compose -f docker-compose-apis.yml up -d "$svc" || { echo "❌ Failed to start $svc"; continue; }
 
           echo "✅ $svc is up and running."
+
+          echo  "================= END DEBUGGING ================="
+          
           done
