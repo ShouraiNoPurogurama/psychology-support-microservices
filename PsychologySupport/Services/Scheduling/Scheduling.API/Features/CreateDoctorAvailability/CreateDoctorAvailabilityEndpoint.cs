@@ -32,6 +32,7 @@ namespace Scheduling.API.Features.CreateDoctorAvailability
                 return Results.Created($"/doctor-availabilities/{response.Id}", response);
             })
             .WithName("CreateDoctorAvailability")
+            .WithTags("DoctorAvailabilities")
             .Produces<CreateDoctorAvailabilityResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Create Doctor Availability")

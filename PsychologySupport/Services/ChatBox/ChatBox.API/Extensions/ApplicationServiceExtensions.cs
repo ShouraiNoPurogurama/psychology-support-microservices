@@ -1,6 +1,8 @@
 ﻿using BuildingBlocks.Messaging.Masstransit;
 using Carter;
 using ChatBox.API.Data;
+using ChatBox.API.Utils;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -10,17 +12,19 @@ public static class ApplicationServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
-        services.AddCarter();
+        services.AddControllers();
+        
+        // services.AddCarter();
 
         ConfigureSwagger(services);
 
         ConfigureCors(services);
-
-        // ConfigureMediatR(services);
-
+        
         AddDatabase(services, config);
 
-        // AddServiceDependencies(services);
+        AddServiceDependencies(services);
+        
+        services.AddSignalR();
         
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
         
@@ -30,22 +34,20 @@ public static class ApplicationServiceExtensions
     private static void ConfigureSwagger(IServiceCollection services)
     {
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen(options => options.SwaggerDoc("v1", new OpenApiInfo
+        
+        services.AddSwaggerGen(options =>
         {
-            Title = "ChatBox API",
-            Version = "v1"
-        }));
+            options.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "Chatbox API",
+                Version = "v1"
+            });
+            options.AddServer(new OpenApiServer
+            {
+                Url = "/chatbox-service/"
+            });
+        });
     }
-
-    // private static void ConfigureMediatR(IServiceCollection services)
-    // {
-    //     services.AddMediatR(configuration =>
-    //     {
-    //         configuration.RegisterServicesFromAssembly(typeof(Program).Assembly);
-    //         configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
-    //         configuration.AddOpenBehavior(typeof(LoggingBehavior<,>));
-    //     });
-    // }
 
     private static void ConfigureCors(IServiceCollection services)
     {
@@ -53,11 +55,8 @@ public static class ApplicationServiceExtensions
         {
             options.AddPolicy("CorsPolicy", builder =>
             {
-                // builder
-                //     .AllowAnyOrigin()
-                //     .AllowAnyMethod()
-                //     .AllowAnyHeader();
-                builder.WithOrigins("https://localhost:7152") // Change to your frontend's URL
+
+                builder
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials(); // Enable credentials support
@@ -65,11 +64,12 @@ public static class ApplicationServiceExtensions
         });
     }
 
-    // private static void AddServiceDependencies(IServiceCollection services)
-    // {
-    //     services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-    //     services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
-    // }
+    private static void AddServiceDependencies(IServiceCollection services)
+    {
+        services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
+        // services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+        // services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+    }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
     {

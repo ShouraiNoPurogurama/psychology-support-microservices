@@ -18,6 +18,7 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
                 return Results.Ok(response);
             })
             .WithName("GetAllSchedules")
+            .WithTags("Schedules")
             .Produces<GetAllSchedulesResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get All Schedules")

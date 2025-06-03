@@ -22,6 +22,7 @@ public class GetAllTestsEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("GetAllTests")
+            .WithTags("Tests")
             .Produces<GetAllTestsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get all tests with pagination")

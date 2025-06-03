@@ -1,0 +1,64 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "payment-swagger-index": {
+        "ClusterId": "payment-cluster",
+        "Match": {
+          "Path": "/payment-service/swagger/index.html"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/index.html"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "payment-swagger-assets": {
+        "ClusterId": "payment-cluster",
+        "Match": {
+          "Path": "/payment-service/swagger/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "payment-route-callback": {
+        "ClusterId": "payment-cluster",
+        "Match": {
+          "Path": "/payment-service/payments/callback"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "payment-route": {
+        "ClusterId": "payment-cluster",
+        "Match": {
+          "Path": "/payment-service/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed",
+        "AuthorizationPolicy": "AuthenticatedUser"
+      }
+    },
+    "Clusters": {
+      "payment-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://payment.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}

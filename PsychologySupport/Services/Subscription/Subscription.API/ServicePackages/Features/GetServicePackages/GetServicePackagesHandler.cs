@@ -65,7 +65,7 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
         if (request.PatientId is not null)
         {
             var patientSubscriptions = await _dbContext.UserSubscriptions
-                .Where(u => u.PatientId == request.PatientId && u.EndDate >= DateTime.UtcNow && u.Status == SubscriptionStatus.Active)
+                .Where(u => u.PatientId == request.PatientId && u.EndDate >= DateTime.UtcNow && u.Status == SubscriptionStatus.Active || u.Status == SubscriptionStatus.AwaitPayment)
                 .Select(u => u.ServicePackageId)
                 .ToListAsync(cancellationToken);
 

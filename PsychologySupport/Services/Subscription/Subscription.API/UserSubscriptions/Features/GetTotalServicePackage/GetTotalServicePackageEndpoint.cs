@@ -19,6 +19,7 @@ namespace Subscription.API.UserSubscriptions.Features.GetTotalServicePackage
                 return Results.Ok(result);
             })
             .WithName("GetTotalServicePackages")
+            .WithTags("ServicePackages")
             .Produces<List<ServicePackageWithTotal>>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get all active service packages with total active subscriptions")

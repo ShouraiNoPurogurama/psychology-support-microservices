@@ -32,6 +32,7 @@ public class UpdateDoctorProfileEndpoint : ICarterModule
                 return Results.Ok(response);
             })
         .WithName("UpdateDoctorProfile")
+        .WithTags("DoctorProfiles")
         .Produces<UpdateDoctorProfileResponse>()
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status404NotFound)

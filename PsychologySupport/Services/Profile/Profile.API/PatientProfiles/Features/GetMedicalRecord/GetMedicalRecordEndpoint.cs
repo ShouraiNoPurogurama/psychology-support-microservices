@@ -20,6 +20,7 @@ namespace Profile.API.PatientProfiles.Features.GetMedicalRecord
                 return Results.Ok(response);
             })
                 .WithName("GetMedicalRecordById")
+                .WithTags("PatientProfiles")
                 .Produces<GetMedicalRecordResponse>()
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .WithDescription("Get MedicalRecord")

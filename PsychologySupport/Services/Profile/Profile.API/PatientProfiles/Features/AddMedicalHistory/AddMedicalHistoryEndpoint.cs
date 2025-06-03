@@ -29,6 +29,7 @@ public class AddMedicalHistoryEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("AddMedicalHistory")
+            .WithTags("PatientProfiles")
             .Produces<AddMedicalRecordResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Add Medical History")

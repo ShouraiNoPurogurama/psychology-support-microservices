@@ -19,7 +19,6 @@ public static class IdentityServicesExtensions
             {
                 // options.Authority = config["IdentityServer:Authority"];
 
-
                 var rsaKey = RSA.Create();
                 string xmlKey = File.ReadAllText(config.GetSection("Jwt:PublicKeyPath").Value!);
                 rsaKey.FromXmlString(xmlKey);
@@ -54,6 +53,8 @@ public static class IdentityServicesExtensions
                 policy.RequireClaim(ClaimTypes.Role, "User"));
             options.AddPolicy("RequireDoctor", policy =>
                 policy.RequireClaim(ClaimTypes.Role, "Doctor"));
+            options.AddPolicy("AuthenticatedUser", policy => 
+                policy.RequireAuthenticatedUser());
         });
 
         return services;

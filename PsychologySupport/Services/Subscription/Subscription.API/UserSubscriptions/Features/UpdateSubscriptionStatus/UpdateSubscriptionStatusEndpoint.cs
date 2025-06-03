@@ -3,7 +3,6 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Subscription.API.Data.Common;
-using Subscription.API.UserSubscriptions.Features.UpdateUserSubscription;
 
 namespace Subscription.API.UserSubscriptions.Features.UpdateSubscriptionStatus;
 
@@ -26,6 +25,7 @@ public class UpdateUserSubscriptionEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("UpdateUserSubscriptionStatus")
+            .WithTags("UserSubscriptions")
             .Produces<UpdateUserSubscriptionStatusResponse>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status400BadRequest)

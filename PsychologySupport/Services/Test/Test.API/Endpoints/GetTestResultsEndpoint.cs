@@ -23,6 +23,7 @@ namespace Test.API.Endpoints
                 return Results.Ok(response);
             })
                 .WithName("GetTestResult")
+                .WithTags("Test Results")
                 .Produces<GetTestResultResponse>()
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .WithDescription("Get Test Result")

@@ -37,19 +37,21 @@ public static class IdentityServiceExtensions
 
         services.Configure<PasswordHasherOptions>(opt => { opt.CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3; });
 
+        var projectId = config["Firebase:ProjectId"];
+
         services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            //Currently just authenticate requests from localhost:5000
-            .AddJwtBearer(options =>
+// Existing authentication (RSA JWT)
+            .AddJwtBearer("LocalAuth", options =>
             {
                 var rsaKey = RSA.Create();
-                string xmlKey = File.ReadAllText(config.GetSection("Jwt:PrivateKeyPath").Value!);
+                string xmlKey = File.ReadAllText(config["Jwt:PrivateKeyPath"]!);
                 rsaKey.FromXmlString(xmlKey);
-                
+
                 options.SaveToken = true;
                 options.RequireHttpsMetadata = false;
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -62,10 +64,26 @@ public static class IdentityServiceExtensions
 
                     ValidAudience = config["Jwt:Audience"],
                     ValidIssuer = config["Jwt:Issuer"],
-                    // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!))
                     IssuerSigningKey = new RsaSecurityKey(rsaKey)
                 };
+            })
+            .AddJwtBearer("FirebaseAuth", options =>
+            {
+                var projectId = config["Firebase:ProjectId"];
+
+                options.IncludeErrorDetails = true;
+                options.Authority = $"https://securetoken.google.com/{projectId}";
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = $"https://securetoken.google.com/{projectId}",
+                    ValidateAudience = true,
+                    ValidAudience = projectId,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true
+                };
             });
+
         services.AddAuthorization();
 
         return services;

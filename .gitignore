@@ -405,7 +405,17 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 *appsettings.json
+*appsettings.Development.json
 
 ServiceDependencies/
 PsychologySupport/Services/Notification/Notification.API/firebase_key.json
 RSAKeys/
+PsychologySupport/Services/Auth/Auth.API/firebase_key (2).json
+PsychologySupport/Services/OpenAI/OpenAI.API/clusters.json
+PsychologySupport/Services/OpenAI/OpenAI.API/clustering_patterns.csv
+PsychologySupport/Services/Auth/Auth.API/firebase_key.json
+PsychologySupport/Services/Scheduling/Scheduling.API/clusters.json
+PsychologySupport/Services/Scheduling/Scheduling.API/clustering_patterns.csv
+PsychologySupport/Services/Scheduling/Scheduling.API/Dtos/ClusterData.cs
+PsychologySupport/Services/Promotion/Promotion.Grpc/PromotionDb
+PsychologySupport/.vscode/

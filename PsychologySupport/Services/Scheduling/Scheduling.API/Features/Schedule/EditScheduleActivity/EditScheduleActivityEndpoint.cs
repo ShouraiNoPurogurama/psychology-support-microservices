@@ -23,6 +23,7 @@ namespace Scheduling.API.Features.Schedule.EditScheduleActivity
                         return Results.Ok(response);
                     })
                 .WithName("Edit Schedule Activity")
+                .WithTags("Schedules")
                 .Produces<EditScheduleActivityResponse>()
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)

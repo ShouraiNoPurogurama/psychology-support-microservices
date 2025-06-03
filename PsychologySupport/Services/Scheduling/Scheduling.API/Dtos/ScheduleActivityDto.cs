@@ -11,10 +11,10 @@ namespace Scheduling.API.Dtos
         public FoodActivityDto? FoodActivity { get; set; }
         public PhysicalActivityDto? PhysicalActivity { get; set; }
         public TherapeuticActivityDto? TherapeuticActivity { get; set; }
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         public DateTime TimeRange { get; set; }
-        public string Duration { get; set; }
+        public string Duration { get; set; } = string.Empty;
         public int DateNumber { get; set; }
-        public string Status { get; set; }
+        public string Status { get; set; } = string.Empty;
     }
 }

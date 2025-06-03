@@ -20,6 +20,7 @@ namespace Payment.API.Endpoints
                 return Results.Ok(result);
             })
             .WithName("GetDailyRevenue")
+            .WithTags("Payments")
             .Produces<GetDailyRevenueResult>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithSummary("Get Daily Revenue")

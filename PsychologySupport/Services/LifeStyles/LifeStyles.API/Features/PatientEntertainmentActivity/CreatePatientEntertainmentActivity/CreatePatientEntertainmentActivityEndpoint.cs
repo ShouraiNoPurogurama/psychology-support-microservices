@@ -33,6 +33,7 @@ public class CreatePatientEntertainmentActivityEndpoint : ICarterModule
                     return Results.Created($"/patient-entertainment-activities/{request.PatientProfileId}", response);
                 })
             .WithName("CreatePatientEntertainmentActivities")
+            .WithTags("PatientEntertainmentActivities")
             .Produces<CreatePatientEntertainmentActivityResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Create Patient Entertainment Activities")

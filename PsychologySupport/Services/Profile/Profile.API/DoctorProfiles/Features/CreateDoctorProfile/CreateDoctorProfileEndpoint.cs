@@ -21,6 +21,7 @@ public class CreateDoctorProfileEndpoint : ICarterModule
                 return Results.Created($"/doctor-profiles/{response.Id}", response);
             })
             .WithName("CreateDoctorProfile")
+            .WithTags("DoctorProfiles")
             .Produces<CreateDoctorProfileResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Create Doctor Profile")

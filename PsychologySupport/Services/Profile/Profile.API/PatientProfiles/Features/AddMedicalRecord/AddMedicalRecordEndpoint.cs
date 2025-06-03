@@ -29,6 +29,7 @@ public class AddMedicalRecordEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("AddMedicalRecord")
+            .WithTags("PatientProfiles")
             .Produces<AddMedicalRecordResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Add Medical Record")

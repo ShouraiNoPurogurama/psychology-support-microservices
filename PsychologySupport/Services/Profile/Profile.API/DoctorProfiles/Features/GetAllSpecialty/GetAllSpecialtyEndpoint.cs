@@ -20,6 +20,7 @@ namespace Profile.API.DoctorProfiles.Features.GetAllSpecialty
                 return Results.Ok(response);
             })
                 .WithName("GetAllSpecialties")
+                .WithTags("Specialties")
                 .Produces<GetAllSpecialtiesResponse>()
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .WithDescription("Get All Specialties")

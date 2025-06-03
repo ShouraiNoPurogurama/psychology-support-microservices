@@ -30,6 +30,7 @@ public class GetPatientProfileByEventEndpoint : ICarterModule
             return Results.Ok(response);
         })
         .WithName("GetPatientProfileByEvent")
+        .WithSummary("Get patient profile by event")
         .Produces<GetDoctorProfileByEventResponse>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status404NotFound)
         .Produces(StatusCodes.Status500InternalServerError)

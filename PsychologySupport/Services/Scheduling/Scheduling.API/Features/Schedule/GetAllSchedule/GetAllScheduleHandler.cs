@@ -5,10 +5,11 @@ using Scheduling.API.Dtos;
 
 namespace Scheduling.API.Features.Schedule.GetAllSchedule
 {
+    
     public record GetAllSchedulesQuery(
         [FromQuery] int PageIndex,
         [FromQuery] int PageSize,
-        [FromQuery] string? Search = "", // patientid, doctorid
+        [FromQuery] string? Search = "", 
         [FromQuery] string? SortBy = "startDate", // sort by startDate 
         [FromQuery] string? SortOrder = "asc", // asc or desc
         [FromQuery] Guid? DoctorId = null, // filter by doctor

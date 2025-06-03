@@ -23,10 +23,10 @@ namespace Scheduling.API.Features.Schedule.CreateScheduleFeedback
 
         public async Task<CreateScheduleFeedbackResult> Handle(CreateScheduleFeedbackCommand request, CancellationToken cancellationToken)
         {
-            var schedule = await _context.Schedules.FindAsync(request.ScheduleId);
+            var schedule = await _context.Schedules.FindAsync([request.ScheduleId], cancellationToken: cancellationToken);
             if (schedule == null)
             {
-                throw new SchedulingNotFoundException("Schedule", request.ScheduleId);
+                throw new ScheduleNotFoundException(nameof(Models.Schedule), request.ScheduleId);
             }
 
             var feedback = new ScheduleFeedback

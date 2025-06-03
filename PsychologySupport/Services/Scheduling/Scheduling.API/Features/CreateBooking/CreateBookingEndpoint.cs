@@ -29,6 +29,7 @@ namespace Scheduling.API.Features.CreateBooking
                 return Results.Ok(response);
             })
             .WithName("CreateBooking")
+            .WithTags("Bookings")
             .Produces<CreateBookingResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Create Booking")

@@ -191,7 +191,6 @@ public class AuthService(
         return result.Succeeded;
     }
 
-    //TODO Double check this in production env
     public async Task<LoginResponse> RefreshAsync(TokenApiRequest tokenApiRequest)
     {
         var accessToken = tokenApiRequest.Token;

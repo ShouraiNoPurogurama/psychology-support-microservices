@@ -26,6 +26,7 @@ public class CreateVnPayCallBackUrlForBookingEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("CreateVnPayCallBackUrlForBooking")
+            .WithTags("Booking Payments")
             .Produces<CreateVnPayCallBackUrlForBookingResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Create VnPay CallBack Url For Booking")

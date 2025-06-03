@@ -11,15 +11,22 @@ namespace Profile.API.PatientProfiles.Features.GetTotalPatientProfile
             app.MapGet("/patients/total", async (
                 [FromQuery] DateOnly startDate,
                 [FromQuery] DateOnly endDate,
-                [FromQuery] UserGender? gender,
+                [FromQuery] string? gender,
                 ISender sender,
                 CancellationToken cancellationToken) =>
             {
-                var query = new GetTotalPatientProfileQuery(startDate, endDate, gender);
+                UserGender? userGender = null;
+                if (!string.IsNullOrEmpty(gender) && System.Enum.TryParse<UserGender>(gender, true, out var parsedGender))
+                {
+                    userGender = parsedGender;
+                }
+                
+                var query = new GetTotalPatientProfileQuery(startDate, endDate, userGender);
                 var totalPatients = await sender.Send(query, cancellationToken);
                 return Results.Ok(new { TotalPatients = totalPatients });
             })
             .WithName("GetTotalPatientProfile")
+            .WithTags("PatientProfiles")
             .Produces<int>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithSummary("Get Total Patient Profiles")

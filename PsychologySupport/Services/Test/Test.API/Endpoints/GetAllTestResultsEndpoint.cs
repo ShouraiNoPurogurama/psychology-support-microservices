@@ -22,6 +22,7 @@ public class GetAllTestResultsEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("GetAllTestResults")
+            .WithTags("Test Results")
             .Produces<GetAllTestResultsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get All TestResults")

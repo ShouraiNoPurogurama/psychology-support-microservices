@@ -26,6 +26,7 @@ public class UpdateMedicalHistoryEndpoint : ICarterModule
                 return response.IsSuccess ? Results.Ok(response) : Results.Problem();
             })
             .WithName("UpdateMedicalHistory")
+            .WithTags("PatientProfiles")
             .Produces<UpdateMedicalHistoryResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)

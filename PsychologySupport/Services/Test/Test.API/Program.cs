@@ -7,9 +7,8 @@ using Test.Infrastructure.Data.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCors();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Load configuration settings
+builder.Configuration.LoadConfiguration(builder.Environment);
 
 //Add services to the container
 builder.Services
@@ -23,19 +22,22 @@ var app = builder.Build();
 //Configure the HTTP request pipeline
 app.UseApiServices();
 
+app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
     await app.InitializeDatabaseAsync();
-    app.UseSwagger();
-    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API v1"); });
+    app.UseSwaggerUI();
+}
+else
+{
+    app.UseSwaggerUI(c =>
+    {
+        c.RoutePrefix = string.Empty;
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API v1");
+    });
 }
 
 // Apply CORS policy
-app.UseCors(config =>
-{
-    config.AllowAnyHeader();
-    config.AllowAnyMethod();
-    config.AllowAnyOrigin();
-});
+app.UseCors("CorsPolicy");
 
 app.Run();

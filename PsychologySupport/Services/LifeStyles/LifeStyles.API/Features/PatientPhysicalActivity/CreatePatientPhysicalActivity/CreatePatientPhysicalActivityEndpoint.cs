@@ -39,6 +39,7 @@ public class CreatePatientPhysicalActivityEndpoint : ICarterModule
                 return Results.Created($"/patient-physical-activities/{request.PatientProfileId}", response);
             })
             .WithName("CreatePatientPhysicalActivity")
+            .WithTags("PatientPhysicalActivities")
             .Produces<CreatePatientPhysicalActivityResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Create multiple Patient Physical Activities")

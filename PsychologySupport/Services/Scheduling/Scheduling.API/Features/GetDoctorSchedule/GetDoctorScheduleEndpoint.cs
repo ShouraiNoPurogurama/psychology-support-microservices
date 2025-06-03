@@ -19,6 +19,7 @@ namespace Scheduling.API.Features.GetDoctorSchedule
                 return Results.Ok(result.Adapt<GetDoctorScheduleResponse>());
             })
                 .WithName("GetDoctorSchedule")
+                .WithTags("Doctor Schedule")
                 .Produces<GetDoctorScheduleResponse>()
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status400BadRequest)

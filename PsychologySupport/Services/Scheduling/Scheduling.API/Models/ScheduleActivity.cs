@@ -11,9 +11,9 @@ namespace Scheduling.API.Models
         public Guid? PhysicalActivityId { get; set; }
         public Guid? TherapeuticActivityId { get; set; }
         public ScheduleActivityStatus Status { get; set; }
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty; // mô tả hoạt động
         public DateTime TimeRange { get; set; } // ngày giờ bắt đầu
-        public string Duration { get; set; } // khoảng thời gian thực hiện
+        public string Duration { get; set; } = string.Empty; // khoảng thời gian thực hiện
         public int DateNumber { get; set; } // ngày thứ mấy trong session
     }
 }

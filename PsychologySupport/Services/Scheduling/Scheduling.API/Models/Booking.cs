@@ -5,7 +5,7 @@ namespace Scheduling.API.Models
     public class Booking
     {
         public Guid Id { get; set; }
-        public string BookingCode { get; set; }
+        public string BookingCode { get; set; } = string.Empty;
         public Guid DoctorId { get; set; }
         public Guid PatientId { get; set; }
         public DateOnly Date { get; set; }  

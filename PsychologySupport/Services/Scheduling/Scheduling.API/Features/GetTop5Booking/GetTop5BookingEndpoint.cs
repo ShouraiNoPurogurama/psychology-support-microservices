@@ -1,6 +1,5 @@
 ﻿using Carter;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Scheduling.API.Features.GetTop5Booking
 {
@@ -14,6 +13,7 @@ namespace Scheduling.API.Features.GetTop5Booking
                 return Results.Ok(result);
             })
             .WithName("GetTop5DoctorsByBooking")
+            .WithTags("Bookings")
             .Produces<GetTopDoctorsResult>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get Top 5 Doctors By Booking")

@@ -13,6 +13,5 @@ public record PaymentDto(
     PaymentType PaymentType,
     Guid PaymentMethodId,
     string? ExternalTransactionCode,
-    // PaymentDetailStatus PaymentDetailStatus,
     DateTimeOffset CreatedAt
 );

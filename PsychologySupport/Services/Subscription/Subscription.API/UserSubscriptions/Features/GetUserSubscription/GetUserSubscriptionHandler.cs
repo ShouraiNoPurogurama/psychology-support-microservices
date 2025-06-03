@@ -1,5 +1,4 @@
 ﻿using BuildingBlocks.CQRS;
-using FluentValidation;
 using Subscription.API.Data;
 using Subscription.API.Exceptions;
 using Subscription.API.UserSubscriptions.Dtos;
@@ -9,15 +8,6 @@ namespace Subscription.API.UserSubscriptions.Features.GetUserSubscription;
 public record GetUserSubscriptionQuery(Guid Id) : IQuery<GetUserSubscriptionResult>;
 
 public record GetUserSubscriptionResult(GetUserSubscriptionDto UserSubscription);
-
-public class GetUserSubscriptionQueryValidator : AbstractValidator<GetUserSubscriptionQuery>
-{
-    public GetUserSubscriptionQueryValidator()
-    {
-        RuleFor(q => q.Id).NotEmpty().WithMessage("Id Not Null");
-    }
-}
-
 public class GetUserSubscriptionHandler : IQueryHandler<GetUserSubscriptionQuery, GetUserSubscriptionResult>
 {
     private readonly SubscriptionDbContext _context;

@@ -46,11 +46,42 @@ public static class ApplicationServiceExtensions
     private static void ConfigureSwagger(IServiceCollection services)
     {
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen(options => options.SwaggerDoc("v1", new OpenApiInfo
+        
+        services.AddSwaggerGen(options =>
         {
-            Title = "Notification API",
-            Version = "v1"
-        }));
+            options.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "Notification API",
+                Version = "v1"
+            });
+            options.AddServer(new OpenApiServer
+            {
+                Url = "/notification-service/"
+            });
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",
+                Name = "Authorization",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT"
+            });
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Id = "Bearer",
+                            Type = ReferenceType.SecurityScheme
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
+        });
     }
 
     private static void ConfigureCORS(IServiceCollection services)

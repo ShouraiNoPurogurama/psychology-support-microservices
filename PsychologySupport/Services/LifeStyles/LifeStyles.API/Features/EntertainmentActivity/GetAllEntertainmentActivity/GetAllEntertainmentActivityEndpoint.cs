@@ -20,6 +20,7 @@ public class GetAllEntertainmentActivityEndpoint : ICarterModule
             return Results.Ok(response);
         })
             .WithName("GetAllEntertainmentActivities")
+            .WithTags("EntertainmentActivities")
             .Produces<GetAllEntertainmentActivitiesResult>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("GetAll Entertainment Activities")

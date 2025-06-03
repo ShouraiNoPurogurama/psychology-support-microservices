@@ -22,6 +22,7 @@ namespace Profile.API.MentalDisorders.Features.GetAllMentalDisorders
                 return Results.Ok(response);
             })
             .WithName("GetAllMentalDisorders")
+            .WithTags("MentalDisorders")
             .Produces<GetAllMentalDisordersResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)

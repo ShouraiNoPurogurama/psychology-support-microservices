@@ -6,13 +6,11 @@ using BuildingBlocks.Messaging.Events.Profile;
 using Mapster;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Profile.API.PatientProfiles.Models;
 using Promotion.Grpc;
 using Subscription.API.Data;
 using Subscription.API.Data.Common;
 using Subscription.API.ServicePackages.Models;
 using Subscription.API.UserSubscriptions.Dtos;
-using Subscription.API.UserSubscriptions.Features.CreateUserSubscription;
 using Subscription.API.UserSubscriptions.Models;
 
 namespace Subscription.API.UserSubscriptions.Features.UpgradeUserSubscription;
@@ -38,7 +36,7 @@ public class UpgradeUserSubscriptionHandler(
 
         if (!patient.Message.PatientExists)
         {
-            throw new NotFoundException(nameof(PatientProfile), request.UpgradeUserSubscriptionDto.PatientId);
+            // throw new NotFoundException(request.UpgradeUserSubscriptionDto.PatientId);
         }
 
         //Validate if there is an existing subscription
@@ -56,14 +54,14 @@ public class UpgradeUserSubscriptionHandler(
         var (priceAfterAppliedPromotions, promoCode) =
             await CalculatePriceAfterAppliedPromotionsAsync(cancellationToken, newServicePackage, dto);
 
-        var (priceDiff, currentSubscriptionPriceLeft) =
-            await CalculatePriceDiff(request, cancellationToken, priceAfterAppliedPromotions, currentSubscription);
+        var currentSubscriptionPriceLeft =
+             CalculatePriceDiff(currentSubscription);
 
         Guid.TryParse(promoCode?.Id, out var promoCodeId);
 
         var newUserSubscription = UserSubscription.Create(dto.PatientId, dto.NewServicePackageId, dto.StartDate, 
             promoCodeId, dto.GiftId, newServicePackage, priceAfterAppliedPromotions);
-
+        
         dbContext.UserSubscriptions.Add(newUserSubscription);
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -98,9 +96,7 @@ public class UpgradeUserSubscriptionHandler(
         return new UpgradeUserSubscriptionResult(newUserSubscription.Id, paymentUrl.Message.Url);
     }
 
-    private async Task<(decimal, decimal)> CalculatePriceDiff(UpgradeUserSubscriptionCommand request,
-        CancellationToken cancellationToken,
-        decimal finalPrice, UserSubscription currentSubscription)
+    private decimal CalculatePriceDiff(UserSubscription currentSubscription)
     {
 
         var remainingDays = (int)Math.Floor((currentSubscription.EndDate - DateTime.UtcNow).TotalDays);
@@ -110,10 +106,8 @@ public class UpgradeUserSubscriptionHandler(
 
         decimal currSubscriptionPriceLeft = Math.Round(currSubscriptionFinalPrice * (remainingDays / durationDays), 2,
             MidpointRounding.AwayFromZero);
-
-        decimal priceDiff = finalPrice - currSubscriptionPriceLeft;
-
-        return (Math.Round(priceDiff, 2, MidpointRounding.AwayFromZero), currSubscriptionPriceLeft);
+        
+        return currSubscriptionPriceLeft;
     }
 
     private async Task<UserSubscription> ValidateCurrentSubscription(UpgradeUserSubscriptionCommand request, CancellationToken cancellationToken,
@@ -131,7 +125,7 @@ public class UpgradeUserSubscriptionHandler(
             throw new NotFoundException("The patient does not have an active subscription.");
         }
         
-        if(currentSubscription.ServicePackage.Price < newServicePackage.Price)
+        if(currentSubscription.ServicePackage.Price > newServicePackage.Price)
             throw new BadRequestException("The new subscription price must be greater than the current subscription price.");
         
         return currentSubscription;
@@ -149,7 +143,7 @@ public class UpgradeUserSubscriptionHandler(
             return (finalPrice, null);
 
         //Apply promotion
-        var promotion = (await promotionService.GetPromotionByCodeAsync(new GetPromotionByCodeRequest()
+        var promotion = (await promotionService.GetPromotionByCodeAsync(new GetPromotionByCodeRequest
         {
             Code = dto.PromoCode,
             IgnoreExpired = false
@@ -158,16 +152,16 @@ public class UpgradeUserSubscriptionHandler(
         if (promotion is not null)
         {
             finalPrice *= 0.01m * promotion.Value;
-            await promotionService.ConsumePromoCodeAsync(new ConsumePromoCodeRequest()
+            await promotionService.ConsumePromoCodeAsync(new ConsumePromoCodeRequest
             {
-                PromoCodeId = promotion.Id,
+                PromoCodeId = promotion.Id
             });
         }
 
         //Apply Gift
         if (dto.GiftId is null) return (finalPrice, promotion);
 
-        var giftCode = (await promotionService.GetGiftCodeByPatientIdAsync(new GetGiftCodeByPatientIdRequest()
+        var giftCode = (await promotionService.GetGiftCodeByPatientIdAsync(new GetGiftCodeByPatientIdRequest
             {
                 Id = dto.PatientId.ToString()
             }, cancellationToken: cancellationToken))
@@ -179,7 +173,7 @@ public class UpgradeUserSubscriptionHandler(
         finalPrice -= (decimal)giftCode.MoneyValue;
         finalPrice = Math.Max(finalPrice, 0);
 
-        await promotionService.ConsumeGiftCodeAsync(new ConsumeGiftCodeRequest()
+        await promotionService.ConsumeGiftCodeAsync(new ConsumeGiftCodeRequest
         {
             GiftCodeId = giftCode.Id
         });

@@ -8,12 +8,11 @@ using Payment.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.LoadConfiguration(builder.Environment);
+
 // Add services to the container.
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddCors();
 builder.Services
     .AddApplicationServices(builder.Configuration)
     .AddInfrastructureServices(builder.Configuration)
@@ -23,22 +22,23 @@ var app = builder.Build();
 
 app.UseExceptionHandler(options => { });
 
-// Configure the HTTP request pipeline.
+app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
+    app.InitializeDatabaseAsync();
     app.UseSwaggerUI();
 }
-
-if (app.Environment.IsDevelopment()) await app.InitializeDatabaseAsync();
+else
+{
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Payment API v1");
+        c.RoutePrefix = string.Empty;
+    });
+}
 
 // Apply CORS policy
-app.UseCors(config =>
-{
-    config.AllowAnyHeader();
-    config.AllowAnyMethod();
-    config.AllowAnyOrigin();
-});
+app.UseCors("CorsPolicy");
 
 app.MapCarter();
 

@@ -45,6 +45,33 @@ namespace Image.API.Extensions
                     Title = "Image API",
                     Version = "v1"
                 });
+                options.AddServer(new OpenApiServer
+                {
+                    Url = "/image-service/"
+                });
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT"
+                });
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Id = "Bearer",
+                                Type = ReferenceType.SecurityScheme
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
             });
         }
 
@@ -82,7 +109,7 @@ namespace Image.API.Extensions
         private static void AddDatabase(IServiceCollection services, IConfiguration config)
         {
             var connectionString = config.GetConnectionString("ImageDb");
-
+            
             services.AddDbContext<ImageDbContext>((sp, opt) =>
             {
                 opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
@@ -93,7 +120,6 @@ namespace Image.API.Extensions
         private static void AddBlobStorage(IServiceCollection services, IConfiguration config)
         {
             var blobConnectionString = config["AzureBlobStorage:ConnectionString"];
-            Console.WriteLine($"Blob Connection String: {blobConnectionString}");
 
             if (string.IsNullOrWhiteSpace(blobConnectionString))
             {

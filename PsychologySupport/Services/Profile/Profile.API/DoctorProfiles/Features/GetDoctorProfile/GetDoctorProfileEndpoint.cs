@@ -20,6 +20,7 @@ public class GetDoctorProfileEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("GetDoctorProfile")
+            .WithTags("DoctorProfiles")
             .Produces<GetDoctorProfileResponse>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .WithDescription("Get Doctor Profile")

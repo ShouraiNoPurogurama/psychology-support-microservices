@@ -3,6 +3,6 @@
 public interface IImageService
 {
     Task<Guid> UploadImageAsync(IFormFile file, string ownerType, Guid ownerId);
-    Task<bool> DeleteImageAsync(Guid imageId);
-    Task<string?> GetImageUrlAsync(Guid imageId);
+    bool DeleteImageAsync(Guid imageId);
+    string? GetImageUrlAsync(Guid imageId);
 }

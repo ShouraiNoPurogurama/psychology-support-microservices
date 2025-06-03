@@ -4,7 +4,6 @@ using Image.API.Data;
 using Image.API.Data.Common;
 using Image.API.ServiceContracts;
 using Microsoft.EntityFrameworkCore;
-using SixLabors.ImageSharp;
 
 namespace Image.API.Services
 {
@@ -13,12 +12,12 @@ namespace Image.API.Services
         private readonly BlobServiceClient _blobServiceClient;
         private readonly ImageDbContext _dbContext;
         private readonly string _containerName;
-        private readonly long _maxFileSizeInBytes = 10 * 1024 * 1024; // 10 MB
+        private const long MaxFileSizeInBytes = 10 * 1024 * 1024; // 10 MB
 
         public ImageService(IConfiguration configuration, ImageDbContext dbContext)
         {
             _blobServiceClient = new BlobServiceClient(configuration["AzureBlobStorage:ConnectionString"]);
-            _containerName = configuration["AzureBlobStorage:ContainerName"];
+            _containerName = configuration["AzureBlobStorage:ContainerName"]!;
             _dbContext = dbContext;
         }
 
@@ -28,8 +27,8 @@ namespace Image.API.Services
                 throw new ArgumentException("File cannot be empty.");
 
 
-            if (file.Length > _maxFileSizeInBytes)
-                throw new ArgumentException($"File size cannot exceed {_maxFileSizeInBytes / (1024 * 1024)} MB.");
+            if (file.Length > MaxFileSizeInBytes)
+                throw new ArgumentException($"File size cannot exceed {MaxFileSizeInBytes / (1024 * 1024)} MB.");
 
   
             var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
@@ -40,11 +39,9 @@ namespace Image.API.Services
       
             try
             {
-                using (var image = SixLabors.ImageSharp.Image.Load(file.OpenReadStream()))
-                {
-                    if (image == null)
-                        throw new ArgumentException("Invalid image format.");
-                }
+                using var image = SixLabors.ImageSharp.Image.Load(file.OpenReadStream());
+                if (image == null)
+                    throw new ArgumentException("Invalid image format.");
             }
             catch
             {
@@ -85,16 +82,13 @@ namespace Image.API.Services
             return fileUrl;
         }
 
-        public async Task<string> GetImageUrlAsync(OwnerType ownerType, Guid ownerId)
+        public async Task<string?> GetImageUrlAsync(OwnerType ownerType, Guid ownerId)
         {
             var image = await _dbContext.Images
                 .Where(i => i.OwnerType == ownerType && i.OwnerId == ownerId)
                 .FirstOrDefaultAsync();
 
-            if (image == null)
-                return null;
-
-            return image.Url;
+            return image?.Url;
         }
 
         public async Task<string> UpdateImageAsync(IFormFile file, OwnerType ownerType, Guid ownerId)
@@ -106,7 +100,7 @@ namespace Image.API.Services
                 .FirstOrDefaultAsync();
 
             if (existingImage == null)
-                throw new KeyNotFoundException("No image found for the specified OwnerType and OwnerId");
+                throw new KeyNotFoundException($"No image found for the specified Owner Type: {ownerType} with ID: {ownerId}.");
 
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
             var blobClient = blobContainerClient.GetBlobClient(existingImage.Name);
