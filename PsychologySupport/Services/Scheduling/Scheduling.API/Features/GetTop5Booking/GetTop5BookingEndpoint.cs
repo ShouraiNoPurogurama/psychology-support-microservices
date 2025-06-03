@@ -1,6 +1,5 @@
 ﻿using Carter;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Scheduling.API.Features.GetTop5Booking
 {

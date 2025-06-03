@@ -10,20 +10,12 @@ public record GetScheduleActivityQuery(Guid SessionId) : IQuery<GetScheduleActiv
 
 public record GetScheduleActivityResult(List<ScheduleActivityDto> ScheduleActivities);
 
-public class GetScheduleActivityHandler : IQueryHandler<GetScheduleActivityQuery, GetScheduleActivityResult>
+public class GetScheduleActivityHandler(SchedulingDbContext context, IRequestClient<ActivityRequest> activityClient)
+    : IQueryHandler<GetScheduleActivityQuery, GetScheduleActivityResult>
 {
-    private readonly SchedulingDbContext _context;
-    private readonly IRequestClient<ActivityRequest> _activityClient;
-
-    public GetScheduleActivityHandler(SchedulingDbContext context, IRequestClient<ActivityRequest> activityClient)
-    {
-        _context = context;
-        _activityClient = activityClient;
-    }
-
     public async Task<GetScheduleActivityResult> Handle(GetScheduleActivityQuery request, CancellationToken cancellationToken)
     {
-        var scheduleActivitiesQuery = _context.ScheduleActivities
+        var scheduleActivitiesQuery = context.ScheduleActivities
             .Where(sa => sa.SessionId == request.SessionId)
             .AsQueryable();
 
@@ -61,7 +53,7 @@ public class GetScheduleActivityHandler : IQueryHandler<GetScheduleActivityQuery
 
         var scheduleActivityDtos = new List<ScheduleActivityDto>();
 
-        var entertainmentActivitiesResponse = await _activityClient
+        var entertainmentActivitiesResponse = await activityClient
             .GetResponse<ActivityRequestResponse<EntertainmentActivityDto>>(
                 new ActivityRequest(
                     entertainmentActivities.Select(e => e.SpecificActivityId).ToList(),
@@ -85,7 +77,7 @@ public class GetScheduleActivityHandler : IQueryHandler<GetScheduleActivityQuery
             });
         });
 
-        var foodActivitiesResponse = await _activityClient.GetResponse<ActivityRequestResponse<FoodActivityDto>>(
+        var foodActivitiesResponse = await activityClient.GetResponse<ActivityRequestResponse<FoodActivityDto>>(
                 new ActivityRequest(foodActivities.Select(e => e.SpecificActivityId).ToList(),
                     "Food"), cancellationToken)
             .ContinueWith(r => r.Result.Message.Activities, cancellationToken);
@@ -106,7 +98,7 @@ public class GetScheduleActivityHandler : IQueryHandler<GetScheduleActivityQuery
             });
         });
 
-        var physicalActivitiesResponse = await _activityClient.GetResponse<ActivityRequestResponse<PhysicalActivityDto>>(
+        var physicalActivitiesResponse = await activityClient.GetResponse<ActivityRequestResponse<PhysicalActivityDto>>(
                 new ActivityRequest(physicalActivities.Select(e => e.SpecificActivityId).ToList(),
                     "Physical"), cancellationToken)
             .ContinueWith(r => r.Result.Message.Activities, cancellationToken);
@@ -127,7 +119,7 @@ public class GetScheduleActivityHandler : IQueryHandler<GetScheduleActivityQuery
             });
         });
 
-        var therapeuticActivitiesResponse = await _activityClient
+        var therapeuticActivitiesResponse = await activityClient
             .GetResponse<ActivityRequestResponse<TherapeuticActivityDto>>(
                 new ActivityRequest(therapeuticActivities.Select(e => e.SpecificActivityId).ToList(),
                     "Therapeutic"), cancellationToken)

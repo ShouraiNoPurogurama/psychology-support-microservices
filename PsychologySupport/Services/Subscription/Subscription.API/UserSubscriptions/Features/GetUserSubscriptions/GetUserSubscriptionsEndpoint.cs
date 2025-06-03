@@ -15,19 +15,20 @@ public class GetUserSubscriptionsEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapGet("/user-subscriptions", async (
-            [AsParameters] GetUserSubscriptionsQuery request,
-            ISender sender) =>
-        {
-            var result = await sender.Send(request);
-            var response = result.Adapt<GetUserSubscriptionsResult>();
+                [AsParameters] GetUserSubscriptionsRequest request,
+                ISender sender) =>
+            {
+                var query = request.Adapt<GetUserSubscriptionsQuery>();
+                var result = await sender.Send(query);
+                var response = result.Adapt<GetUserSubscriptionsResult>();
 
-            return Results.Ok(response);
-        })
-        .WithName("GetUserSubscriptions")
-        .WithTags("UserSubscriptions")
-        .Produces<GetUserSubscriptionsResult>()
-        .ProducesProblem(StatusCodes.Status400BadRequest)
-        .WithDescription("Get All User Subscriptions")
-        .WithSummary("Get All User Subscriptions");
+                return Results.Ok(response);
+            })
+            .WithName("GetUserSubscriptions")
+            .WithTags("UserSubscriptions")
+            .Produces<GetUserSubscriptionsResult>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .WithDescription("Get All User Subscriptions")
+            .WithSummary("Get All User Subscriptions");
     }
 }
