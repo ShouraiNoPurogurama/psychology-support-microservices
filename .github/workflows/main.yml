@@ -97,30 +97,28 @@ jobs:
           EOF
 
           CHANGED=$(git diff --name-only HEAD^ HEAD \
-            | grep -E '^Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+/' \
+            | grep -E '^PsychologySupport/Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+' \
             | awk -F/ '{
-                if ($1 == "Services") {
-                  print tolower($2) ".api"
+                if ($1 == "PsychologySupport" && $2 == "Services") {
+                  print tolower($3) ".api"
                 } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
                   print tolower($3)
                 }
               }' \
             | sort -u)
 
-
-          echo  "================= DEBUGGING ================="
+          echo "================= DEBUGGING ================="
           echo "*** Changed Microservices: $CHANGED"
-          
-          
+          echo "============================================="
+
           for svc in $CHANGED; do
-          echo "🔧 Building $svc..."
-          docker compose -f docker-compose-apis.yml build "$svc" || { echo "❌ Build failed for $svc"; continue; }
+            echo "🔧 Building $svc..."
+            docker compose -f docker-compose-apis.yml build "$svc" || { echo "❌ Build failed for $svc"; continue; }
 
-          echo "🚀 Starting $svc..."
-          docker compose -f docker-compose-apis.yml up -d "$svc" || { echo "❌ Failed to start $svc"; continue; }
+            echo "🚀 Starting $svc..."
+            docker compose -f docker-compose-apis.yml up -d "$svc" || { echo "❌ Failed to start $svc"; continue; }
 
-          echo "✅ $svc is up and running."
-
-          echo  "================= END DEBUGGING ================="
-          
+            echo "✅ $svc is up and running."
+            echo "---------------------------------------------"
           done
+
