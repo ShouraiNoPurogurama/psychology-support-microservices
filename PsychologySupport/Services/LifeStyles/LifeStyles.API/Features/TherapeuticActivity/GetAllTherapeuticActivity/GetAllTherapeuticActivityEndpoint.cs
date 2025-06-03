@@ -4,7 +4,7 @@ using LifeStyles.API.Dtos;
 using Mapster;
 using MediatR;
 
-namespace LifeStyles.API.Features.TherapeuticActivity.GetALTherapeuticActivity;
+namespace LifeStyles.API.Features.TherapeuticActivity.GetAllTherapeuticActivity;
 
 public record GetAllTherapeuticActivitiesResponse(PaginatedResult<TherapeuticActivityDto> TherapeuticActivities);
 

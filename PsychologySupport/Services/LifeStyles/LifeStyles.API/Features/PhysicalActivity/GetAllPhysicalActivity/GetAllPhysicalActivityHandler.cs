@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore;
 namespace LifeStyles.API.Features.PhysicalActivity.GetAllPhysicalActivity;
 
 public record GetAllPhysicalActivitiesQuery(
-    [FromQuery] int PageIndex,
-    [FromQuery] int PageSize,
+    [FromQuery] int PageIndex = 1,
+    [FromQuery] int PageSize = 10,
     [FromQuery] string? Search = null,
     [FromQuery] IntensityLevel? IntensityLevel = null, 
     [FromQuery] ImpactLevel? ImpactLevel = null ) 

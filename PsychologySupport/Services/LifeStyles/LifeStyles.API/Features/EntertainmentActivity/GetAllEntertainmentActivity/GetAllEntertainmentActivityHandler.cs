@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore;
 namespace LifeStyles.API.Features.EntertainmentActivity.GetAllEntertainmentActivity;
 
 public record GetAllEntertainmentActivitiesQuery(
-    [FromQuery] int PageIndex,
-    [FromQuery] int PageSize,
+    [FromQuery] int PageIndex = 1,
+    [FromQuery] int PageSize = 10,
     [FromQuery] string? Search = null, // Search by Name
     [FromQuery] IntensityLevel? IntensityLevel = null, // Filter by IntensityLevel
     [FromQuery] ImpactLevel? ImpactLevel = null // Filter by ImpactLevel

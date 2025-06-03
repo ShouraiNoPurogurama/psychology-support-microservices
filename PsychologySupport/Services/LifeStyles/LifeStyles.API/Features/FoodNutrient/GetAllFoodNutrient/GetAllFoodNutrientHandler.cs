@@ -31,9 +31,9 @@ public class GetAllFoodNutrientHandler
         CancellationToken cancellationToken)
     {
         var pageSize = request.PaginationRequest.PageSize;
-        var pageIndex = Math.Max(0, request.PaginationRequest.PageIndex - 1);
+        var pageIndex = request.PaginationRequest.PageIndex;
 
-        var cacheKey = $"foodNutrients:page{pageIndex + 1}:size{pageSize}";
+        // var cacheKey = $"foodNutrients:page{pageIndex + 1}:size{pageSize}";
 
         // var cachedData = await _redisCache.GetCacheDataAsync<PaginatedResult<FoodNutrientDto>?>(cacheKey);
         // if (cachedData is not null)

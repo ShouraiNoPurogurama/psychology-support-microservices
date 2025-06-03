@@ -1,17 +1,16 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Pagination;
-using LifeStyles.API.Abstractions;
 using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace LifeStyles.API.Features.TherapeuticActivity.GetALTherapeuticActivity;
+namespace LifeStyles.API.Features.TherapeuticActivity.GetAllTherapeuticActivity;
 
-public record GetAllTherapeuticActivitiesQuery([FromQuery] int PageIndex,
-    [FromQuery] int PageSize,
+public record GetAllTherapeuticActivitiesQuery([FromQuery] int PageIndex = 1,
+    [FromQuery] int PageSize = 10,
     [FromQuery] string? Search = null, // Search by Name
     [FromQuery] IntensityLevel? IntensityLevel = null, // Filter by IntensityLevel
     [FromQuery] ImpactLevel? ImpactLevel = null) // Filter by ImpactLevel

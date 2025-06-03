@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore;
 namespace LifeStyles.API.Features.FoodActivity.GetAllFoodActivity;
 
 public record GetAllFoodActivitiesQuery(
-     [FromQuery] int PageIndex,
-     [FromQuery] int PageSize,
+    [FromQuery] int PageIndex = 1,
+    [FromQuery] int PageSize = 10,
      [FromQuery] string? Search = null 
 ) : IQuery<GetAllFoodActivitiesResult>;
 
