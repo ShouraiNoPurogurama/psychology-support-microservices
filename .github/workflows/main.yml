@@ -96,7 +96,7 @@ jobs:
           ${{ secrets.APPSETTINGS_TEST }}
           EOF
 
-          CHANGED=$(git diff --name-only HEAD@{1} HEAD \
+          CHANGED=$(git diff --name-only HEAD^ HEAD \
             | grep -E '^Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+/' \
             | awk -F/ '{
                 if ($1 == "Services") {
