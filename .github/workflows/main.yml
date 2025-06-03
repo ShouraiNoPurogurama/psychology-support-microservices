@@ -107,7 +107,16 @@ jobs:
           }' \
           | sort -u) 
 
+          echo "Changed Microservices: $CHANGED"
+
           for svc in $CHANGED; do
-          docker compose -f docker-compose-apis.yml build "$svc" || true
-          docker compose -f docker-compose-apis.yml up -d "$svc" || true
+          echo "🔧 Building $svc..."
+          docker compose -f docker-compose-apis.yml build "$svc" || { echo "❌ Build failed for $svc"; continue; }
+
+          echo "🚀 Starting $svc..."
+          docker compose -f docker-compose-apis.yml up -d "$svc" || { echo "❌ Failed to start $svc"; continue; }
+
+          echo "✅ $svc is up and running."
+          done
+
           done
