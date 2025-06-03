@@ -16,7 +16,7 @@
       "lifestyles-swagger-assets": {
         "ClusterId": "lifestyle-cluster",
         "Match": {
-          "Path": "/lifestyles-service/swagger/{**catch-all}"
+          "Path": "/lifestyle-service/swagger/{**catch-all}"
         },
         "Transforms": [
           {
