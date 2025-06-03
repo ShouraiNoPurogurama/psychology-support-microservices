@@ -120,7 +120,6 @@ namespace Image.API.Extensions
         private static void AddBlobStorage(IServiceCollection services, IConfiguration config)
         {
             var blobConnectionString = config["AzureBlobStorage:ConnectionString"];
-            Console.WriteLine($"Blob Connection String: {blobConnectionString}");
 
             if (string.IsNullOrWhiteSpace(blobConnectionString))
             {
