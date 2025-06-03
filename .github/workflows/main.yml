@@ -96,16 +96,17 @@ jobs:
           ${{ secrets.APPSETTINGS_TEST }}
           EOF
 
-          CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD \
+          CHANGED=$(git diff --name-only HEAD@{1} HEAD \
           | grep -E '^Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+/' \
-          | awk -F/ '{
-          if ($1 == "Services") {
-            print tolower($2) ".api"
-          } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
-          print tolower($3)
-          }
-          }' \
-          | sort -u) 
+            | awk -F/ '{
+                if ($1 == "Services") {
+                  print tolower($2) ".api"
+                } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
+                  print tolower($3)
+                }
+              }' \
+            | sort -u)
+
 
           echo  "================= DEBUGGING ================="
           echo "Changed Microservices: $CHANGED"
