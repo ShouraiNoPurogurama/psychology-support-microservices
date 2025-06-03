@@ -9,8 +9,8 @@ using Subscription.API.UserSubscriptions.Dtos;
 namespace Subscription.API.UserSubscriptions.Features.GetUserSubscriptions;
 
 public record GetUserSubscriptionsQuery(
-        [FromQuery] int PageIndex,
-        [FromQuery] int PageSize,
+        [FromQuery] int PageIndex = 1,
+        [FromQuery] int PageSize = 10,
         [FromQuery] string? Search = "", // ServicePackageId
         [FromQuery] string? SortBy = "StartDate", // sort StartDate
         [FromQuery] string? SortOrder = "asc", // asc or desc
