@@ -109,7 +109,6 @@ namespace Image.API.Extensions
         private static void AddDatabase(IServiceCollection services, IConfiguration config)
         {
             var connectionString = config.GetConnectionString("ImageDb");
-
             services.AddDbContext<ImageDbContext>((sp, opt) =>
             {
                 opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
