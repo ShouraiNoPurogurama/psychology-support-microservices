@@ -36,7 +36,7 @@ public static class ApplicationServiceExtensions
             options.AddFixedWindowLimiter("fixed", opt =>
             {
                 opt.Window = TimeSpan.FromSeconds(10);
-                opt.PermitLimit = 10;
+                opt.PermitLimit = 25;
             }); //A maximum of 10 requests per each 10 seconds window are allowed
         });
     }
