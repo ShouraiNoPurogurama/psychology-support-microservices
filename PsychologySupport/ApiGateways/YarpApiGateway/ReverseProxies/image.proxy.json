@@ -35,7 +35,8 @@
             "PathPattern": "{**catch-all}"
           }
         ],
-        "RateLimiterPolicy": "fixed"
+        "RateLimiterPolicy": "fixed",
+        "AuthorizationPolicy": "AuthenticatedUser"
       }
     },
     "Clusters": {

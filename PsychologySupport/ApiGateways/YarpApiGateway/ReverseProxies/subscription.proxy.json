@@ -25,6 +25,21 @@
         ],
         "RateLimiterPolicy": "fixed"
       },
+      "subscription-route-get_only": {
+        "ClusterId": "subscription-cluster",
+        "Match": {
+          "Path": "/subscription-service/{**catch-all}",
+          "Methods": [
+            "GET"
+          ]
+        },
+        "Transforms": [
+          {
+            "PathPattern": "{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "subscription-route": {
         "ClusterId": "subscription-cluster",
         "Match": {
@@ -35,7 +50,8 @@
             "PathPattern": "{**catch-all}"
           }
         ],
-        "RateLimiterPolicy": "fixed"
+        "RateLimiterPolicy": "fixed",
+        "AuthorizationPolicy": "AuthenticatedUser"
       }
     },
     "Clusters": {

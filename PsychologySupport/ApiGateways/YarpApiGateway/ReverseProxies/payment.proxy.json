@@ -25,6 +25,18 @@
         ],
         "RateLimiterPolicy": "fixed"
       },
+      "payment-route-callback": {
+        "ClusterId": "payment-cluster",
+        "Match": {
+          "Path": "/payment-service/payments/callback"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "payment-route": {
         "ClusterId": "payment-cluster",
         "Match": {
@@ -35,7 +47,8 @@
             "PathPattern": "{**catch-all}"
           }
         ],
-        "RateLimiterPolicy": "fixed"
+        "RateLimiterPolicy": "fixed",
+        "AuthorizationPolicy": "AuthenticatedUser"
       }
     },
     "Clusters": {

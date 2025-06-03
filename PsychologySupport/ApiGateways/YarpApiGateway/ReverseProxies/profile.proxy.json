@@ -36,7 +36,8 @@
           }
         ],
         "RateLimiterPolicy": "fixed"
-      }
+      },
+      "AuthorizationPolicy": "AuthenticatedUser"
     },
     "Clusters": {
       "profile-cluster": {
