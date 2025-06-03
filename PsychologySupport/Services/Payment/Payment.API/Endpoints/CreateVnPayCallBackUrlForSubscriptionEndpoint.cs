@@ -26,6 +26,7 @@ public class CreateVnPayCallBackUrlForSubscriptionEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("CreateVnPayCallBackUrlForSubscription")
+            .WithTags("Subscription Payments")
             .Produces<CreateVnPayCallBackUrlForSubscriptionResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Create VnPay CallBack Url For Subscription")

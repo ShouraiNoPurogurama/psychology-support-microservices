@@ -24,6 +24,7 @@ public class GetUserSubscriptionsEndpoint : ICarterModule
             return Results.Ok(response);
         })
         .WithName("GetUserSubscriptions")
+        .WithTags("UserSubscriptions")
         .Produces<GetUserSubscriptionsResult>()
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithDescription("Get All User Subscriptions")

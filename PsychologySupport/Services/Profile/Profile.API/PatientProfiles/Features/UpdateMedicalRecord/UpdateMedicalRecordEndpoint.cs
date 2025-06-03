@@ -21,9 +21,6 @@ public class UpdateMedicalRecordEndpoint : ICarterModule
     {
         app.MapPut("/patients/medical-record", async ([FromBody] UpdateMedicalRecordRequest request, ISender sender) =>
             {
-                if (request == null)
-                    return Results.BadRequest("Invalid request payload.");
-
                 var command = request.Adapt<UpdateMedicalRecordCommand>();
                 var result = await sender.Send(command);
                 var response = result.Adapt<UpdateMedicalRecordResponse>();
@@ -31,6 +28,7 @@ public class UpdateMedicalRecordEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("UpdateMedicalRecord")
+            .WithTags("PatientProfiles")
             .Produces<UpdateMedicalRecordResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)

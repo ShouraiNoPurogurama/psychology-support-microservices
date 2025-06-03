@@ -29,6 +29,7 @@ namespace Scheduling.API.Features.Schedule.CreateScheduleFeedback
 
                 })
                 .WithName("CreateScheduleFeedback")
+                .WithTags("Schedules")
                 .Produces<CreateScheduleFeedbackResponse>()
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .WithDescription("Create feedback for a schedule")

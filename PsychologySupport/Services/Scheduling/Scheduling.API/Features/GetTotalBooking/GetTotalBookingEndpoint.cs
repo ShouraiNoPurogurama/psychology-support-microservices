@@ -13,7 +13,7 @@ namespace Scheduling.API.Features.GetTotalBooking
                 return Results.Ok(result);
             })
             .WithName("GetTotalBookings")
-            .Produces<GetTotalBookingResult>()
+            .WithTags("Bookings")             .Produces<GetTotalBookingResult>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("GetTotalBookings")
             .WithSummary("Get total bookings");

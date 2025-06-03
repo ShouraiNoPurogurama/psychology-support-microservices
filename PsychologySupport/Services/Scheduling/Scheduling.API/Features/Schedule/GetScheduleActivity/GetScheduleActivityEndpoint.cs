@@ -20,6 +20,7 @@ namespace Scheduling.API.Features.Schedule.GetScheduleActivity
                 return Results.Ok(result.Adapt<GetScheduleActivityResponse>());
             })
                 .WithName("GetScheduleActivity")
+                .WithTags("Schedules")
                 .Produces<GetScheduleActivityResponse>()
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status400BadRequest)

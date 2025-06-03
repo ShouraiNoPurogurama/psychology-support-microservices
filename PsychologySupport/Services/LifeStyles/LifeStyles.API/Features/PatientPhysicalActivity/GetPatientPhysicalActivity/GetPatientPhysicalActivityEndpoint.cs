@@ -22,6 +22,7 @@ public class GetPatientPhysicalActivityEndpoint : ICarterModule
                     return Results.Ok(response);
                 })
             .WithName("GetPatientPhysicalActivities")
+            .WithTags("PatientPhysicalActivities")
             .Produces<GetPatientPhysicalActivityResponse>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status400BadRequest)

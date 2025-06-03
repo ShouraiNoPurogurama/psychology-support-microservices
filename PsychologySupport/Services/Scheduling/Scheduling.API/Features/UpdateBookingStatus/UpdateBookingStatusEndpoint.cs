@@ -26,6 +26,7 @@ public class UpdateBookingStatusEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("UpdateBookingStatus")
+            .WithTags("Bookings")
             .Produces<UpdateBookingStatusResponse>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status400BadRequest)

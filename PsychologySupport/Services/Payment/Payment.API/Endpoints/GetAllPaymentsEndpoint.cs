@@ -20,6 +20,7 @@ namespace Payment.API.Endpoints
                 return Results.Ok(response);
             })
             .WithName("GetAllPayments")
+            .WithTags("Payments")
             .Produces<GetAllPaymentsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get All Payments")

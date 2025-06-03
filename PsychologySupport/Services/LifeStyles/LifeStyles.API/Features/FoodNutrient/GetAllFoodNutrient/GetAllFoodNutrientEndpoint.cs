@@ -21,6 +21,7 @@ namespace LifeStyles.API.Features.FoodNutrient.GetAllFoodNutrient
                 return Results.Ok(response);
             })
             .WithName("GetAllFoodNutrients")
+            .WithTags("FoodNutrients")
             .Produces<GetAllFoodNutrientResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get all food nutrients with pagination")

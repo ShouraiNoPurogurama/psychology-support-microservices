@@ -24,6 +24,7 @@ namespace Profile.API.MentalDisorders.Features.GetAllSpecificMentalDisorders
                 return Results.Ok(response);
             })
             .WithName("GetAllSpecificMentalDisorders")
+            .WithTags("SpecificMentalDisorders")
             .Produces<GetAllSpecificMentalDisordersResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)

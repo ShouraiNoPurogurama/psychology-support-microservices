@@ -17,6 +17,7 @@ namespace Scheduling.API.Features.Schedule.GetTotalSession
                 return Results.Ok(response);
             })
             .WithName("GetTotalSessions")
+            .WithTags("Schedules")
             .Produces<GetTotalSessionResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get total session count within a date range")

@@ -20,6 +20,7 @@ public class GetMedicalHistoryEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("GetMedicalHistoryByPatientId")
+            .WithTags("PatientProfiles")
             .Produces<GetMedicalHistoryResponse>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .WithDescription("Get MedicalHistory By PatientId")

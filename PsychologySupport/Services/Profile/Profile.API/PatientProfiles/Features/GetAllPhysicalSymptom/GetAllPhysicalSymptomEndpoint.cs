@@ -20,6 +20,7 @@ namespace Profile.API.PatientProfiles.Features.GetAllPhysicalSymptom
                 return Results.Ok(response);
             })
                 .WithName("GetAllPhysicalSymptoms")
+                .WithTags("PhysicalSymptoms")
                 .Produces<GetAllPhysicalSymptomResponse>()
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)

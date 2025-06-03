@@ -18,6 +18,7 @@ namespace Scheduling.API.Features.GetBooking
                 return Results.Ok(response);
             })
                 .WithName("GetBooking")
+                .WithTags("Bookings")
                 .Produces<GetBookingResponse>()
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .WithDescription("Get Booking")

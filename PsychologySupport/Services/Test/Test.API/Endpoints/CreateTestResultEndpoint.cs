@@ -28,6 +28,7 @@ public class CreateTestResultEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("CreateTestResult")
+            .WithTags("Test Results")
             .Produces<CreateTestResultResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Create a new test result")

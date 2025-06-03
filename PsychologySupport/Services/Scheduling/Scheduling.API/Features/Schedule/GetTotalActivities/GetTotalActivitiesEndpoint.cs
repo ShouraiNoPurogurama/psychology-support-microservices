@@ -19,6 +19,7 @@ namespace Scheduling.API.Features.Schedule.GetTotalActivities
                 return Results.Ok(response);
             })
             .WithName("GetTotalActivities")
+            .WithTags("Schedules")
             .Produces<GetTotalActivitiesResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get total activity times within a date range")

@@ -19,6 +19,7 @@ namespace Scheduling.API.Features.GetAllBooking
                 return Results.Ok(response);
             })
             .WithName("GetAllBookings")
+            .WithTags("Bookings")
             .Produces<GetAllBookingsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get All Bookings")

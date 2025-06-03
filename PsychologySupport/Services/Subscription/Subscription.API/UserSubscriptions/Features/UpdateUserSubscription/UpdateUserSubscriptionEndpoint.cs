@@ -25,6 +25,7 @@ public class UpdateUserSubscriptionEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("UpdateUserSubscription")
+            .WithTags("UserSubscriptions")
             .Produces<UpdateUserSubscriptionResponse>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status400BadRequest)

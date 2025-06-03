@@ -20,6 +20,7 @@ public class GetAllFoodActivityEndpoint : ICarterModule
             return Results.Ok(response);
         })
             .WithName("GetAllFoodActivities")
+            .WithTags("FoodActivities")
             .Produces<GetAllFoodActivitiesResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("GetAllFoodActivities")

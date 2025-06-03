@@ -16,6 +16,12 @@ public class VnPayCallbackEndpoint : ICarterModule
             var result = await sender.Send(query);
 
             return Results.Ok(result);
-        });
+        })
+        .WithName("VnPayCallback")
+            .WithTags("Payments")
+            .Produces<VnPayCallbackResult>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .WithDescription("VnPay Callback Endpoint")
+            .WithSummary("Handle VnPay Callback");
     }
 }

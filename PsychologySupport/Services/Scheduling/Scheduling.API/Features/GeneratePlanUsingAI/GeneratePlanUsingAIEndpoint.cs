@@ -27,6 +27,12 @@ public class GeneratePlanUsingAiEndpoint : ICarterModule
             ));
 
             return Results.Ok(new { plan = result });
-        });
+        })
+        .WithName("GeneratePlan")
+        .WithTags("OpenAI")
+        .Produces<GeneratePlanResult>()
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .WithSummary("Generate Plan Using AI")
+        .WithDescription("Generates a treatment plan using AI based on the provided schedule request.");
     }
 }

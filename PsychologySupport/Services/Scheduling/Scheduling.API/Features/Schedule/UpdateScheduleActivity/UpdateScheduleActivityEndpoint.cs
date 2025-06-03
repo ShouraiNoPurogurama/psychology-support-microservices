@@ -23,6 +23,7 @@ namespace Scheduling.API.Features.Schedule.UpdateScheduleActivity
                         return Results.Ok(response);
                     })
                 .WithName("Update Schedule Activity Status")
+                .WithTags("Schedules")
                 .Produces<UpdateScheduleActivityResponse>()
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)

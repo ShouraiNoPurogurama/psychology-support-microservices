@@ -15,7 +15,6 @@ namespace Profile.API.PatientProfiles.Features.GetTotalPatientProfile
                 ISender sender,
                 CancellationToken cancellationToken) =>
             {
-                
                 UserGender? userGender = null;
                 if (!string.IsNullOrEmpty(gender) && System.Enum.TryParse<UserGender>(gender, true, out var parsedGender))
                 {
@@ -27,6 +26,7 @@ namespace Profile.API.PatientProfiles.Features.GetTotalPatientProfile
                 return Results.Ok(new { TotalPatients = totalPatients });
             })
             .WithName("GetTotalPatientProfile")
+            .WithTags("PatientProfiles")
             .Produces<int>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithSummary("Get Total Patient Profiles")

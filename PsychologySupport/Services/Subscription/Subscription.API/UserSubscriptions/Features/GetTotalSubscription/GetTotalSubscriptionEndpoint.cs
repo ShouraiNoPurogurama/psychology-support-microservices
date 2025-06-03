@@ -22,6 +22,7 @@ namespace Subscription.API.UserSubscriptions.Features.GetTotalSubscription
                     return Results.Ok(result);
                 })
                 .WithName("GetTotalUserSubscriptions")
+                .WithTags("UserSubscriptions")
                 .Produces<GetTotalSubscriptionResult>()
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .WithDescription("Get Total User Subscriptions")

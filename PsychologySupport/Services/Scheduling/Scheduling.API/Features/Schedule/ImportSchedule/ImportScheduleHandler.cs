@@ -32,7 +32,6 @@ namespace Scheduling.API.Features.Schedule.ImportSchedule
             }
             
             
-
             var schedule = new Models.Schedule
             {
                 Id = scheduleDto.Id != Guid.Empty ? scheduleDto.Id : Guid.NewGuid(),

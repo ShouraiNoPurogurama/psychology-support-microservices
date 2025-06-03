@@ -26,6 +26,7 @@ public class UpgradeUserSubscriptionEndpoint : ICarterModule
                 }
             )
             .WithName("UpgradeUserSubscription")
+            .WithTags("UserSubscriptions")
             .Produces<UpgradeUserSubscriptionResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Upgrade User Subscription")

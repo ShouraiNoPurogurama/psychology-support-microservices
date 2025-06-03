@@ -30,6 +30,7 @@ namespace Scheduling.API.Features.RegisterDoctorBusyAllDay
                 return Results.Ok(result.Adapt<RegisterDoctorBusyAllDayResponse>());
             })
             .WithName("RegisterDoctorBusyAllDay")
+            .WithTags("Doctor Schedule")
             .Produces<RegisterDoctorBusyAllDayResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("RegisterDoctorBusyAllDay")

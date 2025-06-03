@@ -26,6 +26,7 @@ public class CreateUserSubscriptionEndpoint : ICarterModule
                 }
             )
             .WithName("CreateUserSubscription")
+            .WithTags("UserSubscriptions")
             .Produces<CreateUserSubscriptionResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Create User Subscription")

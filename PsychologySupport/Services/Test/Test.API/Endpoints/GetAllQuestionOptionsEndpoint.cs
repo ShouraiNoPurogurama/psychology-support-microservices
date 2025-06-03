@@ -24,6 +24,7 @@ public class GetAllQuestionOptionsEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("GetAllQuestionOptions")
+            .WithTags("Test")
             .Produces<GetAllQuestionOptionsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get paginated Question Options")

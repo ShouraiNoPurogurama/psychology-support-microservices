@@ -24,6 +24,7 @@ public class GetAllTestHistoryAnswersEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("GetAllTestHistoryAnswers")
+            .WithTags("Tests")
             .Produces<GetAllTestHistoryAnswersResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get paginated Test History Answers")

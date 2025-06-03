@@ -22,6 +22,7 @@ public class GetDoctorProfileBySpecialitiesEndpoint : ICarterModule
                     return Results.Ok(response);
                 })
             .WithName("GetDoctorsBySpecialities")
+            .WithTags("DoctorProfiles")
             .Produces<GetDoctorsBySpecialitiesResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get Doctor Profiles by Specialties")

@@ -23,6 +23,7 @@ namespace Scheduling.API.Features.UpdateBooking
                         return Results.Ok(response);
                     })
                 .WithName("Update Booking Status")
+                .WithTags("Bookings")
                 .Produces<UpdateBookingResponse>()
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)

@@ -19,6 +19,7 @@ public class GetAllMedicalRecordsEndpoint : ICarterModule
             return Results.Ok(response);
         })
         .WithName("GetAllMedicalRecords")
+        .WithTags("PatientProfiles")
         .Produces<GetAllMedicalRecordsResponse>()
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status404NotFound)
