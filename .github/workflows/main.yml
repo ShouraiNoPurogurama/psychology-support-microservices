@@ -118,5 +118,3 @@ jobs:
 
           echo "✅ $svc is up and running."
           done
-
-          done
