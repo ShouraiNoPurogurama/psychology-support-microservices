@@ -2,11 +2,20 @@
 using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Subscription.API.Data.Common;
 using Subscription.API.UserSubscriptions.Dtos;
 
 namespace Subscription.API.UserSubscriptions.Features.GetUserSubscriptions;
 
-public record GetUserSubscriptionsRequest(PaginationRequest PaginationRequest);
+public record GetUserSubscriptionsRequest( [FromQuery] int PageIndex = 1,
+    [FromQuery] int PageSize = 10,
+    [FromQuery] string? Search = "",
+    [FromQuery] string? SortBy = "StartDate",
+    [FromQuery] string? SortOrder = "asc",
+    [FromQuery] Guid? ServicePackageId = null,
+    [FromQuery] Guid? PatientId = null, 
+    [FromQuery] SubscriptionStatus? Status = null);
 
 public record GetUserSubscriptionsResponse(PaginatedResult<GetUserSubscriptionDto> UserSubscriptions);
 
