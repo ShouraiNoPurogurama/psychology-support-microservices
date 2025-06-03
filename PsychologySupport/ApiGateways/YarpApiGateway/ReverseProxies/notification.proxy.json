@@ -1,0 +1,51 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "notification-swagger-index": {
+        "ClusterId": "notification-cluster",
+        "Match": {
+          "Path": "/notification-service/swagger/index.html"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/index.html"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "notification-swagger-assets": {
+        "ClusterId": "notification-cluster",
+        "Match": {
+          "Path": "/notification-service/swagger/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "notification-route": {
+        "ClusterId": "notification-cluster",
+        "Match": {
+          "Path": "/notification-service/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      }
+    },
+    "Clusters": {
+      "notification-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://notification.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}

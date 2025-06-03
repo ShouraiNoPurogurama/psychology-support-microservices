@@ -1,0 +1,51 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "subscription-swagger-index": {
+        "ClusterId": "subscription-cluster",
+        "Match": {
+          "Path": "/subscription-service/swagger/index.html"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/index.html"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "subscription-swagger-assets": {
+        "ClusterId": "subscription-cluster",
+        "Match": {
+          "Path": "/subscription-service/swagger/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "subscription-route": {
+        "ClusterId": "subscription-cluster",
+        "Match": {
+          "Path": "/subscription-service/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      }
+    },
+    "Clusters": {
+      "subscription-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://subscription.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}

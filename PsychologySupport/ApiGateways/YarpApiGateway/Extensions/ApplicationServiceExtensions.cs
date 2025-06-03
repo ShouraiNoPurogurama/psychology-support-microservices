@@ -8,8 +8,8 @@ public static class ApplicationServiceExtensions
     {
         ConfigureCors(services);
         
-        services.AddReverseProxy()
-            .LoadFromConfig(configuration.GetSection("ReverseProxy"));
+        // services.AddReverseProxy()
+        //     .LoadFromConfig(configuration.GetSection("ReverseProxy"));
 
         services.AddRateLimiter(options =>
         {

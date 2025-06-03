@@ -1,0 +1,51 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "auth-swagger-index": {
+        "ClusterId": "auth-cluster",
+        "Match": {
+          "Path": "/auth-service/swagger/index.html"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/index.html"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "auth-swagger-assets": {
+        "ClusterId": "auth-cluster",
+        "Match": {
+          "Path": "/auth-service/swagger/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "auth-route": {
+        "ClusterId": "auth-cluster",
+        "Match": {
+          "Path": "/auth-service/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      }
+    },
+    "Clusters": {
+      "auth-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://auth.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}

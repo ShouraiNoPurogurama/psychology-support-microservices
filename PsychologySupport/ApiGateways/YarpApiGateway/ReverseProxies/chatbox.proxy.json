@@ -1,0 +1,51 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "chatbox-swagger-index": {
+        "ClusterId": "chatbox-cluster",
+        "Match": {
+          "Path": "/chatbox-service/swagger/index.html"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/index.html"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "chatbox-swagger-assets": {
+        "ClusterId": "chatbox-cluster",
+        "Match": {
+          "Path": "/chatbox-service/swagger/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "chatbox-route": {
+        "ClusterId": "chatbox-cluster",
+        "Match": {
+          "Path": "/chatbox-service/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      }
+    },
+    "Clusters": {
+      "chatbox-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://chatbox.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}

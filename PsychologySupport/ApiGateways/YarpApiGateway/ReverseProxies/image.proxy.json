@@ -1,0 +1,51 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "image-swagger-index": {
+        "ClusterId": "image-cluster",
+        "Match": {
+          "Path": "/image-service/swagger/index.html"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/index.html"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "image-swagger-assets": {
+        "ClusterId": "image-cluster",
+        "Match": {
+          "Path": "/image-service/swagger/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "image-route": {
+        "ClusterId": "image-cluster",
+        "Match": {
+          "Path": "/image-service/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      }
+    },
+    "Clusters": {
+      "image-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://image.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}

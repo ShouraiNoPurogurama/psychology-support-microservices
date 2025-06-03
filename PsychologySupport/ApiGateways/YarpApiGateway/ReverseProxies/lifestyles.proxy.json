@@ -1,0 +1,51 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "lifestyles-swagger-index": {
+        "ClusterId": "lifestyles-cluster",
+        "Match": {
+          "Path": "/lifestyles-service/swagger/index.html"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/index.html"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "lifestyles-swagger-assets": {
+        "ClusterId": "lifestyles-cluster",
+        "Match": {
+          "Path": "/lifestyles-service/swagger/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "lifestyles-route": {
+        "ClusterId": "lifestyles-cluster",
+        "Match": {
+          "Path": "/lifestyles-service/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      }
+    },
+    "Clusters": {
+      "lifestyles-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://lifestyles.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}
