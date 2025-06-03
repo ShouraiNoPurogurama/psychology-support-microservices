@@ -2,7 +2,7 @@
   "ReverseProxy": {
     "Routes": {
       "lifestyles-swagger-index": {
-        "ClusterId": "lifestyles-cluster",
+        "ClusterId": "lifestyle-cluster",
         "Match": {
           "Path": "/lifestyle-service/swagger/index.html"
         },
@@ -39,7 +39,7 @@
       }
     },
     "Clusters": {
-      "lifestyles-cluster": {
+      "lifestyle-cluster": {
         "Destinations": {
           "destination1": {
             "Address": "http://lifestyles.api:8080/"
