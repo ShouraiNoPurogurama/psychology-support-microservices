@@ -11,9 +11,9 @@ namespace Scheduling.API.Extensions
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
             services.AddCarter();
-            
+
             services.RegisterMapsterConfiguration();
-            
+
             services.AddExceptionHandler<CustomExceptionHandler>();
 
             ConfigureSwagger(services);
@@ -27,11 +27,11 @@ namespace Scheduling.API.Extensions
             AddServiceDependencies(services);
 
             AddGrpcServiceDependencies(services, config);
-            
+
             AddValidatorDependencies(services);
 
             services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
-            
+
             return services;
         }
 
@@ -102,6 +102,15 @@ namespace Scheduling.API.Extensions
                 options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
                 {
                     Url = "/scheduling-service/"
+                });
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT"
                 });
             });
         }
