@@ -4,7 +4,7 @@
       "lifestyles-swagger-index": {
         "ClusterId": "lifestyles-cluster",
         "Match": {
-          "Path": "/lifestyles-service/swagger/index.html"
+          "Path": "/lifestyle-service/swagger/index.html"
         },
         "Transforms": [
           {
@@ -14,7 +14,7 @@
         "RateLimiterPolicy": "fixed"
       },
       "lifestyles-swagger-assets": {
-        "ClusterId": "lifestyles-cluster",
+        "ClusterId": "lifestyle-cluster",
         "Match": {
           "Path": "/lifestyles-service/swagger/{**catch-all}"
         },
@@ -26,9 +26,9 @@
         "RateLimiterPolicy": "fixed"
       },
       "lifestyles-route": {
-        "ClusterId": "lifestyles-cluster",
+        "ClusterId": "lifestyle-cluster",
         "Match": {
-          "Path": "/lifestyles-service/{**catch-all}"
+          "Path": "/lifestyle-service/{**catch-all}"
         },
         "Transforms": [
           {
