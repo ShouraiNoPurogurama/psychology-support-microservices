@@ -8,8 +8,8 @@ using Subscription.API.ServicePackages.Dtos;
 namespace Subscription.API.ServicePackages.Features.GetServicePackages;
 
 public record GetServicePackagesQuery(
-        int PageIndex,
-        int PageSize,
+        int PageIndex = 1,
+        int PageSize = 10,
         string? Search = "", // Name vs Description
         bool? Status = null, // filter
         Guid? PatientId = null // filter
