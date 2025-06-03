@@ -8,9 +8,29 @@ public static class ApplicationServiceExtensions
     {
         ConfigureCors(services);
         
-        // services.AddReverseProxy()
-        //     .LoadFromConfig(configuration.GetSection("ReverseProxy"));
+        ConfigureReverseProxy(services);
+        
+        ConfigureRateLimiter(services);
 
+        return services;
+    }
+
+    private static void ConfigureReverseProxy(IServiceCollection services)
+    {
+        var proxyBuilder = services.AddReverseProxy();
+
+        foreach (var file in Directory.GetFiles("ReverseProxies", "*.proxy.json"))
+        {
+            var config = new ConfigurationBuilder()
+                .AddJsonFile(file, optional: false, reloadOnChange: true)
+                .Build();
+
+            proxyBuilder.LoadFromConfig(config.GetSection("ReverseProxy"));
+        }
+    }
+
+    private static void ConfigureRateLimiter(IServiceCollection services)
+    {
         services.AddRateLimiter(options =>
         {
             options.AddFixedWindowLimiter("fixed", opt =>
@@ -19,10 +39,8 @@ public static class ApplicationServiceExtensions
                 opt.PermitLimit = 10;
             }); //A maximum of 10 requests per each 10 seconds window are allowed
         });
-
-        return services;
     }
-    
+
     private static void ConfigureCors(IServiceCollection services)
     {
         services.AddCors(options =>
