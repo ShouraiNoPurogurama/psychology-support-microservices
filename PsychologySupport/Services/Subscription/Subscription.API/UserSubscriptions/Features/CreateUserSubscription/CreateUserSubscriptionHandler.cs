@@ -46,6 +46,13 @@ public class CreateUserSubscriptionHandler(
         if(existingSubscription) 
             throw new BadRequestException("Patient already has an active subscription.");
         
+        //Check if user have any awaiting payment
+        var awaitingPaymentSubscription = context.UserSubscriptions
+            .Any(x => x.PatientId == request.UserSubscription.PatientId &&
+                                      x.Status == SubscriptionStatus.AwaitPayment);
+        if (awaitingPaymentSubscription)
+            throw new BadRequestException("Patient already has an awaiting payment subscription.");
+        
         var dto = request.UserSubscription;
 
         ServicePackage servicePackage = await context.ServicePackages
