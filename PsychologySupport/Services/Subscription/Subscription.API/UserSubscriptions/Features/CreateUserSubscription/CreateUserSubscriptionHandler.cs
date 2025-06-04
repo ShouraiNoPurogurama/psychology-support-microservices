@@ -52,14 +52,9 @@ public class CreateUserSubscriptionHandler(
         
         if (awaitingPaymentSubscription is not null)
         {
-            var paymentUrlResponse = await paymentClient.GetResponse<GenerateSubscriptionPaymentUrlResponse>(
-                new GenerateSubscriptionPaymentUrlRequest
-                {
-                    PatientId = request.UserSubscription.PatientId,
-                    ServicePackageId = request.UserSubscription.ServicePackageId,
-                    PromoCode = request.UserSubscription.PromoCode,
-                    GiftId = request.UserSubscription.GiftId
-                }, cancellationToken);
+            var paymentUrlResponse =
+                await paymentClient.GetResponse<GetPendingPaymentUrlForSubscriptionResponse>(
+                    new GetPendingPaymentUrlForSubscriptionRequest(awaitingPaymentSubscription.Id), cancellationToken);
 
             var existingPaymentUrl = paymentUrlResponse.Message.Url ??
                                      throw new BadRequestException(
