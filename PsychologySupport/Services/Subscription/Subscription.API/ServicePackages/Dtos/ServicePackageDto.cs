@@ -7,9 +7,13 @@ public record ServicePackageDto(
     decimal Price,
     int DurationDays,
     Guid ImageId,
-    bool IsActive,
-    bool? IsPurchased = null
+    bool IsActive
 )
 {
-    public bool? IsPurchased { get; set; } = IsPurchased;
+    public string? PurchaseStatus { get; set; }
+
+    public ServicePackageDto() : this(Guid.Empty, string.Empty, string.Empty, 0, 0, Guid.Empty, false)
+    {
+        
+    }
 }

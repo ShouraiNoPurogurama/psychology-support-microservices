@@ -4,16 +4,17 @@ using Microsoft.EntityFrameworkCore;
 using Subscription.API.Data;
 using Subscription.API.Data.Common;
 using Subscription.API.ServicePackages.Dtos;
+using Subscription.API.ServicePackages.Enums;
 
 namespace Subscription.API.ServicePackages.Features.GetServicePackages;
 
 public record GetServicePackagesQuery(
-        int PageIndex,
-        int PageSize,
-        string? Search = "", // Name vs Description
-        bool? Status = null, // filter
-        Guid? PatientId = null // filter
-    ) : IQuery<GetServicePackagesResult>;
+    int PageIndex = 1,
+    int PageSize = 10,
+    string? Search = "", // Name vs Description
+    bool? Status = null, // filter
+    Guid? PatientId = null // filter
+) : IQuery<GetServicePackagesResult>;
 
 public record GetServicePackagesResult(PaginatedResult<ServicePackageDto> ServicePackages);
 
@@ -57,21 +58,29 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
                 sp.Price,
                 sp.DurationDays,
                 sp.ImageId,
-                sp.IsActive,
-                false 
+                sp.IsActive
             ))
             .ToListAsync(cancellationToken);
 
         if (request.PatientId is not null)
         {
             var patientSubscriptions = await _dbContext.UserSubscriptions
-                .Where(u => u.PatientId == request.PatientId && u.EndDate >= DateTime.UtcNow && u.Status == SubscriptionStatus.Active || u.Status == SubscriptionStatus.AwaitPayment)
-                .Select(u => u.ServicePackageId)
-                .ToListAsync(cancellationToken);
+                .Where(u => u.PatientId == request.PatientId && u.EndDate >= DateTime.UtcNow &&
+                    u.Status == SubscriptionStatus.Active || u.Status == SubscriptionStatus.AwaitPayment)
+                .ToDictionaryAsync(u => u.ServicePackageId, u =>
+                {
+                    return u.Status switch
+                    {
+                        SubscriptionStatus.Active => ServicePackageBuyStatus.Purchased,
+                        SubscriptionStatus.AwaitPayment => ServicePackageBuyStatus.PendingPayment,
+                        _ => ServicePackageBuyStatus.NotPurchased
+                    };
+                }, cancellationToken: cancellationToken);
 
             foreach (var servicePackage in servicePackages)
             {
-                servicePackage.IsPurchased = patientSubscriptions.Contains(servicePackage.Id);
+                servicePackage.PurchaseStatus = patientSubscriptions.TryGetValue(servicePackage.Id, out var status)
+                    ? status.ToString(): nameof(ServicePackageBuyStatus.NotPurchased);
             }
         }
 
