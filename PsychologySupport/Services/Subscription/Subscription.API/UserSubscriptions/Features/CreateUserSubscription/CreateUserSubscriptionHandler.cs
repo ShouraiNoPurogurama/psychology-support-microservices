@@ -23,6 +23,7 @@ public class CreateUserSubscriptionHandler(
     SubscriptionDbContext context,
     IRequestClient<GenerateSubscriptionPaymentUrlRequest> paymentClient,
     IRequestClient<GetPatientProfileRequest> getPatientProfileClient,
+    IRequestClient<GetPendingPaymentUrlForSubscriptionRequest> paymentUrlClient,
     PromotionService.PromotionServiceClient promotionService)
     : ICommandHandler<CreateUserSubscriptionCommand, CreateUserSubscriptionResult>
 {
@@ -53,7 +54,7 @@ public class CreateUserSubscriptionHandler(
         if (awaitingPaymentSubscription is not null)
         {
             var paymentUrlResponse =
-                await paymentClient.GetResponse<GetPendingPaymentUrlForSubscriptionResponse>(
+                await paymentUrlClient.GetResponse<GetPendingPaymentUrlForSubscriptionResponse>(
                     new GetPendingPaymentUrlForSubscriptionRequest(awaitingPaymentSubscription.Id), cancellationToken);
 
             var existingPaymentUrl = paymentUrlResponse.Message.Url ??
