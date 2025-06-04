@@ -51,7 +51,9 @@ public class CreateUserSubscriptionHandler(
             .Any(x => x.PatientId == request.UserSubscription.PatientId &&
                                       x.Status == SubscriptionStatus.AwaitPayment);
         if (awaitingPaymentSubscription)
-            throw new BadRequestException("Patient already has an awaiting payment subscription.");
+        {
+            
+        }
         
         var dto = request.UserSubscription;
 

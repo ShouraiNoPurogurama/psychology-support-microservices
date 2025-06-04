@@ -10,6 +10,8 @@ public class Payment : AggregateRoot<Guid>
     public Guid PatientProfileId { get; set; }
     public decimal TotalAmount { get; set; }
 
+    public string PaymentUrl { get; set; } = string.Empty;
+    
     public Guid? SubscriptionId { get; set; }
     public Guid? BookingId { get; set; }
 
