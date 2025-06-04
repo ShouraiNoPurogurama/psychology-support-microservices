@@ -72,6 +72,10 @@ jobs:
           ${{ secrets.APPSETTINGS_NOTIFICATION }}
           EOF
 
+          cat <<EOF > Services/Notification/Notification.API/firebase_key.json
+          ${{ secrets.NOTIFICATION_FIREBASE_KEY }}
+          EOF
+
           cat <<EOF > Services/Payment/Payment.API/appsettings.json
           ${{ secrets.APPSETTINGS_PAYMENT }}
           EOF
