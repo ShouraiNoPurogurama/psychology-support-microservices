@@ -13,7 +13,7 @@ public class GetPendingPaymentUrlForSubscriptionHandler(ISender sender) : IConsu
         
         var result = await sender.Send(query);
         
-        var response = new GetPaymentUrlForSubscriptionResult(result.Url);
+        var response = new GetPendingPaymentUrlForSubscriptionResponse(result.Url);
         
         await context.RespondAsync(response);
     }
