@@ -20,7 +20,7 @@ public class NotificationIntegrationEventHandler<TNotificationEvent, TDomainEven
         if (await outboxService.HasMessageAsync(context.Message, context.CancellationToken))
             return;
 
-            //Always store as Domain events so that they can be
+        //Always store as Domain events so that they can be
         //handled by other notification aggregates locally 
         var domainEvent = ConvertToDomainEvent(context.Message);
 
