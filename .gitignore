@@ -419,3 +419,4 @@ PsychologySupport/Services/Scheduling/Scheduling.API/clustering_patterns.csv
 PsychologySupport/Services/Scheduling/Scheduling.API/Dtos/ClusterData.cs
 PsychologySupport/Services/Promotion/Promotion.Grpc/PromotionDb
 PsychologySupport/.vscode/
+/PsychologySupport/docker-compose.yml
