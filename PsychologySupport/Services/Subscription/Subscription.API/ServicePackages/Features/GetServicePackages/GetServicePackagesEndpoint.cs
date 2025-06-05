@@ -17,6 +17,7 @@ public class GetServicePackagesEndpoint : ICarterModule
             [AsParameters] GetServicePackagesQuery request, ISender sender) =>
         {
             var result = await sender.Send(request);
+
             var response = result.Adapt<GetServicePackagesResponse>();
 
             return Results.Ok(response);

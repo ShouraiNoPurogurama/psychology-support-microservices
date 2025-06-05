@@ -36,11 +36,13 @@ public class CreateVnPayCallBackUrlForBookingCommandHandler(IVnPayService vnPayS
             dto.BookingId
         );
 
-        dbContext.Payments.Add(payment);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-
         var vnPayUrl = await vnPayService.CreateVNPayUrlForBookingAsync(request.BuyBooking, payment.Id);
+
+        payment.PaymentUrl = vnPayUrl;
+
+        dbContext.Payments.Add(payment);
+        
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return new CreateVnPayCallBackUrlForBookingCommandResult(vnPayUrl);
     }

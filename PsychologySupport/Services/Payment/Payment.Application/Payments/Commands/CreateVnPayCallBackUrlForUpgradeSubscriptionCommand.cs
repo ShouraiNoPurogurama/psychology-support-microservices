@@ -39,9 +39,10 @@ public class CreateVnPayCallBackUrlForUpgradeSubscriptionCommandHandler(IVnPaySe
             null
         );
 
-        dbContext.Payments.Add(payment);
-
         var vnPayUrl = await vnPayService.CreateVNPayUrlForUpgradeSubscriptionAsync(request.UpgradeSubscription, payment.Id);
+
+        payment.PaymentUrl = vnPayUrl;
+        dbContext.Payments.Add(payment);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

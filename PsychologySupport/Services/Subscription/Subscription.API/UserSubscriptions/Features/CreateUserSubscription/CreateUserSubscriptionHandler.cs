@@ -23,6 +23,7 @@ public class CreateUserSubscriptionHandler(
     SubscriptionDbContext context,
     IRequestClient<GenerateSubscriptionPaymentUrlRequest> paymentClient,
     IRequestClient<GetPatientProfileRequest> getPatientProfileClient,
+    IRequestClient<GetPendingPaymentUrlForSubscriptionRequest> paymentUrlClient,
     PromotionService.PromotionServiceClient promotionService)
     : ICommandHandler<CreateUserSubscriptionCommand, CreateUserSubscriptionResult>
 {
@@ -40,12 +41,29 @@ public class CreateUserSubscriptionHandler(
 
         //Check if there is an existing subscription
         var existingSubscription = context.UserSubscriptions
-            .Any(x => x.PatientId == request.UserSubscription.PatientId &&
-                                      x.Status == SubscriptionStatus.Active || x.Status == SubscriptionStatus.AwaitPayment);
+            .Any(x => x.PatientId == request.UserSubscription.PatientId && x.Status == SubscriptionStatus.Active );
         
-        if(existingSubscription) 
+        if (existingSubscription)
             throw new BadRequestException("Patient already has an active subscription.");
+
+        //Check if user have any awaiting payment
+        var awaitingPaymentSubscription = await context.UserSubscriptions
+            .FirstOrDefaultAsync(x => x.PatientId == request.UserSubscription.PatientId &&
+                                      x.Status == SubscriptionStatus.AwaitPayment, cancellationToken: cancellationToken);
         
+        if (awaitingPaymentSubscription is not null)
+        {
+            var paymentUrlResponse =
+                await paymentUrlClient.GetResponse<GetPendingPaymentUrlForSubscriptionResponse>(
+                    new GetPendingPaymentUrlForSubscriptionRequest(awaitingPaymentSubscription.Id), cancellationToken);
+
+            var existingPaymentUrl = paymentUrlResponse.Message.Url ??
+                                     throw new BadRequestException(
+                                         "Cannot create payment url for awaiting payment subscription.");
+
+            return new CreateUserSubscriptionResult(awaitingPaymentSubscription.Id, existingPaymentUrl);
+        }
+
         var dto = request.UserSubscription;
 
         ServicePackage servicePackage = await context.ServicePackages
@@ -62,15 +80,20 @@ public class CreateUserSubscriptionHandler(
             promoCodeId, dto.GiftId, servicePackage, finalPrice);
 
         
-        //Validate subscription simulation
-        
         context.UserSubscriptions.Add(userSubscription);
         await context.SaveChangesAsync(cancellationToken);
 
         #endregion
+        
+        var paymentUrl = await GeneratePaymentUrl(cancellationToken, dto, userSubscription, servicePackage, patient, finalPrice, promoCode);
+        
+        return new CreateUserSubscriptionResult(userSubscription.Id, paymentUrl.Message.Url);
+    }
 
-        #region Publish event to Payment
-
+    private async Task<Response<GenerateSubscriptionPaymentUrlResponse>> GeneratePaymentUrl(CancellationToken cancellationToken, CreateUserSubscriptionDto dto,
+        UserSubscription userSubscription, ServicePackage servicePackage, Response<GetPatientProfileResponse> patient, decimal finalPrice,
+        PromoCodeActivateDto? promoCode)
+    {
         GenerateSubscriptionPaymentUrlRequest subscriptionCreatedEvent = dto.Adapt<GenerateSubscriptionPaymentUrlRequest>();
         subscriptionCreatedEvent.SubscriptionId = userSubscription.Id;
         subscriptionCreatedEvent.Name = servicePackage.Name;
@@ -89,10 +112,7 @@ public class CreateUserSubscriptionHandler(
 
         if (paymentUrl.Message is null)
             throw new BadRequestException("Cannot create payment url.");
-
-        #endregion
-
-        return new CreateUserSubscriptionResult(userSubscription.Id, paymentUrl.Message.Url);
+        return paymentUrl;
     }
 
     private async Task<(decimal finalPrice, PromoCodeActivateDto? promotion)> CalculateFinalPriceAsync(

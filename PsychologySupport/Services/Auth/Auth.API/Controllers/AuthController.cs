@@ -46,4 +46,11 @@ public class AuthController(
         var result = await authService.RefreshAsync(refreshTokenRequest);
         return Ok(result);
     }
+    
+    [HttpPost("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail([AsParameters] ConfirmEmailRequest confirmEmailRequest)
+    {
+        var result = await authService.ConfirmEmailAsync(confirmEmailRequest);
+        return Ok(result);
+    }
 }

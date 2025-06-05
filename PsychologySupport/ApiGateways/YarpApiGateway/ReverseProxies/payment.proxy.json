@@ -32,7 +32,7 @@
         },
         "Transforms": [
           {
-            "PathPattern": "{**catch-all}"
+            "PathPattern": "/payments/callback"
           }
         ],
         "RateLimiterPolicy": "fixed"

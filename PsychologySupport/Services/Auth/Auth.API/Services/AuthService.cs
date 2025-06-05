@@ -8,6 +8,7 @@ using BuildingBlocks.Constants;
 using BuildingBlocks.Data.Common;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.Notification;
 using BuildingBlocks.Messaging.Events.Profile;
 using BuildingBlocks.Utils;
 using Mapster;
@@ -22,7 +23,8 @@ public class AuthService(
     IConfiguration configuration,
     ITokenService tokenService,
     IRequestClient<CreatePatientProfileRequest> _profileClient,
-    AuthDbContext authDbContext
+    AuthDbContext authDbContext,
+    IPublishEndpoint publishEndpoint
     ) : IAuthService
 {
     private const int LockoutTimeInMinutes = 15;
@@ -36,7 +38,16 @@ public class AuthService(
 
         var user = registerRequest.Adapt<User>();
         user.Email = user.UserName = registerRequest.Email;
-        user.EmailConfirmed = true;
+
+        var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        
+        var sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
+            user.Email,
+            "Xác nhận tài khoản",
+            $"Vui lòng xác nhận tài khoản của bạn bằng cách nhấp vào liên kết sau: {configuration["Mail:ConfirmEmailUrl"]}?token={emailConfirmationToken}&email={user.Email}"
+        );
+        
+        // user.EmailConfirmed = true;
         user.PhoneNumberConfirmed = true;
 
         var result = await _userManager.CreateAsync(user, registerRequest.Password);
@@ -143,10 +154,12 @@ public class AuthService(
             refreshToken
         );
     }
-
-
-    public async Task<bool> ConfirmEmailAsync(string token, string email)
+    
+    public async Task<bool> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest)
     {
+        var token = confirmEmailRequest.Token;
+        var email = confirmEmailRequest.Email;
+        
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email))
             throw new BadRequestException("Email hoặc Token bị thiếu.");
 
