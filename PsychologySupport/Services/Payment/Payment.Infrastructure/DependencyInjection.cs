@@ -1,5 +1,4 @@
 ﻿using BuildingBlocks.Data.Interceptors;
-using BuildingBlocks.Messaging.Masstransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -9,6 +8,8 @@ using Payment.Application.ServiceContracts;
 using Payment.Infrastructure.Data;
 using Payment.Infrastructure.Extensions;
 using Payment.Infrastructure.Services;
+using Net.payOS;
+using Payment.Application.Utils;
 
 namespace Payment.Infrastructure;
 
@@ -33,7 +34,17 @@ public static class DependencyInjection
 
         services.AddScoped<IVnPayService, VNPayService>();
         services.AddScoped<IPaymentValidatorService, PaymentValidatorService>();
-        
+
+        services.AddSingleton(_ =>
+        new PayOS(
+            config["PayOS:ClientId"]!,
+            config["PayOS:ApiKey"]!,
+            config["PayOS:ChecksumKey"]!
+        )
+        );
+        services.AddSingleton<PayOSLibrary>();
+        services.AddScoped<IPayOSService, PayOSService>();
+
         return services;
     }
 }

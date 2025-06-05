@@ -24,6 +24,14 @@ public class PaymentValidatorService(
         }
     }
 
+    public void ValidatePayOSMethod(PaymentMethodName paymentMethod)
+    {
+        if (paymentMethod != PaymentMethodName.PayOS)
+        {
+            throw new BadRequestException("Invalid payment method");
+        }
+    }
+
     public async Task ValidateSubscriptionRequestAsync(BuySubscriptionDto dto)
     {
         ValidateVNPayMethod(dto.PaymentMethod);

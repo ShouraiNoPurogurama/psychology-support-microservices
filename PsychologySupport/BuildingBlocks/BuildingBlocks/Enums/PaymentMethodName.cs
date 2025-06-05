@@ -6,5 +6,6 @@ namespace BuildingBlocks.Enums;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PaymentMethodName
 {
-    VNPay
+    VNPay,
+    PayOS
 }
