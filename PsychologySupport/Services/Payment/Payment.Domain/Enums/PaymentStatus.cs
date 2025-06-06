@@ -8,6 +8,5 @@ public enum PaymentStatus
     Pending,
     Completed,
     Failed,
-    Cancelled,
-    None
+    Cancelled
 }

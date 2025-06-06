@@ -1,9 +1,9 @@
-﻿using BuildingBlocks.CQRS;
+﻿using System.Transactions;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Net.payOS.Types;
 using Payment.Application.Data;
-using Payment.Domain.Enums;
 
 namespace Payment.Application.Payments.Commands;
 
@@ -24,41 +24,41 @@ public class ProcessPayOSWebhookCommandHandler : ICommandHandler<ProcessPayOSWeb
         var webhookData = request.WebhookData;
         var orderCode = LongToGuid(webhookData.orderCode);
 
-
         var payment = await _dbContext.Payments
             .FirstOrDefaultAsync(p => p.Id == orderCode, cancellationToken)
             ?? throw new NotFoundException(nameof(Domain.Models.Payment), orderCode);
 
-        var desc = webhookData.desc?.ToUpperInvariant() ?? "";
+        var desc = webhookData.desc?.ToUpperInvariant() ?? string.Empty;
+        var amount = webhookData.amount / 100m; 
 
-        if (desc != null)
+        using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var descUpper = desc.ToUpperInvariant();
+            if (desc.Contains("THÀNH CÔNG") || desc.Contains("SUCCESS"))
+            {
 
-            if (descUpper.Contains("THÀNH CÔNG") || descUpper.Contains("SUCCESS"))
-            {
-                payment.Status = PaymentStatus.Completed;
+                payment.AddPaymentDetail(
+                    PaymentDetail.Of(amount, webhookData.reference).MarkAsSuccess()
+                );
+                payment.MarkAsCompleted("unknown@example.com");
             }
-            else if (descUpper.Contains("HUỶ") || descUpper.Contains("CANCELLED"))
+            else if (desc.Contains("HUỶ") || desc.Contains("CANCELLED") || desc.Contains("THẤT BẠI") || desc.Contains("FAILED"))
             {
-                payment.Status = PaymentStatus.Cancelled;
-            }
-            else if (descUpper.Contains("THẤT BẠI") || descUpper.Contains("FAILED"))
-            {
-                payment.Status = PaymentStatus.Failed;
+
+                payment.AddFailedPaymentDetail(
+                    PaymentDetail.Of(amount, webhookData.reference),
+                    "unknown@example.com",
+                    null, 
+                    null 
+                );
             }
             else
             {
-                payment.Status = PaymentStatus.None;
+                throw new BadRequestException("Invalid payment status in webhook description");
             }
-        }
-        else
-        {
-            payment.Status = PaymentStatus.None;
-        }
 
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            scope.Complete();
+        }
 
         return new ProcessPayOSWebhookResult(true);
     }
@@ -69,5 +69,4 @@ public class ProcessPayOSWebhookCommandHandler : ICommandHandler<ProcessPayOSWeb
         BitConverter.GetBytes(value).CopyTo(bytes, 0);
         return new Guid(bytes);
     }
-
 }
