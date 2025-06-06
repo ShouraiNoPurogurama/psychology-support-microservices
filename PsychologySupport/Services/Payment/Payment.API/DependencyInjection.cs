@@ -40,10 +40,10 @@ public static class DependencyInjection
                 Title = "Payment API",
                 Version = "v1"
             });
-            options.AddServer(new OpenApiServer
-            {
-                Url = "/payment-service/"
-            });
+            //options.AddServer(new OpenApiServer
+            //{
+            //    Url = "/payment-service/"
+            //});
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",

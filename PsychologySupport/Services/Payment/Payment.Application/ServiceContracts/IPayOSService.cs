@@ -1,3 +1,4 @@
+using Net.payOS.Types;
 using Payment.Application.Payments.Dtos;
 
 public interface IPayOSService
@@ -6,5 +7,10 @@ public interface IPayOSService
     Task<string> CreatePayOSUrlForUpgradeSubscriptionAsync(UpgradeSubscriptionDto dto, Guid paymentId);
     Task<string> CreatePayOSUrlForBookingAsync(BuyBookingDto dto, Guid paymentId);
 
-    //bool ValidateSignature(string data, string signature);
+    Task<PaymentLinkInformation> GetPaymentLinkInformationAsync(long orderCode);
+    Task<PaymentLinkInformation> CancelPaymentLinkAsync(long orderCode, string? cancellationReason = null);
+
+    Task<string> ConfirmWebhookAsync(string webhookUrl);
+    Task<WebhookData> VerifyWebhookDataAsync(string webhookJson);
+
 }

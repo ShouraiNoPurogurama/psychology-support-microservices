@@ -4,20 +4,18 @@ using Microsoft.Extensions.Configuration;
 using Payment.Application.Payments.Dtos;
 using Payment.Application.ServiceContracts;
 using Payment.Application.Utils;
+using Net.payOS.Types;
 
 namespace Payment.Infrastructure.Services;
 
 public class PayOSService(
     IPaymentValidatorService paymentValidatorService,
-    IHttpContextAccessor contextAccessor,
     IConfiguration configuration,
     PayOSLibrary payOSLibrary
 ) : IPayOSService
 {
     public async Task<string> CreatePayOSUrlForSubscriptionAsync(BuySubscriptionDto dto, Guid paymentId)
     {
-        // await paymentValidatorService.ValidateSubscriptionRequestAsync(dto);
-
         var orderInfo = BuildOrderInfo(dto, paymentId);
 
         return await payOSLibrary.CreatePaymentLinkAsync(
@@ -31,8 +29,6 @@ public class PayOSService(
 
     public async Task<string> CreatePayOSUrlForUpgradeSubscriptionAsync(UpgradeSubscriptionDto dto, Guid paymentId)
     {
-        // await paymentValidatorService.ValidateSubscriptionRequestAsync(dto);
-
         var orderInfo = BuildOrderInfo(dto, paymentId);
 
         return await payOSLibrary.CreatePaymentLinkAsync(
@@ -46,8 +42,6 @@ public class PayOSService(
 
     public async Task<string> CreatePayOSUrlForBookingAsync(BuyBookingDto dto, Guid paymentId)
     {
-        // await paymentValidatorService.ValidateBookingRequestAsync(dto);
-
         var orderInfo = BuildOrderInfo(dto, paymentId);
 
         return await payOSLibrary.CreatePaymentLinkAsync(
@@ -59,10 +53,17 @@ public class PayOSService(
         );
     }
 
-    //public bool ValidateSignature(string data, string signature)
-    //{
-    //    return payOSLibrary.VerifySignature(data, signature);
-    //}
+    public Task<PaymentLinkInformation> GetPaymentLinkInformationAsync(long orderCode)
+        => payOSLibrary.GetPaymentLinkInformationAsync(orderCode);
+
+    public Task<PaymentLinkInformation> CancelPaymentLinkAsync(long orderCode, string? cancellationReason = null)
+        => payOSLibrary.CancelPaymentLinkAsync(orderCode, cancellationReason);
+
+    public Task<string> ConfirmWebhookAsync(string webhookUrl)
+        => payOSLibrary.ConfirmWebhookAsync(webhookUrl);
+
+    public Task<WebhookData> VerifyWebhookDataAsync(string webhookJson)
+        => payOSLibrary.VerifyWebhookDataAsync(webhookJson);
 
     private static string BuildOrderInfo(object dto, Guid paymentId)
     {
@@ -81,7 +82,6 @@ public class PayOSService(
         return sb.ToString();
     }
 
-    // Convert Guid to long 
     private static long GuidToLong(Guid guid)
     {
         var bytes = guid.ToByteArray();

@@ -34,21 +34,21 @@ public class PaymentValidatorService(
 
     public async Task ValidateSubscriptionRequestAsync(BuySubscriptionDto dto)
     {
-        ValidateVNPayMethod(dto.PaymentMethod);
+        ValidatePayOSMethod(dto.PaymentMethod);
         await ValidatePatientAsync(dto.PatientId);
         await ValidateSubscriptionAsync(dto);
     }
 
     public async Task ValidateSubscriptionRequestAsync(UpgradeSubscriptionDto dto)
     {
-        ValidateVNPayMethod(dto.PaymentMethod);
+        ValidatePayOSMethod(dto.PaymentMethod);
         await ValidatePatientAsync(dto.PatientId);
         await ValidateUpgradeSubscriptionAsync(dto);
     }
 
     public async Task ValidateBookingRequestAsync(BuyBookingDto dto)
     {
-        ValidateVNPayMethod(dto.PaymentMethod);
+        ValidatePayOSMethod(dto.PaymentMethod);
         await ValidatePatientAsync(dto.PatientId);
         await ValidateBookingAsync(dto);
     }

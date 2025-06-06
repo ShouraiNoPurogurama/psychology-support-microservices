@@ -55,4 +55,46 @@ public class PayOSLibrary
             throw new Exception($"Webhook verification failed: {ex.Message}", ex);
         }
     }
+
+    public async Task<PaymentLinkInformation> GetPaymentLinkInformationAsync(long orderCode)
+    {
+        try
+        {
+            // Call SDK to get payment link information
+            PaymentLinkInformation paymentLinkInfo = await _client.getPaymentLinkInformation(orderCode);
+            return paymentLinkInfo;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Failed to retrieve payment link information: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<PaymentLinkInformation> CancelPaymentLinkAsync(long orderCode, string? cancellationReason = null)
+    {
+        try
+        {
+            // Call SDK to cancel payment link
+            PaymentLinkInformation canceledLink = await _client.cancelPaymentLink(orderCode, cancellationReason);
+            return canceledLink;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Failed to cancel payment link: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<string> ConfirmWebhookAsync(string webhookUrl)
+    {
+        try
+        {
+            // Call SDK to confirm webhook URL
+            string verifiedWebhookUrl = await _client.confirmWebhook(webhookUrl);
+            return verifiedWebhookUrl;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Failed to confirm webhook URL: {ex.Message}", ex);
+        }
+    }
 }
