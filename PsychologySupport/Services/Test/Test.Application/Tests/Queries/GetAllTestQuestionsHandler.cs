@@ -41,7 +41,6 @@ public class GetAllTestQuestionsHandler : IQueryHandler<GetAllTestQuestionsQuery
             totalCount,
             testQuestions
         );
-
         return new GetAllTestQuestionsResult(paginatedResult);
     }
 }
