@@ -28,11 +28,11 @@
       "profile-route-specialties": {
         "ClusterId": "profile-cluster",
         "Match": {
-          "Path": "/profile-service/specialties/{**catch-all}"
+          "Path": "/profile-service/specialties"
         },
         "Transforms": [
           {
-            "PathPattern": "{**catch-all}"
+            "PathPattern": "/specialties"
           }
         ],
         "RateLimiterPolicy": "fixed"
