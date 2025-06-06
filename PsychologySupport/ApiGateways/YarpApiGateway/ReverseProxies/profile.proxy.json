@@ -25,6 +25,18 @@
         ],
         "RateLimiterPolicy": "fixed"
       },
+      "profile-route-specialties": {
+        "ClusterId": "profile-cluster",
+        "Match": {
+          "Path": "/profile-service/specialties/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "profile-route": {
         "ClusterId": "profile-cluster",
         "Match": {
