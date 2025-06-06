@@ -25,26 +25,41 @@
         ],
         "RateLimiterPolicy": "fixed"
       },
-      "scheduling-route": {
+      "scheduling-route-doctor-schedule": {
         "ClusterId": "scheduling-cluster",
         "Match": {
-          "Path": "/scheduling-service/{**catch-all}"
+          "Path": "/scheduling-service/doctor-schedule/{**catch-all}",
+          "Methods": [
+            "GET"
+          ]
         },
         "Transforms": [
           {
-            "PathPattern": "{**catch-all}"
+            "PathPattern": "/doctor-schedule/{**catch-all}",
           }
         ],
-        "RateLimiterPolicy": "fixed",
-        "AuthorizationPolicy": "AuthenticatedUser"
+        "RateLimiterPolicy": "fixed"
       }
     },
-    "Clusters": {
-      "scheduling-cluster": {
-        "Destinations": {
-          "destination1": {
-            "Address": "http://scheduling.api:8080/"
-          }
+    "scheduling-route": {
+      "ClusterId": "scheduling-cluster",
+      "Match": {
+        "Path": "/scheduling-service/{**catch-all}"
+      },
+      "Transforms": [
+        {
+          "PathPattern": "{**catch-all}"
+        }
+      ],
+      "RateLimiterPolicy": "fixed",
+      "AuthorizationPolicy": "AuthenticatedUser"
+    }
+  },
+  "Clusters": {
+    "scheduling-cluster": {
+      "Destinations": {
+        "destination1": {
+          "Address": "http://scheduling.api:8080/"
         }
       }
     }
