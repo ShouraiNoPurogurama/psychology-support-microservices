@@ -37,7 +37,7 @@
         ],
         "RateLimiterPolicy": "fixed"
       },
-      "profile-route-doctors": {
+      "profile-route-doctor-detail": {
         "ClusterId": "profile-cluster",
         "Match": {
           "Path": "/profile-service/doctors/{**catch-all}",
@@ -48,6 +48,21 @@
         "Transforms": [
           {
             "PathPattern": "/doctors/{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
+      "profile-route-doctor-list": {
+        "ClusterId": "profile-cluster",
+        "Match": {
+          "Path": "/profile-service/doctors",
+          "Methods": [
+            "GET"
+          ]
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/doctors"
           }
         ],
         "RateLimiterPolicy": "fixed"

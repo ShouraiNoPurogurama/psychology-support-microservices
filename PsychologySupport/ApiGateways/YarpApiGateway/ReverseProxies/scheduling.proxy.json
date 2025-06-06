@@ -39,27 +39,27 @@
           }
         ],
         "RateLimiterPolicy": "fixed"
+      },
+      "scheduling-route": {
+        "ClusterId": "scheduling-cluster",
+        "Match": {
+          "Path": "/scheduling-service/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "{**catch-all}"
+          }
+        ],
+        "RateLimiterPolicy": "fixed",
+        "AuthorizationPolicy": "AuthenticatedUser"
       }
     },
-    "scheduling-route": {
-      "ClusterId": "scheduling-cluster",
-      "Match": {
-        "Path": "/scheduling-service/{**catch-all}"
-      },
-      "Transforms": [
-        {
-          "PathPattern": "{**catch-all}"
-        }
-      ],
-      "RateLimiterPolicy": "fixed",
-      "AuthorizationPolicy": "AuthenticatedUser"
-    }
-  },
-  "Clusters": {
-    "scheduling-cluster": {
-      "Destinations": {
-        "destination1": {
-          "Address": "http://scheduling.api:8080/"
+    "Clusters": {
+      "scheduling-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://scheduling.api:8080/"
+          }
         }
       }
     }
