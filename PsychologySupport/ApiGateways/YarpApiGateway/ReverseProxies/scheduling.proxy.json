@@ -28,14 +28,14 @@
       "scheduling-route-doctor-schedule": {
         "ClusterId": "scheduling-cluster",
         "Match": {
-          "Path": "/scheduling-service/doctor-schedule{**catch-all}",
+          "Path": "/scheduling-service/doctor-schedule/{**catch-all}",
           "Methods": [
             "GET"
           ]
         },
         "Transforms": [
           {
-            "PathPattern": "/doctor-schedule{**catch-all}"
+            "PathPattern": "/doctor-schedule/{**catch-all}"
           }
         ],
         "RateLimiterPolicy": "fixed"

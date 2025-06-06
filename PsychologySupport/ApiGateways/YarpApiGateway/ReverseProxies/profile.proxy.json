@@ -40,14 +40,14 @@
       "profile-route-doctors": {
         "ClusterId": "profile-cluster",
         "Match": {
-          "Path": "/profile-service/doctors{**catch-all}",
+          "Path": "/profile-service/doctors/{**catch-all}",
           "Methods": [
             "GET"
           ]
         },
         "Transforms": [
           {
-            "PathPattern": "/doctors{**catch-all}"
+            "PathPattern": "/doctors/{**catch-all}"
           }
         ],
         "RateLimiterPolicy": "fixed"
