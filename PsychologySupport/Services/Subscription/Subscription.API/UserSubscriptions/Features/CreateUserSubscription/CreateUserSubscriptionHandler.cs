@@ -54,13 +54,20 @@ public class CreateUserSubscriptionHandler(
         var awaitingPaymentSubscription = await context.UserSubscriptions
             .FirstOrDefaultAsync(x => x.PatientId == request.UserSubscription.PatientId &&
                                       x.Status == SubscriptionStatus.AwaitPayment, cancellationToken: cancellationToken);
-
+        
         if (awaitingPaymentSubscription is not null)
         {
+            bool isSameService = awaitingPaymentSubscription.ServicePackageId == request.UserSubscription.ServicePackageId;
+
+            if (isSameService)
+            {
+                throw new BadRequestException("Patient already has an awaiting payment subscription for this service package.");
+            }
+            
             var paymentUrlResponse =
                 await paymentUrlClient.GetResponse<GetPendingPaymentUrlForSubscriptionResponse>(
                     new GetPendingPaymentUrlForSubscriptionRequest(awaitingPaymentSubscription.Id), cancellationToken);
-
+            
             var existingPaymentUrl = paymentUrlResponse.Message.Url ??
                                      throw new BadRequestException(
                                          "Cannot create payment url for awaiting payment subscription.");
