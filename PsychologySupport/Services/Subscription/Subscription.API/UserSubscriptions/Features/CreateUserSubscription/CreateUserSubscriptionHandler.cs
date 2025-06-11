@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.CQRS;
+﻿using System.Data;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Payment;
 using BuildingBlocks.Messaging.Events.Profile;
@@ -30,6 +31,9 @@ public class CreateUserSubscriptionHandler(
     public async Task<CreateUserSubscriptionResult> Handle(CreateUserSubscriptionCommand request,
         CancellationToken cancellationToken)
     {
+        await using var transaction = await context.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable, cancellationToken);
+
         var patient =
             await getPatientProfileClient.GetResponse<GetPatientProfileResponse>(
                 new GetPatientProfileRequest(request.UserSubscription.PatientId), cancellationToken);
@@ -40,17 +44,17 @@ public class CreateUserSubscriptionHandler(
         }
 
         //Check if there is an existing subscription
-        var existingSubscription = context.UserSubscriptions
-            .Any(x => x.PatientId == request.UserSubscription.PatientId && x.Status == SubscriptionStatus.Active );
-        
-        if (existingSubscription)
+        var hasActive = await context.UserSubscriptions
+            .AnyAsync(x => x.PatientId == request.UserSubscription.PatientId && x.Status == SubscriptionStatus.Active, cancellationToken);
+
+        if (hasActive)
             throw new BadRequestException("Patient already has an active subscription.");
 
         //Check if user have any awaiting payment
         var awaitingPaymentSubscription = await context.UserSubscriptions
             .FirstOrDefaultAsync(x => x.PatientId == request.UserSubscription.PatientId &&
                                       x.Status == SubscriptionStatus.AwaitPayment, cancellationToken: cancellationToken);
-        
+
         if (awaitingPaymentSubscription is not null)
         {
             var paymentUrlResponse =
@@ -79,19 +83,24 @@ public class CreateUserSubscriptionHandler(
         var userSubscription = UserSubscription.Create(dto.PatientId, dto.ServicePackageId, dto.StartDate,
             promoCodeId, dto.GiftId, servicePackage, finalPrice);
 
-        
+
         context.UserSubscriptions.Add(userSubscription);
         await context.SaveChangesAsync(cancellationToken);
 
         #endregion
+
+        var paymentUrl = await GeneratePaymentUrl(cancellationToken, dto, userSubscription, servicePackage, patient, finalPrice,
+            promoCode);
         
-        var paymentUrl = await GeneratePaymentUrl(cancellationToken, dto, userSubscription, servicePackage, patient, finalPrice, promoCode);
+        await transaction.CommitAsync(cancellationToken);
         
         return new CreateUserSubscriptionResult(userSubscription.Id, paymentUrl.Message.Url);
     }
 
-    private async Task<Response<GenerateSubscriptionPaymentUrlResponse>> GeneratePaymentUrl(CancellationToken cancellationToken, CreateUserSubscriptionDto dto,
-        UserSubscription userSubscription, ServicePackage servicePackage, Response<GetPatientProfileResponse> patient, decimal finalPrice,
+    private async Task<Response<GenerateSubscriptionPaymentUrlResponse>> GeneratePaymentUrl(CancellationToken cancellationToken,
+        CreateUserSubscriptionDto dto,
+        UserSubscription userSubscription, ServicePackage servicePackage, Response<GetPatientProfileResponse> patient,
+        decimal finalPrice,
         PromoCodeActivateDto? promoCode)
     {
         GenerateSubscriptionPaymentUrlRequest subscriptionCreatedEvent = dto.Adapt<GenerateSubscriptionPaymentUrlRequest>();
