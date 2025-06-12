@@ -20,6 +20,7 @@ service PromotionService {
   rpc ConsumeGiftCode(ConsumeGiftCodeRequest) returns (ConsumeGiftCodeResponse);
   rpc ReactivatePromoCode(ReactivatePromoCodeRequest) returns (ReactivatePromoCodeResponse);
   rpc ReactivateGiftCode(ReactivateGiftCodeRequest) returns (ReactivateGiftCodeResponse);
+  rpc GetPromotionById(GetPromotionByIdRequest) returns (GetPromotionByIdResponse);
 }
 
 message GetPromotionsByServicePackageIdRequest {
@@ -193,4 +194,12 @@ message ReactivateGiftCodeRequest {
 
 message ReactivateGiftCodeResponse {
   bool isSuccess = 1;
+}
+
+message GetPromotionByIdRequest {
+  string promotion_id = 1;
+}
+
+message GetPromotionByIdResponse {
+  PromotionDto promotion = 1;
 }

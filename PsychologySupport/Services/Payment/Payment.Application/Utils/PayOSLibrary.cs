@@ -30,8 +30,8 @@ public class PayOSLibrary
             amount,
             description,
             items,
-            returnUrl,
-            cancelUrl
+            cancelUrl,
+            returnUrl
         );
 
         var response = await _client.createPaymentLink(payload);
@@ -56,12 +56,11 @@ public class PayOSLibrary
         }
     }
 
-    public async Task<PaymentLinkInformation> GetPaymentLinkInformationAsync(long orderCode)
+    public async Task<PaymentLinkInformation> GetPaymentLinkInformationAsync(long paymentCode)
     {
         try
         {
-            // Call SDK to get payment link information
-            PaymentLinkInformation paymentLinkInfo = await _client.getPaymentLinkInformation(orderCode);
+            PaymentLinkInformation paymentLinkInfo = await _client.getPaymentLinkInformation(paymentCode);
             return paymentLinkInfo;
         }
         catch (Exception ex)
@@ -70,12 +69,12 @@ public class PayOSLibrary
         }
     }
 
-    public async Task<PaymentLinkInformation> CancelPaymentLinkAsync(long orderCode, string? cancellationReason = null)
+    public async Task<PaymentLinkInformation> CancelPaymentLinkAsync(long paymentCode, string? cancellationReason = null)
     {
         try
         {
             // Call SDK to cancel payment link
-            PaymentLinkInformation canceledLink = await _client.cancelPaymentLink(orderCode, cancellationReason);
+            PaymentLinkInformation canceledLink = await _client.cancelPaymentLink(paymentCode, cancellationReason);
             return canceledLink;
         }
         catch (Exception ex)

@@ -2,6 +2,7 @@
 using BuildingBlocks.Enums;
 using Payment.Domain.Enums;
 using Payment.Domain.Events;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Payment.Domain.Models;
 
@@ -20,6 +21,9 @@ public class Payment : AggregateRoot<Guid>
     public Guid PaymentMethodId { get; set; }
 
     public virtual PaymentMethod PaymentMethod { get; set; }
+
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
+    public long PaymentCode { get; set; }
 
 
     private readonly List<PaymentDetail> _paymentDetails = [];

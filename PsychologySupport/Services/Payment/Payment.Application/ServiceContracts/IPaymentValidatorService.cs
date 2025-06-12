@@ -8,7 +8,9 @@ public interface IPaymentValidatorService
     #region Validate Payment Methods
 
     void ValidateVNPayMethod(PaymentMethodName paymentMethod);
-    
+
+    void ValidatePayOSMethod(PaymentMethodName paymentMethod);
+
     #endregion
 
     #region Validate Payment Requests

@@ -13,5 +13,6 @@ public record UpgradeSubscriptionDto(
     int DurationDays,
     PaymentMethodName PaymentMethod,
     PaymentType PaymentType,
-    decimal OldSubscriptionPrice
+    decimal OldSubscriptionPrice,
+    string ServicePackageName
 ) : BasePaymentDto(FinalPrice, PatientId, PaymentMethod);

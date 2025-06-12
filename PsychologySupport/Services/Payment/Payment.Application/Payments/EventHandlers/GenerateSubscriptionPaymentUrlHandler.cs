@@ -3,32 +3,43 @@ using BuildingBlocks.Messaging.Events.Payment;
 using Mapster;
 using MassTransit;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Payment.Application.Payments.Commands;
 using Payment.Application.Payments.Dtos;
 
 namespace Payment.Application.Payments.EventHandlers;
 
-public class GenerateSubscriptionPaymentUrlHandler : IConsumer<GenerateUpgradeSubscriptionPaymentUrlRequest>
+public class GenerateSubscriptionPaymentUrlHandler : IConsumer<GenerateSubscriptionPaymentUrlRequest>
 {
     private readonly ISender _sender;
+    private readonly ILogger<GenerateSubscriptionPaymentUrlHandler> _logger;
 
-    public GenerateSubscriptionPaymentUrlHandler(ISender sender)
+    public GenerateSubscriptionPaymentUrlHandler(ISender sender, ILogger<GenerateSubscriptionPaymentUrlHandler> logger)
     {
         _sender = sender;
+        _logger = logger;
     }
 
-    public async Task Consume(ConsumeContext<GenerateUpgradeSubscriptionPaymentUrlRequest> context)
+    public async Task Consume(ConsumeContext<GenerateSubscriptionPaymentUrlRequest> context)
     {
-        var dto = context.Message.Adapt<BuySubscriptionDto>();
-
-        string paymentUrl = dto.PaymentMethod switch
+        try
         {
-            PaymentMethodName.VNPay => await HandleVnPay(dto),
-            PaymentMethodName.PayOS => await HandlePayOS(dto),
-            _ => throw new InvalidOperationException($"Unsupported payment method: {dto.PaymentMethod}")
-        };
+            var dto = context.Message.Adapt<BuySubscriptionDto>();
 
-        await context.RespondAsync(new GenerateSubscriptionPaymentUrlResponse(paymentUrl));
+            string paymentUrl = dto.PaymentMethod switch
+            {
+                PaymentMethodName.VNPay => await HandleVnPay(dto),
+                PaymentMethodName.PayOS => await HandlePayOS(dto),
+                _ => throw new InvalidOperationException($"Unsupported payment method: {dto.PaymentMethod}")
+            };
+
+            await context.RespondAsync(new GenerateSubscriptionPaymentUrlResponse(paymentUrl));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to generate subscription payment URL for message: {@Message}", context.Message);
+            throw;
+        }
     }
 
     private async Task<string> HandleVnPay(BuySubscriptionDto dto)

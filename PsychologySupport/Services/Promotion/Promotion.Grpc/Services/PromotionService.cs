@@ -332,4 +332,31 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
             IsSuccess = await dbContext.SaveChangesAsync() > 0
         };
     }
+
+    public override async Task<GetPromotionByIdResponse> GetPromotionById(GetPromotionByIdRequest request, ServerCallContext context)
+    {
+        validator.ValidateGuid(request.PromotionId, "Promotion");
+
+        var promotion = await dbContext.Promotions
+            .Include(p => p.PromotionType)
+            .Include(p => p.PromoCodes)
+            .Include(p => p.GiftCodes)
+            .FirstOrDefaultAsync(p => p.Id == request.PromotionId);
+
+        if (promotion == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Promotion not found"));
+        }
+
+        var promotionDto = promotion.Adapt<PromotionDto>();
+
+        promotionDto.PromoCodes.AddRange(promotion.PromoCodes.Adapt<RepeatedField<PromoCodeDto>>());
+        promotionDto.GiftCodes.AddRange(promotion.GiftCodes.Adapt<RepeatedField<GiftCodeDto>>());
+
+        return new GetPromotionByIdResponse
+        {
+            Promotion = promotionDto
+        };
+    }
+
 }

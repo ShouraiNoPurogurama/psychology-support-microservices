@@ -12,5 +12,6 @@ public record BuySubscriptionDto(
     decimal FinalPrice,
     int DurationDays,
     PaymentMethodName PaymentMethod,
-    PaymentType PaymentType
+    PaymentType PaymentType,
+    string ServicePackageName
 ) : BasePaymentDto(FinalPrice, PatientId, PaymentMethod);

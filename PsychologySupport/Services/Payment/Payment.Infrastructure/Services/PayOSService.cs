@@ -14,50 +14,55 @@ public class PayOSService(
     PayOSLibrary payOSLibrary
 ) : IPayOSService
 {
-    public async Task<string> CreatePayOSUrlForSubscriptionAsync(BuySubscriptionDto dto, Guid paymentId)
+    public async Task<string> CreatePayOSUrlForSubscriptionAsync(BuySubscriptionDto dto, Guid paymentId, long paymentCode)
     {
-        var orderInfo = BuildOrderInfo(dto, paymentId);
+        paymentValidatorService.ValidatePayOSMethod(dto.PaymentMethod);
+        await paymentValidatorService.ValidateSubscriptionRequestAsync(dto);
 
         return await payOSLibrary.CreatePaymentLinkAsync(
-            GuidToLong(paymentId),
-            (int)(dto.FinalPrice * 100),
-            $"Subscription Payment: {orderInfo}",
+            paymentCode, 
+            (int)(dto.FinalPrice),
+            dto.ServicePackageName,
             configuration["PayOS:ReturnUrl"]!,
             configuration["PayOS:CancelUrl"]!
         );
     }
 
-    public async Task<string> CreatePayOSUrlForUpgradeSubscriptionAsync(UpgradeSubscriptionDto dto, Guid paymentId)
+    public async Task<string> CreatePayOSUrlForUpgradeSubscriptionAsync(UpgradeSubscriptionDto dto, Guid paymentId, long paymentCode)
     {
-        var orderInfo = BuildOrderInfo(dto, paymentId);
+        paymentValidatorService.ValidatePayOSMethod(dto.PaymentMethod);
+        await paymentValidatorService.ValidateSubscriptionRequestAsync(dto);
 
         return await payOSLibrary.CreatePaymentLinkAsync(
-            GuidToLong(paymentId),
-            (int)((dto.FinalPrice - dto.OldSubscriptionPrice) * 100),
-            $"Upgrade Subscription: {orderInfo}",
+            paymentCode,
+            (int)((dto.FinalPrice - dto.OldSubscriptionPrice)),
+            dto.ServicePackageName,
             configuration["PayOS:ReturnUrl"]!,
             configuration["PayOS:CancelUrl"]!
         );
     }
 
-    public async Task<string> CreatePayOSUrlForBookingAsync(BuyBookingDto dto, Guid paymentId)
+    public async Task<string> CreatePayOSUrlForBookingAsync(BuyBookingDto dto, Guid paymentId, long paymentCode)
     {
-        var orderInfo = BuildOrderInfo(dto, paymentId);
+
+        paymentValidatorService.ValidatePayOSMethod(dto.PaymentMethod);
+        await paymentValidatorService.ValidateBookingRequestAsync(dto);
+
 
         return await payOSLibrary.CreatePaymentLinkAsync(
-            GuidToLong(paymentId),
-            (int)(dto.FinalPrice * 100),
-            $"Booking Payment: {orderInfo}",
+            paymentCode,
+            (int)(dto.FinalPrice),
+            dto.BookingCode,
             configuration["PayOS:ReturnUrl"]!,
             configuration["PayOS:CancelUrl"]!
         );
     }
 
-    public Task<PaymentLinkInformation> GetPaymentLinkInformationAsync(long orderCode)
-        => payOSLibrary.GetPaymentLinkInformationAsync(orderCode);
+    public Task<PaymentLinkInformation> GetPaymentLinkInformationAsync(long paymentCode)
+        => payOSLibrary.GetPaymentLinkInformationAsync(paymentCode);
 
-    public Task<PaymentLinkInformation> CancelPaymentLinkAsync(long orderCode, string? cancellationReason = null)
-        => payOSLibrary.CancelPaymentLinkAsync(orderCode, cancellationReason);
+    public Task<PaymentLinkInformation> CancelPaymentLinkAsync(long paymentCode, string? cancellationReason = null)
+        => payOSLibrary.CancelPaymentLinkAsync(paymentCode, cancellationReason);
 
     public Task<string> ConfirmWebhookAsync(string webhookUrl)
         => payOSLibrary.ConfirmWebhookAsync(webhookUrl);
@@ -65,26 +70,4 @@ public class PayOSService(
     public Task<WebhookData> VerifyWebhookDataAsync(string webhookJson)
         => payOSLibrary.VerifyWebhookDataAsync(webhookJson);
 
-    private static string BuildOrderInfo(object dto, Guid paymentId)
-    {
-        var sb = new StringBuilder();
-        sb.Append($"PaymentId={paymentId}&");
-        foreach (var prop in dto.GetType().GetProperties())
-        {
-            var value = prop.GetValue(dto);
-            if (value != null)
-            {
-                sb.Append($"{prop.Name}={value}&");
-            }
-        }
-        if (sb.Length > 0 && sb[^1] == '&')
-            sb.Length--;
-        return sb.ToString();
-    }
-
-    private static long GuidToLong(Guid guid)
-    {
-        var bytes = guid.ToByteArray();
-        return BitConverter.ToInt64(bytes, 0);
-    }
 }

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Payment.Application.Data;
 using Payment.Application.Payments.Dtos;
 using Payment.Application.ServiceContracts;
+using System.Data.Common;
 
 namespace Payment.Application.Payments.Commands;
 
@@ -39,7 +40,23 @@ public class CreatePayOSCallBackUrlForBookingCommandHandler(IPayOSService payOSS
             dto.BookingId
         );
 
-        var payOSUrl = await payOSService.CreatePayOSUrlForBookingAsync(request.BuyBooking, payment.Id);
+        // Create PaymentCode
+        var db = (DbContext)dbContext;
+        await db.Database.OpenConnectionAsync(cancellationToken);
+
+        long nextCode;
+        using (DbCommand cmd = db.Database.GetDbConnection().CreateCommand())
+        {
+            cmd.CommandText = "SELECT nextval('payment_code_seq')";
+            cmd.CommandType = System.Data.CommandType.Text;
+
+            var result = await cmd.ExecuteScalarAsync(cancellationToken);
+            nextCode = Convert.ToInt64(result);
+        }
+
+        payment.PaymentCode = nextCode;
+
+        var payOSUrl = await payOSService.CreatePayOSUrlForBookingAsync(request.BuyBooking, payment.Id, nextCode);
 
         payment.PaymentUrl = payOSUrl;
 

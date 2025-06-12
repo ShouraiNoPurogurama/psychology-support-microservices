@@ -14,4 +14,5 @@ public record BuyBookingDto(
     string? PromoCode,
     Guid? GiftCodeId,
     PaymentMethodName PaymentMethod,
+    string BookingCode,
     PaymentType PaymentType) : BasePaymentDto(FinalPrice, PatientId, PaymentMethod);
