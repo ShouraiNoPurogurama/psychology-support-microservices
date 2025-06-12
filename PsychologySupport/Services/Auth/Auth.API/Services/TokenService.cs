@@ -6,6 +6,7 @@ using Auth.API.Models;
 using Auth.API.ServiceContracts;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Profile;
+using BuildingBlocks.Messaging.Events.Subscription;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -17,7 +18,9 @@ public class TokenService(
     UserManager<User> userManager,
     IConfiguration configuration,
     IRequestClient<GetPatientProfileRequest> patientClient,
-    IRequestClient<GetDoctorProfileRequest> doctorClient) : ITokenService
+    IRequestClient<GetDoctorProfileRequest> doctorClient,
+    IRequestClient<GetUserSubscriptionRequest> subscriptionClient
+    ) : ITokenService
 {
     private readonly PasswordHasher<User> _passwordHasher = new();
 
@@ -42,12 +45,18 @@ public class TokenService(
             profileId = patientProfile.Message.Id;
         }
 
+        var subscriptionResponse = await subscriptionClient.GetResponse<GetUserSubscriptionResponse>(
+            new GetUserSubscriptionRequest(profileId));
+
+        var subscriptionPlan = subscriptionResponse.Message.PlanName;
+
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Email!),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("userId", user.Id.ToString()),
             new Claim("profileId", profileId.ToString()),
+            new Claim("subscription", subscriptionPlan),
             new Claim(ClaimTypes.Role, string.Join(",", roles)),
             new Claim(ClaimTypes.Name, user.FullName!)
         };
