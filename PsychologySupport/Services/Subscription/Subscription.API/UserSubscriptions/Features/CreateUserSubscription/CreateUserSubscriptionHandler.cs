@@ -52,16 +52,17 @@ public class CreateUserSubscriptionHandler(
 
         //Check if user have any awaiting payment
         var awaitingPaymentSubscription = await context.UserSubscriptions
+            .Include(x => x.ServicePackage)
             .FirstOrDefaultAsync(x => x.PatientId == request.UserSubscription.PatientId &&
                                       x.Status == SubscriptionStatus.AwaitPayment, cancellationToken: cancellationToken);
         
         if (awaitingPaymentSubscription is not null)
         {
-            bool isSameService = awaitingPaymentSubscription.ServicePackageId == request.UserSubscription.ServicePackageId;
+            bool isDifferentService = awaitingPaymentSubscription.ServicePackageId != request.UserSubscription.ServicePackageId;
 
-            if (isSameService)
+            if (isDifferentService)
             {
-                throw new BadRequestException("Patient already has an awaiting payment subscription for this service package.");
+                throw new BadRequestException($"Patient already has an awaiting payment subscription for another service package: {awaitingPaymentSubscription.ServicePackage.Name}.");
             }
             
             var paymentUrlResponse =
