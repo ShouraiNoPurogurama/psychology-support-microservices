@@ -32,7 +32,7 @@ public class GetAllQuestionOptionsHandler
         var totalCount = await query.CountAsync(cancellationToken);
 
         var questionOptions = await query
-            .Skip(request.PaginationRequest.PageIndex * request.PaginationRequest.PageSize)
+            .Skip((request.PaginationRequest.PageIndex - 1) * request.PaginationRequest.PageSize)
             .Take(request.PaginationRequest.PageSize)
             .ToListAsync(cancellationToken);
 

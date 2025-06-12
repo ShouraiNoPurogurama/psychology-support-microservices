@@ -31,7 +31,7 @@ public class GetAllTestQuestionsHandler : IQueryHandler<GetAllTestQuestionsQuery
         var totalCount = await query.CountAsync(cancellationToken);
 
         var testQuestions = await query
-            .Skip(request.PaginationRequest.PageIndex * request.PaginationRequest.PageSize)
+            .Skip((request.PaginationRequest.PageIndex - 1) * request.PaginationRequest.PageSize)
             .Take(request.PaginationRequest.PageSize)
             .ToListAsync(cancellationToken);
 
@@ -41,7 +41,6 @@ public class GetAllTestQuestionsHandler : IQueryHandler<GetAllTestQuestionsQuery
             totalCount,
             testQuestions
         );
-
         return new GetAllTestQuestionsResult(paginatedResult);
     }
 }

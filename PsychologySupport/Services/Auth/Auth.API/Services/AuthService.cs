@@ -39,15 +39,15 @@ public class AuthService(
         var user = registerRequest.Adapt<User>();
         user.Email = user.UserName = registerRequest.Email;
 
-        var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        // var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        //
+        // var sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
+        //     user.Email,
+        //     "Xác nhận tài khoản",
+        //     $"Vui lòng xác nhận tài khoản của bạn bằng cách nhấp vào liên kết sau: {configuration["Mail:ConfirmEmailUrl"]}?token={emailConfirmationToken}&email={user.Email}"
+        // );
         
-        var sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
-            user.Email,
-            "Xác nhận tài khoản",
-            $"Vui lòng xác nhận tài khoản của bạn bằng cách nhấp vào liên kết sau: {configuration["Mail:ConfirmEmailUrl"]}?token={emailConfirmationToken}&email={user.Email}"
-        );
-        
-        // user.EmailConfirmed = true;
+        user.EmailConfirmed = true;
         user.PhoneNumberConfirmed = true;
 
         var result = await _userManager.CreateAsync(user, registerRequest.Password);
