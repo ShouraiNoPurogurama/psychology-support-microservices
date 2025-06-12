@@ -64,23 +64,26 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
 
         if (request.PatientId is not null)
         {
-            var patientSubscriptions = await _dbContext.UserSubscriptions
+            var patientSubscriptionsQuery = _dbContext.UserSubscriptions
                 .Where(u => u.PatientId == request.PatientId && u.EndDate >= DateTime.UtcNow &&
-                    u.Status == SubscriptionStatus.Active || u.Status == SubscriptionStatus.AwaitPayment)
-                .ToDictionaryAsync(u => u.ServicePackageId, u =>
+                    (u.Status == SubscriptionStatus.Active || u.Status == SubscriptionStatus.AwaitPayment));
+
+
+            var patientSubscriptions = await patientSubscriptionsQuery.ToDictionaryAsync(u => u.ServicePackageId, u =>
+            {
+                return u.Status switch
                 {
-                    return u.Status switch
-                    {
-                        SubscriptionStatus.Active => ServicePackageBuyStatus.Purchased,
-                        SubscriptionStatus.AwaitPayment => ServicePackageBuyStatus.PendingPayment,
-                        _ => ServicePackageBuyStatus.NotPurchased
-                    };
-                }, cancellationToken: cancellationToken);
+                    SubscriptionStatus.Active => ServicePackageBuyStatus.Purchased,
+                    SubscriptionStatus.AwaitPayment => ServicePackageBuyStatus.PendingPayment,
+                    _ => ServicePackageBuyStatus.NotPurchased
+                };
+            }, cancellationToken: cancellationToken);
 
             foreach (var servicePackage in servicePackages)
             {
                 servicePackage.PurchaseStatus = patientSubscriptions.TryGetValue(servicePackage.Id, out var status)
-                    ? status.ToString(): nameof(ServicePackageBuyStatus.NotPurchased);
+                    ? status.ToString()
+                    : nameof(ServicePackageBuyStatus.NotPurchased);
             }
         }
 
