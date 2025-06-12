@@ -9,7 +9,8 @@ namespace BuildingBlocks.Enums
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum PersonalityTrait
-    {   None,
+    {
+        None,
         Introversion,
         Extroversion,
         Adaptability

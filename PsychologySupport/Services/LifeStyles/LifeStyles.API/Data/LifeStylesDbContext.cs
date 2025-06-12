@@ -9,14 +9,15 @@ public class LifeStylesDbContext : DbContext
 {
     public LifeStylesDbContext(DbContextOptions<LifeStylesDbContext> options) : base(options)
     {
-        
     }
 
     public DbSet<PatientPhysicalActivity> PatientPhysicalActivities => Set<PatientPhysicalActivity>();
     public DbSet<EntertainmentActivity> EntertainmentActivities => Set<EntertainmentActivity>();
-    public DbSet<TherapeuticActivity> TherapeuticActivities  => Set<TherapeuticActivity>();
+    public DbSet<TherapeuticActivity> TherapeuticActivities => Set<TherapeuticActivity>();
     public DbSet<TherapeuticType> TherapeuticTypes => Set<TherapeuticType>();
     public DbSet<PatientEntertainmentActivity> PatientEntertainmentActivities => Set<PatientEntertainmentActivity>();
+    public DbSet<PatientFoodActivity> PatientFoodActivities => Set<PatientFoodActivity>();
+    public DbSet<PatientTherapeuticActivity> PatientTherapeuticActivities => Set<PatientTherapeuticActivity>();
     public DbSet<PhysicalActivity> PhysicalActivities => Set<PhysicalActivity>();
     public DbSet<FoodActivity> FoodActivities => Set<FoodActivity>();
     public DbSet<FoodCategory> FoodCategories => Set<FoodCategory>();
@@ -25,13 +26,21 @@ public class LifeStylesDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.HasDefaultSchema("public");
-        
+
         builder.Entity<PatientPhysicalActivity>()
             .Property(e => e.PreferenceLevel)
             .HasConversion(new EnumToStringConverter<PreferenceLevel>())
             .HasColumnType("VARCHAR(20)");
 
         builder.Entity<PatientEntertainmentActivity>()
+            .Property(e => e.PreferenceLevel)
+            .HasConversion(new EnumToStringConverter<PreferenceLevel>())
+            .HasColumnType("VARCHAR(20)");
+        builder.Entity<PatientTherapeuticActivity>()
+            .Property(e => e.PreferenceLevel)
+            .HasConversion(new EnumToStringConverter<PreferenceLevel>())
+            .HasColumnType("VARCHAR(20)");
+        builder.Entity<PatientFoodActivity>()
             .Property(e => e.PreferenceLevel)
             .HasConversion(new EnumToStringConverter<PreferenceLevel>())
             .HasColumnType("VARCHAR(20)");
@@ -57,9 +66,9 @@ public class LifeStylesDbContext : DbContext
             .HasColumnType("VARCHAR(20)");
 
         builder.Entity<FoodActivity>()
-           .Property(e => e.MealTime)
-           .HasConversion(new EnumToStringConverter<MealTime>())
-           .HasColumnType("VARCHAR(20)");
+            .Property(e => e.MealTime)
+            .HasConversion(new EnumToStringConverter<MealTime>())
+            .HasColumnType("VARCHAR(20)");
 
         builder.Entity<EntertainmentActivity>()
             .Property(e => e.IntensityLevel)
@@ -88,6 +97,11 @@ public class LifeStylesDbContext : DbContext
 
         builder.Entity<PatientEntertainmentActivity>()
             .HasKey(e => new { e.PatientProfileId, e.EntertainmentActivityId });
+
+        builder.Entity<PatientTherapeuticActivity>()
+            .HasKey(e => new { e.PatientProfileId, e.TherapeuticActivityId });
+        builder.Entity<PatientFoodActivity>()
+            .HasKey(e => new { e.PatientProfileId, e.FoodActivityId });
 
         builder.Entity<TherapeuticActivity>()
             .HasOne(e => e.TherapeuticType)
