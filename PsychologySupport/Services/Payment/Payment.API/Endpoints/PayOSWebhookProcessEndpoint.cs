@@ -14,7 +14,7 @@ public class PayOSWebhookProcessEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         // Endpoint cho webhook
-     /*   app.MapPost("/payments/payos/webhook", async (
+        app.MapPost("/payments/payos/webhook", async (
             HttpRequest request,
             [FromServices] PayOS payOS,
             [FromServices] ISender sender) =>
@@ -48,14 +48,14 @@ public class PayOSWebhookProcessEndpoint : ICarterModule
         .Produces(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithDescription("Processes incoming PayOS webhook notifications for payment status updates")
-        .WithSummary("Process PayOS Webhook");*/
+        .WithSummary("Process PayOS Webhook");
 
         // Check EndPoint 200 OK
-        app.MapPost("/payments/payos/webhook", async (HttpRequest request) =>
+        /*app.MapPost("/payments/payos/webhook", async (HttpRequest request) =>
         {
             Console.WriteLine("[Webhook Test] Received webhook");
             return Results.Ok();
-        });
+        });*/
 
         /// View Test
 
