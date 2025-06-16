@@ -19,29 +19,29 @@ public class PayOSWebhookProcessEndpoint : ICarterModule
             [FromServices] PayOS payOS,
             [FromServices] ISender sender) =>
         {
-                request.EnableBuffering();
-                using var reader = new StreamReader(request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
-                string rawBody = await reader.ReadToEndAsync();
-                request.Body.Position = 0;
+            request.EnableBuffering();
+            using var reader = new StreamReader(request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
+            string rawBody = await reader.ReadToEndAsync();
+            request.Body.Position = 0;
 
-                Console.WriteLine($"[Webhook] Raw body: {rawBody}");
+            Console.WriteLine($"[Webhook] Raw body: {rawBody}");
 
-                var webhookBody = JsonSerializer.Deserialize<WebhookType>(rawBody, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+            var webhookBody = JsonSerializer.Deserialize<WebhookType>(rawBody, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
 
-                if (webhookBody == null)
-                {
-                    return Results.Problem("Invalid webhook data", statusCode: StatusCodes.Status400BadRequest);
-                }
+            if (webhookBody == null)
+            {
+                return Results.Problem("Invalid webhook data", statusCode: StatusCodes.Status400BadRequest);
+            }
 
-                WebhookData webhookData = payOS.verifyPaymentWebhookData(webhookBody);
+            WebhookData webhookData = payOS.verifyPaymentWebhookData(webhookBody);
 
-                var command = new ProcessPayOSWebhookCommand(webhookData);
-                var result = await sender.Send(command);
+            var command = new ProcessPayOSWebhookCommand(webhookData);
+            var result = await sender.Send(command);
 
-                return Results.Ok(new { Message = "Webhook processed successfully" });
+            return Results.Ok(new { Message = "Webhook processed successfully" });
         })
         .WithName("ProcessPayOSWebhook")
         .WithTags("PayOS Payments")
@@ -51,13 +51,11 @@ public class PayOSWebhookProcessEndpoint : ICarterModule
         .WithSummary("Process PayOS Webhook");
 
         // Check EndPoint 200 OK
-        /*app.MapPost("/payments/payos/webhook", async (HttpRequest request) =>
-        {
-            Console.WriteLine("[Webhook Test] Received webhook");
-            return Results.Ok();
-        });*/
-
-
+        /* app.MapPost("/payments/payos/webhook", async (HttpRequest request) =>
+         {
+             Console.WriteLine("[Webhook Test] Received webhook");
+             return Results.Ok();
+         });*/
 
         /// View Test
 

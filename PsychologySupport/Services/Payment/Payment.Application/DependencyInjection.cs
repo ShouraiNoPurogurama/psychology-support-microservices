@@ -23,7 +23,8 @@ public static class DependencyInjection
         
         services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
         services.AddFeatureManagement();
-        
+        services.AddHttpContextAccessor();
+
         return services;
     }
 }

@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using Net.payOS.Types;
-using Payment.Domain.Models;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Scheduling;
 using BuildingBlocks.Messaging.Events.Subscription;
@@ -8,6 +7,8 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Payment.Application.Data;
 using Mapster;
+using Microsoft.AspNetCore.Http;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Payment.Application.Payments.Queries;
 
@@ -19,17 +20,20 @@ public class GetPaymentLinkInformationHandler : IRequestHandler<GetPaymentLinkIn
     private readonly IPaymentDbContext _dbContext;
     private readonly IRequestClient<SubscriptionGetPromoAndGiftRequestEvent> _subscriptionClient;
     private readonly IRequestClient<BookingGetPromoAndGiftRequestEvent> _bookingClient;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public GetPaymentLinkInformationHandler(
         IPayOSService payOSService,
         IPaymentDbContext dbContext,
         IRequestClient<SubscriptionGetPromoAndGiftRequestEvent> subscriptionClient,
-        IRequestClient<BookingGetPromoAndGiftRequestEvent> bookingClient)
+        IRequestClient<BookingGetPromoAndGiftRequestEvent> bookingClient,
+        IHttpContextAccessor httpContextAccessor)
     {
         _payOSService = payOSService;
         _dbContext = dbContext;
         _subscriptionClient = subscriptionClient;
         _bookingClient = bookingClient;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<PaymentLinkInformation> Handle(GetPaymentLinkInformationQuery request, CancellationToken cancellationToken)
@@ -63,10 +67,11 @@ public class GetPaymentLinkInformationHandler : IRequestHandler<GetPaymentLinkIn
             var tx = paymentInfo.transactions.FirstOrDefault();
             var amount = paymentInfo.amount;
             var reference = tx?.reference ?? "UNKNOWN";
+            var email = GetEmailFromToken();
 
             payment.AddFailedPaymentDetail(
                 PaymentDetail.Of(amount, reference),
-                "system@app.com",
+                email,
                 promotionCode,
                 giftId
             );
@@ -75,5 +80,25 @@ public class GetPaymentLinkInformationHandler : IRequestHandler<GetPaymentLinkIn
         }
 
         return paymentInfo;
+    }
+
+    private string GetEmailFromToken()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext == null || !httpContext.Request.Headers.ContainsKey("Authorization"))
+            return "unknown@example.com";
+
+        var authHeader = httpContext.Request.Headers["Authorization"].ToString();
+        if (!authHeader.StartsWith("Bearer ")) return "unknown@example.com";
+
+        var token = authHeader["Bearer ".Length..];
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        if (!tokenHandler.CanReadToken(token)) return "unknown@example.com";
+
+        var jwtToken = tokenHandler.ReadJwtToken(token);
+        var emailClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
+
+        return emailClaim?.Value ?? "unknown@example.com";
     }
 }

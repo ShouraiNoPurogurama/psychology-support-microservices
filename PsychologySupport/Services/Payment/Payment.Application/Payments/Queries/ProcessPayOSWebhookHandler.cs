@@ -20,15 +20,18 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
     private readonly IPaymentDbContext _dbContext;
     private readonly IRequestClient<SubscriptionGetPromoAndGiftRequestEvent> _subscriptionClient;
     private readonly IRequestClient<BookingGetPromoAndGiftRequestEvent> _bookingClient;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public ProcessPayOSWebhookHandler(
         IPaymentDbContext dbContext,
         IRequestClient<SubscriptionGetPromoAndGiftRequestEvent> subscriptionClient,
-        IRequestClient<BookingGetPromoAndGiftRequestEvent> bookingClient)
+        IRequestClient<BookingGetPromoAndGiftRequestEvent> bookingClient,
+        IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
         _subscriptionClient = subscriptionClient;
         _bookingClient = bookingClient;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<ProcessPayOSWebhookResult> Handle(ProcessPayOSWebhookCommand request, CancellationToken cancellationToken)
@@ -66,18 +69,20 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
 
         using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
+            var email = GetEmailFromToken();
+
             if (desc.Contains("success"))
             {
                 payment.AddPaymentDetail(
                     PaymentDetail.Of(amount, webhookData.reference).MarkAsSuccess()
                 );
-                payment.MarkAsCompleted("unknown@example.com");
+                payment.MarkAsCompleted(email);
             }
             else if (desc.Contains("cancelled") || desc.Contains("failed"))
             {
                 payment.AddFailedPaymentDetail(
                     PaymentDetail.Of(amount, webhookData.reference),
-                    "unknown@example.com",
+                    email,
                     promotionCode,
                     giftId
                 );
@@ -92,5 +97,25 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
         }
 
         return new ProcessPayOSWebhookResult(true);
+    }
+
+    private string GetEmailFromToken()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext == null || !httpContext.Request.Headers.ContainsKey("Authorization"))
+            return "unknown@example.com";
+
+        var authHeader = httpContext.Request.Headers["Authorization"].ToString();
+        if (!authHeader.StartsWith("Bearer ")) return "unknown@example.com";
+
+        var token = authHeader["Bearer ".Length..];
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        if (!tokenHandler.CanReadToken(token)) return "unknown@example.com";
+
+        var jwtToken = tokenHandler.ReadJwtToken(token);
+        var emailClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
+
+        return emailClaim?.Value ?? "unknown@example.com";
     }
 }
