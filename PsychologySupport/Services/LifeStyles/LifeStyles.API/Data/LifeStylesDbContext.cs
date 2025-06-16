@@ -22,6 +22,11 @@ public class LifeStylesDbContext : DbContext
     public DbSet<FoodActivity> FoodActivities => Set<FoodActivity>();
     public DbSet<FoodCategory> FoodCategories => Set<FoodCategory>();
     public DbSet<FoodNutrient> FoodNutrients => Set<FoodNutrient>();
+    public DbSet<CurrentEmotion> CurrentEmotions { get; set; }
+    public DbSet<LifestyleLog> LifestyleLogs { get; set; }
+    public DbSet<ImprovementGoal> ImprovementGoals { get; set; }
+    public DbSet<PatientImprovementGoal> PatientImprovementGoals { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -107,6 +112,40 @@ public class LifeStylesDbContext : DbContext
             .HasOne(e => e.TherapeuticType)
             .WithMany()
             .HasForeignKey(e => e.TherapeuticTypeId);
+
+        builder.Entity<PatientImprovementGoal>()
+            .HasKey(p => new { p.PatientProfileId, p.GoalId });
+
+        builder.Entity<PatientImprovementGoal>()
+            .HasOne<ImprovementGoal>()
+            .WithMany()
+            .HasForeignKey(p => p.GoalId);
+
+        builder.Entity<CurrentEmotion>()
+            .Property(e => e.Emotion1)
+            .HasConversion(new EnumToStringConverter<Emotion>())
+            .HasColumnType("VARCHAR(20)");
+
+        builder.Entity<CurrentEmotion>()
+            .Property(e => e.Emotion2)
+            .HasConversion(new EnumToStringConverter<Emotion>())
+            .HasColumnType("VARCHAR(20)");
+
+        builder.Entity<LifestyleLog>()
+            .Property(e => e.SleepHours)
+            .HasConversion(new EnumToStringConverter<SleepHoursLevel>())
+            .HasColumnType("VARCHAR(20)");
+
+        builder.Entity<LifestyleLog>()
+            .Property(e => e.ExerciseFrequency)
+            .HasConversion(new EnumToStringConverter<ExerciseFrequency>())
+            .HasColumnType("VARCHAR(20)");
+
+        builder.Entity<LifestyleLog>()
+            .Property(e => e.AvailableTimePerDay)
+            .HasConversion(new EnumToStringConverter<AvailableTimePerDay>())
+            .HasColumnType("VARCHAR(20)");
+
 
         base.OnModelCreating(builder);
     }
