@@ -37,6 +37,18 @@
         ],
         "RateLimiterPolicy": "fixed"
       },
+      "payment-route-payos": {
+        "ClusterId": "payment-cluster",
+        "Match": {
+          "Path": "/payment-service/payments/payos/webhook"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/payments/payos/webhook"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "payment-route": {
         "ClusterId": "payment-cluster",
         "Match": {
