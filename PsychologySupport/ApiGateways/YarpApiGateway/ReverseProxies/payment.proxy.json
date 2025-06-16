@@ -40,11 +40,11 @@
       "payment-route-payos": {
         "ClusterId": "payment-cluster",
         "Match": {
-          "Path": "/payment-service/payments/payos/webhook"
+          "Path": "/payment-service/payments/payos/webhook/{**catch-all}"
         },
         "Transforms": [
           {
-            "PathPattern": "/payments/payos/webhook"
+            "PathPattern": "/payments/payos/webhook/{**catch-all}"
           }
         ],
         "RateLimiterPolicy": "fixed"
