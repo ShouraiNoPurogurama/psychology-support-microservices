@@ -2,27 +2,32 @@
 using BuildingBlocks.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Scheduling.API.Dtos;
+using MassTransit;
+using BuildingBlocks.Messaging.Events.LifeStyle;
+using BuildingBlocks.Dtos;
 
 namespace Scheduling.API.Features.Schedule.GetAllSchedule
 {
-    
     public record GetAllSchedulesQuery(
         [FromQuery] int PageIndex,
         [FromQuery] int PageSize,
-        [FromQuery] string? Search = "", 
-        [FromQuery] string? SortBy = "startDate", // sort by startDate 
-        [FromQuery] string? SortOrder = "asc", // asc or desc
-        [FromQuery] Guid? DoctorId = null, // filter by doctor
-        [FromQuery] Guid? PatientId = null) : IQuery<GetAllSchedulesResult>; // filter by patient
+        [FromQuery] string? Search = "",
+        [FromQuery] string? SortBy = "startDate",
+        [FromQuery] string? SortOrder = "asc",
+        [FromQuery] Guid? DoctorId = null,
+        [FromQuery] Guid? PatientId = null) : IQuery<GetAllSchedulesResult>;
+
     public record GetAllSchedulesResult(PaginatedResult<ScheduleDto> Schedules);
 
     public class GetAllScheduleHandler : IQueryHandler<GetAllSchedulesQuery, GetAllSchedulesResult>
     {
         private readonly SchedulingDbContext _context;
+        private readonly IRequestClient<ActivityRequest> _activityClient;
 
-        public GetAllScheduleHandler(SchedulingDbContext context)
+        public GetAllScheduleHandler(SchedulingDbContext context, IRequestClient<ActivityRequest> activityClient)
         {
             _context = context;
+            _activityClient = activityClient;
         }
 
         public async Task<GetAllSchedulesResult> Handle(
@@ -40,8 +45,7 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
             {
                 query = query.Where(schedule =>
                     (schedule.PatientId.ToString() == request.Search ||
-                     schedule.DoctorId.ToString() == request.Search )
-                );
+                     schedule.DoctorId.ToString() == request.Search));
             }
 
             // Filtering by DoctorId and PatientId
@@ -50,7 +54,6 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
 
             if (request.PatientId.HasValue)
                 query = query.Where(schedule => schedule.PatientId == request.PatientId);
-
 
             // Sorting
             if (request.SortBy == "startDate")
@@ -70,35 +73,179 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
             var totalCount = await query.CountAsync(cancellationToken);
 
             var schedules = await query
-                 .Skip(pageIndex * pageSize)
-                 .Take(pageSize)
-                 .ToListAsync(cancellationToken);
+                .Skip(pageIndex * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
 
             var paginatedResult = new PaginatedResult<ScheduleDto>(
                 pageIndex + 1,
                 pageSize,
                 totalCount,
-                 schedules.Select(schedule => new ScheduleDto
-                 {
-                     Id = schedule.Id,
-                     PatientId = schedule.PatientId,
-                     DoctorId = schedule.DoctorId,
-                     StartDate = schedule.StartDate,
-                     EndDate = schedule.EndDate,
-                     Sessions = schedule.Sessions.Select(session => new SessionDto
-                     {
-                         Id = session.Id,
-                         ScheduleId = session.ScheduleId,
-                         Purpose = session.Purpose,
-                         Order = session.Order,
-                         StartDate = session.StartDate,
-                         EndDate = session.EndDate
-                     }).ToList()
-                 }).ToList()
+                schedules.Select(schedule => new ScheduleDto
+                {
+                    Id = schedule.Id,
+                    PatientId = schedule.PatientId,
+                    DoctorId = schedule.DoctorId,
+                    StartDate = schedule.StartDate,
+                    EndDate = schedule.EndDate,
+                    TotalActivityCount = _context.ScheduleActivities
+                        .Count(sa => schedule.Sessions.Select(s => s.Id).Contains(sa.SessionId)),
+                    Sessions = schedule.Sessions.Select(async session =>
+                    {
+                        var completedActivities = await GetCompletedActivities(session.Id, cancellationToken);
+
+                        return new SessionDto
+                        {
+                            Id = session.Id,
+                            ScheduleId = session.ScheduleId,
+                            Purpose = session.Purpose,
+                            Order = session.Order,
+                            StartDate = session.StartDate,
+                            EndDate = session.EndDate,
+                            TotalActivityCompletedCount = completedActivities.Count,
+                            Activities = completedActivities
+                        };
+                    }).Select(t => t.Result).ToList()
+                }).ToList()
             );
 
             return new GetAllSchedulesResult(paginatedResult);
         }
-    }
 
+        private async Task<List<ScheduleActivityDto>> GetCompletedActivities(Guid sessionId, CancellationToken cancellationToken)
+        {
+            var scheduleActivitiesQuery = _context.ScheduleActivities
+                .Where(sa => sa.SessionId == sessionId && sa.Status.ToString() == "Completed")
+                .AsQueryable();
+
+            List<ScheduleActivitiesSpecificationDto> activities = [];
+
+            var entertainmentActivities = scheduleActivitiesQuery
+                .Where(sa => sa.EntertainmentActivityId.HasValue)
+                .Select(sa => new ScheduleActivitiesSpecificationDto(sa, sa.EntertainmentActivityId!.Value))
+                .ToList();
+
+            entertainmentActivities.ForEach(a => activities.Add(a));
+
+            var foodActivities = scheduleActivitiesQuery
+                .Where(sa => sa.FoodActivityId.HasValue)
+                .Select(sa => new ScheduleActivitiesSpecificationDto(sa, sa.FoodActivityId!.Value))
+                .ToList();
+
+            foodActivities.ForEach(a => activities.Add(a));
+
+            var physicalActivities = scheduleActivitiesQuery
+                .Where(sa => sa.PhysicalActivityId.HasValue)
+                .Select(sa => new ScheduleActivitiesSpecificationDto(sa, sa.PhysicalActivityId!.Value))
+                .ToList();
+
+            physicalActivities.ForEach(a => activities.Add(a));
+
+            var therapeuticActivities = scheduleActivitiesQuery
+                .Where(sa => sa.TherapeuticActivityId.HasValue)
+                .Select(sa => new ScheduleActivitiesSpecificationDto(sa, sa.TherapeuticActivityId!.Value))
+                .ToList();
+
+            therapeuticActivities.ForEach(a => activities.Add(a));
+
+            var scheduleActivityDtos = new List<ScheduleActivityDto>();
+
+            if (entertainmentActivities.Any())
+            {
+                var entertainmentResponse = await _activityClient
+                    .GetResponse<ActivityRequestResponse<EntertainmentActivityDto>>(
+                        new ActivityRequest(
+                            entertainmentActivities.Select(e => e.SpecificActivityId).ToList(),
+                            "Entertainment"), cancellationToken)
+                    .ContinueWith(r => r.Result.Message.Activities, cancellationToken);
+
+                entertainmentResponse.ForEach(activity =>
+                {
+                    var matchingActivity = activities.First(a => a.SpecificActivityId == activity.Id);
+                    scheduleActivityDtos.Add(new ScheduleActivityDto
+                    {
+                        Id = activity.Id,
+                        SessionId = sessionId,
+                        Description = activity.Description,
+                        TimeRange = matchingActivity.ScheduleActivity.TimeRange,
+                        Duration = matchingActivity.ScheduleActivity.Duration,
+                        DateNumber = matchingActivity.ScheduleActivity.DateNumber,
+                        Status = matchingActivity.ScheduleActivity.Status.ToString(),
+                        EntertainmentActivity = activity
+                    });
+                });
+            }
+
+            if (foodActivities.Any())
+            {
+                var foodResponse = await _activityClient.GetResponse<ActivityRequestResponse<FoodActivityDto>>(
+                    new ActivityRequest(foodActivities.Select(e => e.SpecificActivityId).ToList(), "Food"), cancellationToken)
+                    .ContinueWith(r => r.Result.Message.Activities, cancellationToken);
+
+                foodResponse.ForEach(activity =>
+                {
+                    var matchingActivity = activities.First(a => a.SpecificActivityId == activity.Id);
+                    scheduleActivityDtos.Add(new ScheduleActivityDto
+                    {
+                        Id = activity.Id,
+                        SessionId = sessionId,
+                        Description = activity.Description,
+                        TimeRange = matchingActivity.ScheduleActivity.TimeRange,
+                        Duration = matchingActivity.ScheduleActivity.Duration,
+                        DateNumber = matchingActivity.ScheduleActivity.DateNumber,
+                        Status = matchingActivity.ScheduleActivity.Status.ToString(),
+                        FoodActivity = activity
+                    });
+                });
+            }
+
+            if (physicalActivities.Any())
+            {
+                var physicalResponse = await _activityClient.GetResponse<ActivityRequestResponse<PhysicalActivityDto>>(
+                    new ActivityRequest(physicalActivities.Select(e => e.SpecificActivityId).ToList(), "Physical"), cancellationToken)
+                    .ContinueWith(r => r.Result.Message.Activities, cancellationToken);
+
+                physicalResponse.ForEach(activity =>
+                {
+                    var matchingActivity = activities.First(a => a.SpecificActivityId == activity.Id);
+                    scheduleActivityDtos.Add(new ScheduleActivityDto
+                    {
+                        Id = activity.Id,
+                        SessionId = sessionId,
+                        Description = activity.Description,
+                        TimeRange = matchingActivity.ScheduleActivity.TimeRange,
+                        Duration = matchingActivity.ScheduleActivity.Duration,
+                        DateNumber = matchingActivity.ScheduleActivity.DateNumber,
+                        Status = matchingActivity.ScheduleActivity.Status.ToString(),
+                        PhysicalActivity = activity
+                    });
+                });
+            }
+
+            if (therapeuticActivities.Any())
+            {
+                var therapeuticResponse = await _activityClient.GetResponse<ActivityRequestResponse<TherapeuticActivityDto>>(
+                    new ActivityRequest(therapeuticActivities.Select(e => e.SpecificActivityId).ToList(), "Therapeutic"), cancellationToken)
+                    .ContinueWith(r => r.Result.Message.Activities, cancellationToken);
+
+                therapeuticResponse.ForEach(activity =>
+                {
+                    var matchingActivity = activities.First(a => a.SpecificActivityId == activity.Id);
+                    scheduleActivityDtos.Add(new ScheduleActivityDto
+                    {
+                        Id = activity.Id,
+                        SessionId = sessionId,
+                        Description = activity.Description,
+                        TimeRange = matchingActivity.ScheduleActivity.TimeRange,
+                        Duration = matchingActivity.ScheduleActivity.Duration,
+                        DateNumber = matchingActivity.ScheduleActivity.DateNumber,
+                        Status = matchingActivity.ScheduleActivity.Status.ToString(),
+                        TherapeuticActivity = activity
+                    });
+                });
+            }
+
+            return scheduleActivityDtos;
+        }
+    }
 }
