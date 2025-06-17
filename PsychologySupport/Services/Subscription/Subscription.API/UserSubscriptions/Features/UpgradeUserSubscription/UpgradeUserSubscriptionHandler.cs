@@ -81,6 +81,7 @@ public class UpgradeUserSubscriptionHandler(
         subscriptionCreatedEvent.FinalPrice = priceAfterAppliedPromotions;
         subscriptionCreatedEvent.PromoCode = promoCode?.Code;
         subscriptionCreatedEvent.OldSubscriptionPrice = currentSubscriptionPriceLeft;
+        subscriptionCreatedEvent.ServicePackageName = servicePackage.Name;
 
         // await publishEndpoint.Publish(subscriptionCreatedEvent, cancellationToken);
         var paymentUrl =

@@ -1,8 +1,10 @@
-﻿using System.Reflection;
+﻿using BuildingBlocks.Messaging.Events.Payment;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using Payment.Application.Payments.Dtos;
 using Payment.Domain.Models;
+using System;
+using System.Reflection;
 
 namespace Payment.Infrastructure.Extensions;
 
@@ -28,6 +30,11 @@ public static class MapsterConfigurations
              src => src.PaymentDetails.FirstOrDefault() != null 
                  ? src.PaymentDetails.FirstOrDefault().ExternalTransactionCode 
                  : null); 
+
+        TypeAdapterConfig<GenerateSubscriptionPaymentUrlRequest, BuySubscriptionDto>
+            .NewConfig()
+            .Map(dest => dest.PaymentMethod, src => src.PaymentMethodName);
+
 
 
 

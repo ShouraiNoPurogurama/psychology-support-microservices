@@ -121,6 +121,7 @@ public class CreateUserSubscriptionHandler(
         subscriptionCreatedEvent.DurationDays = servicePackage.DurationDays;
         subscriptionCreatedEvent.FinalPrice = finalPrice;
         subscriptionCreatedEvent.PromoCode = promoCode?.Code;
+        subscriptionCreatedEvent.ServicePackageName = servicePackage.Name;
 
         // await publishEndpoint.Publish(subscriptionCreatedEvent, cancellationToken);
         var paymentUrl =

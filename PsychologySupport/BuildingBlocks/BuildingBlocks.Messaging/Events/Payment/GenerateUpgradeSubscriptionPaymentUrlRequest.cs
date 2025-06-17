@@ -18,7 +18,7 @@ public record GenerateUpgradeSubscriptionPaymentUrlRequest
     public string Name { get; set; }
     public string Description { get; set; }
     public int DurationDays { get; set; }
-        
+    public string? ServicePackageName { get; set; }
     //Payment
     public PaymentMethodName PaymentMethodName { get; set; }
     public PaymentType PaymentType { get; set; }
