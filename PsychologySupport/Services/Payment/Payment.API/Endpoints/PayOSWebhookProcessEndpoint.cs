@@ -15,33 +15,55 @@ public class PayOSWebhookProcessEndpoint : ICarterModule
     {
         // Endpoint cho webhook
         app.MapPost("/payments/payos/webhook", async (
-            HttpRequest request,
-            [FromServices] PayOS payOS,
-            [FromServices] ISender sender) =>
+        HttpRequest request,
+        [FromServices] PayOS payOS,
+        [FromServices] ISender sender) =>
         {
-            request.EnableBuffering();
-            using var reader = new StreamReader(request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
-            string rawBody = await reader.ReadToEndAsync();
-            request.Body.Position = 0;
-
-            Console.WriteLine($"[Webhook] Raw body: {rawBody}");
-
-            var webhookBody = JsonSerializer.Deserialize<WebhookType>(rawBody, new JsonSerializerOptions
+            try
             {
-                PropertyNameCaseInsensitive = true
-            });
+                request.EnableBuffering();
+                using var reader = new StreamReader(request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
+                string rawBody = await reader.ReadToEndAsync();
+                request.Body.Position = 0;
 
-            if (webhookBody == null)
-            {
-                return Results.Problem("Invalid webhook data", statusCode: StatusCodes.Status400BadRequest);
+                Console.WriteLine($"[Webhook] Raw body: {rawBody}");
+
+                var webhookBody = JsonSerializer.Deserialize<WebhookType>(rawBody, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (webhookBody == null)
+                {
+                    Console.WriteLine("[Webhook] Failed to deserialize body");
+                    return Results.Problem("Invalid webhook data", statusCode: StatusCodes.Status400BadRequest);
+                }
+
+                Console.WriteLine($"[Webhook] Deserialized body: {JsonSerializer.Serialize(webhookBody)}");
+
+                try
+                {
+                    WebhookData webhookData = payOS.verifyPaymentWebhookData(webhookBody);
+                    Console.WriteLine($"[Webhook] Verified data: {JsonSerializer.Serialize(webhookData)}");
+
+                    var command = new ProcessPayOSWebhookCommand(webhookData);
+                    var result = await sender.Send(command);
+                    Console.WriteLine($"[Webhook] Command processed: {JsonSerializer.Serialize(result)}");
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but still return 200 OK to satisfy PayOS webhook registration
+                    Console.WriteLine($"[Webhook Warning] Failed to process webhook data: {ex.Message}");
+                }
+
+                return Results.Ok(new { Message = "Webhook received successfully" });
             }
-
-            WebhookData webhookData = payOS.verifyPaymentWebhookData(webhookBody);
-
-            var command = new ProcessPayOSWebhookCommand(webhookData);
-            var result = await sender.Send(command);
-
-            return Results.Ok(new { Message = "Webhook processed successfully" });
+            catch (Exception ex)
+            {
+                // Log critical errors but return 200 OK to avoid webhook registration failure
+                Console.WriteLine($"[Webhook Error] Critical failure: {ex.Message}");
+                return Results.Ok(new { Message = "Webhook received but processing failed" });
+            }
         })
         .WithName("ProcessPayOSWebhook")
         .WithTags("PayOS Payments")
@@ -49,13 +71,6 @@ public class PayOSWebhookProcessEndpoint : ICarterModule
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithDescription("Processes incoming PayOS webhook notifications for payment status updates")
         .WithSummary("Process PayOS Webhook");
-
-        // Check EndPoint 200 OK
-        /*app.MapPost("/payments/payos/webhook", async (HttpRequest request) =>
-        {
-            Console.WriteLine("[Webhook Test] Received webhook");
-            return Results.Ok();
-        });*/
 
         /// View Test
 
