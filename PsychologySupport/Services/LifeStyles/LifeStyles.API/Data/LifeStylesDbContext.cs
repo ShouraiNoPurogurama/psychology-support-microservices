@@ -2,6 +2,7 @@
 using LifeStyles.API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Reflection.Emit;
 
 namespace LifeStyles.API.Data;
 
@@ -117,9 +118,13 @@ public class LifeStylesDbContext : DbContext
             .HasKey(p => new { p.PatientProfileId, p.GoalId });
 
         builder.Entity<PatientImprovementGoal>()
-            .HasOne<ImprovementGoal>()
-            .WithMany()
-            .HasForeignKey(p => p.GoalId);
+            .HasKey(p => new { p.PatientProfileId, p.GoalId });
+
+        builder.Entity<PatientImprovementGoal>()
+            .HasOne(p => p.Goal)
+            .WithMany(g => g.PatientImprovementGoals) 
+            .HasForeignKey(p => p.GoalId)
+            .OnDelete(DeleteBehavior.Cascade); 
 
         builder.Entity<CurrentEmotion>()
             .Property(e => e.Emotion1)

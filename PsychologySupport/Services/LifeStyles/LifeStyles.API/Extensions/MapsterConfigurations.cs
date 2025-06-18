@@ -31,5 +31,16 @@ public static class MapsterConfigurations
 
         TypeAdapterConfig<TherapeuticActivity, TherapeuticActivityDto>
           .NewConfig();
+
+        TypeAdapterConfig<LifestyleLog, LifestyleLogDto>
+          .NewConfig();
+
+        TypeAdapterConfig<ImprovementGoal, ImprovementGoalDto>
+            .NewConfig();
+
+        TypeAdapterConfig<PatientImprovementGoal, PatientImprovementGoalDto>
+            .NewConfig()
+            .Map(dest => dest.GoalName, src => src.Goal.Name);
+
     }
 }
