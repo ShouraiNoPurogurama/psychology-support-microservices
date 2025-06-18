@@ -12,7 +12,7 @@ using Payment.Infrastructure.Data;
 namespace Payment.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(PaymentDbContext))]
-    [Migration("20250617165833_AddPaymentCode")]
+    [Migration("20250618070150_AddPaymentCode")]
     partial class AddPaymentCode
     {
         /// <inheritdoc />
