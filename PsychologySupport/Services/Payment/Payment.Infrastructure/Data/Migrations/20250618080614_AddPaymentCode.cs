@@ -4,6 +4,7 @@
 
 namespace Payment.Infrastructure.Data.Migrations
 {
+    /// <inheritdoc />
     public partial class AddPaymentCode : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
