@@ -19,64 +19,50 @@ public class CreatePayOSCallBackUrlForSubscriptionCommandHandler(
     : ICommandHandler<CreatePayOSCallBackUrlForSubscriptionCommand, CreatePayOSCallBackUrlForSubscriptionResult>
 {
     public async Task<CreatePayOSCallBackUrlForSubscriptionResult> Handle(
-     CreatePayOSCallBackUrlForSubscriptionCommand request,
-     CancellationToken cancellationToken)
+        CreatePayOSCallBackUrlForSubscriptionCommand request,
+        CancellationToken cancellationToken)
     {
         var dto = request.BuySubscription;
-        var db = (DbContext)dbContext;
 
         var paymentMethod = await dbContext.PaymentMethods
             .FirstOrDefaultAsync(p => p.Name == dto.PaymentMethod, cancellationToken)
             ?? throw new NotFoundException(nameof(PaymentMethod), dto.PaymentMethod);
 
+        var paymentId = Guid.NewGuid();
+
+        var payment = Payment.Domain.Models.Payment.Create(
+            paymentId,
+            dto.PatientId,
+            dto.PatientEmail,
+            PaymentType.BuySubscription,
+            paymentMethod.Id,
+            paymentMethod,
+            dto.FinalPrice,
+            dto.SubscriptionId,
+            null
+        );
+
+        // Create PaymentCode
+        var db = (DbContext)dbContext;
         await db.Database.OpenConnectionAsync(cancellationToken);
 
         long nextCode;
-        Guid paymentId = Guid.NewGuid();
-
-        using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        try
+        using (DbCommand cmd = db.Database.GetDbConnection().CreateCommand())
         {
-            using (DbCommand cmd = db.Database.GetDbConnection().CreateCommand())
-            {
-                cmd.CommandText = "SELECT nextval('payment_code_seq')";
-                cmd.CommandType = System.Data.CommandType.Text;
-                var result = await cmd.ExecuteScalarAsync(cancellationToken);
-                nextCode = Convert.ToInt64(result);
-            }
+            cmd.CommandText = "SELECT nextval('payment_code_seq')";
+            cmd.CommandType = System.Data.CommandType.Text;
 
-            var payment = Domain.Models.Payment.Create(
-                paymentId,
-                dto.PatientId,
-                dto.PatientEmail,
-                PaymentType.BuySubscription,
-                paymentMethod.Id,
-                paymentMethod,
-                dto.FinalPrice,
-                dto.SubscriptionId,
-                null
-            );
-
-            payment.PaymentCode = nextCode;
-            dbContext.Payments.Add(payment);
-            await dbContext.SaveChangesAsync(cancellationToken);
-
-            await transaction.CommitAsync(cancellationToken);
-        }
-        catch
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
-        finally
-        {
-            await db.Database.CloseConnectionAsync();
+            var result = await cmd.ExecuteScalarAsync(cancellationToken);
+            nextCode = Convert.ToInt64(result);
         }
 
-        var payOSUrl = await payOSService.CreatePayOSUrlForSubscriptionAsync(dto, paymentId, nextCode);
+        payment.PaymentCode = nextCode;
 
-        var createdPayment = await dbContext.Payments.FirstAsync(p => p.Id == paymentId, cancellationToken);
-        createdPayment.PaymentUrl = payOSUrl;
+        var payOSUrl = await payOSService.CreatePayOSUrlForSubscriptionAsync(dto, payment.Id, nextCode);
+
+        payment.PaymentUrl = payOSUrl;
+
+        dbContext.Payments.Add(payment);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new CreatePayOSCallBackUrlForSubscriptionResult(payOSUrl);
