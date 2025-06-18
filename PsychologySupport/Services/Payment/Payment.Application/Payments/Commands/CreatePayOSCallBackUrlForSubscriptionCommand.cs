@@ -19,26 +19,24 @@ public class CreatePayOSCallBackUrlForSubscriptionCommandHandler(
     : ICommandHandler<CreatePayOSCallBackUrlForSubscriptionCommand, CreatePayOSCallBackUrlForSubscriptionResult>
 {
     public async Task<CreatePayOSCallBackUrlForSubscriptionResult> Handle(
-        CreatePayOSCallBackUrlForSubscriptionCommand request,
-        CancellationToken cancellationToken)
+     CreatePayOSCallBackUrlForSubscriptionCommand request,
+     CancellationToken cancellationToken)
     {
         var dto = request.BuySubscription;
+        var db = (DbContext)dbContext;
 
         var paymentMethod = await dbContext.PaymentMethods
             .FirstOrDefaultAsync(p => p.Name == dto.PaymentMethod, cancellationToken)
             ?? throw new NotFoundException(nameof(PaymentMethod), dto.PaymentMethod);
 
-        var db = (DbContext)dbContext;
         await db.Database.OpenConnectionAsync(cancellationToken);
+
+        long nextCode;
+        Guid paymentId = Guid.NewGuid();
 
         using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            // Generate new Payment ID and create Payment object
-            var paymentId = Guid.NewGuid();
-
-            // Get next PaymentCode from sequence
-            long nextCode;
             using (DbCommand cmd = db.Database.GetDbConnection().CreateCommand())
             {
                 cmd.CommandText = "SELECT nextval('payment_code_seq')";
@@ -47,7 +45,7 @@ public class CreatePayOSCallBackUrlForSubscriptionCommandHandler(
                 nextCode = Convert.ToInt64(result);
             }
 
-            var payment = Payment.Domain.Models.Payment.Create(
+            var payment = Domain.Models.Payment.Create(
                 paymentId,
                 dto.PatientId,
                 dto.PatientEmail,
@@ -60,23 +58,12 @@ public class CreatePayOSCallBackUrlForSubscriptionCommandHandler(
             );
 
             payment.PaymentCode = nextCode;
-
-            // Add payment to DB (initially without URL)
             dbContext.Payments.Add(payment);
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            // Call PayOS to get payment URL
-            var payOSUrl = await payOSService.CreatePayOSUrlForSubscriptionAsync(dto, paymentId, nextCode);
-
-            // Update payment URL
-            payment.PaymentUrl = payOSUrl;
-            await dbContext.SaveChangesAsync(cancellationToken);
-
             await transaction.CommitAsync(cancellationToken);
-
-            return new CreatePayOSCallBackUrlForSubscriptionResult(payOSUrl);
         }
-        catch (Exception)
+        catch
         {
             await transaction.RollbackAsync(cancellationToken);
             throw;
@@ -85,5 +72,13 @@ public class CreatePayOSCallBackUrlForSubscriptionCommandHandler(
         {
             await db.Database.CloseConnectionAsync();
         }
+
+        var payOSUrl = await payOSService.CreatePayOSUrlForSubscriptionAsync(dto, paymentId, nextCode);
+
+        var createdPayment = await dbContext.Payments.FirstAsync(p => p.Id == paymentId, cancellationToken);
+        createdPayment.PaymentUrl = payOSUrl;
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new CreatePayOSCallBackUrlForSubscriptionResult(payOSUrl);
     }
 }
