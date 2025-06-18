@@ -15,7 +15,7 @@ namespace Payment.Infrastructure.Data.Migrations
                 table: "Payments",
                 type: "bigint",
                 nullable: false,
-                defaultValue: 0L
+                defaultValueSql: "nextval('payment_code_seq')"
             );
         }
 
