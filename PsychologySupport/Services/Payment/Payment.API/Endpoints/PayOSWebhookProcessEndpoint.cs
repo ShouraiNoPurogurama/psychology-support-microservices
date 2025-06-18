@@ -75,44 +75,44 @@ public class PayOSWebhookProcessEndpoint : ICarterModule
         /// View Test
 
         // Endpoint cho ReturnUrl
-        app.MapGet("/payment/callback", (string code, string id, string cancel, string status, string orderCode) =>
-        {
-            Console.WriteLine("Return URL data: " +
-                $"Code={code ?? "N/A"}, ID={id ?? "N/A"}, Cancel={cancel ?? "N/A"}, " +
-                $"Status={status ?? "N/A"}, OrderCode={orderCode ?? "N/A"}");
+        //app.MapGet("/payment/callback", (string code, string id, string cancel, string status, string orderCode) =>
+        //{
+        //    Console.WriteLine("Return URL data: " +
+        //        $"Code={code ?? "N/A"}, ID={id ?? "N/A"}, Cancel={cancel ?? "N/A"}, " +
+        //        $"Status={status ?? "N/A"}, OrderCode={orderCode ?? "N/A"}");
 
-            return Results.Content($@"
-                <h1>Return URL Received</h1>
-                <p>Code: {code ?? "N/A"}</p>
-                <p>ID: {id ?? "N/A"}</p>
-                <p>Cancel: {cancel ?? "N/A"}</p>
-                <p>Status: {status ?? "N/A"}</p>
-                <p>Order Code: {orderCode ?? "N/A"}</p>
-            ", "text/html");
-        })
-        .WithName("ReturnUrlCallback")
-        .WithTags("PayOS Payments")
-        .Produces(StatusCodes.Status200OK)
-        .WithDescription("Handles redirect from PayOS after payment completion or cancellation")
-        .WithSummary("Return URL Callback");
+        //    return Results.Content($@"
+        //        <h1>Return URL Received</h1>
+        //        <p>Code: {code ?? "N/A"}</p>
+        //        <p>ID: {id ?? "N/A"}</p>
+        //        <p>Cancel: {cancel ?? "N/A"}</p>
+        //        <p>Status: {status ?? "N/A"}</p>
+        //        <p>Order Code: {orderCode ?? "N/A"}</p>
+        //    ", "text/html");
+        //})
+        //.WithName("ReturnUrlCallback")
+        //.WithTags("PayOS Payments")
+        //.Produces(StatusCodes.Status200OK)
+        //.WithDescription("Handles redirect from PayOS after payment completion or cancellation")
+        //.WithSummary("Return URL Callback");
 
-        // Endpoint cho CancelUrl
-        app.MapGet("/payment/cancel", (string code, string id, string orderCode) =>
-        {
-            Console.WriteLine("Cancel URL data: " +
-                $"Code={code ?? "N/A"}, ID={id ?? "N/A"}, OrderCode={orderCode ?? "N/A"}");
+        //// Endpoint cho CancelUrl
+        //app.MapGet("/payment/cancel", (string code, string id, string orderCode) =>
+        //{
+        //    Console.WriteLine("Cancel URL data: " +
+        //        $"Code={code ?? "N/A"}, ID={id ?? "N/A"}, OrderCode={orderCode ?? "N/A"}");
 
-            return Results.Content($@"
-                <h1>Cancel URL Received</h1>
-                <p>Code: {code ?? "N/A"}</p>
-                <p>ID: {id ?? "N/A"}</p>
-                <p>Order Code: {orderCode ?? "N/A"}</p>
-            ", "text/html");
-        })
-        .WithName("CancelUrlCallback")
-        .WithTags("PayOS Payments")
-        .Produces(StatusCodes.Status200OK)
-        .WithDescription("Handles redirect from PayOS when payment is cancelled")
-        .WithSummary("Cancel URL Callback");
+        //    return Results.Content($@"
+        //        <h1>Cancel URL Received</h1>
+        //        <p>Code: {code ?? "N/A"}</p>
+        //        <p>ID: {id ?? "N/A"}</p>
+        //        <p>Order Code: {orderCode ?? "N/A"}</p>
+        //    ", "text/html");
+        //})
+        //.WithName("CancelUrlCallback")
+        //.WithTags("PayOS Payments")
+        //.Produces(StatusCodes.Status200OK)
+        //.WithDescription("Handles redirect from PayOS when payment is cancelled")
+        //.WithSummary("Cancel URL Callback");
     }
 }
