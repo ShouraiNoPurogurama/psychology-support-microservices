@@ -28,43 +28,62 @@ public class CreatePayOSCallBackUrlForSubscriptionCommandHandler(
             .FirstOrDefaultAsync(p => p.Name == dto.PaymentMethod, cancellationToken)
             ?? throw new NotFoundException(nameof(PaymentMethod), dto.PaymentMethod);
 
-        var paymentId = Guid.NewGuid();
-
-        var payment = Payment.Domain.Models.Payment.Create(
-            paymentId,
-            dto.PatientId,
-            dto.PatientEmail,
-            PaymentType.BuySubscription,
-            paymentMethod.Id,
-            paymentMethod,
-            dto.FinalPrice,
-            dto.SubscriptionId,
-            null
-        );
-
-        // Create PaymentCode
         var db = (DbContext)dbContext;
         await db.Database.OpenConnectionAsync(cancellationToken);
 
-        long nextCode;
-        using (DbCommand cmd = db.Database.GetDbConnection().CreateCommand())
+        using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        try
         {
-            cmd.CommandText = "SELECT nextval('payment_code_seq')";
-            cmd.CommandType = System.Data.CommandType.Text;
+            // Generate new Payment ID and create Payment object
+            var paymentId = Guid.NewGuid();
 
-            var result = await cmd.ExecuteScalarAsync(cancellationToken);
-            nextCode = Convert.ToInt64(result);
+            // Get next PaymentCode from sequence
+            long nextCode;
+            using (DbCommand cmd = db.Database.GetDbConnection().CreateCommand())
+            {
+                cmd.CommandText = "SELECT nextval('payment_code_seq')";
+                cmd.CommandType = System.Data.CommandType.Text;
+                var result = await cmd.ExecuteScalarAsync(cancellationToken);
+                nextCode = Convert.ToInt64(result);
+            }
+
+            var payment = Payment.Domain.Models.Payment.Create(
+                paymentId,
+                dto.PatientId,
+                dto.PatientEmail,
+                PaymentType.BuySubscription,
+                paymentMethod.Id,
+                paymentMethod,
+                dto.FinalPrice,
+                dto.SubscriptionId,
+                null
+            );
+
+            payment.PaymentCode = nextCode;
+
+            // Add payment to DB (initially without URL)
+            dbContext.Payments.Add(payment);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            // Call PayOS to get payment URL
+            var payOSUrl = await payOSService.CreatePayOSUrlForSubscriptionAsync(dto, paymentId, nextCode);
+
+            // Update payment URL
+            payment.PaymentUrl = payOSUrl;
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+
+            return new CreatePayOSCallBackUrlForSubscriptionResult(payOSUrl);
         }
-
-        payment.PaymentCode = nextCode;
-
-        var payOSUrl = await payOSService.CreatePayOSUrlForSubscriptionAsync(dto, payment.Id, nextCode);
-
-        payment.PaymentUrl = payOSUrl;
-
-        dbContext.Payments.Add(payment);
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        return new CreatePayOSCallBackUrlForSubscriptionResult(payOSUrl);
+        catch (Exception)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+        finally
+        {
+            await db.Database.CloseConnectionAsync();
+        }
     }
 }
