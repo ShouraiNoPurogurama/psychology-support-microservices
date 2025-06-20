@@ -60,6 +60,10 @@ jobs:
           ${{ secrets.APPSETTINGS_CHATBOX }}
           EOF
 
+          cat <<EOF > Services/ChatBox/ChatBox.API/RSAKeys/PublicKey.xml
+          ${{ secrets.RSA_PUBLIC_KEYS }}
+          EOF
+
           cat <<EOF > Services/Image/Image.API/appsettings.json
           ${{ secrets.APPSETTINGS_IMAGE }}
           EOF
