@@ -7,8 +7,10 @@ public static class ClaimsPrincipalExtensions
 {
     public static string GetUserId(this ClaimsPrincipal user)
     {
-        return user.Claims.FirstOrDefault(c => c.Type== "userId")?.Value ?? string.Empty;
+        var result = user.Claims.FirstOrDefault(c => c.Type== "userId")?.Value ?? string.Empty;
+        return result;
     }
+    
 
     public static string GetUserName(this ClaimsPrincipal user)
     {

@@ -1,6 +1,8 @@
 ﻿using BuildingBlocks.Messaging.Masstransit;
 using Carter;
 using ChatBox.API.Data;
+using ChatBox.API.Models;
+using ChatBox.API.Services;
 using ChatBox.API.Utils;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +26,8 @@ public static class ApplicationServiceExtensions
 
         AddServiceDependencies(services);
         
+        ConfigureGemini(services, config);
+        
         services.AddSignalR();
         
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
@@ -42,9 +46,32 @@ public static class ApplicationServiceExtensions
                 Title = "Chatbox API",
                 Version = "v1"
             });
-            options.AddServer(new OpenApiServer
+            // options.AddServer(new OpenApiServer
+            // {
+            //     Url = "/chatbox-service/"
+            // });
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
-                Url = "/chatbox-service/"
+                Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",
+                Name = "Authorization",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT"
+            });
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Id = "Bearer",
+                            Type = ReferenceType.SecurityScheme
+                        }
+                    },
+                    Array.Empty<string>()
+                }
             });
         });
     }
@@ -67,6 +94,7 @@ public static class ApplicationServiceExtensions
     private static void AddServiceDependencies(IServiceCollection services)
     {
         services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
+        services.AddScoped<GeminiService>();
         // services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         // services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
     }
@@ -82,5 +110,10 @@ public static class ApplicationServiceExtensions
         });
 
         services.AddScoped<DbContext, ChatBoxDbContext>();
+    }
+    
+    private static void ConfigureGemini(IServiceCollection services, IConfiguration config)
+    {
+        services.Configure<GeminiConfig>(config.GetSection("GeminiConfig"));
     }
 }
