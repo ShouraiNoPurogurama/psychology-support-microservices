@@ -11,7 +11,7 @@ public record UpdatePatientProfileRequest(UpdatePatientProfileDto PatientProfile
 public record UpdatePatientProfileResponse(Guid Id);
 
 public class UpdatePatientProfileEndpoint : ICarterModule
-{
+{   
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapPut("patients/{id:guid}",
@@ -20,6 +20,8 @@ public class UpdatePatientProfileEndpoint : ICarterModule
                    IValidator<UpdatePatientProfileDto> validator,
                    ISender sender) =>
             {
+                
+                
                 var validationResult = await validator.ValidateAsync(request.PatientProfileUpdate);
                 if (!validationResult.IsValid)
                 {

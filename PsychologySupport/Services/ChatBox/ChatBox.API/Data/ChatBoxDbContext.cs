@@ -7,6 +7,8 @@ public class ChatBoxDbContext : DbContext
 {
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<DoctorPatientBooking> DoctorPatients => Set<DoctorPatientBooking>();
+    public DbSet<AIMessage> AIChatMessages => Set<AIMessage>();
+    public DbSet<AIChatSession> AIChatSessions => Set<AIChatSession>();
     
     public ChatBoxDbContext(DbContextOptions<ChatBoxDbContext> options) : base(options)
     {
