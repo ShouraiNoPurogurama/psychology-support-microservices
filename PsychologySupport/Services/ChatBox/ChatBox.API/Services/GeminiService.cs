@@ -18,35 +18,56 @@ namespace ChatBox.API.Services;
 public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbContext)
 {
     private readonly GeminiConfig _config = config.Value;
+    private static readonly Dictionary<Guid, SemaphoreSlim> SessionLocks = new();
+    private static readonly Lock LockDict = new();
 
 
     public async Task<AIMessageResponseDto> SendMessageAsync(AIMessageRequestDto request, Guid userId)
     {
         await ValidateSessionOwnershipAsync(request.SessionId, userId);
 
-        List<AIMessageDto>? summarizedHistory = null;
-        
-        var history = BuildConversationHistory(request.History, null);
+        SemaphoreSlim sessionLock;
 
-        //Tự động tóm tắt nếu số tin nhắn > 10
-        if (history.Count > 10)
+        lock (LockDict)
         {
-            var summary = await CallGeminiSummarizationV1BetaAsync(history);
-            
-            summarizedHistory = [new AIMessageDto(false, summary, DateTime.UtcNow)];
+            if (!SessionLocks.TryGetValue(request.SessionId, out sessionLock))
+            {
+                sessionLock = new SemaphoreSlim(1, 1);
+                SessionLocks[request.SessionId] = sessionLock;
+            }
         }
+
+        await sessionLock.WaitAsync(); //Block the session until the lock is released
         
-        var contents = BuildConversationHistory(summarizedHistory ?? request.History, request.UserMessage);
-        var payload = BuildGeminiMessagePayload(contents);
-        var responseText = await CallGeminiAPIAsync(payload);
+        try
+        {
+            List<AIMessageDto>? summarizedHistory = null;
 
-        if (string.IsNullOrWhiteSpace(responseText))
-            throw new Exception("Failed to get a response from Gemini.");
+            var history = BuildConversationHistory(request.History, null);
 
-        await SaveMessagesAsync(request.SessionId, userId, request.UserMessage, responseText);
+            if (history.Count > 10)
+            {
+                var summary = await CallGeminiSummarizationV1BetaAsync(history);
+                summarizedHistory = [new AIMessageDto(false, summary, DateTime.UtcNow)];
+            }
 
-        return new AIMessageResponseDto(request.SessionId, true, responseText, DateTime.UtcNow);
+            var contents = BuildConversationHistory(summarizedHistory ?? request.History, request.UserMessage);
+            var payload = BuildGeminiMessagePayload(contents);
+            var responseText = await CallGeminiAPIAsync(payload);
+
+            if (string.IsNullOrWhiteSpace(responseText))
+                throw new Exception("Failed to get a response from Gemini.");
+
+            await SaveMessagesAsync(request.SessionId, userId, request.UserMessage, responseText);
+
+            return new AIMessageResponseDto(request.SessionId, true, responseText, DateTime.UtcNow);
+        }
+        finally
+        {
+            sessionLock.Release();
+        }
     }
+
 
     public async Task<PaginatedResult<AIMessageDto>> GetMessagesAsync(Guid sessionId, Guid userId,
         PaginationRequest paginationRequest)
