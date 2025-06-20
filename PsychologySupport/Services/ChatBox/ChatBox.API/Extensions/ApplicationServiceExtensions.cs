@@ -97,6 +97,7 @@ public static class ApplicationServiceExtensions
     {
         services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
         services.AddScoped<GeminiService>();
+        services.AddScoped<SessionService>();
         // services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         // services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
     }

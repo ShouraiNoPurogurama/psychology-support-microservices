@@ -6,5 +6,8 @@ public class GeminiConfig
     public string Location { get; set; } = string.Empty;
     public string EndpointId { get; set; } = string.Empty;
     public string SystemInstruction { get; set; } = string.Empty;
+    
+    public string SummaryInstruction { get; set; } = string.Empty;
+
     public string ApiKey { get; set; } = string.Empty;
 }

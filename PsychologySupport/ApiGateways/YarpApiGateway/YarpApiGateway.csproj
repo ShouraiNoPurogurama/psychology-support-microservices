@@ -21,7 +21,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
-    <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Yarp.ReverseProxy" />
   </ItemGroup>
 </Project>

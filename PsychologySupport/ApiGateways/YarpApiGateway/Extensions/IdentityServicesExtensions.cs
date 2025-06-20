@@ -2,7 +2,6 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
 
 namespace YarpApiGateway.Extensions;
 
@@ -22,7 +21,7 @@ public static class IdentityServicesExtensions
                 var rsaKey = RSA.Create();
                 string xmlKey = File.ReadAllText(config.GetSection("Jwt:PublicKeyPath").Value!);
                 rsaKey.FromXmlString(xmlKey);
-                
+
                 options.SaveToken = true;
                 options.RequireHttpsMetadata = false;
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -53,7 +52,7 @@ public static class IdentityServicesExtensions
                 policy.RequireClaim(ClaimTypes.Role, "User"));
             options.AddPolicy("RequireDoctor", policy =>
                 policy.RequireClaim(ClaimTypes.Role, "Doctor"));
-            options.AddPolicy("AuthenticatedUser", policy => 
+            options.AddPolicy("AuthenticatedUser", policy =>
                 policy.RequireAuthenticatedUser());
         });
 

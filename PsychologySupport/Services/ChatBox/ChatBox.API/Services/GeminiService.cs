@@ -1,14 +1,17 @@
 ﻿using System.Net.Http.Headers;
-using System.Security.Claims;
 using System.Text;
+using BuildingBlocks.Pagination;
 using ChatBox.API.Data;
 using ChatBox.API.Dtos;
 using ChatBox.API.Dtos.Gemini;
-using ChatBox.API.Extensions;
 using ChatBox.API.Models;
 using Google.Apis.Auth.OAuth2;
+using Mapster;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 namespace ChatBox.API.Services;
 
@@ -16,70 +19,133 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
 {
     private readonly GeminiConfig _config = config.Value;
 
-    public async Task<AIMessageResponseDto> GenerateAsync(AIMessageRequestDto request, Guid userId)
+
+    public async Task<AIMessageResponseDto> SendMessageAsync(AIMessageRequestDto request, Guid userId)
     {
-        var history = request.History;
-        var userMessage = request.UserMessage;
-        var sessionId = request.SessionId;
+        await ValidateSessionOwnershipAsync(request.SessionId, userId);
 
-        var session = await dbContext.AIChatSessions.FindAsync(sessionId);
-        if (session == null || session.UserId != userId)
-            throw new UnauthorizedAccessException("You are not the owner of this session.");
+        List<AIMessageDto>? summarizedHistory = null;
+        
+        var history = BuildConversationHistory(request.History, null);
 
-        var token = await GetAccessTokenAsync();
-        using var client = new HttpClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        //Tự động tóm tắt nếu số tin nhắn > 10
+        if (history.Count > 10)
+        {
+            var summary = await CallGeminiSummarizationV1BetaAsync(history);
+            
+            summarizedHistory = [new AIMessageDto(false, summary, DateTime.UtcNow)];
+        }
+        
+        var contents = BuildConversationHistory(summarizedHistory ?? request.History, request.UserMessage);
+        var payload = BuildGeminiMessagePayload(contents);
+        var responseText = await CallGeminiAPIAsync(payload);
 
-        var url =
-            $"https://{_config.Location}-aiplatform.googleapis.com/v1/projects/{_config.ProjectId}/locations/{_config.Location}/endpoints/{_config.EndpointId}:streamGenerateContent";
+        if (string.IsNullOrWhiteSpace(responseText))
+            throw new Exception("Failed to get a response from Gemini.");
 
-        var contents = history.Select(m =>
-            {
-                var role = m.SenderIsEmo ? "model" : "user";
-                var parts = new List<GeminiContentPartDto>
-                {
-                    new(m.Content)
-                };
+        await SaveMessagesAsync(request.SessionId, userId, request.UserMessage, responseText);
 
-                return new GeminiContentDto(role, parts);
-            })
+        return new AIMessageResponseDto(request.SessionId, true, responseText, DateTime.UtcNow);
+    }
+
+    public async Task<PaginatedResult<AIMessageDto>> GetMessagesAsync(Guid sessionId, Guid userId,
+        PaginationRequest paginationRequest)
+    {
+        await ValidateSessionOwnershipAsync(sessionId, userId);
+
+        var pageIndex = paginationRequest.PageIndex;
+        var pageSize = paginationRequest.PageSize;
+
+        ValidatePaginationRequest(pageIndex, pageSize);
+
+        var query = dbContext.AIChatMessages
+            .Where(m => m.SessionId == sessionId)
+            .OrderByDescending(m => m.CreatedDate);
+
+        var totalCount = await query.LongCountAsync();
+
+        var messages = await query
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ProjectToType<AIMessageDto>()
+            .ToListAsync();
+
+        return new PaginatedResult<AIMessageDto>(pageIndex, pageSize, totalCount, messages);
+    }
+
+    private static void ValidatePaginationRequest(int pageIndex, int pageSize)
+    {
+        if (pageIndex <= 0 || pageSize <= 0)
+            throw new ArgumentException("Invalid pagination parameters.");
+    }
+
+    public async Task<AIMessage> AddMessageAsync(Guid sessionId, Guid userId, string content, bool senderIsEmo)
+    {
+        await ValidateSessionOwnershipAsync(sessionId, userId);
+
+        var message = new AIMessage
+        {
+            Id = Guid.NewGuid(),
+            SessionId = sessionId,
+            SenderUserId = senderIsEmo ? null : userId,
+            SenderIsEmo = senderIsEmo,
+            Content = content,
+            CreatedDate = DateTime.UtcNow,
+            IsRead = false
+        };
+
+        dbContext.AIChatMessages.Add(message);
+        await dbContext.SaveChangesAsync();
+        return message;
+    }
+
+    public async Task MarkMessagesAsReadAsync(Guid sessionId, Guid userId)
+    {
+        await ValidateSessionOwnershipAsync(sessionId, userId);
+
+        var unreadMessages = await dbContext.AIChatMessages
+            .Where(m => m.SessionId == sessionId && !m.IsRead && !m.SenderIsEmo)
+            .ToListAsync();
+
+        foreach (var message in unreadMessages)
+        {
+            message.IsRead = true;
+        }
+
+        await dbContext.SaveChangesAsync();
+    }
+
+    // ========== PRIVATE HELPERS ==========
+
+    private async Task ValidateSessionOwnershipAsync(Guid sessionId, Guid userId)
+    {
+        var session = await dbContext.AIChatSessions
+            .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.IsActive == true);
+
+        if (session == null)
+            throw new UnauthorizedAccessException("Session not found or not yours.");
+    }
+
+    private List<GeminiContentDto> BuildConversationHistory(List<AIMessageDto> history, string? userMessage)
+    {
+        var contents = history
+            .Select(m => new GeminiContentDto(
+                m.SenderIsEmo ? "model" : "user",
+                [new GeminiContentPartDto(m.Content)])
+            )
             .ToList();
 
-        var newParts = new List<GeminiContentPartDto> { new(userMessage) };
+        if (userMessage != null)
+            contents.Add(new GeminiContentDto("user", new List<GeminiContentPartDto> { new(userMessage) }));
 
-        contents.Add(new GeminiContentDto("user", newParts));
-
-        var payload = GenerateGeminiPayload(contents);
-
-        var AIResponse = await PostGeminiRequestAsync(payload, client, url);
-
-        return new AIMessageResponseDto(
-            SessionId: request.SessionId,
-            SenderIsEmo: true,
-            Content: AIResponse,
-            CreatedDate: DateTime.UtcNow
-        );
+        return contents;
     }
 
-    private static async Task<string> PostGeminiRequestAsync(GeminiRequestDto payload, HttpClient client, string url)
+    private GeminiRequestDto BuildGeminiMessagePayload(List<GeminiContentDto> contents)
     {
-        var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
-        var response = await client.PostAsync(url, content);
-        var result = await response.Content.ReadAsStringAsync();
-
-        dynamic json = JsonConvert.DeserializeObject(result);
-        var parts = json?.candidates?[0]?.content?.parts;
-        string text = parts?[0]?.text?.ToString() ?? string.Empty;
-        return text;
-    }
-
-    private GeminiRequestDto GenerateGeminiPayload(List<GeminiContentDto> contents)
-    {
-        var payload = new GeminiRequestDto(
+        return new GeminiRequestDto(
             Contents: contents,
-            SystemInstruction: new GeminiSystemInstructionDto(
-                Parts: [new GeminiContentPartDto(_config.SystemInstruction)]
-            ),
+            SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(_config.SystemInstruction)),
             GenerationConfig: new GeminiGenerationConfigDto(
                 Temperature: 1.0,
                 TopP: 0.95,
@@ -93,14 +159,104 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
                 new("HARM_CATEGORY_HARASSMENT")
             ]
         );
-        return payload;
+    }
+    
+    private async Task<string> CallGeminiSummarizationV1BetaAsync(List<GeminiContentDto> contents)
+    {
+        var apiKey = _config.ApiKey; 
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={apiKey}";
+
+        var payload = new
+        {
+            contents = contents.Select(c => new
+            {
+                role = c.Role,
+                parts = c.Parts.Select(p => new { text = p.Text }).ToList()
+            }).ToList(),
+            generationConfig = new
+            {
+                thinkingConfig = new
+                {
+                    thinkingBudget = 0
+                }
+            }
+        };
+
+        var json = JsonConvert.SerializeObject(payload);
+        using var client = new HttpClient();
+        var response = await client.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json"));
+        var result = await response.Content.ReadAsStringAsync();
+
+        var parsed = JObject.Parse(result);
+        return parsed["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString()
+               ?? throw new Exception("Failed to summarize history.");
     }
 
+
+    private async Task<string> CallGeminiAPIAsync(GeminiRequestDto payload)
+    {
+        var token = await GetAccessTokenAsync();
+        using var client = new HttpClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var url =
+            $"https://{_config.Location}-aiplatform.googleapis.com/v1/projects/{_config.ProjectId}/locations/{_config.Location}/endpoints/{_config.EndpointId}:streamGenerateContent";
+        var settings = new JsonSerializerSettings
+        {
+            ContractResolver = new DefaultContractResolver
+            {
+                NamingStrategy = new CamelCaseNamingStrategy()
+            }
+        };
+        var content = new StringContent(JsonConvert.SerializeObject(payload, settings), Encoding.UTF8, "application/json");
+
+        var jsonPayload = JsonConvert.SerializeObject(payload, settings);
+        Console.WriteLine(jsonPayload);
+
+        var response = await client.PostAsync(url, content);
+        var result = await response.Content.ReadAsStringAsync();
+
+        var array = JArray.Parse(result);
+
+        var texts = array
+            .Select(token => token["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString())
+            .Where(text => !string.IsNullOrEmpty(text))
+            .ToList();
+
+        return string.Join("", texts);
+    }
 
     private async Task<string> GetAccessTokenAsync()
     {
         var credential = await GoogleCredential.GetApplicationDefaultAsync();
         credential = credential.CreateScoped("https://www.googleapis.com/auth/cloud-platform");
         return await credential.UnderlyingCredential.GetAccessTokenForRequestAsync();
+    }
+
+    private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string userMessage, string aiResponse)
+    {
+        dbContext.AIChatMessages.AddRange(
+            new AIMessage
+            {
+                Id = Guid.NewGuid(),
+                SessionId = sessionId,
+                SenderUserId = userId,
+                SenderIsEmo = false,
+                Content = userMessage,
+                CreatedDate = DateTime.UtcNow,
+                IsRead = true
+            },
+            new AIMessage
+            {
+                Id = Guid.NewGuid(),
+                SessionId = sessionId,
+                SenderUserId = null,
+                SenderIsEmo = true,
+                Content = aiResponse,
+                CreatedDate = DateTime.UtcNow,
+                IsRead = false
+            });
+
+        await dbContext.SaveChangesAsync();
     }
 }

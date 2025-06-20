@@ -1,3 +1,5 @@
-﻿namespace ChatBox.API.Dtos.Gemini;
+﻿using Newtonsoft.Json;
 
-public record GeminiContentPartDto(string Text);
+namespace ChatBox.API.Dtos.Gemini;
+
+public record GeminiContentPartDto([JsonProperty("text")] string Text);

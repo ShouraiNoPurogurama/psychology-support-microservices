@@ -7,10 +7,11 @@ public static class ClaimsPrincipalExtensions
 {
     public static string GetUserId(this ClaimsPrincipal user)
     {
-        var result = user.Claims.FirstOrDefault(c => c.Type== "userId")?.Value ?? string.Empty;
+        var result = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value ??
+                     throw new UnauthorizedAccessException("User ID not found.");
         return result;
     }
-    
+
 
     public static string GetUserName(this ClaimsPrincipal user)
     {
@@ -33,12 +34,12 @@ public static class ClaimsPrincipalExtensions
         var identity = new ClaimsIdentity(jwtToken.Claims);
         return new ClaimsPrincipal(identity);
     }
-    
+
     public static string GetUserRole(this ClaimsPrincipal user)
     {
         var roleClaims = user
             .FindFirst(ClaimTypes.Role);
-        
+
         return roleClaims.Value;
     }
 }

@@ -37,6 +37,7 @@ services:
       dockerfile: Services/ChatBox/ChatBox.API/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
+      - ./Services/ChatBox/ChatBox.API/RSAKeys:/app/RSAKeys
 
   image.api:
     image: ${DOCKER_REGISTRY-}imageapi

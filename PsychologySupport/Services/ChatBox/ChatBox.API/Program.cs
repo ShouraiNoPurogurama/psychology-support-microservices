@@ -17,7 +17,7 @@ Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
 var app = builder.Build();
 
 app.UseCors("CorsPolicy"); 
-
+    
 app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
