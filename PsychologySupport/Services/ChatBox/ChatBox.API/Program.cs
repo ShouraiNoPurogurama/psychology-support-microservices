@@ -1,6 +1,6 @@
+using BuildingBlocks.Exceptions.Handler;
 using ChatBox.API.Extensions;
 using ChatBox.API.Hubs;
-using Microsoft.IdentityModel.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,9 +9,11 @@ builder.Configuration.LoadConfiguration(builder.Environment);
 var services = builder.Services;
 
 services.AddApplicationServices(builder.Configuration);
+services.AddExceptionHandler<CustomExceptionHandler>();
 
 var app = builder.Build();
 
+app.UseExceptionHandler(options => { });
 app.UseCors("CorsPolicy"); 
     
 app.UseSwagger();
