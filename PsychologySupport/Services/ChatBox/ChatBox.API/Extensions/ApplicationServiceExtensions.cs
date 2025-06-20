@@ -27,6 +27,8 @@ public static class ApplicationServiceExtensions
         AddServiceDependencies(services);
         
         ConfigureGemini(services, config);
+
+        services.AddIdentityServices(config);
         
         services.AddSignalR();
         

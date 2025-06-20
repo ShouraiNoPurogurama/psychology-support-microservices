@@ -1,5 +1,6 @@
 using ChatBox.API.Extensions;
 using ChatBox.API.Hubs;
+using Microsoft.IdentityModel.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,9 @@ builder.Configuration.LoadConfiguration(builder.Environment);
 var services = builder.Services;
 
 services.AddApplicationServices(builder.Configuration);
+
+IdentityModelEventSource.LogCompleteSecurityArtifact = true;
+Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
 
 
 var app = builder.Build();
