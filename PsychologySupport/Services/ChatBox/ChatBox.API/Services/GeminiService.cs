@@ -4,6 +4,7 @@ using BuildingBlocks.Pagination;
 using ChatBox.API.Data;
 using ChatBox.API.Dtos;
 using ChatBox.API.Dtos.Gemini;
+using ChatBox.API.Events;
 using ChatBox.API.Models;
 using Google.Apis.Auth.OAuth2;
 using Mapster;
@@ -15,7 +16,10 @@ using Newtonsoft.Json.Serialization;
 
 namespace ChatBox.API.Services;
 
-public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbContext)
+public class GeminiService(
+    IOptions<GeminiConfig> config,
+    ChatBoxDbContext dbContext,
+    SummarizationService summarizationService)
 {
     private readonly GeminiConfig _config = config.Value;
     private static readonly Dictionary<Guid, SemaphoreSlim> SessionLocks = new();
@@ -99,7 +103,7 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
             await SaveMessagesAsync(request.SessionId, userId, request.UserMessage, request.SentAt, aiMessages);
 
             //Tự động tóm tắt nếu vượt ngưỡng
-            await MaybeSummarizeSessionAsync(request.SessionId);
+            await summarizationService.MaybeSummarizeSessionAsync(userId, request.SessionId);
 
             return aiMessages.Select(m => new AIMessageResponseDto(
                     m.SessionId,
@@ -193,21 +197,6 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
             throw new UnauthorizedAccessException("Session not found or not yours.");
     }
 
-    private List<GeminiContentDto> BuildConversationHistory(List<AIMessageDto> history, string? userMessage)
-    {
-        var contents = history
-            .Select(m => new GeminiContentDto(
-                m.SenderIsEmo ? "model" : "user",
-                [new GeminiContentPartDto(m.Content)])
-            )
-            .ToList();
-
-        if (userMessage != null)
-            contents.Add(new GeminiContentDto("user", new List<GeminiContentPartDto> { new(userMessage) }));
-
-        return contents;
-    }
-
     private GeminiRequestDto BuildGeminiMessagePayload(List<GeminiContentDto> contents)
     {
         return new GeminiRequestDto(
@@ -228,38 +217,32 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
         );
     }
 
-    private async Task<string> CallGeminiSummarizationV1BetaAsync(List<GeminiContentDto> contents)
+
+    private async Task<string> GetAccessTokenAsync()
     {
-        var apiKey = _config.ApiKey;
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={apiKey}";
+        var credential = await GoogleCredential.GetApplicationDefaultAsync();
+        credential = credential.CreateScoped("https://www.googleapis.com/auth/cloud-platform");
+        return await credential.UnderlyingCredential.GetAccessTokenForRequestAsync();
+    }
 
-        var payload = new
-        {
-            systemInstruction = new
+    private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string userMessage, DateTime userMessageSentAt,
+        List<AIMessage> aiResponse)
+    {
+        dbContext.AIChatMessages.Add(
+            new AIMessage
             {
-                parts = new[] { new { text = _config.SummaryInstruction } }
-            },
-            contents = new
-            {
-                role = "user",
-                parts = new[] { new { text = $"Tóm tắt đoạn hội thoại sau:\n{string.Join("\n", contents.Select(c => new {c.Role, c.Parts[0].Text}))}" } }
-            },
-            generationConfig = new
-            {
-                temperature = 1.0,
-                topP = 0.95,
-                maxOutputTokens = 2048
-            }
-        };
+                Id = Guid.NewGuid(),
+                SessionId = sessionId,
+                SenderUserId = userId,
+                SenderIsEmo = false,
+                Content = userMessage,
+                CreatedDate = userMessageSentAt,
+                IsRead = true
+            });
 
-        var json = JsonConvert.SerializeObject(payload);
-        using var client = new HttpClient();
-        var response = await client.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json"));
-        var result = await response.Content.ReadAsStringAsync();
+        dbContext.AIChatMessages.AddRange(aiResponse);
 
-        var parsed = JObject.Parse(result);
-        return parsed["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString()
-               ?? throw new Exception("Failed to summarize history.");
+        await dbContext.SaveChangesAsync();
     }
 
 
@@ -294,62 +277,5 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
             .ToList();
 
         return string.Join("", texts);
-    }
-
-    private async Task<string> GetAccessTokenAsync()
-    {
-        var credential = await GoogleCredential.GetApplicationDefaultAsync();
-        credential = credential.CreateScoped("https://www.googleapis.com/auth/cloud-platform");
-        return await credential.UnderlyingCredential.GetAccessTokenForRequestAsync();
-    }
-
-    private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string userMessage, DateTime userMessageSentAt,
-        List<AIMessage> aiResponse)
-    {
-        dbContext.AIChatMessages.Add(
-            new AIMessage
-            {
-                Id = Guid.NewGuid(),
-                SessionId = sessionId,
-                SenderUserId = userId,
-                SenderIsEmo = false,
-                Content = userMessage,
-                CreatedDate = userMessageSentAt,
-                IsRead = true
-            });
-
-        dbContext.AIChatMessages.AddRange(aiResponse);
-
-        await dbContext.SaveChangesAsync();
-    }
-
-    private async Task MaybeSummarizeSessionAsync(Guid sessionId)
-    {
-        var messages = await dbContext.AIChatMessages
-            .Where(m => m.SessionId == sessionId)
-            .OrderBy(m => m.CreatedDate)
-            .ToListAsync();
-
-        var session = await dbContext.AIChatSessions.FirstAsync(s => s.Id == sessionId);
-
-        var lastIndex = session.LastSummarizedIndex ?? 0;
-        var newMessages = messages.Skip(lastIndex).ToList();
-
-        if (newMessages.Count >= 10)
-        {
-            var contentDtos = newMessages.Select(m => new GeminiContentDto(
-                    m.SenderIsEmo ? "model" : "user",
-                    [new GeminiContentPartDto(m.Content)]
-                ))
-                .ToList();
-
-            var summary = await CallGeminiSummarizationV1BetaAsync(contentDtos);
-
-            session.Summarization = (session.Summarization ?? "") + "\n" + summary;
-            session.LastSummarizedAt = DateTime.UtcNow;
-            session.LastSummarizedIndex = messages.Count;
-
-            await dbContext.SaveChangesAsync();
-        }
     }
 }

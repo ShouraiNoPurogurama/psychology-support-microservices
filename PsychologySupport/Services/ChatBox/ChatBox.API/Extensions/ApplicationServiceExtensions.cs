@@ -1,4 +1,7 @@
-﻿using BuildingBlocks.Messaging.Masstransit;
+﻿using System.Reflection;
+using BuildingBlocks.Behaviors;
+using BuildingBlocks.Data.Interceptors;
+using BuildingBlocks.Messaging.Masstransit;
 using Carter;
 using ChatBox.API.Data;
 using ChatBox.API.Models;
@@ -6,6 +9,7 @@ using ChatBox.API.Services;
 using ChatBox.API.Utils;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 
 namespace ChatBox.API.Extensions;
@@ -28,6 +32,8 @@ public static class ApplicationServiceExtensions
         
         ConfigureGemini(services, config);
 
+        ConfigureMediatR(services);
+        
         services.AddIdentityServices(config);
         
         services.AddSignalR();
@@ -35,6 +41,16 @@ public static class ApplicationServiceExtensions
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
         
         return services;
+    }
+
+    private static void ConfigureMediatR(IServiceCollection services)
+    {
+        services.AddMediatR(config =>
+        {
+            config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+            config.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            config.AddOpenBehavior(typeof(LoggingBehavior<,>));
+        });
     }
 
     private static void ConfigureSwagger(IServiceCollection services)
@@ -98,8 +114,9 @@ public static class ApplicationServiceExtensions
         services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
         services.AddScoped<GeminiService>();
         services.AddScoped<SessionService>();
-        // services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-        // services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        services.AddScoped<SummarizationService>();
+        services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+        services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
@@ -108,7 +125,7 @@ public static class ApplicationServiceExtensions
 
         services.AddDbContext<ChatBoxDbContext>((sp, opt) =>
         {
-            // opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+            opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             opt.UseNpgsql(connectionString);
         });
 

@@ -1,6 +1,8 @@
-﻿namespace ChatBox.API.Models;
+﻿using BuildingBlocks.DDD;
 
-public class AIChatSession
+namespace ChatBox.API.Models;
+
+public class AIChatSession : DomainEventContainer
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }

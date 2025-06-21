@@ -46,6 +46,15 @@ public class SessionService(ChatBoxDbContext dbContext)
         
         return new PaginatedResult<GetSessionDto>(pageIndex, pageSize, totalCount, sessions);
     }
+    
+    public async Task<AIChatSession> GetSessionAsync(Guid userId, Guid sessionId)
+    {
+        var session = await dbContext.AIChatSessions
+            .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.IsActive == true)
+            ?? throw new NotFoundException($"Session {sessionId} not found or does not belong to the user.");
+        
+        return session;
+    }
 
     public async Task<bool> DeleteSessionAsync(Guid sessionId, Guid userId)
     {
