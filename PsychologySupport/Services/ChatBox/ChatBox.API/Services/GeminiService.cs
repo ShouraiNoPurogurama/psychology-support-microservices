@@ -72,7 +72,7 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
                 })
                 .ToList();
             
-            await SaveMessagesAsync(request.SessionId, userId, request.UserMessage, aiMessages);
+            await SaveMessagesAsync(request.SessionId, userId, request.UserMessage, request.SentAt, aiMessages);
 
             var responseDtos = aiMessages
                 .Select(m => new AIMessageResponseDto(
@@ -252,9 +252,9 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
             }
         };
         var content = new StringContent(JsonConvert.SerializeObject(payload, settings), Encoding.UTF8, "application/json");
-
-        var jsonPayload = JsonConvert.SerializeObject(payload, settings);
-        Console.WriteLine(jsonPayload);
+        //
+        // var jsonPayload = JsonConvert.SerializeObject(payload, settings);
+        // Console.WriteLine(jsonPayload);
 
         var response = await client.PostAsync(url, content);
         var result = await response.Content.ReadAsStringAsync();
@@ -276,7 +276,7 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
         return await credential.UnderlyingCredential.GetAccessTokenForRequestAsync();
     }
 
-    private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string userMessage, List<AIMessage> aiResponse)
+    private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string userMessage,DateTime userMessageSentAt, List<AIMessage> aiResponse)
     {
         dbContext.AIChatMessages.Add(
             new AIMessage
@@ -286,7 +286,7 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
                 SenderUserId = userId,
                 SenderIsEmo = false,
                 Content = userMessage,
-                CreatedDate = DateTime.UtcNow,
+                CreatedDate = userMessageSentAt,
                 IsRead = true
             });
         
