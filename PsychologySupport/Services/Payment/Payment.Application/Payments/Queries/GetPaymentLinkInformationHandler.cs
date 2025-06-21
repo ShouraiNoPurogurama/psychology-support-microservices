@@ -40,44 +40,44 @@ public class GetPaymentLinkInformationHandler : IRequestHandler<GetPaymentLinkIn
     {
         var paymentInfo = await _payOSService.GetPaymentLinkInformationAsync(request.PaymentCode);
 
-        //if (paymentInfo.status == "CANCELLED" || paymentInfo.status == "EXPIRED")
-        //{
-        //    var payment = await _dbContext.Payments
-        //        .FirstOrDefaultAsync(p => p.PaymentCode == request.PaymentCode, cancellationToken)
-        //        ?? throw new NotFoundException(nameof(Payment.Domain.Models.Payment), request.PaymentCode);
+        if (paymentInfo.status == "CANCELLED" || paymentInfo.status == "EXPIRED")
+        {
+            var payment = await _dbContext.Payments
+                .FirstOrDefaultAsync(p => p.PaymentCode == request.PaymentCode, cancellationToken)
+                ?? throw new NotFoundException(nameof(Payment.Domain.Models.Payment), request.PaymentCode);
 
-        //    string? promotionCode = string.Empty;
-        //    Guid? giftId = Guid.Empty;
+            string? promotionCode = string.Empty;
+            Guid? giftId = Guid.Empty;
 
-        //    if (payment.SubscriptionId.HasValue && payment.SubscriptionId != Guid.Empty)
-        //    {
-        //        var subscriptionGetPromoAndGiftEvent = new SubscriptionGetPromoAndGiftRequestEvent(payment.SubscriptionId.Value);
-        //        var subResponse = await _subscriptionClient.GetResponse<SubscriptionGetPromoAndGiftResponseEvent>(subscriptionGetPromoAndGiftEvent, cancellationToken);
-        //        promotionCode = subResponse.Message.PromoCode;
-        //        giftId = subResponse.Message.GiftId;
-        //    }
-        //    else if (payment.BookingId.HasValue && payment.BookingId != Guid.Empty)
-        //    {
-        //        var bookingGetPromoAndGiftEvent = new BookingGetPromoAndGiftRequestEvent(payment.BookingId.Value);
-        //        var bookingResponse = await _bookingClient.GetResponse<BookingGetPromoAndGiftResponseEvent>(bookingGetPromoAndGiftEvent, cancellationToken);
-        //        promotionCode = bookingResponse.Message.PromoCode;
-        //        giftId = bookingResponse.Message.GiftId;
-        //    }
+            if (payment.SubscriptionId.HasValue && payment.SubscriptionId != Guid.Empty)
+            {
+                var subscriptionGetPromoAndGiftEvent = new SubscriptionGetPromoAndGiftRequestEvent(payment.SubscriptionId.Value);
+                var subResponse = await _subscriptionClient.GetResponse<SubscriptionGetPromoAndGiftResponseEvent>(subscriptionGetPromoAndGiftEvent, cancellationToken);
+                promotionCode = subResponse.Message.PromoCode;
+                giftId = subResponse.Message.GiftId;
+            }
+            else if (payment.BookingId.HasValue && payment.BookingId != Guid.Empty)
+            {
+                var bookingGetPromoAndGiftEvent = new BookingGetPromoAndGiftRequestEvent(payment.BookingId.Value);
+                var bookingResponse = await _bookingClient.GetResponse<BookingGetPromoAndGiftResponseEvent>(bookingGetPromoAndGiftEvent, cancellationToken);
+                promotionCode = bookingResponse.Message.PromoCode;
+                giftId = bookingResponse.Message.GiftId;
+            }
 
-        //    var tx = paymentInfo.transactions.FirstOrDefault();
-        //    var amount = paymentInfo.amount;
-        //    var reference = tx?.reference ?? "UNKNOWN";
-        //    var email = GetEmailFromToken();
+            var tx = paymentInfo.transactions.FirstOrDefault();
+            var amount = paymentInfo.amount;
+            var reference = tx?.reference ?? "UNKNOWN";
+            var email = GetEmailFromToken();
 
-        //    payment.AddFailedPaymentDetail(
-        //        PaymentDetail.Of(amount, reference),
-        //        email,
-        //        promotionCode,
-        //        giftId
-        //    );
+            payment.AddFailedPaymentDetail(
+                PaymentDetail.Of(amount, reference),
+                email,
+                promotionCode,
+                giftId
+            );
 
-        //    await _dbContext.SaveChangesAsync(cancellationToken);
-        //}
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
 
         return paymentInfo;
     }
