@@ -4,7 +4,6 @@ using BuildingBlocks.Pagination;
 using ChatBox.API.Data;
 using ChatBox.API.Dtos;
 using ChatBox.API.Dtos.Gemini;
-using ChatBox.API.Events;
 using ChatBox.API.Models;
 using Google.Apis.Auth.OAuth2;
 using Mapster;
@@ -24,7 +23,8 @@ public class GeminiService(
     private readonly GeminiConfig _config = config.Value;
     private static readonly Dictionary<Guid, SemaphoreSlim> SessionLocks = new();
     private static readonly Lock LockDict = new();
-
+    const int MaxUserInputLength = 1000;
+    
 
     public async Task<List<AIMessageResponseDto>> SendMessageAsync(AIMessageRequestDto request, Guid userId)
     {
@@ -47,58 +47,21 @@ public class GeminiService(
                 .AsNoTracking()
                 .FirstAsync(s => s.Id == request.SessionId);
 
-            //Lấy các message mới kể từ lần tóm tắt trước
-            var lastIndex = session.LastSummarizedIndex ?? 0;
-
-            var messages = await dbContext.AIChatMessages
-                .Where(m => m.SessionId == request.SessionId)
-                .OrderBy(m => m.CreatedDate)
-                .Skip(lastIndex)
-                .ToListAsync();
-
-            var contentParts = new List<GeminiContentDto>();
-
-            //Nếu có bản tóm tắt, bắt đầu từ đó
-            if (!string.IsNullOrWhiteSpace(session.Summarization))
-            {
-                contentParts.Add(new GeminiContentDto(
-                    "user", [new GeminiContentPartDto($"Tóm tắt trước đó của cuộc hội thoại:\n{session.Summarization}")]
-                ));
-            }
-
-            //Thêm các message chưa tóm tắt vào
-            foreach (var m in messages)
-            {
-                contentParts.Add(new GeminiContentDto(
-                    m.SenderIsEmo ? "model" : "user",
-                    [new GeminiContentPartDto(m.Content)]
-                ));
-            }
+            var contentParts = await LoadSessionHistoryMessages(request, session);
 
             //Cuối cùng là user message hiện tại
-            contentParts.Add(new GeminiContentDto(
-                "user", [new GeminiContentPartDto(request.UserMessage)]
-            ));
+            var finalInput = BuildUserInputWithTruncation(request);
 
+            contentParts.Add(new GeminiContentDto(
+                "user", [new GeminiContentPartDto(finalInput)]
+            ));
             var payload = BuildGeminiMessagePayload(contentParts);
             var responseText = await CallGeminiAPIAsync(payload);
 
             if (string.IsNullOrWhiteSpace(responseText))
                 throw new Exception("Failed to get a response from Gemini.");
 
-            var aiMessages = responseText
-                .Split(["\n\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(part => new AIMessage
-                {
-                    Id = Guid.NewGuid(),
-                    SessionId = request.SessionId,
-                    SenderUserId = null,
-                    SenderIsEmo = true,
-                    Content = part,
-                    CreatedDate = DateTime.UtcNow,
-                    IsRead = false
-                })
-                .ToList();
+            var aiMessages = SplitGeminiResponse(request.SessionId, responseText);
 
             await SaveMessagesAsync(request.SessionId, userId, request.UserMessage, request.SentAt, aiMessages);
 
@@ -116,6 +79,72 @@ public class GeminiService(
         {
             sessionLock.Release();
         }
+    }
+
+    private static List<AIMessage> SplitGeminiResponse(Guid sessionId, string responseText)
+    {
+        var aiMessages = responseText
+            .Split(["\n\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(part => new AIMessage
+            {
+                Id = Guid.NewGuid(),
+                SessionId = sessionId,
+                SenderUserId = null,
+                SenderIsEmo = true,
+                Content = part,
+                CreatedDate = DateTime.UtcNow,
+                IsRead = false
+            })
+            .ToList();
+        
+        return aiMessages;
+    }
+
+    private static string BuildUserInputWithTruncation(AIMessageRequestDto request)
+    {
+        var trimmedUserMessage = request.UserMessage.Length > MaxUserInputLength
+            ? request.UserMessage[..MaxUserInputLength] + "..."
+            : request.UserMessage;
+            
+        var notice = request.UserMessage.Length > MaxUserInputLength
+            ? "Ghi chú: nội dung người dùng đã được rút gọn vì quá dài.\n"
+            : "";
+
+        var finalInput = notice + trimmedUserMessage;
+        return finalInput;
+    }
+
+    private async Task<List<GeminiContentDto>> LoadSessionHistoryMessages(AIMessageRequestDto request, AIChatSession session)
+    {
+        //Lấy các message mới kể từ lần tóm tắt trước
+        var lastIndex = session.LastSummarizedIndex ?? 0;
+
+        var messages = await dbContext.AIChatMessages
+            .Where(m => m.SessionId == request.SessionId)
+            .OrderBy(m => m.CreatedDate)
+            .Skip(lastIndex)
+            .ToListAsync();
+
+        var contentParts = new List<GeminiContentDto>();
+
+        //Nếu có bản tóm tắt, bắt đầu từ đó
+        if (!string.IsNullOrWhiteSpace(session.Summarization))
+        {
+            contentParts.Add(new GeminiContentDto(
+                "user", [new GeminiContentPartDto($"Tóm tắt trước đó của cuộc hội thoại:\n{session.Summarization}")]
+            ));
+        }
+
+        //Thêm các message chưa tóm tắt vào
+        foreach (var m in messages)
+        {
+            contentParts.Add(new GeminiContentDto(
+                m.SenderIsEmo ? "model" : "user",
+                [new GeminiContentPartDto(m.Content)]
+            ));
+        }
+
+        return contentParts;
     }
 
 

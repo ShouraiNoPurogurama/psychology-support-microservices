@@ -1,8 +1,10 @@
 ﻿using BuildingBlocks.Exceptions;
 using BuildingBlocks.Pagination;
 using ChatBox.API.Data;
+using ChatBox.API.Dtos;
 using ChatBox.API.Dtos.Sessions;
 using ChatBox.API.Models;
+using ChatBox.API.Utils;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,7 +12,7 @@ namespace ChatBox.API.Services;
 
 public class SessionService(ChatBoxDbContext dbContext)
 {
-    public async Task<AIChatSession> CreateSessionAsync(string sessionName, Guid userId)
+    public async Task<CreateSessionResponseDto> CreateSessionAsync(string sessionName, Guid userId)
     {
         var session = new AIChatSession
         {
@@ -20,10 +22,40 @@ public class SessionService(ChatBoxDbContext dbContext)
             CreatedDate = DateTime.UtcNow,
             IsActive = true
         };
+
         dbContext.AIChatSessions.Add(session);
+
+        var initialGreeting = AddInitialGreeting(session);
+
         await dbContext.SaveChangesAsync();
-        return session;
+        
+        return new CreateSessionResponseDto(
+            session.Id,
+            session.Name,
+            initialGreeting
+        );
     }
+
+    private AIMessageResponseDto AddInitialGreeting(AIChatSession session)
+    {
+        var greeting = EmoGreetingsUtil.GetRandomGreeting();
+
+        var initialMessage = new AIMessage
+        {
+            Id = Guid.NewGuid(),
+            SessionId = session.Id,
+            SenderUserId = null, //từ Emo
+            SenderIsEmo = true,
+            Content = greeting,
+            CreatedDate = DateTime.UtcNow,
+            IsRead = false
+        };
+        
+        dbContext.AIChatMessages.Add(initialMessage);
+        
+        return initialMessage.Adapt<AIMessageResponseDto>();
+    }
+
 
     public async Task<PaginatedResult<GetSessionDto>> GetSessionsAsync(Guid userId, PaginationRequest paginationRequest)
     {

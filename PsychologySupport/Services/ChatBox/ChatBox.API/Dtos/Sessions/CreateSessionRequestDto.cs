@@ -1,3 +1,3 @@
 ﻿namespace ChatBox.API.Dtos.Sessions;
 
-public record CreateSessionResponseDto(Guid SessionId, string SessionName, DateTime CreatedDate);
+public record CreateSessionRequestDto(Guid SessionId, string SessionName, DateTime CreatedDate);
