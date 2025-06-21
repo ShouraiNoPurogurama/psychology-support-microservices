@@ -167,6 +167,7 @@ public class GeminiService(
         var messages = await query
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
+            .OrderBy(m => m.CreatedDate)
             .ProjectToType<AIMessageDto>()
             .ToListAsync();
 
