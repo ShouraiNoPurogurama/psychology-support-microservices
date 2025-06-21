@@ -234,7 +234,7 @@ public class GeminiService(
             SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(_config.SystemInstruction)),
             GenerationConfig: new GeminiGenerationConfigDto(
                 Temperature: 1.0,
-                TopP: 0.95,
+                TopP: 1,
                 MaxOutputTokens: 8192
             ),
             SafetySettings:
