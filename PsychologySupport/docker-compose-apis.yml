@@ -29,7 +29,7 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081 
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud/credentials.json
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud/compute-default-sa.json
 
     ports:
       - "5008:8080"
@@ -40,7 +40,7 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/ChatBox/ChatBox.API/RSAKeys:/app/RSAKeys
-      - /etc/gcloud/credentials.json:/app/gcloud/credentials.json:ro
+      - ~/gcp/compute-default-sa.json:/app/gcloud/compute-default-sa.json:ro
 
   image.api:
     image: ${DOCKER_REGISTRY-}imageapi
