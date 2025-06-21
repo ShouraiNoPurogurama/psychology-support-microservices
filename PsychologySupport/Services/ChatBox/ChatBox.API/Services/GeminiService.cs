@@ -22,7 +22,7 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
     private static readonly Lock LockDict = new();
 
 
-    public async Task<AIMessageResponseDto> SendMessageAsync(AIMessageRequestDto request, Guid userId)
+    public async Task<List<AIMessageResponseDto>> SendMessageAsync(AIMessageRequestDto request, Guid userId)
     {
         await ValidateSessionOwnershipAsync(request.SessionId, userId);
 
@@ -74,7 +74,15 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
             
             await SaveMessagesAsync(request.SessionId, userId, request.UserMessage, aiMessages);
 
-            return new AIMessageResponseDto(request.SessionId, true, responseText, DateTime.UtcNow);
+            var responseDtos = aiMessages
+                .Select(m => new AIMessageResponseDto(
+                    m.SessionId,
+                    m.SenderIsEmo,
+                    m.Content,
+                    m.CreatedDate))
+                .ToList();
+
+            return responseDtos;
         }
         finally
         {
