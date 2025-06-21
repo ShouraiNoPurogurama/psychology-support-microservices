@@ -58,7 +58,21 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
             if (string.IsNullOrWhiteSpace(responseText))
                 throw new Exception("Failed to get a response from Gemini.");
 
-            await SaveMessagesAsync(request.SessionId, userId, request.UserMessage, responseText);
+            var aiMessages = responseText
+                .Split(["\n\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(part => new AIMessage
+                {
+                    Id = Guid.NewGuid(),
+                    SessionId = request.SessionId,
+                    SenderUserId = null,
+                    SenderIsEmo = true,
+                    Content = part,
+                    CreatedDate = DateTime.UtcNow,
+                    IsRead = false
+                })
+                .ToList();
+            
+            await SaveMessagesAsync(request.SessionId, userId, request.UserMessage, aiMessages);
 
             return new AIMessageResponseDto(request.SessionId, true, responseText, DateTime.UtcNow);
         }
@@ -254,9 +268,9 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
         return await credential.UnderlyingCredential.GetAccessTokenForRequestAsync();
     }
 
-    private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string userMessage, string aiResponse)
+    private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string userMessage, List<AIMessage> aiResponse)
     {
-        dbContext.AIChatMessages.AddRange(
+        dbContext.AIChatMessages.Add(
             new AIMessage
             {
                 Id = Guid.NewGuid(),
@@ -266,17 +280,9 @@ public class GeminiService(IOptions<GeminiConfig> config, ChatBoxDbContext dbCon
                 Content = userMessage,
                 CreatedDate = DateTime.UtcNow,
                 IsRead = true
-            },
-            new AIMessage
-            {
-                Id = Guid.NewGuid(),
-                SessionId = sessionId,
-                SenderUserId = null,
-                SenderIsEmo = true,
-                Content = aiResponse,
-                CreatedDate = DateTime.UtcNow,
-                IsRead = false
             });
+        
+        dbContext.AIChatMessages.AddRange(aiResponse);
 
         await dbContext.SaveChangesAsync();
     }
