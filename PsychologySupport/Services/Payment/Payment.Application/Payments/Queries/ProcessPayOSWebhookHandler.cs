@@ -13,6 +13,7 @@ using System.IdentityModel.Tokens.Jwt;
 namespace Payment.Application.Payments.Queries;
 
 public record ProcessPayOSWebhookCommand(WebhookData WebhookData) : ICommand<ProcessPayOSWebhookResult>;
+
 public record ProcessPayOSWebhookResult(bool Success);
 
 public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCommand, ProcessPayOSWebhookResult>
@@ -21,17 +22,20 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
     private readonly IRequestClient<SubscriptionGetPromoAndGiftRequestEvent> _subscriptionClient;
     private readonly IRequestClient<BookingGetPromoAndGiftRequestEvent> _bookingClient;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IPayOSService _payOSService;
 
     public ProcessPayOSWebhookHandler(
         IPaymentDbContext dbContext,
         IRequestClient<SubscriptionGetPromoAndGiftRequestEvent> subscriptionClient,
         IRequestClient<BookingGetPromoAndGiftRequestEvent> bookingClient,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IPayOSService payOSService)
     {
         _dbContext = dbContext;
         _subscriptionClient = subscriptionClient;
         _bookingClient = bookingClient;
         _httpContextAccessor = httpContextAccessor;
+        _payOSService = payOSService;
     }
 
     public async Task<ProcessPayOSWebhookResult> Handle(ProcessPayOSWebhookCommand request, CancellationToken cancellationToken)
@@ -43,22 +47,21 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
             .FirstOrDefaultAsync(p => p.PaymentCode == paymentCode, cancellationToken)
             ?? throw new NotFoundException(nameof(Domain.Models.Payment), paymentCode);
 
-        var desc = webhookData.desc;
         var amount = webhookData.amount;
         string? promotionCode = string.Empty;
         Guid? giftId = Guid.Empty;
 
         if (payment.SubscriptionId.HasValue && payment.SubscriptionId != Guid.Empty)
         {
-            var subscriptionGetPromoAndGiftEvent = new SubscriptionGetPromoAndGiftRequestEvent(payment.SubscriptionId.Value);
-            var subResponse = await _subscriptionClient.GetResponse<SubscriptionGetPromoAndGiftResponseEvent>(subscriptionGetPromoAndGiftEvent, cancellationToken);
+            var subscriptionEvent = new SubscriptionGetPromoAndGiftRequestEvent(payment.SubscriptionId.Value);
+            var subResponse = await _subscriptionClient.GetResponse<SubscriptionGetPromoAndGiftResponseEvent>(subscriptionEvent, cancellationToken);
             promotionCode = subResponse.Message.PromoCode;
             giftId = subResponse.Message.GiftId;
         }
         else if (payment.BookingId.HasValue && payment.BookingId != Guid.Empty)
         {
-            var bookingGetPromoAndGiftEvent = new BookingGetPromoAndGiftRequestEvent(payment.BookingId.Value);
-            var bookingResponse = await _bookingClient.GetResponse<BookingGetPromoAndGiftResponseEvent>(bookingGetPromoAndGiftEvent, cancellationToken);
+            var bookingEvent = new BookingGetPromoAndGiftRequestEvent(payment.BookingId.Value);
+            var bookingResponse = await _bookingClient.GetResponse<BookingGetPromoAndGiftResponseEvent>(bookingEvent, cancellationToken);
             promotionCode = bookingResponse.Message.PromoCode;
             giftId = bookingResponse.Message.GiftId;
         }
@@ -67,29 +70,35 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
             throw new InvalidOperationException("Payment must have either a subscription or a booking associated.");
         }
 
+        var paymentInfo = await _payOSService.GetPaymentLinkInformationAsync(paymentCode);
+        var status = paymentInfo.status.ToLowerInvariant();
+
         using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
             var email = GetEmailFromToken();
 
-            if (desc.Contains("success"))
+            switch (status)
             {
-                payment.AddPaymentDetail(
-                    PaymentDetail.Of(amount, webhookData.reference).MarkAsSuccess()
-                );
-                payment.MarkAsCompleted(email);
-            }
-            else if (desc.Contains("cancelled") || desc.Contains("failed"))
-            {
-                payment.AddFailedPaymentDetail(
-                    PaymentDetail.Of(amount, webhookData.reference),
-                    email,
-                    promotionCode,
-                    giftId
-                );
-            }
-            else
-            {
-                throw new BadRequestException("Invalid payment status in webhook description");
+                case "paid":
+                    payment.AddPaymentDetail(
+                        PaymentDetail.Of(amount, webhookData.reference).MarkAsSuccess()
+                    );
+                    payment.MarkAsCompleted(email);
+                    break;
+
+                case "cancelled":
+                case "failed":
+                case "expired":
+                    payment.AddFailedPaymentDetail(
+                        PaymentDetail.Of(amount, webhookData.reference),
+                        email,
+                        promotionCode,
+                        giftId
+                    );
+                    break;
+
+                default:
+                    throw new BadRequestException($"Unhandled payment status from PayOS: {status}");
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);
@@ -114,7 +123,7 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
         if (!tokenHandler.CanReadToken(token)) return "unknown@example.com";
 
         var jwtToken = tokenHandler.ReadJwtToken(token);
-        var emailClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
+        var emailClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub || c.Type == "email");
 
         return emailClaim?.Value ?? "unknown@example.com";
     }
