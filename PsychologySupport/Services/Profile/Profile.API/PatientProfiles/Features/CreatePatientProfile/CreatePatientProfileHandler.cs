@@ -33,7 +33,9 @@ public class CreatePatientProfileHandler : ICommandHandler<CreatePatientProfileC
                 dto.Gender,
                 dto.Allergies,
                 dto.PersonalityTraits,
-                dto.ContactInfo
+                dto.ContactInfo,
+                dto.JobId,
+                dto.BirthDate
             );
 
             _context.PatientProfiles.Add(patientProfile);

@@ -5,7 +5,7 @@ namespace Profile.API.PatientProfiles.Models
 {
     public class Job : Entity<Guid>
     {
-        public int IndustryId { get; set; }
+        public Guid IndustryId { get; set; }
         public string JobTitle { get; set; }
         public EducationLevel EducationLevel { get; set; }
         public Industry Industry { get; set; }

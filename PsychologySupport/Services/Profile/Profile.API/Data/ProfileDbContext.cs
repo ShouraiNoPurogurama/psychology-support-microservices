@@ -77,5 +77,11 @@ public class ProfileDbContext : DbContext
             .HasConversion(new EnumToStringConverter<MedicalRecordStatus>())
             .HasColumnType("VARCHAR(20)");
         base.OnModelCreating(builder);
+
+        builder.Entity<Job>()
+          .Property(e => e.EducationLevel)
+          .HasConversion(new EnumToStringConverter<EducationLevel>())
+          .HasColumnType("VARCHAR(30)");
+        base.OnModelCreating(builder);
     }
 }
