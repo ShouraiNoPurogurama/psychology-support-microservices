@@ -9,14 +9,14 @@ using Profile.API.PatientProfiles.Models;
 namespace Profile.API.PatientProfiles.Features.GetAllMedicalRecord;
 
 public record GetAllMedicalRecordsQuery(
-    [FromQuery] Guid? PatientId = null, 
-    [FromQuery] Guid? DoctorId = null, 
-    [FromQuery] int PageIndex = 1,
-    [FromQuery] int PageSize = 10,
-    [FromQuery] string? Search = "", 
-    [FromQuery] string? SortBy = "CreatedAt",
-    [FromQuery] string? SortOrder = "asc",
-    [FromQuery] MedicalRecordStatus? Status = null) : IRequest<GetAllMedicalRecordsResult>;// fiter Processing,Done
+    Guid? PatientId = null, 
+    Guid? DoctorId = null, 
+    int PageIndex = 1,
+    int PageSize = 10,
+    string? Search = "", 
+    string? SortBy = "CreatedAt",
+    string? SortOrder = "asc",
+    MedicalRecordStatus? Status = null) : IRequest<GetAllMedicalRecordsResult>;// fiter Processing,Done
 
 public record GetAllMedicalRecordsResult(PaginatedResult<MedicalRecordDto> MedicalRecords);
 
