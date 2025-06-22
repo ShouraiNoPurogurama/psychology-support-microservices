@@ -85,7 +85,13 @@ public class SummarizationService(IOptions<GeminiConfig> config, ChatBoxDbContex
     {
         var session = await sessionService.GetSessionAsync(userId, sessionId);
 
-        session.Summarization = (session.Summarization ?? "") + "\n" + summary;
+        var sessionSummarizations = session.Summarization ?? "";
+
+        var lastSummarization = sessionSummarizations
+            .Split('\n')
+            .LastOrDefault(line => !string.IsNullOrWhiteSpace(line));
+        
+        session.Summarization = lastSummarization + "\n" + summary;
         session.LastSummarizedAt = DateTime.UtcNow;
         session.LastSummarizedIndex += newMessageCount;
 
