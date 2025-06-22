@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace BuildingBlocks.Enums
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum Emotion
+    public enum EmotionType
     {
         Happy,
         Sad,
