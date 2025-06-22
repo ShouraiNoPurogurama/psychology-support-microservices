@@ -29,7 +29,9 @@ public class UpdatePatientProfileHandler : ICommandHandler<UpdatePatientProfileC
             dto.Gender ?? patientProfile.Gender,
             dto.Allergies ?? patientProfile.Allergies,
             dto.PersonalityTraits ?? patientProfile.PersonalityTraits,
-            dto.ContactInfo ?? patientProfile.ContactInfo
+            dto.ContactInfo ?? patientProfile.ContactInfo,
+            dto.JobId ?? patientProfile.JobId,
+            dto.BirthDate ?? patientProfile.BirthDate
         );
 
         await _context.SaveChangesAsync(cancellationToken);

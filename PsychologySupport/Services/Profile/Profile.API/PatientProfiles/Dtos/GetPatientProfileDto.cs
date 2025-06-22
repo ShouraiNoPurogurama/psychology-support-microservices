@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.Data.Common;
 using BuildingBlocks.Enums;
 using Profile.API.PatientProfiles.Enum;
+using Profile.API.PatientProfiles.Models;
 
 namespace Profile.API.PatientProfiles.Dtos;
 
@@ -13,5 +14,7 @@ public record GetPatientProfileDto(
     PersonalityTrait PersonalityTraits,
     ContactInfo ContactInfo,
     MedicalHistoryDto? MedicalHistory,
+    Job? Job,
+    DateOnly BirthDate,
     IEnumerable<MedicalRecordDto> MedicalRecords
 );

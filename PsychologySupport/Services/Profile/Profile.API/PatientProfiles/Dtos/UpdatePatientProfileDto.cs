@@ -9,5 +9,7 @@ public record UpdatePatientProfileDto(
     UserGender? Gender,
     string? Allergies,
     PersonalityTrait? PersonalityTraits,
-    ContactInfo? ContactInfo
+    ContactInfo? ContactInfo,
+    Guid? JobId,
+    DateOnly? BirthDate
 );

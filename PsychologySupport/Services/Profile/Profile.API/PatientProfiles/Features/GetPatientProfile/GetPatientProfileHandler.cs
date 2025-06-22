@@ -13,6 +13,7 @@ public class GetPatientProfileHandler(ProfileDbContext context) : IQueryHandler<
     public async Task<GetPatientProfileResult> Handle(GetPatientProfileQuery request, CancellationToken cancellationToken)
     {
         var patientProfile = await context.PatientProfiles
+                                 .Include(p => p.Job)
                                  .Include(p => p.MedicalHistory)
                                  .ThenInclude(m => m.PhysicalSymptoms)
                                  .Include(p => p.MedicalHistory)

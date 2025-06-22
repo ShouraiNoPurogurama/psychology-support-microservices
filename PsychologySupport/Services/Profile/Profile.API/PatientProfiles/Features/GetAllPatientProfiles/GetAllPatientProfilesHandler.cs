@@ -40,7 +40,8 @@ public class GetAllPatientProfilesHandler : IQueryHandler<GetAllPatientProfilesQ
             .Include(p => p.MedicalHistory)
                 .ThenInclude(m => m.SpecificMentalDisorders)
             .Include(p => p.MedicalHistory)
-                .ThenInclude(m => m.PhysicalSymptoms);
+                .ThenInclude(m => m.PhysicalSymptoms)
+            .Include(p => p.Job);
 
         // Filter 
         if (request.Gender.HasValue)

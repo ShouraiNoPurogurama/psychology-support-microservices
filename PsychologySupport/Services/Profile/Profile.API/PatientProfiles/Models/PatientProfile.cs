@@ -16,8 +16,8 @@ public class PatientProfile : AggregateRoot<Guid>
     {
     }
 
-    public PatientProfile(Guid userId, string fullName, UserGender gender, string? allergies, PersonalityTrait personalityTraits,
-        ContactInfo contactInfo)
+    public PatientProfile(Guid userId, string fullName, UserGender gender, string? allergies,
+       PersonalityTrait personalityTraits, ContactInfo contactInfo, Guid? jobId, DateOnly? birthDate)
     {
         UserId = userId;
         FullName = fullName;
@@ -25,6 +25,8 @@ public class PatientProfile : AggregateRoot<Guid>
         Allergies = allergies;
         PersonalityTraits = personalityTraits;
         ContactInfo = contactInfo;
+        JobId = jobId;
+        BirthDate = birthDate;
     }
 
     public Guid UserId { get; set; }
@@ -35,6 +37,10 @@ public class PatientProfile : AggregateRoot<Guid>
     public ContactInfo ContactInfo { get; set; } = default!;
     public Guid? MedicalHistoryId { get; set; }
     public MedicalHistory? MedicalHistory { get; set; }
+    public Guid? JobId { get; set; }
+    public Job? Job { get; set; }
+    public DateOnly? BirthDate { get; set; }
+
 
     public IReadOnlyList<MedicalRecord> MedicalRecords => _medicalRecords.AsReadOnly();
 
@@ -79,22 +85,24 @@ public class PatientProfile : AggregateRoot<Guid>
     }
 
     public static PatientProfile Create(Guid userId, string fullName, UserGender gender, string? allergies,
-        PersonalityTrait personalityTraits, ContactInfo contactInfo)
+       PersonalityTrait personalityTraits, ContactInfo contactInfo, Guid? jobId, DateOnly? birthDate)
     {
         if (userId == Guid.Empty)
             throw new ArgumentException("User ID cannot be empty.", nameof(userId));
 
-        return new PatientProfile(userId, fullName, gender, allergies, personalityTraits, contactInfo);
+        return new PatientProfile(userId, fullName, gender, allergies, personalityTraits, contactInfo, jobId, birthDate);
     }
 
     public void Update(string fullName, UserGender gender, string allergies, PersonalityTrait personalityTraits,
-        ContactInfo contactInfo)
+        ContactInfo contactInfo, Guid? jobId, DateOnly? birthDate)
     {
         FullName = fullName;
         Gender = gender;
         Allergies = allergies;
         PersonalityTraits = personalityTraits;
         ContactInfo = contactInfo;
+        JobId = jobId;
+        BirthDate = birthDate;
     }
 
     public void UpdateMedicalRecord(Guid medicalRecordId, Guid doctorId, string notes, MedicalRecordStatus status,
