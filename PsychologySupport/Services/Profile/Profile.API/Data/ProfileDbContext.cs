@@ -21,6 +21,8 @@ public class ProfileDbContext : DbContext
     public DbSet<SpecificMentalDisorder> SpecificMentalDisorders => Set<SpecificMentalDisorder>();
     public DbSet<PhysicalSymptom> PhysicalSymptoms => Set<PhysicalSymptom>();
     public DbSet<Specialty> Specialties => Set<Specialty>();
+    public DbSet<Industry> Industries => Set<Industry>();
+    public DbSet<Job> Jobs => Set<Job>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

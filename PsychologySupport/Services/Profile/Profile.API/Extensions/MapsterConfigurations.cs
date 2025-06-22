@@ -41,5 +41,12 @@ public static class MapsterConfiguration
 
         TypeAdapterConfig<Specialty, SpecialtyDto>
             .NewConfig();
+
+        TypeAdapterConfig<Industry, IndustryDto>
+            .NewConfig();
+
+        TypeAdapterConfig<Job, JobDto>
+            .NewConfig();
+
     }
 }
