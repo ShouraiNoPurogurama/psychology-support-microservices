@@ -40,7 +40,7 @@ public class GetPaymentLinkInformationHandler : IRequestHandler<GetPaymentLinkIn
     {
         var paymentInfo = await _payOSService.GetPaymentLinkInformationAsync(request.PaymentCode);
 
-        /*if (paymentInfo.status == "CANCELLED" || paymentInfo.status == "EXPIRED")
+        if (paymentInfo.status == "CANCELLED" || paymentInfo.status == "EXPIRED")
         {
             var payment = await _dbContext.Payments
                 .FirstOrDefaultAsync(p => p.PaymentCode == request.PaymentCode, cancellationToken)
@@ -77,7 +77,7 @@ public class GetPaymentLinkInformationHandler : IRequestHandler<GetPaymentLinkIn
             );
 
             await _dbContext.SaveChangesAsync(cancellationToken);
-        }*/
+        }
 
         return paymentInfo;
     }
