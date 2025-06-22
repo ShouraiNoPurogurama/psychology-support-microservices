@@ -26,14 +26,14 @@ public class GenerateSubscriptionPaymentUrlHandler : IConsumer<GenerateSubscript
         {
             var dto = context.Message.Adapt<BuySubscriptionDto>();
 
-            string paymentUrl = dto.PaymentMethod switch
+            (long? paymentCode, string paymentUrl) = dto.PaymentMethod switch
             {
                 PaymentMethodName.VNPay => await HandleVnPay(dto),
                 PaymentMethodName.PayOS => await HandlePayOS(dto),
                 _ => throw new InvalidOperationException($"Unsupported payment method: {dto.PaymentMethod}")
             };
 
-            await context.RespondAsync(new GenerateSubscriptionPaymentUrlResponse(paymentUrl));
+            await context.RespondAsync(new GenerateSubscriptionPaymentUrlResponse(paymentCode,paymentUrl));
         }
         catch (Exception ex)
         {
@@ -42,17 +42,17 @@ public class GenerateSubscriptionPaymentUrlHandler : IConsumer<GenerateSubscript
         }
     }
 
-    private async Task<string> HandleVnPay(BuySubscriptionDto dto)
+    private async Task<(long? PaymentCode, string PaymentUrl)> HandleVnPay(BuySubscriptionDto dto)
     {
         var vnPayCommand = new CreateVnPayCallBackUrlForSubscriptionCommand(dto);
         var vnPayResult = await _sender.Send(vnPayCommand);
-        return vnPayResult.Url;
+        return (null, vnPayResult.Url);
     }
 
-    private async Task<string> HandlePayOS(BuySubscriptionDto dto)
+    private async Task<(long? PaymentCode, string PaymentUrl)> HandlePayOS(BuySubscriptionDto dto)
     {
         var payOsCommand = new CreatePayOSCallBackUrlForSubscriptionCommand(dto);
         var payOsResult = await _sender.Send(payOsCommand);
-        return payOsResult.Url;
+        return (payOsResult.PaymentCode, payOsResult.Url);
     }
 }

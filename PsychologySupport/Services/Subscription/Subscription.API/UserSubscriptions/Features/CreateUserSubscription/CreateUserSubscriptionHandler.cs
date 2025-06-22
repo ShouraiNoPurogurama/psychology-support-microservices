@@ -18,7 +18,7 @@ namespace Subscription.API.UserSubscriptions.Features.CreateUserSubscription;
 
 public record CreateUserSubscriptionCommand(CreateUserSubscriptionDto UserSubscription) : ICommand<CreateUserSubscriptionResult>;
 
-public record CreateUserSubscriptionResult(Guid Id, string PaymentUrl);
+public record CreateUserSubscriptionResult(Guid Id, string PaymentUrl, long? PaymentCode);
 
 public class CreateUserSubscriptionHandler(
     SubscriptionDbContext context,
@@ -72,8 +72,11 @@ public class CreateUserSubscriptionHandler(
             var existingPaymentUrl = paymentUrlResponse.Message.Url ??
                                      throw new BadRequestException(
                                          "Cannot create payment url for awaiting payment subscription.");
+            var existingPaymentCode = paymentUrlResponse.Message.PaymentCode ??
+                                     throw new BadRequestException(
+                                         "Cannot create payment code for awaiting payment subscription.");
 
-            return new CreateUserSubscriptionResult(awaitingPaymentSubscription.Id, existingPaymentUrl);
+            return new CreateUserSubscriptionResult(awaitingPaymentSubscription.Id, existingPaymentUrl,existingPaymentCode);
         }
 
         var dto = request.UserSubscription;
@@ -102,7 +105,7 @@ public class CreateUserSubscriptionHandler(
         
         await transaction.CommitAsync(cancellationToken);
         
-        return new CreateUserSubscriptionResult(userSubscription.Id, paymentUrl.Message.Url);
+        return new CreateUserSubscriptionResult(userSubscription.Id, paymentUrl.Message.Url, paymentUrl.Message.PaymentCode);
     }
 
     private async Task<Response<GenerateSubscriptionPaymentUrlResponse>> GeneratePaymentUrl(CancellationToken cancellationToken,

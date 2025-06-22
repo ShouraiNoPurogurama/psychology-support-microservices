@@ -1,3 +1,3 @@
 ﻿namespace BuildingBlocks.Messaging.Events.Payment;
 
-public record GenerateSubscriptionPaymentUrlResponse(string Url);
+public record GenerateSubscriptionPaymentUrlResponse(long? PaymentCode,string Url);

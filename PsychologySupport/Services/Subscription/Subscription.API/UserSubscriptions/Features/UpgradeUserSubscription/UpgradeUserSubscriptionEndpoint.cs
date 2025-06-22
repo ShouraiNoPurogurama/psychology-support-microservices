@@ -8,7 +8,7 @@ namespace Subscription.API.UserSubscriptions.Features.UpgradeUserSubscription;
 
 public record UpgradeUserSubscriptionRequest(UpgradeUserSubscriptionDto UpgradeUserSubscriptionDto);
 
-public record UpgradeUserSubscriptionResponse(Guid Id, string PaymentUrl);
+public record UpgradeUserSubscriptionResponse(Guid Id, string PaymentUrl,long? PaymentCode);
 
 public class UpgradeUserSubscriptionEndpoint : ICarterModule
 {

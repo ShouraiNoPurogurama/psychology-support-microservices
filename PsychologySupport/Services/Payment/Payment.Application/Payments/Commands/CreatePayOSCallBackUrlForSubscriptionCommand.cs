@@ -11,7 +11,7 @@ namespace Payment.Application.Payments.Commands;
 public record CreatePayOSCallBackUrlForSubscriptionCommand(BuySubscriptionDto BuySubscription)
     : ICommand<CreatePayOSCallBackUrlForSubscriptionResult>;
 
-public record CreatePayOSCallBackUrlForSubscriptionResult(string Url);
+public record CreatePayOSCallBackUrlForSubscriptionResult(long? PaymentCode, string Url);
 
 public class CreatePayOSCallBackUrlForSubscriptionCommandHandler(
     IPayOSService payOSService,
@@ -65,6 +65,6 @@ public class CreatePayOSCallBackUrlForSubscriptionCommandHandler(
         dbContext.Payments.Add(payment);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return new CreatePayOSCallBackUrlForSubscriptionResult(payOSUrl);
+        return new CreatePayOSCallBackUrlForSubscriptionResult(nextCode,payOSUrl);
     }
 }

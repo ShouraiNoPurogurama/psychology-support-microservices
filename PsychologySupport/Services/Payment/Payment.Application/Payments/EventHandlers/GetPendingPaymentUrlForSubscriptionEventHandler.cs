@@ -11,9 +11,9 @@ public class GetPendingPaymentUrlForSubscriptionHandler(ISender sender) : IConsu
     {
         var query = new GetPaymentUrlForSubscriptionQuery(context.Message.SubscriptionId);
         
-        var result = await sender.Send(query);
+        var result = await sender.Send(query); 
         
-        var response = new GetPendingPaymentUrlForSubscriptionResponse(result.Url);
+        var response = new GetPendingPaymentUrlForSubscriptionResponse(result.PaymentCode, result.Url);
         
         await context.RespondAsync(response);
     }

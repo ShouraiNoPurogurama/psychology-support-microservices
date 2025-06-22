@@ -12,13 +12,14 @@ using Subscription.API.Data.Common;
 using Subscription.API.ServicePackages.Models;
 using Subscription.API.UserSubscriptions.Dtos;
 using Subscription.API.UserSubscriptions.Models;
+using System.Net.WebSockets;
 
 namespace Subscription.API.UserSubscriptions.Features.UpgradeUserSubscription;
 
 public record UpgradeUserSubscriptionCommand(UpgradeUserSubscriptionDto UpgradeUserSubscriptionDto)
     : ICommand<UpgradeUserSubscriptionResult>;
 
-public record UpgradeUserSubscriptionResult(Guid Id, string PaymentUrl);
+public record UpgradeUserSubscriptionResult(Guid Id, string PaymentUrl,long? PaymentCode);
 
 public class UpgradeUserSubscriptionHandler(
     SubscriptionDbContext dbContext,
@@ -94,7 +95,7 @@ public class UpgradeUserSubscriptionHandler(
 
         #endregion
 
-        return new UpgradeUserSubscriptionResult(newUserSubscription.Id, paymentUrl.Message.Url);
+        return new UpgradeUserSubscriptionResult(newUserSubscription.Id, paymentUrl.Message.Url, paymentUrl.Message.PaymentCode);
     }
 
     private decimal CalculatePriceDiff(UserSubscription currentSubscription)

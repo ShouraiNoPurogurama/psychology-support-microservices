@@ -12,7 +12,7 @@ namespace Payment.Application.Payments.Commands;
 public record CreatePayOSCallBackUrlForUpgradeSubscriptionCommand(UpgradeSubscriptionDto UpgradeSubscription)
     : ICommand<CreatePayOSCallBackUrlForUpgradeSubscriptionResult>;
 
-public record CreatePayOSCallBackUrlForUpgradeSubscriptionResult(string Url);
+public record CreatePayOSCallBackUrlForUpgradeSubscriptionResult(long? PaymentCode,string Url);
 
 public class CreatePayOSCallBackUrlForUpgradeSubscriptionCommandHandler(IPayOSService payOSService, IPaymentDbContext dbContext)
     : ICommandHandler<CreatePayOSCallBackUrlForUpgradeSubscriptionCommand, CreatePayOSCallBackUrlForUpgradeSubscriptionResult>
@@ -64,6 +64,6 @@ public class CreatePayOSCallBackUrlForUpgradeSubscriptionCommandHandler(IPayOSSe
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return new CreatePayOSCallBackUrlForUpgradeSubscriptionResult(payOSUrl);
+        return new CreatePayOSCallBackUrlForUpgradeSubscriptionResult(nextCode,payOSUrl);
     }
 }
