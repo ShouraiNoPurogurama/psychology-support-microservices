@@ -49,7 +49,6 @@ public class GeminiService(
 
             var contentParts = await LoadSessionHistoryMessages(request, session);
 
-            //Cuối cùng là user message hiện tại
             var finalInput = BuildUserInputWithTruncation(request);
 
             contentParts.Add(new GeminiContentDto(
@@ -234,7 +233,7 @@ public class GeminiService(
             SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(_config.SystemInstruction)),
             GenerationConfig: new GeminiGenerationConfigDto(
                 Temperature: 1.0,
-                TopP: 1,
+                TopP: 0.98,
                 MaxOutputTokens: 8192
             ),
             SafetySettings:

@@ -3,6 +3,7 @@ using LifeStyles.API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Reflection.Emit;
+using Emotion = LifeStyles.API.Models.Emotion;
 
 namespace LifeStyles.API.Data;
 
@@ -23,11 +24,15 @@ public class LifeStylesDbContext : DbContext
     public DbSet<FoodActivity> FoodActivities => Set<FoodActivity>();
     public DbSet<FoodCategory> FoodCategories => Set<FoodCategory>();
     public DbSet<FoodNutrient> FoodNutrients => Set<FoodNutrient>();
-    public DbSet<CurrentEmotion> CurrentEmotions { get; set; }
     public DbSet<LifestyleLog> LifestyleLogs { get; set; }
     public DbSet<ImprovementGoal> ImprovementGoals { get; set; }
     public DbSet<PatientImprovementGoal> PatientImprovementGoals { get; set; }
-
+    
+    public DbSet<PatientEmotionCheckpoint> PatientEmotionCheckpoints { get; set; }
+    
+    public DbSet<Emotion> Emotions { get; set; }
+    
+    public DbSet<EmotionSelection> EmotionSelections { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -126,15 +131,55 @@ public class LifeStylesDbContext : DbContext
             .HasForeignKey(p => p.GoalId)
             .OnDelete(DeleteBehavior.Cascade); 
 
-        builder.Entity<CurrentEmotion>()
-            .Property(e => e.Emotion1)
-            .HasConversion(new EnumToStringConverter<Emotion>())
-            .HasColumnType("VARCHAR(20)");
+        builder.Entity<Emotion>(entity =>
+        {
+            entity.HasKey(e => e.Id);
 
-        builder.Entity<CurrentEmotion>()
-            .Property(e => e.Emotion2)
-            .HasConversion(new EnumToStringConverter<Emotion>())
-            .HasColumnType("VARCHAR(20)");
+            entity.Property(e => e.Name)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => Enum.Parse<EmotionType>(v)
+                )
+                .HasMaxLength(50);
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(200);
+            
+            entity.Property(e => e.IconUrl)
+                .HasMaxLength(255);
+        });
+
+
+        builder.Entity<PatientEmotionCheckpoint>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+
+            entity.Property(c => c.LogDate)
+                .IsRequired();
+
+            entity.HasMany(c => c.EmotionSelections)
+                .WithOne()
+                .HasForeignKey(e => e.EmotionCheckpointId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<EmotionSelection>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Intensity);
+            
+            entity.Property(e => e.Rank);
+
+            entity.HasOne(e => e.Emotion)
+                .WithMany(e => e.EmotionSelections)
+                .HasForeignKey(e => e.EmotionId)
+                .OnDelete(DeleteBehavior.Restrict); //Prevent deleting Emotion if used
+            
+            entity.HasOne(es => es.EmotionCheckpoint)
+                .WithMany(ec => ec.EmotionSelections)
+                .HasForeignKey(es => es.EmotionCheckpointId);
+        });
 
         builder.Entity<LifestyleLog>()
             .Property(e => e.SleepHours)
