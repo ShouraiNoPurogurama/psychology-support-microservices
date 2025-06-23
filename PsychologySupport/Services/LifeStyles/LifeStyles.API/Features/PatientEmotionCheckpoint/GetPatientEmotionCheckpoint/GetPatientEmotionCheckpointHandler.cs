@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.Features.PatientEmotionCheckpoint.GetPatientEmotionCheckpoint;
 
-public record GetPatientEmotionCheckpointQuery(Guid PatientProfileId) : IQuery<GetPatientEmotionCheckpointResult>;
+public record GetPatientEmotionCheckpointQuery(Guid PatientProfileId, DateTime? Date)  : IQuery<GetPatientEmotionCheckpointResult>;
 
 public record GetPatientEmotionCheckpointResult(PatientEmotionCheckpointDto CheckpointDto);
 
@@ -16,9 +16,13 @@ public class GetPatientEmotionCheckpointHandler(LifeStylesDbContext dbContext)
 {
     public async Task<GetPatientEmotionCheckpointResult> Handle(GetPatientEmotionCheckpointQuery request, CancellationToken cancellationToken)
     {
+        var date = request.Date ?? DateTimeOffset.UtcNow;
+        
         var checkpoint = await dbContext.PatientEmotionCheckpoints
             .Include(c => c.EmotionSelections)
             .ThenInclude(es => es.Emotion)
+            .Where(c => c.PatientProfileId == request.PatientProfileId && c.LogDate.Date <= date.Date)
+            .OrderByDescending(c => c.LogDate)
             .FirstOrDefaultAsync(c => c.PatientProfileId == request.PatientProfileId, cancellationToken);
 
         if (checkpoint == null)

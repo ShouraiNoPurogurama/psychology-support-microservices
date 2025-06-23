@@ -5,18 +5,18 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LifeStyles.API.Features.PatientEmotionCheckpoint.GetPatientEmotionCheckpoint;
 
-
 public class GetPatientEmotionCheckpointEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapGet("/patients/{patientProfileId:guid}/emotion-checkpoints",
-                async ([FromRoute] Guid patientProfileId, ISender sender, CancellationToken cancellationToken) =>
+                async ([FromRoute] Guid patientProfileId, [FromQuery] DateTime? date, ISender sender,
+                    CancellationToken cancellationToken) =>
                 {
-                    var query = new GetPatientEmotionCheckpointQuery(patientProfileId);
-                    
+                    var query = new GetPatientEmotionCheckpointQuery(patientProfileId, date);
+
                     var result = await sender.Send(query, cancellationToken);
-                    
+
                     return Results.Ok(result);
                 })
             .WithName("GetPatientEmotionCheckpoint")
