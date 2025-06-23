@@ -5,7 +5,8 @@ using MediatR;
 
 namespace LifeStyles.API.Features.Emotion;
 
-public record GetAllEmotionsRequest(PaginationRequest PaginationRequest, 
+public record GetAllEmotionsRequest(int PageIndex = 1,
+    int PageSize = 10,
     string? Search = null, 
     string SortBy = "name", 
     string SortOrder = "asc");
@@ -21,7 +22,7 @@ public class GetAllEmotionsEndpoint : ICarterModule
             ISender sender) =>
         {
             var query = new GetAllEmotionQuery(
-                request.PaginationRequest,
+                new PaginationRequest(request.PageIndex, request.PageSize),
                 request.Search,
                 request.SortBy,
                 request.SortOrder);
