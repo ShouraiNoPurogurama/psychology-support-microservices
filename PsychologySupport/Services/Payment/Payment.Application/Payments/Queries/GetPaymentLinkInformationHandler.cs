@@ -9,6 +9,7 @@ using Payment.Application.Data;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using System.IdentityModel.Tokens.Jwt;
+using Payment.Application.ServiceContracts;
 
 namespace Payment.Application.Payments.Queries;
 

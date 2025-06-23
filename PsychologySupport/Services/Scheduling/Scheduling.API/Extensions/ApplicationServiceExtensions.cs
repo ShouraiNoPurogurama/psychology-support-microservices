@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Exceptions.Handler;
+using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using FluentValidation;
 using Promotion.Grpc;

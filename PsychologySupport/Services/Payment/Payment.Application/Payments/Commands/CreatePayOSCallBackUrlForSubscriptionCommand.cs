@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Payment.Application.Data;
 using Payment.Application.Payments.Dtos;
 using System.Data.Common;
+using Payment.Application.ServiceContracts;
 
 namespace Payment.Application.Payments.Commands;
 

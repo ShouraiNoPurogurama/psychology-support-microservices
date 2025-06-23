@@ -1,6 +1,8 @@
 using Net.payOS.Types;
 using Payment.Application.Payments.Dtos;
 
+namespace Payment.Application.ServiceContracts;
+
 public interface IPayOSService
 {
     Task<string> CreatePayOSUrlForSubscriptionAsync(BuySubscriptionDto dto, Guid paymentId,long paymentCode);

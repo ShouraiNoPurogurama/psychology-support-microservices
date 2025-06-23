@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Masstransit;
+﻿using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using FluentValidation;
 using Profile.API.DoctorProfiles.Validators;

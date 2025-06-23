@@ -18,7 +18,7 @@ namespace ChatBox.API.Services;
 public class GeminiService(
     IOptions<GeminiConfig> config,
     ChatBoxDbContext dbContext,
-    SummarizationService summarizationService)
+    SummarizationService summarizationService) 
 {
     private readonly GeminiConfig _config = config.Value;
     private static readonly Dictionary<Guid, SemaphoreSlim> SessionLocks = new();

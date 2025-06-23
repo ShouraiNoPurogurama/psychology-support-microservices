@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
-using BuildingBlocks.Messaging.Masstransit;
+using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;

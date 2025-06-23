@@ -12,7 +12,8 @@ namespace BuildingBlocks.Enums
         Bachelor,
         Master,
         Doctorate,
-        Other
+        Other,
+        Student
     }
 
     public static class EducationLevelExtensions

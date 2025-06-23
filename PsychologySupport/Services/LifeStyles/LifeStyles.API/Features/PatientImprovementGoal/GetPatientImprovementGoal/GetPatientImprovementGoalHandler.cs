@@ -19,10 +19,10 @@ public class GetPatientImprovementGoalHandler(LifeStylesDbContext context)
         GetPatientImprovementGoalQuery request,
         CancellationToken cancellationToken)
     {
-        var dateOnly = request.Date.Date;
-
+        var dateOnly = new DateTimeOffset(request.Date.Date, TimeSpan.Zero);
+        
         var latestAssignedDate = await context.PatientImprovementGoals
-            .Where(x => x.PatientProfileId == request.PatientProfileId && x.AssignedAt.Date <= dateOnly)
+            .Where(x => x.PatientProfileId == request.PatientProfileId && x.AssignedAt <= dateOnly)
             .OrderByDescending(x => x.AssignedAt)
             .Select(x => x.AssignedAt)
             .FirstOrDefaultAsync(cancellationToken);

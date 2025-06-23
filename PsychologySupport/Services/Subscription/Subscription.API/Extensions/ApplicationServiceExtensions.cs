@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Exceptions.Handler;
-using BuildingBlocks.Messaging.Masstransit;
+using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
