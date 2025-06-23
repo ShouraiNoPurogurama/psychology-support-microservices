@@ -55,7 +55,7 @@ public static class ApplicationServiceExtensions
             });
             options.AddServer(new OpenApiServer
             {
-                Url = "/lifestyle-service/"
+                Url = "/lifestyle-service/" 
             });
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
