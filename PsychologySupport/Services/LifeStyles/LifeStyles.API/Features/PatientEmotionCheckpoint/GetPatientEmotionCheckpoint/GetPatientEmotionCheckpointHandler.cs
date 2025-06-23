@@ -19,7 +19,7 @@ public class GetPatientEmotionCheckpointHandler(LifeStylesDbContext dbContext)
         var checkpoint = await dbContext.PatientEmotionCheckpoints
             .Include(c => c.EmotionSelections)
             .ThenInclude(es => es.Emotion)
-            .FirstOrDefaultAsync(c => c.Id == request.PatientProfileId, cancellationToken);
+            .FirstOrDefaultAsync(c => c.PatientProfileId == request.PatientProfileId, cancellationToken);
 
         if (checkpoint == null)
             throw new KeyNotFoundException($"Emotion Checkpoint for Patient ID {request.PatientProfileId} was not found.");
