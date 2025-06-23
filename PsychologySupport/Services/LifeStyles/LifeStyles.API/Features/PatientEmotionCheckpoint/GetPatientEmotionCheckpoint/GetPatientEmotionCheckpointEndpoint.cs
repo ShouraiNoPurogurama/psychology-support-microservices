@@ -10,10 +10,10 @@ public class GetPatientEmotionCheckpointEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/emotion-checkpoints/{checkpointId:guid}",
-                async ([FromRoute] Guid checkpointId, ISender sender, CancellationToken cancellationToken) =>
+        app.MapGet("/patients/{patientProfileId:guid}/emotion-checkpoints",
+                async ([FromRoute] Guid patientProfileId, ISender sender, CancellationToken cancellationToken) =>
                 {
-                    var query = new GetPatientEmotionCheckpointQuery(checkpointId);
+                    var query = new GetPatientEmotionCheckpointQuery(patientProfileId);
                     
                     var result = await sender.Send(query, cancellationToken);
                     

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.Features.PatientEmotionCheckpoint.GetPatientEmotionCheckpoint;
 
-public record GetPatientEmotionCheckpointQuery(Guid CheckpointId) : IQuery<GetPatientEmotionCheckpointResult>;
+public record GetPatientEmotionCheckpointQuery(Guid PatientProfileId) : IQuery<GetPatientEmotionCheckpointResult>;
 
 public record GetPatientEmotionCheckpointResult(PatientEmotionCheckpointDto CheckpointDto);
 
@@ -19,10 +19,10 @@ public class GetPatientEmotionCheckpointHandler(LifeStylesDbContext dbContext)
         var checkpoint = await dbContext.PatientEmotionCheckpoints
             .Include(c => c.EmotionSelections)
             .ThenInclude(es => es.Emotion)
-            .FirstOrDefaultAsync(c => c.Id == request.CheckpointId, cancellationToken);
+            .FirstOrDefaultAsync(c => c.Id == request.PatientProfileId, cancellationToken);
 
         if (checkpoint == null)
-            throw new KeyNotFoundException($"Checkpoint with ID {request.CheckpointId} not found.");
+            throw new KeyNotFoundException($"Emotion Checkpoint for Patient ID {request.PatientProfileId} was not found.");
 
         var emotionDtos = checkpoint.EmotionSelections.Select(e => new GetEmotionSelectionDto(
             e.Id,
