@@ -13,6 +13,7 @@ namespace BuildingBlocks.Enums
         Bachelor,
         Master,
         Doctorate,
+        PhD,
         Other
     }
 
