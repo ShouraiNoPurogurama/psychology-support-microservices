@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
-using BuildingBlocks.Messaging.Masstransit;
+using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using LifeStyles.API.Abstractions;
 using LifeStyles.API.Data;
@@ -55,7 +55,7 @@ public static class ApplicationServiceExtensions
             });
             options.AddServer(new OpenApiServer
             {
-                // Url = "/lifestyle-service/"
+                Url = "/lifestyle-service/"
             });
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
