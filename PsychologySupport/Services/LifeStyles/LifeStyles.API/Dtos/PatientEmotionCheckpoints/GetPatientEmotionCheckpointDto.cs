@@ -3,5 +3,5 @@
 namespace LifeStyles.API.Dtos.PatientEmotionCheckpoints;
 
 public record PatientEmotionCheckpointDto (Guid Id,
-    List<GetEmotionSelectionDto> Emotions,
+    List<GetEmotionSelectionDto> EmotionSelections,
     DateTimeOffset LogDate);
