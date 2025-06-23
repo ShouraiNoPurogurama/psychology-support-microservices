@@ -7,6 +7,7 @@ namespace BuildingBlocks.Enums
     {
         Elementary,
         MiddleSchool,
+        Student,
         HighSchool,
         College,
         Bachelor,

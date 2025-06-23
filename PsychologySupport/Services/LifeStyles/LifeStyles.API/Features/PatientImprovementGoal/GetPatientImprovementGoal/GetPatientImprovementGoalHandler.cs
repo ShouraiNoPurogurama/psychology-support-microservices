@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.Features.PatientImprovementGoal.GetPatientImprovementGoal;
 
-public record GetPatientImprovementGoalQuery(Guid PatientProfileId, DateTime Date)
+public record GetPatientImprovementGoalQuery(Guid PatientProfileId, DateOnly Date)
     : IQuery<GetPatientImprovementGoalResult>;
 
 public record GetPatientImprovementGoalResult(List<PatientImprovementGoalDto> Goals);
@@ -19,13 +19,15 @@ public class GetPatientImprovementGoalHandler(LifeStylesDbContext context)
         GetPatientImprovementGoalQuery request,
         CancellationToken cancellationToken)
     {
-        var dateOnly = request.Date.Date;
+        var dateOnly = request.Date.ToDateTime(TimeOnly.MinValue).Date;
 
         var latestAssignedDate = await context.PatientImprovementGoals
-            .Where(x => x.PatientProfileId == request.PatientProfileId && x.AssignedAt.Date <= dateOnly)
+            .Where(x => x.PatientProfileId == request.PatientProfileId &&
+                        x.AssignedAt.Date <= dateOnly)
             .OrderByDescending(x => x.AssignedAt)
             .Select(x => x.AssignedAt)
             .FirstOrDefaultAsync(cancellationToken);
+
 
         if (latestAssignedDate == default)
             throw new LifeStylesNotFoundException("Patient Improvement Goal", request.PatientProfileId);

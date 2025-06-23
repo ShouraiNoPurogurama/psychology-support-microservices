@@ -4,7 +4,7 @@ using Mapster;
 
 namespace LifeStyles.API.Features.PatientImprovementGoal.GetPatientImprovementGoal;
 
-public record GetPatientImprovementGoalRequest(Guid PatientProfileId, DateTime Date);
+public record GetPatientImprovementGoalRequest(Guid PatientProfileId, DateOnly Date);
 
 public record GetPatientImprovementGoalResponse(IEnumerable<Dtos.PatientImprovementGoalDto> Goals);
 
@@ -29,5 +29,5 @@ public class GetPatientImprovementGoalEndpoint : ICarterModule
             .ProducesProblem(StatusCodes.Status400BadRequest);
     }
 
-    public record QueryDate(DateTime Date);
+    public record QueryDate(DateOnly Date);
 }
