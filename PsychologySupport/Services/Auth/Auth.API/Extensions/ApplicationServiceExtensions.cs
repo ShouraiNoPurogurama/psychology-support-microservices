@@ -2,7 +2,7 @@
 using Auth.API.ServiceContracts;
 using Auth.API.Services;
 using BuildingBlocks.Behaviors;
-using BuildingBlocks.Messaging.Masstransit;
+using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;

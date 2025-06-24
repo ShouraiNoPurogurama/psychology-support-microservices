@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using Net.payOS.Types;
+using Payment.Application.ServiceContracts;
 
 namespace Payment.Application.Payments.Commands;
 

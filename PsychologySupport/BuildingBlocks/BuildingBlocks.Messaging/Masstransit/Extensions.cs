@@ -3,7 +3,7 @@ using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BuildingBlocks.Messaging.Masstransit;
+namespace BuildingBlocks.Messaging.MassTransit;
 
 public static class Extensions
 {

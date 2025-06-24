@@ -4,7 +4,9 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Test.Application.Data;
+using Test.Application.ServiceContracts;
 using Test.Infrastructure.Data;
+using Test.Infrastructure.Services;
 
 namespace Test.Infrastructure;
 
@@ -21,6 +23,8 @@ public static class DependencyInjection
         });
 
         services.AddScoped<ITestDbContext, TestDbContext>();
+        services.AddScoped<IAIClient, GeminiClient>();
+        services.AddHttpClient();
 
         // Đăng ký Interceptors
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();

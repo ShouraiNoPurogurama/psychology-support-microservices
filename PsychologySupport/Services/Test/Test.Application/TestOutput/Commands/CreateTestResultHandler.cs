@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Test.Application.Data;
+using Test.Application.ServiceContracts;
 using Test.Domain.Enums;
 using Test.Domain.Events;
 using Test.Domain.Models;
@@ -15,26 +16,22 @@ public class CreateTestResultCommand : IRequest<Guid>
     public List<Guid> SelectedOptionIds { get; set; } = new();
 }
 
-public class CreateTestResultHandler : IRequestHandler<CreateTestResultCommand, Guid>
+public class CreateTestResultHandler(ITestDbContext dbContext, 
+    IPublisher publisher, 
+    IAIClient aiClient
+    )
+    : IRequestHandler<CreateTestResultCommand, Guid>
 {
-    private readonly ITestDbContext _dbContext;
-    private readonly IPublisher _publisher;
-
-    public CreateTestResultHandler(ITestDbContext dbContext, IPublisher publisher)
-    {
-        _dbContext = dbContext;
-        _publisher = publisher;
-    }
 
     public async Task<Guid> Handle(CreateTestResultCommand request, CancellationToken cancellationToken)
     {
-        var selectedOptions = await _dbContext.QuestionOptions
+        var selectedOptions = await dbContext.QuestionOptions
             .Where(o => request.SelectedOptionIds.Contains(o.Id))
             .ToListAsync(cancellationToken);
 
         // List questions by QuestionId
         var questionIds = selectedOptions.Select(o => o.QuestionId).Distinct().ToList();
-        var questions = await _dbContext.TestQuestions
+        var questions = await dbContext.TestQuestions
             .Where(q => questionIds.Contains(q.Id))
             .ToListAsync(cancellationToken);
 
@@ -57,8 +54,13 @@ public class CreateTestResultHandler : IRequestHandler<CreateTestResultCommand, 
         var severityLevel = DetermineSeverity(depressionScore, anxietyScore, stressScore);
 
         //TODO Raise IRequestClient to AI Recommendations microservices to get recommendation
-        var recommendation = "Your scores indicate normal levels. Continue maintaining your mental well-being with healthy habits.";
         
+        var AIRecommendations = await aiClient.GetDASS21RecommendationsAsync(
+            request.PatientId.ToString(),
+            depressionScore,
+            anxietyScore,
+            stressScore
+        );
 
         var testResult = TestResult.Create(
             request.PatientId,
@@ -67,15 +69,15 @@ public class CreateTestResultHandler : IRequestHandler<CreateTestResultCommand, 
             anxietyScore,
             stressScore,
             severityLevel,
-            recommendation,
+            AIRecommendations,
             selectedOptions
         );
 
-        await _dbContext.TestResults.AddAsync(testResult, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.TestResults.AddAsync(testResult, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         //Publish notification 
-        await _publisher.Publish(new TestResultCreatedEvent(testResult.Id, request.SelectedOptionIds), cancellationToken);
+        await publisher.Publish(new TestResultCreatedEvent(testResult.Id, request.SelectedOptionIds), cancellationToken);
 
         return testResult.Id;
     }

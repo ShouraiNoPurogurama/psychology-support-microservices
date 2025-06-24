@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
 
-namespace ChatBox.API.Dtos.Gemini;
+namespace Test.Application.Dtos.Gemini;
 
 public record GeminiContentPartDto([JsonProperty("text")] string Text);

@@ -14,6 +14,7 @@ public class GetPatientProfileHandler(ProfileDbContext context) : IQueryHandler<
     {
         var patientProfile = await context.PatientProfiles
                                  .Include(p => p.Job)
+                                 .ThenInclude(j => j.Industry)
                                  .Include(p => p.MedicalHistory)
                                  .ThenInclude(m => m.PhysicalSymptoms)
                                  .Include(p => p.MedicalHistory)

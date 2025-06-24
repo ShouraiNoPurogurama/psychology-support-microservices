@@ -9,6 +9,7 @@ using Net.payOS.Types;
 using Payment.Application.Data;
 using System.Transactions;
 using System.IdentityModel.Tokens.Jwt;
+using Payment.Application.ServiceContracts;
 
 namespace Payment.Application.Payments.Queries;
 
