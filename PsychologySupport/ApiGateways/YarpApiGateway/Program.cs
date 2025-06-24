@@ -8,8 +8,8 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
     serverOptions.ConfigureHttpsDefaults(httpsOptions =>
     {
         httpsOptions.ServerCertificate = X509Certificate2.CreateFromPemFile(
-            "/certs/fullchain1.pem",
-            "/certs/privkey1.pem"
+            "/certs/fullchain.pem",
+            "/certs/privkey.pem"
         );
     });
 
