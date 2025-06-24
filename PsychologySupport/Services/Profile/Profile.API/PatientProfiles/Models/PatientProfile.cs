@@ -27,6 +27,8 @@ public class PatientProfile : AggregateRoot<Guid>
         ContactInfo = contactInfo;
         JobId = jobId;
         BirthDate = birthDate;
+
+        IsProfileCompleted = CheckProfileCompleted();
     }
 
     public Guid UserId { get; set; }
@@ -40,7 +42,7 @@ public class PatientProfile : AggregateRoot<Guid>
     public Guid? JobId { get; set; }
     public Job? Job { get; set; }
     public DateOnly? BirthDate { get; set; }
-
+    public bool IsProfileCompleted { get; set; }
 
     public IReadOnlyList<MedicalRecord> MedicalRecords => _medicalRecords.AsReadOnly();
 
@@ -90,7 +92,9 @@ public class PatientProfile : AggregateRoot<Guid>
         if (userId == Guid.Empty)
             throw new ArgumentException("User ID cannot be empty.", nameof(userId));
 
-        return new PatientProfile(userId, fullName, gender, allergies, personalityTraits, contactInfo, jobId, birthDate);
+        var profile = new PatientProfile(userId, fullName, gender, allergies, personalityTraits, contactInfo, jobId, birthDate);
+        profile.IsProfileCompleted = profile.CheckProfileCompleted();
+        return profile;
     }
 
     public void Update(string fullName, UserGender gender, string allergies, PersonalityTrait personalityTraits,
@@ -103,6 +107,7 @@ public class PatientProfile : AggregateRoot<Guid>
         ContactInfo = contactInfo;
         JobId = jobId;
         BirthDate = birthDate;
+        IsProfileCompleted = CheckProfileCompleted();
     }
 
     public void UpdateMedicalRecord(Guid medicalRecordId, Guid doctorId, string notes, MedicalRecordStatus status,
@@ -122,5 +127,13 @@ public class PatientProfile : AggregateRoot<Guid>
             throw new InvalidOperationException("Medical history does not exist. Create a new one before updating.");
 
         MedicalHistory.Update(description, diagnosedAt, specificMentalDisorders, physicalSymptoms);
+    }
+
+    private bool CheckProfileCompleted()
+    {
+        return !string.IsNullOrWhiteSpace(FullName)
+               && ContactInfo is not null && ContactInfo.IsValid()
+               && BirthDate.HasValue
+               && JobId.HasValue;
     }
 }
