@@ -35,6 +35,10 @@ public static class MapsterConfigurations
             .NewConfig()
             .Map(dest => dest.PaymentMethod, src => src.PaymentMethodName);
 
+        TypeAdapterConfig<GenerateUpgradeSubscriptionPaymentUrlRequest, UpgradeSubscriptionDto>
+            .NewConfig()
+            .Map(dest => dest.PaymentMethod, src => src.PaymentMethodName);
+
 
 
 
