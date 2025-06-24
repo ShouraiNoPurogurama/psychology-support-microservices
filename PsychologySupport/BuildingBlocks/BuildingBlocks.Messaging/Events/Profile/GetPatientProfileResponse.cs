@@ -12,5 +12,6 @@ public record GetPatientProfileResponse(
     string Address,
     string PhoneNumber,
     string Email,
-    Guid UserId
+    Guid UserId,
+    bool IsProfileCompleted
     );

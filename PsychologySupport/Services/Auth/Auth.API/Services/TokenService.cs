@@ -1,15 +1,16 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using Auth.API.Models;
+﻿using Auth.API.Models;
 using Auth.API.ServiceContracts;
 using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.LifeStyle;
 using BuildingBlocks.Messaging.Events.Profile;
 using BuildingBlocks.Messaging.Events.Subscription;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using Exception = System.Exception;
 
 namespace Auth.API.Services;
@@ -19,7 +20,8 @@ public class TokenService(
     IConfiguration configuration,
     IRequestClient<GetPatientProfileRequest> patientClient,
     IRequestClient<GetDoctorProfileRequest> doctorClient,
-    IRequestClient<GetUserSubscriptionRequest> subscriptionClient
+    IRequestClient<GetUserSubscriptionRequest> subscriptionClient,
+    IRequestClient<CheckPatientEmotionTodayRequest> lifestyleClient
     ) : ITokenService
 {
     private readonly PasswordHasher<User> _passwordHasher = new();
@@ -29,6 +31,8 @@ public class TokenService(
         var roles = await userManager.GetRolesAsync(user);
 
         var profileId = Guid.Empty;
+        var IsProfileCompleted = false;
+        var HasEmotionLoggedToday = false;
 
         if (roles.Contains("Doctor"))
         {
@@ -41,6 +45,14 @@ public class TokenService(
             var patientProfile =
                 await patientClient.GetResponse<GetPatientProfileResponse>(new GetPatientProfileRequest(Guid.Empty, user.Id));
             profileId = patientProfile.Message.Id;
+
+            IsProfileCompleted = patientProfile.Message.IsProfileCompleted;
+
+            var PatietnEmotion = (await lifestyleClient.GetResponse<CheckPatientEmotionTodayResponse>(
+                new CheckPatientEmotionTodayRequest(profileId)));
+
+            HasEmotionLoggedToday = PatietnEmotion.Message.HasLoggedToday;
+
         }
 
         var subscriptionResponse = await subscriptionClient.GetResponse<GetUserSubscriptionResponse>(
@@ -55,6 +67,8 @@ public class TokenService(
             new Claim("userId", user.Id.ToString()),
             new Claim("profileId", profileId.ToString()),
             new Claim("subscription", subscriptionPlan),
+            new Claim("IsProfileCompleted", IsProfileCompleted.ToString()),
+            new Claim("HasEmotionLoggedToday", HasEmotionLoggedToday.ToString()),
             new Claim(ClaimTypes.Role, string.Join(",", roles)),
             new Claim(ClaimTypes.Name, user.FullName!)
         };

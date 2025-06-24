@@ -16,7 +16,7 @@ public class GetPatientProfileHandler(ProfileDbContext dbContext) : IConsumer<Ge
             if (patientProfile is null)
             {
                 await context.RespondAsync(new GetPatientProfileResponse(false, Guid.Empty, string.Empty, UserGender.Else,
-                    string.Empty, string.Empty, string.Empty, string.Empty, String.Empty, Guid.Empty));
+                    string.Empty, string.Empty, string.Empty, string.Empty, String.Empty, Guid.Empty,false));
                 return;
             }
 
@@ -37,7 +37,7 @@ public class GetPatientProfileHandler(ProfileDbContext dbContext) : IConsumer<Ge
         if (patientProfile is null)
         {
             await context.RespondAsync(new GetPatientProfileResponse(false, Guid.Empty, string.Empty, UserGender.Else,
-                string.Empty, string.Empty, string.Empty, string.Empty, String.Empty, Guid.Empty));
+                string.Empty, string.Empty, string.Empty, string.Empty, String.Empty, Guid.Empty,false));
             return;
         }
 
