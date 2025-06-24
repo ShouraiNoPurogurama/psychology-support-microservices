@@ -8,6 +8,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using Google.Apis.Auth.OAuth2;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
+using Test.Application.Dtos.Gemini;
 using Test.Application.ServiceContracts;
 using Test.Domain.ValueObjects;
 
@@ -46,6 +48,60 @@ public class GeminiClient : IAIClient
         var profile = profileResponse.Message;
         var lifestyle = lifestyleResponse.Message;
 
+        var contentParts = new List<GeminiContentDto>();
+        
+        var prompt = BuildGeminiDASS21Prompt(depressionScore, anxietyScore, stressScore, profile, lifestyle);
+        
+        contentParts.Add(new GeminiContentDto(
+            "user", [new GeminiContentPartDto(prompt)]
+        ));
+        
+        var payload = BuildGeminiMessagePayload(contentParts);
+        
+        var responseText = await CallGeminiAPIAsync(payload);
+
+
+        return responseText.Trim();
+    }
+
+    private async Task<string> CallGeminiAPIAsync(GeminiRequestDto payload)
+    {
+        var httpClient = _httpClientFactory.CreateClient();
+        
+        var token = await GetGoogleAccessTokenAsync();
+
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var url =
+            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={_config["GeminiConfig:ApiKey"]}";
+        
+        var settings = new JsonSerializerSettings
+        {
+            ContractResolver = new DefaultContractResolver
+            {
+                NamingStrategy = new CamelCaseNamingStrategy()
+            }
+        };
+        
+        var content = new StringContent(JsonConvert.SerializeObject(payload, settings), Encoding.UTF8, "application/json");
+        
+        var response = await httpClient.PostAsync(url, content);
+        
+        var result = await response.Content.ReadAsStringAsync();
+
+        var jObject = JObject.Parse(result);
+
+        var parts = jObject["candidates"]
+            ?.Select(c => c["content"]?["parts"]?[0]?["text"]?.ToString())
+            .Where(text => !string.IsNullOrWhiteSpace(text))
+            .ToList();
+
+        var responseText = string.Join("", parts ?? []);
+        return responseText;
+    }
+
+    private static string BuildGeminiDASS21Prompt(Score depressionScore, Score anxietyScore, Score stressScore,
+        AggregatePatientProfileResponse profile, AggregatePatientLifestyleResponse lifestyle)
+    {
         var prompt = $"""
                       ## 🌿 Gợi ý cải thiện tâm lý cho **{profile.FullName}**
 
@@ -62,7 +118,7 @@ public class GeminiClient : IAIClient
                       {string.Join("\n", lifestyle.ImprovementGoals.Select(g => $"- {g.GoalName} (giao lúc {g.AssignedAt:yyyy-MM-dd})"))}
 
                       **🧠 Cảm xúc gần nhất:**
-                      {string.Join("\n", lifestyle.EmotionSelections.Select(e => $"- {e.EmotionName} ({e.Intensity}/10)"))}
+                      {string.Join("\n", lifestyle.EmotionSelections.Select(e => $"- {e.EmotionName} "))}
 
                       **📈 Điểm DASS-21:**
                       - Trầm cảm: {depressionScore.Value}
@@ -88,82 +144,32 @@ public class GeminiClient : IAIClient
 
                       💌 **Lời chúc cuối**  
                       Đưa ra một lời chúc hoặc nhắn gửi truyền hy vọng, nhẹ nhàng như một lời động viên cuối bài.
+
+                      => Chỉ trả về kết quả:
                       """;
-        var httpClient = _httpClientFactory.CreateClient();
-        var token = await GetGoogleAccessTokenAsync();
-
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var url =
-            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={_config["GeminiConfig:ApiKey"]}";
-
-        // var body = new
-        // {
-        //     contents = new[]
-        //     {
-        //         new
-        //         {
-        //             role = "user",
-        //             parts = new[] { new { text = prompt } }
-        //         }
-        //     },
-        //     systemInstruction = new
-        //     {
-        //         parts = new[] { new { text = _config["Gemini:SystemInstruction"] } }
-        //     },
-        //     generationConfig = new
-        //     {
-        //         temperature = 1.0,
-        //         topP = 0.95,
-        //         maxOutputTokens = 1024
-        //     },
-        //     safetySettings = new[]
-        //     {
-        //         new { category = "HARM_CATEGORY_HARASSMENT" },
-        //         new { category = "HARM_CATEGORY_DANGEROUS_CONTENT" },
-        //         new { category = "HARM_CATEGORY_SEXUALLY_EXPLICIT" },
-        //         new { category = "HARM_CATEGORY_HATE_SPEECH" }
-        //     }
-        // };
-
-        var body = new
-        {
-            systemInstruction = new
-            {
-                parts = new[] { new { text = _config["GeminiConfig:SystemInstruction"] } }
-            },
-            contents = new
-            {
-                role = "user",
-                parts = new[]
-                {
-                    new
-                    {
-                        text = prompt
-                    }
-                }
-            },
-            generationConfig = new
-            {
-                temperature = 1.0,
-                topP = 0.95,
-                maxOutputTokens = 2048
-            }
-        };
-
-        var json = JsonConvert.SerializeObject(body);
-        var response = await httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json"));
-        var raw = await response.Content.ReadAsStringAsync();
-
-        var jObject = JObject.Parse(raw);
-
-        var parts = jObject["candidates"]
-            ?.Select(c => c["content"]?["parts"]?[0]?["text"]?.ToString())
-            .Where(text => !string.IsNullOrWhiteSpace(text))
-            .ToList();
-
-        return string.Join("", parts ?? []);
+        return prompt;
     }
 
+    private GeminiRequestDto BuildGeminiMessagePayload(List<GeminiContentDto> contents)
+    {
+        return new GeminiRequestDto(
+            Contents: contents,
+            SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto("GeminiConfig:SystemInstruction")),
+            GenerationConfig: new GeminiGenerationConfigDto(
+                Temperature: 1.0,
+                TopP: 0.96,
+                MaxOutputTokens: 8192
+            ),
+            SafetySettings:
+            [
+                new("HARM_CATEGORY_HATE_SPEECH"),
+                new("HARM_CATEGORY_DANGEROUS_CONTENT"),
+                new("HARM_CATEGORY_SEXUALLY_EXPLICIT"),
+                new("HARM_CATEGORY_HARASSMENT")
+            ]
+        );
+    }
+    
     private async Task<string> GetGoogleAccessTokenAsync()
     {
         var credential = await GoogleCredential.GetApplicationDefaultAsync();

@@ -54,7 +54,9 @@ public class GeminiService(
             contentParts.Add(new GeminiContentDto(
                 "user", [new GeminiContentPartDto(finalInput)]
             ));
+            
             var payload = BuildGeminiMessagePayload(contentParts);
+            
             var responseText = await CallGeminiAPIAsync(payload);
 
             if (string.IsNullOrWhiteSpace(responseText))
