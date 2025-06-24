@@ -35,7 +35,7 @@ public class CreatePayOSCallBackUrlForUpgradeSubscriptionCommandHandler(IPayOSSe
             PaymentType.UpgradeSubscription,
             paymentMethod.Id,
             paymentMethod,
-            dto.FinalPrice,
+            dto.FinalPrice - dto.OldSubscriptionPrice,
             dto.SubscriptionId,
             null
         );
