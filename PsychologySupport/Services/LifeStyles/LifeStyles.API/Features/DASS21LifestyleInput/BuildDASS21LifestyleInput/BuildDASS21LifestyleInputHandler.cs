@@ -22,10 +22,12 @@ public class BuildDASS21LifestyleInputHandler(ISender sender) : IQueryHandler<Bu
 {
     public async Task<BuildDASS21LifestyleInputResult> Handle(BuildDASS21LifestyleInputQuery request, CancellationToken cancellationToken)
     {
-        var currentTime = request.Date ?? DateTime.UtcNow;
+        var date = request.Date ?? DateTime.UtcNow;
+        
+        var currentTime = DateOnly.FromDateTime(date);
         
         var goalQuery = new GetPatientImprovementGoalQuery(request.PatientProfileId, currentTime);
-        var emotionCheckpointQuery = new GetPatientEmotionCheckpointQuery(request.PatientProfileId, currentTime);
+        var emotionCheckpointQuery = new GetPatientEmotionCheckpointQuery(request.PatientProfileId, date);
         
         var goals = await sender.Send(goalQuery, cancellationToken);
         var emotionCheckpoint = await sender.Send(emotionCheckpointQuery, cancellationToken);
