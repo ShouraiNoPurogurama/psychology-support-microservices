@@ -196,6 +196,7 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081 
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud/compute-default-sa.json
     ports:
       - "5006:8080"
       - "5506:8081"
@@ -204,6 +205,7 @@ services:
       dockerfile: Services/Test/Test.API/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
+      - ~/gcp/compute-default-sa.json:/app/gcloud/compute-default-sa.json:ro
 
   yarpapigateway:
     image: ${DOCKER_REGISTRY-}yarpapigateway
