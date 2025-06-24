@@ -9,13 +9,13 @@ using BuildingBlocks.Dtos;
 namespace Scheduling.API.Features.Schedule.GetAllSchedule
 {
     public record GetAllSchedulesQuery(
-        [FromQuery] int PageIndex,
-        [FromQuery] int PageSize,
-        [FromQuery] string? Search = "",
-        [FromQuery] string? SortBy = "startDate",
-        [FromQuery] string? SortOrder = "asc",
-        [FromQuery] Guid? DoctorId = null,
-        [FromQuery] Guid? PatientId = null) : IQuery<GetAllSchedulesResult>;
+        int PageIndex,
+        int PageSize,
+        string? Search,
+        string? SortBy,
+        string? SortOrder,
+        Guid? DoctorId,
+    Guid? PatientId) : IQuery<GetAllSchedulesResult>;
 
     public record GetAllSchedulesResult(PaginatedResult<ScheduleDto> Schedules);
 
@@ -92,7 +92,7 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
                         .Count(sa => schedule.Sessions.Select(s => s.Id).Contains(sa.SessionId)),
                     Sessions = schedule.Sessions.Select(async session =>
                     {
-                        var completedActivities = await GetCompletedActivities(session.Id, cancellationToken);
+                        var activities = await GetActivities(session.Id, cancellationToken);
 
                         return new SessionDto
                         {
@@ -102,8 +102,8 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
                             Order = session.Order,
                             StartDate = session.StartDate,
                             EndDate = session.EndDate,
-                            TotalActivityCompletedCount = completedActivities.Count,
-                            Activities = completedActivities
+                            TotalActivityCompletedCount = activities.Count(a => a.Status == "Completed"),
+                            Activities = activities
                         };
                     }).Select(t => t.Result).ToList()
                 }).ToList()
@@ -112,10 +112,9 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
             return new GetAllSchedulesResult(paginatedResult);
         }
 
-        private async Task<List<ScheduleActivityDto>> GetCompletedActivities(Guid sessionId, CancellationToken cancellationToken)
+        private async Task<List<ScheduleActivityDto>> GetActivities(Guid sessionId, CancellationToken cancellationToken)
         {
             var scheduleActivitiesQuery = _context.ScheduleActivities
-                .Where(sa => sa.SessionId == sessionId && sa.Status.ToString() == "Completed")
                 .AsQueryable();
 
             List<ScheduleActivitiesSpecificationDto> activities = [];
