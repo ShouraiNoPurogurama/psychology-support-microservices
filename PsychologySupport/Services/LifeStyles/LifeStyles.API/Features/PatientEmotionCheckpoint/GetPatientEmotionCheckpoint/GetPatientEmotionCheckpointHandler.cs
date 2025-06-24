@@ -9,7 +9,7 @@ namespace LifeStyles.API.Features.PatientEmotionCheckpoint.GetPatientEmotionChec
 
 public record GetPatientEmotionCheckpointQuery(Guid PatientProfileId, DateTime? Date)  : IQuery<GetPatientEmotionCheckpointResult>;
 
-public record GetPatientEmotionCheckpointResult(PatientEmotionCheckpointDto CheckpointDto);
+public record GetPatientEmotionCheckpointResult(PatientEmotionCheckpointDto? CheckpointDto);
 
 public class GetPatientEmotionCheckpointHandler(LifeStylesDbContext dbContext)
     : IQueryHandler<GetPatientEmotionCheckpointQuery, GetPatientEmotionCheckpointResult>
@@ -26,7 +26,7 @@ public class GetPatientEmotionCheckpointHandler(LifeStylesDbContext dbContext)
             .FirstOrDefaultAsync(c => c.PatientProfileId == request.PatientProfileId, cancellationToken);
 
         if (checkpoint == null)
-            throw new KeyNotFoundException($"Emotion Checkpoint for Patient ID {request.PatientProfileId} was not found.");
+            return new GetPatientEmotionCheckpointResult(null);
 
         var emotionDtos = checkpoint.EmotionSelections.Select(e => new GetEmotionSelectionDto(
             e.Id,

@@ -28,15 +28,11 @@ public class GetPatientImprovementGoalHandler(LifeStylesDbContext context)
             .Select(x => x.AssignedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
-
-        if (latestAssignedDate == default)
-            throw new LifeStylesNotFoundException("Patient Improvement Goal", request.PatientProfileId);
-
         var goals = await context.PatientImprovementGoals
             .Where(x => x.PatientProfileId == request.PatientProfileId && x.AssignedAt == latestAssignedDate)
             .Include(x => x.Goal)
             .ToListAsync(cancellationToken);
-
+        
         var result = goals.Adapt<List<PatientImprovementGoalDto>>();
 
         return new GetPatientImprovementGoalResult(result);

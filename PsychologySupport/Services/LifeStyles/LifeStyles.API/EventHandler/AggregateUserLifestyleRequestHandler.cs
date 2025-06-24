@@ -20,8 +20,13 @@ public class AggregateUserLifestyleRequestHandler(ISender sender) : IConsumer<Ag
 
     private static AggregatePatientLifestyleResponse MapToAggregateUserLifestyleResponse(BuildDASS21LifestyleInputResult result)
     {
-        var goalsResponse = result.Goals.Select(g => new PatientImprovementGoalFlatDto(
-            g.GoalId, g.GoalName, g.AssignedAt)).ToList();
+        List<PatientImprovementGoalFlatDto> goalsResponse = [];
+
+        if (result.Goals.Count > 0)
+        {
+            goalsResponse = result.Goals.Select(g => new PatientImprovementGoalFlatDto(
+                g.GoalId, g.GoalName, g.AssignedAt)).ToList();
+        }
 
         var logDate = result.PatientEmotionCheckpoint.LogDate;
 

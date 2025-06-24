@@ -15,7 +15,7 @@ public record BuildDASS21LifestyleInputQuery(
 public record BuildDASS21LifestyleInputResult(
     Guid PatientProfileId,
     List<PatientImprovementGoalDto> Goals,
-    PatientEmotionCheckpointDto PatientEmotionCheckpoint
+    PatientEmotionCheckpointDto? PatientEmotionCheckpoint
 );
 
 public class BuildDASS21LifestyleInputHandler(ISender sender) : IQueryHandler<BuildDASS21LifestyleInputQuery, BuildDASS21LifestyleInputResult>

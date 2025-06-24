@@ -102,6 +102,23 @@ public class GeminiClient : IAIClient
     private static string BuildGeminiDASS21Prompt(Score depressionScore, Score anxietyScore, Score stressScore,
         AggregatePatientProfileResponse profile, AggregatePatientLifestyleResponse lifestyle)
     {
+        var improvementGoalsSection = lifestyle.ImprovementGoals.Any()
+            ? $"""
+               **🎯 Mục tiêu cải thiện hiện tại:**
+               {string.Join("\n", lifestyle.ImprovementGoals.Select(g => $"- {g.GoalName} (giao lúc {g.AssignedAt:yyyy-MM-dd})"))}
+
+               """
+            : string.Empty;
+
+        var recentEmotionsSection = lifestyle.EmotionSelections.Any()
+            ? $"""
+               **🧠 Cảm xúc gần nhất:**
+               {string.Join("\n", lifestyle.EmotionSelections.Select(e => $"- {e.EmotionName} "))}
+
+               """
+            : string.Empty;
+        
+        
         var prompt = $"""
                       ## 🌿 Gợi ý cải thiện tâm lý cho **{profile.FullName}**
 
@@ -112,15 +129,8 @@ public class GeminiClient : IAIClient
                       - Nghề nghiệp: {profile.JobTitle}
                       - Trình độ học vấn: {profile.EducationLevel}
                       - Ngành nghề: {profile.IndustryName}
-                      - Cảm xúc gần đây: {string.Join(", ", lifestyle.EmotionSelections.Select(e => e.EmotionName))}
 
-                      **🎯 Mục tiêu cải thiện hiện tại:**
-                      {string.Join("\n", lifestyle.ImprovementGoals.Select(g => $"- {g.GoalName} (giao lúc {g.AssignedAt:yyyy-MM-dd})"))}
-
-                      **🧠 Cảm xúc gần nhất:**
-                      {string.Join("\n", lifestyle.EmotionSelections.Select(e => $"- {e.EmotionName} "))}
-
-                      **📈 Điểm DASS-21:**
+                      {improvementGoalsSection}{recentEmotionsSection}**📈 Điểm DASS-21:**
                       - Trầm cảm: {depressionScore.Value}
                       - Lo âu: {anxietyScore.Value}
                       - Căng thẳng: {stressScore.Value}
@@ -147,6 +157,7 @@ public class GeminiClient : IAIClient
 
                       => Chỉ trả về kết quả:
                       """;
+
         return prompt;
     }
 
