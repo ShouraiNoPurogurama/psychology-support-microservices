@@ -11,7 +11,7 @@ public record CreateTestResultRequest(
     Guid TestId,
     List<Guid> SelectedOptionIds);
 
-public record CreateTestResultResponse(Guid TestResultId);
+public record CreateTestResultResponse(Guid TestResultId, string AIRecommendations);
 
 public class CreateTestResultEndpoint : ICarterModule
 {
@@ -23,7 +23,7 @@ public class CreateTestResultEndpoint : ICarterModule
 
                 var result = await sender.Send(command);
 
-                var response = new CreateTestResultResponse(result);
+                var response = new CreateTestResultResponse(result.TestResultId, result.AIRecommendations);
 
                 return Results.Ok(response);
             })

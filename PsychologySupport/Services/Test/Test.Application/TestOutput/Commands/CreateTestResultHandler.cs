@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using BuildingBlocks.CQRS;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Test.Application.Data;
 using Test.Application.ServiceContracts;
@@ -9,21 +10,23 @@ using Test.Domain.ValueObjects;
 
 namespace Test.Application.TestOutput.Commands;
 
-public class CreateTestResultCommand : IRequest<Guid>
+public class CreateTestResultCommand : IQuery<CreateTestResultResult>
 {
     public Guid PatientId { get; set; }
     public Guid TestId { get; set; }
     public List<Guid> SelectedOptionIds { get; set; } = new();
 }
 
+public record CreateTestResultResult(Guid TestResultId, string AIRecommendations);
+
 public class CreateTestResultHandler(ITestDbContext dbContext, 
     IPublisher publisher, 
     IAIClient aiClient
     )
-    : IRequestHandler<CreateTestResultCommand, Guid>
+    : IQueryHandler<CreateTestResultCommand, CreateTestResultResult>
 {
 
-    public async Task<Guid> Handle(CreateTestResultCommand request, CancellationToken cancellationToken)
+    public async Task<CreateTestResultResult> Handle(CreateTestResultCommand request, CancellationToken cancellationToken)
     {
         var selectedOptions = await dbContext.QuestionOptions
             .Where(o => request.SelectedOptionIds.Contains(o.Id))
@@ -79,7 +82,9 @@ public class CreateTestResultHandler(ITestDbContext dbContext,
         //Publish notification 
         await publisher.Publish(new TestResultCreatedEvent(testResult.Id, request.SelectedOptionIds), cancellationToken);
 
-        return testResult.Id;
+        var result = new CreateTestResultResult(testResult.Id, AIRecommendations);
+        
+        return result;
     }
 
     private SeverityLevel DetermineSeverity(Score depression, Score anxiety, Score stress)
