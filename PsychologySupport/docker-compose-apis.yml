@@ -221,5 +221,5 @@ services:
     volumes:
       - ./ApiGateways/YarpApiGateway/RSAKeys:/app/RSAKeys
 #      - /etc/ssl/certs-anhtn:/certs:ro
-      - /etc/letsencrypt/live/api.emoease.vn:/certs:ro
+      - /etc/ssl/api-cert:/certs:ro
 
