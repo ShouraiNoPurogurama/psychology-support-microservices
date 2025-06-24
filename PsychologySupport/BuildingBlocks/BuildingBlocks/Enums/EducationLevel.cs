@@ -7,13 +7,14 @@ namespace BuildingBlocks.Enums
     {
         Elementary,
         MiddleSchool,
+        Student,
         HighSchool,
         College,
         Bachelor,
         Master,
         Doctorate,
-        Other,
-        Student
+        PhD,
+        Other
     }
 
     public static class EducationLevelExtensions
