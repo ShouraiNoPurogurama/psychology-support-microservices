@@ -37,6 +37,11 @@ public class TestDbContext : DbContext, ITestDbContext
             .Property(tr => tr.StressScore)
             .HasConversion(scoreConverter);
 
+        builder.Entity<TestResult>()
+            .Ignore(e => e.Recommendation) //không map trực tiếp Recommendation
+            .Property<string>("RecommendationJson") //chỉ lưu JSON dạng string
+            .HasColumnName("Recommendation")
+            .HasColumnType("jsonb");
 
         base.OnModelCreating(builder);
     }

@@ -26,23 +26,7 @@ public class UpdatePatientProfileHandler : ICommandHandler<UpdatePatientProfileC
 
         var dto = request.PatientProfileUpdate;
         
-        var phoneNumber = string.IsNullOrWhiteSpace(dto.ContactInfo?.PhoneNumber)
-            ? patientProfile.ContactInfo.PhoneNumber
-            : dto.ContactInfo.PhoneNumber;
-        
-        var email = string.IsNullOrWhiteSpace(dto.ContactInfo?.Email)
-            ? patientProfile.ContactInfo.Email
-            : dto.ContactInfo.Email;
-        
-        var address = string.IsNullOrWhiteSpace(dto.ContactInfo?.Address)
-            ? patientProfile.ContactInfo.Address
-            : dto.ContactInfo.Address;
-        
-        var newContactInfo = ContactInfo.Of(
-            address,
-            phoneNumber,
-            email
-        );
+        var newContactInfo = ContactInfo.UpdateWithFallback(patientProfile.ContactInfo, dto.ContactInfo?.Address, dto.ContactInfo?.Email, dto.ContactInfo?.PhoneNumber);
         
         patientProfile.Update(
             dto.FullName ?? patientProfile.FullName,

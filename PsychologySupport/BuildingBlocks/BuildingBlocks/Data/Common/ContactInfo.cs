@@ -1,28 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace BuildingBlocks.Data.Common;
 
-namespace BuildingBlocks.Data.Common
+public record ContactInfo
 {
-    public record ContactInfo(string? Address, string? PhoneNumber, string? Email)
+    public string Address { get; private set; } = default!;
+    public string Email { get; private set; } = default!;
+    public string? PhoneNumber { get; private set; }
+
+    protected ContactInfo()
     {
-        public bool IsEnoughForUpdate()
-        {
-            return 
-                    !string.IsNullOrWhiteSpace(Email)
-                   && !string.IsNullOrWhiteSpace(Address);
-        }
-        
-       public static ContactInfo Of(string? address, string? phoneNumber, string? email)
-        {
-            return new ContactInfo(address, phoneNumber, email);
-        }
-        
-        public static ContactInfo Empty()
-        {
-            return new ContactInfo(null, null, null);
-        }
     }
+
+    private ContactInfo(string address, string email, string? phoneNumber)
+    {
+        Address = address;
+        Email = email;
+        PhoneNumber = phoneNumber;
+    }
+
+    public static ContactInfo Of(string address, string email, string? phoneNumber = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(address, nameof(address));
+        ArgumentException.ThrowIfNullOrWhiteSpace(email, nameof(email));
+
+        return new ContactInfo(address, email, phoneNumber);
+    }
+    
+    public static ContactInfo UpdateWithFallback(ContactInfo current, string? address, string? email, string? phoneNumber)
+    {
+        var finalAddress = address ?? current.Address;
+        var finalEmail = email ?? current.Email;
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(finalAddress, nameof(finalAddress));
+        ArgumentException.ThrowIfNullOrWhiteSpace(finalEmail, nameof(finalEmail));
+
+        return new ContactInfo(finalAddress, finalEmail, phoneNumber ?? current.PhoneNumber);
+    }
+
+
+    public static ContactInfo Empty() => new ContactInfo(string.Empty, string.Empty, null);
+
+    public bool HasEnoughInfo() => 
+        !string.IsNullOrWhiteSpace(Address) &&
+        !string.IsNullOrWhiteSpace(Email);
 }

@@ -67,7 +67,11 @@ public class AuthService(
            registerRequest.Gender,
            null,
            PersonalityTrait.None, 
-           new ContactInfo("None",registerRequest.PhoneNumber, registerRequest.Email)
+           ContactInfo.Of(
+               "None",
+               user.Email,
+               user.PhoneNumber
+           )
         );
 
         var profileResponse = await _profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);

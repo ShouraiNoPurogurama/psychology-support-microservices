@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.CQRS;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Test.Application.Data;
 using Test.Application.ServiceContracts;
 using Test.Domain.Enums;
@@ -17,7 +18,7 @@ public class CreateTestResultCommand : IQuery<CreateTestResultResult>
     public List<Guid> SelectedOptionIds { get; set; } = new();
 }
 
-public record CreateTestResultResult(Guid TestResultId, string AIRecommendations);
+public record CreateTestResultResult(Guid TestResultId, Recommendation AIRecommendations);
 
 public class CreateTestResultHandler(ITestDbContext dbContext, 
     IPublisher publisher, 
@@ -64,6 +65,16 @@ public class CreateTestResultHandler(ITestDbContext dbContext,
             anxietyScore,
             stressScore
         );
+        
+        var recommendationVO = Recommendation.Create(
+            AIRecommendations.Overview,
+            AIRecommendations.EmotionAnalysis,
+            AIRecommendations.PersonalizedSuggestions
+                .Select(s => new PersonalizedSuggestion(s.Title, s.Description, s.Tips, s.Reference))
+                .ToList(),
+            AIRecommendations.Closing
+        );
+
 
         var testResult = TestResult.Create(
             request.PatientId,
@@ -72,7 +83,7 @@ public class CreateTestResultHandler(ITestDbContext dbContext,
             anxietyScore,
             stressScore,
             severityLevel,
-            AIRecommendations,
+            recommendationVO,
             selectedOptions
         );
 
@@ -82,7 +93,7 @@ public class CreateTestResultHandler(ITestDbContext dbContext,
         //Publish notification 
         await publisher.Publish(new TestResultCreatedEvent(testResult.Id, request.SelectedOptionIds), cancellationToken);
 
-        var result = new CreateTestResultResult(testResult.Id, AIRecommendations);
+        var result = new CreateTestResultResult(testResult.Id, recommendationVO);
         
         return result;
     }

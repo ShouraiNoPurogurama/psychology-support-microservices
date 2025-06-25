@@ -3,6 +3,7 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Test.Application.TestOutput.Commands;
+using Test.Domain.ValueObjects;
 
 namespace Test.API.Endpoints;
 
@@ -11,7 +12,7 @@ public record CreateTestResultRequest(
     Guid TestId,
     List<Guid> SelectedOptionIds);
 
-public record CreateTestResultResponse(Guid TestResultId, string AIRecommendations);
+public record CreateTestResultResponse(Guid TestResultId, Recommendation AIRecommendations);
 
 public class CreateTestResultEndpoint : ICarterModule
 {

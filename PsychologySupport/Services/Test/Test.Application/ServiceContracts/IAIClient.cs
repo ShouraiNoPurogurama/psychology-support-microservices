@@ -1,14 +1,12 @@
-﻿using BuildingBlocks.Messaging.Events.LifeStyle;
-using BuildingBlocks.Messaging.Events.Profile;
-using MassTransit;
-using Microsoft.Extensions.Configuration;
+﻿
+using Test.Application.Dtos.DASS21Recommendations;
 using Test.Domain.ValueObjects;
 
 namespace Test.Application.ServiceContracts;
 
 public interface IAIClient
 {
-    Task<string> GetDASS21RecommendationsAsync(
+    Task<RecommendationsDto> GetDASS21RecommendationsAsync(
         string patientProfileId,
         Score depressionScore,
         Score anxietyScore,

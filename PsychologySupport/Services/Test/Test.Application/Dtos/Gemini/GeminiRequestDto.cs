@@ -8,7 +8,5 @@ public record GeminiRequestDto(
     [JsonProperty("systemInstruction")]
     GeminiSystemInstructionDto SystemInstruction,
     [JsonProperty("generationConfig")]
-    GeminiGenerationConfigDto GenerationConfig,
-    [JsonProperty("safetySettings")]
-    List<GeminiSafetySettingDto> SafetySettings
+    GeminiGenerationConfigDto GenerationConfig
 );

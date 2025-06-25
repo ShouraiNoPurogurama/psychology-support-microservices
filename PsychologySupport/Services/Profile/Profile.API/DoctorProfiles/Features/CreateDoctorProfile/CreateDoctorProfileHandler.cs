@@ -36,10 +36,10 @@ public class CreateDoctorProfileHandler(ProfileDbContext context,
             response.Message.UserId, 
             dto.FullName,
             dto.Gender,
-            new ContactInfo(
+            ContactInfo.Of(
                 dto.ContactInfo.Address,
-                dto.ContactInfo.PhoneNumber,
-                dto.ContactInfo.Email
+                dto.ContactInfo.Email,
+                dto.ContactInfo.PhoneNumber
             ),
             dto.Qualifications,
             dto.YearsOfExperience,
