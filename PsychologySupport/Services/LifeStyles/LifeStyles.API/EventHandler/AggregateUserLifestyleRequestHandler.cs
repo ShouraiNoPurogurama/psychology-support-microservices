@@ -28,22 +28,21 @@ public class AggregateUserLifestyleRequestHandler(ISender sender) : IConsumer<Ag
                 g.GoalId, g.GoalName, g.AssignedAt)).ToList();
         }
 
-        var logDate = result.PatientEmotionCheckpoint.LogDate;
 
-        var emotionResponse = result.PatientEmotionCheckpoint.EmotionSelections.Select(e =>
+        var emotionResponse = result.PatientEmotionCheckpoint?.EmotionSelections.Select(e =>
             new EmotionSelectionFlatDto(
                 e.Id,
                 e.Emotion.Id,
                 e.Emotion.Name,
                 e.Intensity,
                 e.Rank,
-                logDate
+                result.PatientEmotionCheckpoint.LogDate
             )).ToList();
 
         return new AggregatePatientLifestyleResponse(
             result.PatientProfileId,
             goalsResponse,
-            emotionResponse
+            emotionResponse ?? []
         );
     }
 }
