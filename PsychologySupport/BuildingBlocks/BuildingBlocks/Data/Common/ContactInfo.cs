@@ -2,9 +2,9 @@
 
 public record ContactInfo
 {
-    public string Address { get; init; } = "None"!;
-    public string Email { get; init; } = default!;
-    public string? PhoneNumber { get; init; }
+    public string Address { get; set; } = "None"!;
+    public string Email { get; set; } = default!;
+    public string? PhoneNumber { get; set; }
 
     public ContactInfo()
     {
