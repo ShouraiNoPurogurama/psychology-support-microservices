@@ -6,13 +6,23 @@ using System.Threading.Tasks;
 
 namespace BuildingBlocks.Data.Common
 {
-    public record ContactInfo(string Address, string PhoneNumber, string Email)
+    public record ContactInfo(string? Address, string? PhoneNumber, string? Email)
     {
-        public bool IsValid()
+        public bool IsEnoughForUpdate()
         {
-            return !string.IsNullOrWhiteSpace(PhoneNumber)
-                   && !string.IsNullOrWhiteSpace(Email)
+            return 
+                    !string.IsNullOrWhiteSpace(Email)
                    && !string.IsNullOrWhiteSpace(Address);
+        }
+        
+       public static ContactInfo Of(string? address, string? phoneNumber, string? email)
+        {
+            return new ContactInfo(address, phoneNumber, email);
+        }
+        
+        public static ContactInfo Empty()
+        {
+            return new ContactInfo(null, null, null);
         }
     }
 }

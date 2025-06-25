@@ -1,4 +1,5 @@
-﻿using Profile.API.PatientProfiles.Dtos;
+﻿using BuildingBlocks.Data.Common;
+using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile;
 
@@ -24,12 +25,31 @@ public class UpdatePatientProfileHandler : ICommandHandler<UpdatePatientProfileC
                              ?? throw new KeyNotFoundException("Patient profile not found.");
 
         var dto = request.PatientProfileUpdate;
+        
+        var phoneNumber = string.IsNullOrWhiteSpace(dto.ContactInfo?.PhoneNumber)
+            ? patientProfile.ContactInfo.PhoneNumber
+            : dto.ContactInfo.PhoneNumber;
+        
+        var email = string.IsNullOrWhiteSpace(dto.ContactInfo?.Email)
+            ? patientProfile.ContactInfo.Email
+            : dto.ContactInfo.Email;
+        
+        var address = string.IsNullOrWhiteSpace(dto.ContactInfo?.Address)
+            ? patientProfile.ContactInfo.Address
+            : dto.ContactInfo.Address;
+        
+        var newContactInfo = ContactInfo.Of(
+            address,
+            phoneNumber,
+            email
+        );
+        
         patientProfile.Update(
             dto.FullName ?? patientProfile.FullName,
             dto.Gender ?? patientProfile.Gender,
             dto.Allergies ?? patientProfile.Allergies,
             dto.PersonalityTraits ?? patientProfile.PersonalityTraits,
-            dto.ContactInfo ?? patientProfile.ContactInfo,
+            newContactInfo,
             dto.JobId ?? patientProfile.JobId,
             dto.BirthDate ?? patientProfile.BirthDate
         );

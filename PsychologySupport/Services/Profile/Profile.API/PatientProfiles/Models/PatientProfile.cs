@@ -97,7 +97,7 @@ public class PatientProfile : AggregateRoot<Guid>
         return profile;
     }
 
-    public void Update(string fullName, UserGender gender, string allergies, PersonalityTrait personalityTraits,
+    public void Update(string fullName, UserGender gender, string? allergies, PersonalityTrait personalityTraits,
         ContactInfo contactInfo, Guid? jobId, DateOnly? birthDate)
     {
         FullName = fullName;
@@ -132,7 +132,7 @@ public class PatientProfile : AggregateRoot<Guid>
     private bool CheckProfileCompleted()
     {
         return !string.IsNullOrWhiteSpace(FullName)
-               && ContactInfo is not null && ContactInfo.IsValid()
+               && ContactInfo is not null && ContactInfo.IsEnoughForUpdate() && ContactInfo.PhoneNumber is not null
                && BirthDate.HasValue
                && JobId.HasValue;
     }
