@@ -10,7 +10,7 @@ public record ContactInfo
     {
     }
 
-    private ContactInfo(string address, string email, string? phoneNumber)
+    public ContactInfo(string address, string email, string? phoneNumber)
     {
         Address = address;
         Email = email;
