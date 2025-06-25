@@ -6,7 +6,13 @@ using Test.Domain.Models;
 
 namespace Test.API.Endpoints;
 
+public record GetAllTestResultsRequest()
+{
+    
+}
+
 public record GetAllTestResultsResponse(PaginatedResult<TestResult> TestResults);
+
 
 public class GetAllTestResultsEndpoint : ICarterModule
 {

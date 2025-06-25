@@ -34,6 +34,7 @@ namespace Profile.API.EventHandlers
                 };
 
                  _dbContext.PatientProfiles.Add(newProfile);
+                 
                 await _dbContext.SaveChangesAsync();
                 
                 await _publishEndpoint.Publish(new SendEmailIntegrationEvent(request.ContactInfo.Email, "Patient Profile Created!",
