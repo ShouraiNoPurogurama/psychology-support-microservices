@@ -1,6 +1,7 @@
 ﻿using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using BuildingBlocks.Data.Common;
 using Test.Application.Dtos;
 using Test.Domain.Models;
 
@@ -15,6 +16,12 @@ namespace Test.Application.Extensions
 
             TypeAdapterConfig<TestResult, TestResultDto>
                 .NewConfig();
+            
+            TypeAdapterConfig<ContactInfo, ContactInfo>
+                .NewConfig()
+                .ConstructUsing(src => ContactInfo.Of(src.Address, src.Email, src.PhoneNumber));
+                
+
         }
     }
 }

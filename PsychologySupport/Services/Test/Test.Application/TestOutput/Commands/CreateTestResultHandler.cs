@@ -56,8 +56,6 @@ public class CreateTestResultHandler(ITestDbContext dbContext,
             .Sum(o => (int)o.OptionValue));
 
         var severityLevel = DetermineSeverity(depressionScore, anxietyScore, stressScore);
-
-        //TODO Raise IRequestClient to AI Recommendations microservices to get recommendation
         
         var AIRecommendations = await aiClient.GetDASS21RecommendationsAsync(
             request.PatientId.ToString(),

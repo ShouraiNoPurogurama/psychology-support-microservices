@@ -6,7 +6,7 @@ public record ContactInfo
     public string Email { get; private set; } = default!;
     public string? PhoneNumber { get; private set; }
 
-    protected ContactInfo()
+    public ContactInfo()
     {
     }
 
