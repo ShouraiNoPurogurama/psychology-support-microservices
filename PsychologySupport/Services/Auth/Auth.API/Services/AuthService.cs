@@ -60,6 +60,13 @@ public class AuthService(
         var roleResult = await _userManager.AddToRoleAsync(user, Roles.UserRole);
         if (!roleResult.Succeeded) throw new InvalidDataException("Gán vai trò thất bại");
 
+        
+        var contactInfo = ContactInfo.Of(
+            "None",
+            user.Email,
+            user.PhoneNumber
+        );
+        
         // Create PatientProfile
        var createProfileRequest = new CreatePatientProfileRequest(
            user.Id,
@@ -67,11 +74,7 @@ public class AuthService(
            registerRequest.Gender,
            null,
            PersonalityTrait.None, 
-           ContactInfo.Of(
-               "None",
-               user.Email,
-               user.PhoneNumber
-           )
+           contactInfo
         );
 
         var profileResponse = await _profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
