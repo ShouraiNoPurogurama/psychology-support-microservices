@@ -120,28 +120,28 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
             List<ScheduleActivitiesSpecificationDto> activities = [];
 
             var entertainmentActivities = scheduleActivitiesQuery
-                .Where(sa => sa.EntertainmentActivityId.HasValue)
+                .Where(sa => sa.EntertainmentActivityId.HasValue && sa.SessionId == sessionId)
                 .Select(sa => new ScheduleActivitiesSpecificationDto(sa, sa.EntertainmentActivityId!.Value))
                 .ToList();
 
             entertainmentActivities.ForEach(a => activities.Add(a));
 
             var foodActivities = scheduleActivitiesQuery
-                .Where(sa => sa.FoodActivityId.HasValue)
+                .Where(sa => sa.FoodActivityId.HasValue && sa.SessionId == sessionId)
                 .Select(sa => new ScheduleActivitiesSpecificationDto(sa, sa.FoodActivityId!.Value))
                 .ToList();
 
             foodActivities.ForEach(a => activities.Add(a));
 
             var physicalActivities = scheduleActivitiesQuery
-                .Where(sa => sa.PhysicalActivityId.HasValue)
+                .Where(sa => sa.PhysicalActivityId.HasValue && sa.SessionId == sessionId)
                 .Select(sa => new ScheduleActivitiesSpecificationDto(sa, sa.PhysicalActivityId!.Value))
                 .ToList();
 
             physicalActivities.ForEach(a => activities.Add(a));
 
             var therapeuticActivities = scheduleActivitiesQuery
-                .Where(sa => sa.TherapeuticActivityId.HasValue)
+                .Where(sa => sa.TherapeuticActivityId.HasValue && sa.SessionId == sessionId)
                 .Select(sa => new ScheduleActivitiesSpecificationDto(sa, sa.TherapeuticActivityId!.Value))
                 .ToList();
 
@@ -160,7 +160,7 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
 
                 entertainmentResponse.ForEach(activity =>
                 {
-                    var matchingActivity = activities.First(a => a.SpecificActivityId == activity.Id);
+                    var matchingActivity = activities.First(a => a.SpecificActivityId == activity.Id );
                     scheduleActivityDtos.Add(new ScheduleActivityDto
                     {
                         Id = activity.Id,

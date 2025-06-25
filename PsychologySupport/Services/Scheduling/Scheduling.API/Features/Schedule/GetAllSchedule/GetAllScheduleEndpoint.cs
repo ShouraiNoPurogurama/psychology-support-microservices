@@ -2,7 +2,6 @@
 using Carter;
 using Mapster;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Scheduling.API.Dtos;
 
 namespace Scheduling.API.Features.Schedule.GetAllSchedule
