@@ -115,7 +115,7 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
         private async Task<List<ScheduleActivityDto>> GetActivities(Guid sessionId, CancellationToken cancellationToken)
         {
             var scheduleActivitiesQuery = _context.ScheduleActivities
-                .AsQueryable();
+                     .Where(sa => sa.SessionId == sessionId);
 
             List<ScheduleActivitiesSpecificationDto> activities = [];
 
