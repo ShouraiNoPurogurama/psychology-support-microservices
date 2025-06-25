@@ -1,5 +1,4 @@
 ﻿using Carter;
-using FluentValidation;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -11,23 +10,14 @@ public record UpdatePatientProfileRequest(UpdatePatientProfileDto PatientProfile
 public record UpdatePatientProfileResponse(Guid Id);
 
 public class UpdatePatientProfileEndpoint : ICarterModule
-{   
+{
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapPut("patients/{id:guid}",
             async ([FromRoute] Guid id,
                    [FromBody] UpdatePatientProfileRequest request,
-                   IValidator<UpdatePatientProfileDto> validator,
                    ISender sender) =>
             {
-                
-                
-                var validationResult = await validator.ValidateAsync(request.PatientProfileUpdate);
-                if (!validationResult.IsValid)
-                {
-                    return Results.ValidationProblem(validationResult.ToDictionary());
-                }
-
                 var command = new UpdatePatientProfileCommand(id, request.PatientProfileUpdate);
                 var result = await sender.Send(command);
                 var response = result.Adapt<UpdatePatientProfileResponse>();
