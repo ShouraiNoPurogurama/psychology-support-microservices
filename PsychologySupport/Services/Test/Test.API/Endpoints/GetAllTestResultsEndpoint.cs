@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
 using MediatR;
+using Test.Application.Dtos;
 using Test.Application.TestOutput.Queries;
 using Test.Domain.Models;
 
@@ -11,7 +12,7 @@ public record GetAllTestResultsRequest()
     
 }
 
-public record GetAllTestResultsResponse(PaginatedResult<TestResult> TestResults);
+public record GetAllTestResultsResponse(PaginatedResult<GetAllTestResultDto> TestResults);
 
 
 public class GetAllTestResultsEndpoint : ICarterModule
