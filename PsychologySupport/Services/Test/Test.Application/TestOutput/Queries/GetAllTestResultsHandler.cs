@@ -11,13 +11,13 @@ using Test.Domain.ValueObjects;
 namespace Test.Application.TestOutput.Queries;
 
 public record GetAllTestResultsQuery(
-    [FromRoute] Guid PatientId,
-    [FromQuery] int PageIndex,
-    [FromQuery] int PageSize,
-    [FromQuery] string? Search = "", // TestId
-    [FromQuery] string? SortBy = "TakenAt", // Sort TakenAt
-    [FromQuery] string? SortOrder = "asc", // Asc or Desc
-    [FromQuery] SeverityLevel? SeverityLevel = null // Filter by SeverityLevel
+    Guid PatientId,
+    int PageIndex,
+    int PageSize,
+    string? Search = "", // TestId
+    string? SortBy = "TakenAt", // Sort TakenAt
+    string? SortOrder = "asc", // Asc or Desc
+    SeverityLevel? SeverityLevel = null // Filter by SeverityLevel
 ) : IQuery<GetAllTestResultsResult>;
 
 public record GetAllTestResultsResult(PaginatedResult<GetAllTestResultDto> TestResults);
