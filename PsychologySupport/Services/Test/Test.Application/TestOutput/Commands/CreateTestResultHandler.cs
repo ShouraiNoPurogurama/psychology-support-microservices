@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Test.Application.Data;
+using Test.Application.Dtos;
 using Test.Application.ServiceContracts;
 using Test.Domain.Enums;
 using Test.Domain.Events;
@@ -11,22 +12,22 @@ using Test.Domain.ValueObjects;
 
 namespace Test.Application.TestOutput.Commands;
 
-public class CreateTestResultCommand : IQuery<CreateTestResultResult>
+public class CreateTestResultCommand : ICommand<CreateTestResultResult>
 {
     public Guid PatientId { get; set; }
     public Guid TestId { get; set; }
     public List<Guid> SelectedOptionIds { get; set; } = new();
 }
 
-public record CreateTestResultResult(Guid TestResultId, Recommendation AIRecommendations);
+public record CreateTestResultResult(TestResultDto TestResult);
 
-public class CreateTestResultHandler(ITestDbContext dbContext, 
-    IPublisher publisher, 
+public class CreateTestResultHandler(
+    ITestDbContext dbContext,
+    IPublisher publisher,
     IAIClient aiClient
-    )
-    : IQueryHandler<CreateTestResultCommand, CreateTestResultResult>
+)
+    : ICommandHandler<CreateTestResultCommand, CreateTestResultResult>
 {
-
     public async Task<CreateTestResultResult> Handle(CreateTestResultCommand request, CancellationToken cancellationToken)
     {
         var selectedOptions = await dbContext.QuestionOptions
@@ -56,21 +57,21 @@ public class CreateTestResultHandler(ITestDbContext dbContext,
             .Sum(o => (int)o.OptionValue));
 
         var severityLevel = DetermineSeverity(depressionScore, anxietyScore, stressScore);
-        
-        var AIRecommendations = await aiClient.GetDASS21RecommendationsAsync(
+
+        var DASS21Response = await aiClient.GetDASS21RecommendationsAsync(
             request.PatientId.ToString(),
             depressionScore,
             anxietyScore,
             stressScore
         );
-        
+
         var recommendationVO = Recommendation.Create(
-            AIRecommendations.Overview,
-            AIRecommendations.EmotionAnalysis,
-            AIRecommendations.PersonalizedSuggestions
+            DASS21Response.Recommendation.Overview,
+            DASS21Response.Recommendation.EmotionAnalysis,
+            DASS21Response.Recommendation.PersonalizedSuggestions
                 .Select(s => new PersonalizedSuggestion(s.Title, s.Description, s.Tips, s.Reference))
                 .ToList(),
-            AIRecommendations.Closing
+            DASS21Response.Recommendation.Closing
         );
 
 
@@ -91,8 +92,20 @@ public class CreateTestResultHandler(ITestDbContext dbContext,
         //Publish notification 
         await publisher.Publish(new TestResultCreatedEvent(testResult.Id, request.SelectedOptionIds), cancellationToken);
 
-        var result = new CreateTestResultResult(testResult.Id, recommendationVO);
-        
+        var result = new CreateTestResultResult(new TestResultDto
+        (
+            Id: testResult.Id,
+            TestId: testResult.TestId,
+            PatientId: testResult.PatientId,
+            TakenAt: testResult.TakenAt,
+            DepressionScore: depressionScore,
+            AnxietyScore: anxietyScore,
+            StressScore: stressScore,
+            SeverityLevel: severityLevel,
+            Recommendation: recommendationVO,
+            PatientName: DASS21Response.PatientName,
+            PatientAge: DASS21Response.PatientAge
+        ));
         return result;
     }
 

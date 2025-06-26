@@ -2,6 +2,7 @@
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Test.Application.Dtos;
 using Test.Application.TestOutput.Commands;
 using Test.Domain.ValueObjects;
 
@@ -10,9 +11,10 @@ namespace Test.API.Endpoints;
 public record CreateTestResultRequest(
     Guid PatientId,
     Guid TestId,
-    List<Guid> SelectedOptionIds);
+    List<Guid> SelectedOptionIds
+    );
 
-public record CreateTestResultResponse(Guid TestResultId, Recommendation AIRecommendations);
+public record CreateTestResultResponse(TestResultDto TestResult);
 
 public class CreateTestResultEndpoint : ICarterModule
 {
@@ -24,7 +26,7 @@ public class CreateTestResultEndpoint : ICarterModule
 
                 var result = await sender.Send(command);
 
-                var response = new CreateTestResultResponse(result.TestResultId, result.AIRecommendations);
+                var response = new CreateTestResultResponse(result.TestResult);
 
                 return Results.Ok(response);
             })

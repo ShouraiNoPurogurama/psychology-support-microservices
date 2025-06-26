@@ -3,14 +3,12 @@ using BuildingBlocks.Messaging.Events.Profile;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
-using Google.Apis.Auth.OAuth2;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Test.Application.Dtos.DASS21Recommendations;
 using Test.Application.Dtos.Gemini;
+using Test.Application.Extensions.Utils;
 using Test.Application.ServiceContracts;
 using Test.Domain.ValueObjects;
 
@@ -33,7 +31,7 @@ public class GeminiClient : IAIClient
         _lifestyleClient = lifestyleClient;
     }
 
-    public async Task<RecommendationsDto> GetDASS21RecommendationsAsync(
+    public async Task<CreateRecommendationResponseDto> GetDASS21RecommendationsAsync(
         string patientProfileId,
         Score depressionScore,
         Score anxietyScore,
@@ -63,7 +61,11 @@ public class GeminiClient : IAIClient
 
         var recommendations = JsonConvert.DeserializeObject<RecommendationsDto>(responseText)!;
 
-        return recommendations;
+        var age = DateOnlyUtils.CalculateAge(profile.BirthDate);
+        
+        var response = new CreateRecommendationResponseDto(Recommendation: recommendations, PatientName: profile.FullName, PatientAge: age);
+        
+        return response;
     }
 
     private async Task<string> CallGeminiAPIAsync(GeminiRequestDto payload)
@@ -97,6 +99,7 @@ public class GeminiClient : IAIClient
             .ToList();
 
         var responseText = string.Join("", parts ?? []);
+        
         return responseText;
     }
 
@@ -143,8 +146,7 @@ public class GeminiClient : IAIClient
                       ---
 
                       ### 🧠 Cảm xúc của bạn
-                      Mô tả rất ngắn gọn rằng người đọc có thể đang trải qua các cảm xúc như **mệt mỏi, nhạy cảm hoặc không rõ ràng**, và nhấn mạnh rằng đây là điều **hoàn toàn bình thường**.  
-                      Tránh phân tích sâu hay suy đoán cụ thể. Giọng văn **trung lập, gợi mở.**  
+                      Mô tả rất ngắn gọn rằng người đọc có thể đang trải qua các cảm xúc gì dựa vào kết quả DASS-21 và persona.
 
                       {improvementGoalsSection}
                       {recentEmotionsSection}
@@ -156,12 +158,12 @@ public class GeminiClient : IAIClient
                       - **Tiêu đề gợi cảm xúc tích cực**.
                       - **Mô tả sâu hơn** (3–4 câu) về lợi ích của hoạt động, lý giải vì sao nó phù hợp với người có mức độ trầm cảm/lo âu/căng thẳng như vậy. Có thể tham chiếu đến nghề nghiệp, tính cách hoặc độ tuổi nếu phù hợp.
                       - **Danh sách 2 hành động cụ thể, dễ thử** mà người đọc có thể bắt đầu ngay từ hôm nay, liên quan tới profile người dùng.
-                      - **Một trích dẫn hoặc dẫn chứng khoa học** có thật, trình bày ngắn gọn, gợi sự tin cậy và dễ hiểu. Ví dụ: “Theo nghiên cứu của Đại học Stanford năm 2019, người dành 30 phút mỗi ngày trong thiên nhiên có mức độ lo âu thấp hơn 21%”.
+                      - **(reference) Một trích dẫn hoặc dẫn chứng khoa học** có thật, trình bày ngắn gọn, gợi sự tin cậy và dễ hiểu. Ví dụ: “Theo nghiên cứu của Đại học ... năm ..., người dành ... phút mỗi ngày để ... có mức độ lo âu thấp hơn ...%”.
 
                       Lưu ý:
                       - Văn phong **ấm áp – gần gũi – mang tính nâng đỡ**, không mang giọng giảng giải.
-                      - **Kết nối gợi ý với kết quả DASS-21 và persona** (ví dụ: người hướng nội, công việc áp lực cao, học vấn cao sẽ thích hợp với thiền, âm nhạc, ghi chép...).
-
+                      - **Kết nối gợi ý với kết quả DASS-21 và persona**.
+                      - **Markdown** các thông tin đã được cá nhân hóa cho người dùng như tên, tuổi, nghề nghiệp, tính cách, v.v. để tạo cảm giác thân thiện và gần gũi.
                       ---
 
                       ### 💌 Lời chúc

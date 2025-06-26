@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using QuestPDF.Infrastructure;
 using Test.Application.Data;
 using Test.Application.ServiceContracts;
 using Test.Infrastructure.Data;
 using Test.Infrastructure.Services;
+using Test.Infrastructure.Services.Pdf;
 
 namespace Test.Infrastructure;
 
@@ -16,6 +18,8 @@ public static class DependencyInjection
     {
         var connectionString = config.GetConnectionString("TestDb");
 
+        QuestPDF.Settings.License = LicenseType.Community;
+        
         services.AddDbContext<TestDbContext>((serviceProvider, options) =>
         {
             options.UseNpgsql(connectionString);
@@ -24,6 +28,7 @@ public static class DependencyInjection
 
         services.AddScoped<ITestDbContext, TestDbContext>();
         services.AddScoped<IAIClient, GeminiClient>();
+        services.AddTransient<ITestResultPdfService, TestResultPdfService>();
         services.AddHttpClient();
 
         // Đăng ký Interceptors

@@ -12,4 +12,7 @@ public record TestResultDto(
     Score DepressionScore,
     Score AnxietyScore,
     Score StressScore,
-    string Recommendation);
+    Recommendation Recommendation,
+    string PatientName,
+    int PatientAge
+    );
