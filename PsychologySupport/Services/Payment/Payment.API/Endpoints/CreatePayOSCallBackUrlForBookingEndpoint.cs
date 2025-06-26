@@ -1,7 +1,9 @@
 ﻿using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Payment.API.Common;
 using Payment.Application.Payments.Commands;
 using Payment.Application.Payments.Dtos;
 
@@ -16,13 +18,18 @@ public class CreatePayOSCallBackUrlForBookingEndpoint : ICarterModule
     {
         app.MapPost("/payments/payos/booking", async (
             [FromBody] CreatePayOSCallBackUrlForBookingRequest request,
-            ISender sender) =>
+            ISender sender, HttpContext httpContext) =>
         {
+            // Authorization check
+            if (!AuthorizationHelpers.CanModifyPatientProfile(request.BuyBooking.PatientId, httpContext.User))
+                return Results.Forbid();
+
             var command = new CreatePayOSCallBackUrlForBookingCommand(request.BuyBooking);
             var result = await sender.Send(command);
             var response = result.Adapt<CreatePayOSCallBackUrlForBookingResponse>();
             return Results.Ok(response);
         })
+        .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
         .WithName("CreatePayOSCallBackUrlForBooking")
         .WithTags("PayOS Payments")
         .Produces<CreatePayOSCallBackUrlForBookingResponse>()

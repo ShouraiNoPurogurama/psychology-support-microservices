@@ -25,7 +25,9 @@ public static class DependencyInjection
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
         services.AddScoped<IPaymentDbContext, PaymentDbContext>();
         services.RegisterMapsterConfiguration();
-        
+
+        services.AddIdentityServices(config);
+
         services.AddDbContext<PaymentDbContext>((serviceProvider, options) =>
         {
             options.AddInterceptors(serviceProvider.GetServices<ISaveChangesInterceptor>());

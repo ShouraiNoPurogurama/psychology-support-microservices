@@ -1,7 +1,9 @@
 ﻿using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Payment.API.Common;
 using Payment.Application.Payments.Commands;
 using Payment.Application.Payments.Dtos;
 
@@ -16,13 +18,18 @@ public class CreatePayOSCallBackUrlForSubscriptionEndpoint : ICarterModule
     {
         app.MapPost("/payments/payos/subscription", async (
             [FromBody] CreatePayOSCallBackUrlForSubscriptionRequest request,
-            ISender sender) =>
+            ISender sender, HttpContext httpContext) =>
         {
+            // Authorization check
+            if (!AuthorizationHelpers.CanModifyPatientProfile(request.BuySubscription.PatientId, httpContext.User))
+                return Results.Forbid();
+
             var command = new CreatePayOSCallBackUrlForSubscriptionCommand(request.BuySubscription);
             var result = await sender.Send(command);
             var response = result.Adapt<CreatePayOSCallBackUrlForSubscriptionResponse>();
             return Results.Ok(response);
         })
+        .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
         .WithName("CreatePayOSCallBackUrlForSubscription")
         .WithTags("PayOS Payments")
         .Produces<CreatePayOSCallBackUrlForSubscriptionResponse>()

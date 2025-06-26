@@ -8,8 +8,9 @@ using Microsoft.EntityFrameworkCore;
 using Payment.Application.Data;
 using Mapster;
 using Microsoft.AspNetCore.Http;
-using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Payment.Application.ServiceContracts;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Payment.Application.Payments.Queries;
 
@@ -52,15 +53,15 @@ public class GetPaymentLinkInformationHandler : IRequestHandler<GetPaymentLinkIn
 
             if (payment.SubscriptionId.HasValue && payment.SubscriptionId != Guid.Empty)
             {
-                var subscriptionGetPromoAndGiftEvent = new SubscriptionGetPromoAndGiftRequestEvent(payment.SubscriptionId.Value);
-                var subResponse = await _subscriptionClient.GetResponse<SubscriptionGetPromoAndGiftResponseEvent>(subscriptionGetPromoAndGiftEvent, cancellationToken);
+                var subscriptionEvent = new SubscriptionGetPromoAndGiftRequestEvent(payment.SubscriptionId.Value);
+                var subResponse = await _subscriptionClient.GetResponse<SubscriptionGetPromoAndGiftResponseEvent>(subscriptionEvent, cancellationToken);
                 promotionCode = subResponse.Message.PromoCode;
                 giftId = subResponse.Message.GiftId;
             }
             else if (payment.BookingId.HasValue && payment.BookingId != Guid.Empty)
             {
-                var bookingGetPromoAndGiftEvent = new BookingGetPromoAndGiftRequestEvent(payment.BookingId.Value);
-                var bookingResponse = await _bookingClient.GetResponse<BookingGetPromoAndGiftResponseEvent>(bookingGetPromoAndGiftEvent, cancellationToken);
+                var bookingEvent = new BookingGetPromoAndGiftRequestEvent(payment.BookingId.Value);
+                var bookingResponse = await _bookingClient.GetResponse<BookingGetPromoAndGiftResponseEvent>(bookingEvent, cancellationToken);
                 promotionCode = bookingResponse.Message.PromoCode;
                 giftId = bookingResponse.Message.GiftId;
             }
@@ -68,7 +69,7 @@ public class GetPaymentLinkInformationHandler : IRequestHandler<GetPaymentLinkIn
             var tx = paymentInfo.transactions.FirstOrDefault();
             var amount = paymentInfo.amount;
             var reference = tx?.reference ?? "UNKNOWN";
-            var email = GetEmailFromToken();
+            var email = GetEmailFromClaims();
 
             payment.AddFailedPaymentDetail(
                 PaymentDetail.Of(amount, reference),
@@ -83,23 +84,18 @@ public class GetPaymentLinkInformationHandler : IRequestHandler<GetPaymentLinkIn
         return paymentInfo;
     }
 
-    private string GetEmailFromToken()
+    private string GetEmailFromClaims()
     {
-        var httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext == null || !httpContext.Request.Headers.ContainsKey("Authorization"))
+        var user = _httpContextAccessor.HttpContext?.User;
+
+        if (user == null || !(user.Identity?.IsAuthenticated ?? false))
             return "unknown@example.com";
 
-        var authHeader = httpContext.Request.Headers["Authorization"].ToString();
-        if (!authHeader.StartsWith("Bearer ")) return "unknown@example.com";
+        var email = user.FindFirstValue(ClaimTypes.Email)
+                 ?? user.FindFirstValue("email")
+                 ?? user.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                 ?? user.FindFirstValue(ClaimTypes.Name);
 
-        var token = authHeader["Bearer ".Length..];
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        if (!tokenHandler.CanReadToken(token)) return "unknown@example.com";
-
-        var jwtToken = tokenHandler.ReadJwtToken(token);
-        var emailClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
-
-        return emailClaim?.Value ?? "unknown@example.com";
+        return string.IsNullOrWhiteSpace(email) ? "unknown@example.com" : email;
     }
 }

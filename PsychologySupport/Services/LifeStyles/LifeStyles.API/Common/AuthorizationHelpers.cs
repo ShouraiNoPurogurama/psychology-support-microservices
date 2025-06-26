@@ -12,7 +12,7 @@ namespace LifeStyles.API.Common
             if (!Guid.TryParse(profileIdStr, out var profileId))
                 return false;
 
-            if (role == "Admin" || role == "Manager")
+            if (role == "Admin")
                 return true;
 
             return patientProfileId == profileId;

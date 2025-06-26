@@ -7,9 +7,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Net.payOS.Types;
 using Payment.Application.Data;
-using System.Transactions;
-using System.IdentityModel.Tokens.Jwt;
 using Payment.Application.ServiceContracts;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Transactions;
 
 namespace Payment.Application.Payments.Queries;
 
@@ -76,7 +77,7 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
 
         using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var email = GetEmailFromToken();
+            var email = GetEmailFromClaims();
 
             switch (status)
             {
@@ -109,23 +110,18 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
         return new ProcessPayOSWebhookResult(true);
     }
 
-    private string GetEmailFromToken()
+    private string GetEmailFromClaims()
     {
-        var httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext == null || !httpContext.Request.Headers.ContainsKey("Authorization"))
+        var user = _httpContextAccessor.HttpContext?.User;
+
+        if (user == null || !(user.Identity?.IsAuthenticated ?? false))
             return "unknown@example.com";
 
-        var authHeader = httpContext.Request.Headers["Authorization"].ToString();
-        if (!authHeader.StartsWith("Bearer ")) return "unknown@example.com";
+        var email = user.FindFirstValue(ClaimTypes.Email)
+                 ?? user.FindFirstValue("email")
+                 ?? user.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                 ?? user.FindFirstValue(ClaimTypes.Name);
 
-        var token = authHeader["Bearer ".Length..];
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        if (!tokenHandler.CanReadToken(token)) return "unknown@example.com";
-
-        var jwtToken = tokenHandler.ReadJwtToken(token);
-        var emailClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub || c.Type == "email");
-
-        return emailClaim?.Value ?? "unknown@example.com";
+        return string.IsNullOrWhiteSpace(email) ? "unknown@example.com" : email;
     }
 }

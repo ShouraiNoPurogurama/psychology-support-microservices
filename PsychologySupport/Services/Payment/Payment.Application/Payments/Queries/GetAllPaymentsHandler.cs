@@ -11,15 +11,14 @@ using Payment.Domain.Enums;
 namespace Payment.Application.Payments.Queries
 {
     public record GetAllPaymentsQuery(
-    [FromQuery] int PageIndex,
-    [FromQuery] int PageSize,
-    [FromQuery] Guid? PatientProfileId = null, // Search PatientId
-    [FromQuery] PaymentStatus? Status = null, // Filter
-    [FromQuery] DateOnly? CreatedAt = null, // Filter
-    [FromQuery] PaymentType? PaymentType = null, // Filter by PaymentType
-    [FromQuery] string? SortOrder = "desc" // Sort by CreatedAt
- ) : IQuery<GetAllPaymentsResult>;
-
+         int PageIndex,
+         int PageSize,
+         Guid? PatientProfileId,
+         PaymentStatus? Status,
+         DateOnly? CreatedAt,
+         PaymentType? PaymentType,
+         string? SortOrder
+    ) : IQuery<GetAllPaymentsResult>;
 
     public record GetAllPaymentsResult(PaginatedResult<PaymentDto> Payments);
 

@@ -1,5 +1,6 @@
 ﻿using Carter;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Payment.Application.Payments.Queries;
 
@@ -14,10 +15,12 @@ namespace Payment.API.Endpoints
                 long paymentCode,
                 [FromServices] ISender sender) =>
             {
-                    var query = new GetPaymentLinkInformationQuery(paymentCode);
-                    var result = await sender.Send(query);
+                var query = new GetPaymentLinkInformationQuery(paymentCode);
+
+                var result = await sender.Send(query);
                     return Results.Ok(result);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetPaymentLinkInformation")
             .WithTags("PayOS Payments")
             .Produces(StatusCodes.Status200OK)

@@ -42,4 +42,8 @@ app.UseCors("CorsPolicy");
 
 app.MapCarter();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+
 app.Run();

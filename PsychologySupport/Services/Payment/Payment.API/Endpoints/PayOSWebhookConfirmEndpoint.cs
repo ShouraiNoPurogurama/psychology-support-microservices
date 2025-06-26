@@ -25,6 +25,7 @@ public class PayOSWebhookConfirmEndpoint : ICarterModule
                 var result = await payOS.confirmWebhook(webhookUrl);
                 return Results.Ok(new { WebhookUrl = result });
          })
+        .RequireAuthorization(policy => policy.RequireRole("Admin"))
         .WithName("ConfirmPayOSWebhook")
         .WithTags("PayOS Payments")
         .Produces(StatusCodes.Status200OK)

@@ -1,24 +1,47 @@
-﻿using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Enums;
+using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
+using Payment.API.Common;
 using Payment.Application.Payments.Dtos;
 using Payment.Application.Payments.Queries;
+using Payment.Domain.Enums;
 
 namespace Payment.API.Endpoints
 {
+    public record GetAllPaymentsRequest(
+        int PageIndex = 1,
+        int PageSize = 10,
+        Guid? PatientProfileId = null,
+        PaymentStatus? Status = null,
+        DateOnly? CreatedAt = null,
+        PaymentType? PaymentType = null,
+        string? SortOrder = "desc"
+    );
     public record GetAllPaymentsResponse(PaginatedResult<PaymentDto> Payments);
 
     public class GetAllPaymentsEndpoint : ICarterModule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/payments", async ([AsParameters] GetAllPaymentsQuery request, ISender sender) =>
+            app.MapGet("/payments", async ([AsParameters] GetAllPaymentsRequest request,
+                ISender sender, HttpContext httpContext) =>
             {
-                var result = await sender.Send(request);
+                // Authorization check
+                if (request.PatientProfileId is Guid patientId)
+                {
+                    if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User))
+                        return Results.Forbid();
+                }
+
+                var query = request.Adapt<GetAllPaymentsQuery>();
+                var result = await sender.Send(query);
                 var response = result.Adapt<GetAllPaymentsResponse>();
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User","Admin","Manager"))
             .WithName("GetAllPayments")
             .WithTags("Payments")
             .Produces<GetAllPaymentsResponse>()
