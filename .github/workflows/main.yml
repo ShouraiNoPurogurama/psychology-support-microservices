@@ -104,6 +104,18 @@ jobs:
           ${{ secrets.APPSETTINGS_TEST }}
           EOF
 
+          cat <<EOF > Services/Test/Test.API/Keys/public_key.xml
+          ${{ secrets.RSA_PUBLIC_KEYS }}
+          EOF
+
+          cat <<EOF > Services/LifeStyles/LifeStyles.API/Keys/public_key.xml
+          ${{ secrets.RSA_PUBLIC_KEYS }}
+          EOF
+
+          cat <<EOF > Services/Payment/Payment.API/Keys/public_key.xml
+          ${{ secrets.RSA_PUBLIC_KEYS }}
+          EOF
+
           CHANGED=$(git diff --name-only HEAD^ HEAD \
             | grep -E '^PsychologySupport/Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+' \
             | awk -F/ '{
