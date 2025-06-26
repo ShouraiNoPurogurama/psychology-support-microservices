@@ -18,6 +18,7 @@ namespace Scheduling.API.Features.GetDoctorSchedule
                 var result = await sender.Send(query);
                 return Results.Ok(result.Adapt<GetDoctorScheduleResponse>());
             })
+                .RequireAuthorization(policy => policy.RequireRole("Doctor", "Admin","Manager"))
                 .WithName("GetDoctorSchedule")
                 .WithTags("Doctor Schedule")
                 .Produces<GetDoctorScheduleResponse>()

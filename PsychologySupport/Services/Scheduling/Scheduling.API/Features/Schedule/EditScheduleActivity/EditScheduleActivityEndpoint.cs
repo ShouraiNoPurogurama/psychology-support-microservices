@@ -22,6 +22,7 @@ namespace Scheduling.API.Features.Schedule.EditScheduleActivity
                         var response = result.Adapt<EditScheduleActivityResponse>();
                         return Results.Ok(response);
                     })
+                .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
                 .WithName("Edit Schedule Activity")
                 .WithTags("Schedules")
                 .Produces<EditScheduleActivityResponse>()

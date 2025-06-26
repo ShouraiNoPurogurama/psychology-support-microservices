@@ -31,6 +31,10 @@ namespace Scheduling.API.Extensions
 
             AddValidatorDependencies(services);
 
+            services.AddIdentityServices(config);
+
+            services.AddAuthorization();
+
             services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
             return services;

@@ -1,6 +1,8 @@
 ﻿using Carter;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Scheduling.API.Common;
 
 namespace Scheduling.API.Features.Schedule.CreateScheduleFeedback
 {
@@ -11,8 +13,12 @@ namespace Scheduling.API.Features.Schedule.CreateScheduleFeedback
         public void AddRoutes(IEndpointRouteBuilder app)
         {
             app.MapPost("schedule-feedback",
-                async ([FromBody] CreateScheduleFeedbackCommand request, ISender sender) =>
+                async ([FromBody] CreateScheduleFeedbackCommand request, ISender sender, HttpContext httpContext) =>
                 {
+                    // Authorization check
+                    if (!AuthorizationHelpers.CanModifyPatientProfile(request.PatientId, httpContext.User))
+                        return Results.Forbid();
+
                     var command = new CreateScheduleFeedbackCommand(
                         request.ScheduleId,
                         request.PatientId,
@@ -28,6 +34,7 @@ namespace Scheduling.API.Features.Schedule.CreateScheduleFeedback
                     return Results.Created($"/schedule-feedback/{request.ScheduleId}", response);
 
                 })
+                .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
                 .WithName("CreateScheduleFeedback")
                 .WithTags("Schedules")
                 .Produces<CreateScheduleFeedbackResponse>()

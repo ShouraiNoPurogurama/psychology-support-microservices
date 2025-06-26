@@ -18,6 +18,7 @@ namespace Scheduling.API.Features.GetAllBooking
                 var response = result.Adapt<GetAllBookingsResponse>();
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin","Manager"))
             .WithName("GetAllBookings")
             .WithTags("Bookings")
             .Produces<GetAllBookingsResponse>()

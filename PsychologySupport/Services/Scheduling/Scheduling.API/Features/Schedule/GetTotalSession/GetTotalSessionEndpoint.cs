@@ -16,6 +16,7 @@ namespace Scheduling.API.Features.Schedule.GetTotalSession
                 var response = new GetTotalSessionResponse(result);
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin","Manager"))
             .WithName("GetTotalSessions")
             .WithTags("Schedules")
             .Produces<GetTotalSessionResponse>()

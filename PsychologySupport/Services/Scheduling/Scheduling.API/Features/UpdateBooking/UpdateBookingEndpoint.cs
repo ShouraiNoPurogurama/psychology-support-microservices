@@ -22,6 +22,7 @@ namespace Scheduling.API.Features.UpdateBooking
                         var response = result.Adapt<UpdateBookingResponse>();
                         return Results.Ok(response);
                     })
+                .RequireAuthorization(policy => policy.RequireRole("Doctor", "Admin"))
                 .WithName("Update Booking Status")
                 .WithTags("Bookings")
                 .Produces<UpdateBookingResponse>()

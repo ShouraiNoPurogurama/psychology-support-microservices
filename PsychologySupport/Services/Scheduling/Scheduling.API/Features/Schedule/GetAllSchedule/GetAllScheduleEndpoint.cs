@@ -2,6 +2,8 @@
 using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
+using Scheduling.API.Common;
 using Scheduling.API.Dtos;
 
 namespace Scheduling.API.Features.Schedule.GetAllSchedule
@@ -19,13 +21,21 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/schedules", async ([AsParameters] GetAllSchedulesRequest request, ISender sender) =>
+            app.MapGet("/schedules", async ([AsParameters] GetAllSchedulesRequest request, ISender sender, HttpContext httpContext) =>
             {
+                // Authorization check
+                if (request.PatientId is Guid patientId)
+                {
+                    if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User))
+                        return Results.Forbid();
+                }
+
                 var query = request.Adapt<GetAllSchedulesQuery>();
                 var result = await sender.Send(query);
                 var response = result.Adapt<GetAllSchedulesResponse>();
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetAllSchedules")
             .WithTags("Schedules")
             .Produces<GetAllSchedulesResponse>()

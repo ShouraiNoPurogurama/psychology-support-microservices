@@ -19,6 +19,7 @@ namespace Scheduling.API.Features.Schedule.GetScheduleActivity
 
                 return Results.Ok(result.Adapt<GetScheduleActivityResponse>());
             })
+                .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
                 .WithName("GetScheduleActivity")
                 .WithTags("Schedules")
                 .Produces<GetScheduleActivityResponse>()

@@ -19,11 +19,7 @@ namespace Scheduling.API.Features.CreateDoctorAvailability
                 IValidator<CreateDoctorAvailabilityDto> validator, 
                 ISender sender) =>
             {
-                var validationResult = await validator.ValidateAsync(request.DoctorAvailabilityCreate);
-                if (!validationResult.IsValid)
-                {
-                    return Results.ValidationProblem(validationResult.ToDictionary());
-                }
+                // Authorization check
 
                 var command = request.Adapt<CreateDoctorAvailabilityCommand>();
                 var result = await sender.Send(command);
@@ -31,6 +27,7 @@ namespace Scheduling.API.Features.CreateDoctorAvailability
 
                 return Results.Created($"/doctor-availabilities/{response.Id}", response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("Doctor", "Admin"))
             .WithName("CreateDoctorAvailability")
             .WithTags("DoctorAvailabilities")
             .Produces<CreateDoctorAvailabilityResponse>()

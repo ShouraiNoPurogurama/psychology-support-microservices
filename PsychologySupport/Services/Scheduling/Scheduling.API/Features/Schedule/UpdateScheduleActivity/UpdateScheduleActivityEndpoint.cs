@@ -22,6 +22,7 @@ namespace Scheduling.API.Features.Schedule.UpdateScheduleActivity
                         var response = result.Adapt<UpdateScheduleActivityResponse>();
                         return Results.Ok(response);
                     })
+                .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
                 .WithName("Update Schedule Activity Status")
                 .WithTags("Schedules")
                 .Produces<UpdateScheduleActivityResponse>()

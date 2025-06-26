@@ -18,6 +18,7 @@ namespace Scheduling.API.Features.Schedule.GetTotalActivities
                 var response = new GetTotalActivitiesResponse(result);
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetTotalActivities")
             .WithTags("Schedules")
             .Produces<GetTotalActivitiesResponse>()

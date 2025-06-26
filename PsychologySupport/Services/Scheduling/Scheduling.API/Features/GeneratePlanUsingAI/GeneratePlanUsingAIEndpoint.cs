@@ -1,9 +1,11 @@
-﻿using System.Text.Json;
-using Carter;
+﻿using Carter;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Scheduling.API.Common;
 using Scheduling.API.Dtos;
 using Scheduling.API.Features.Schedule.ImportSchedule;
+using System.Text.Json;
 
 namespace Scheduling.API.Features.GeneratePlanUsingAI;
 
@@ -15,8 +17,12 @@ public class GeneratePlanUsingAiEndpoint : ICarterModule
 
         group.MapPost("/generate-plan", async (
             [FromBody] ScheduleRequest request,
-            ISender sender) =>
+            ISender sender, HttpContext httpContext) =>
         {
+            // Authorization check
+            if (!AuthorizationHelpers.CanModifyPatientProfile(request.PatientId, httpContext.User))
+                return Results.Forbid();
+
             var scores = JsonSerializer.Serialize(request);
 
             GeneratePlanResult result = await sender.Send(new GeneratePlanCommand(scores));
@@ -28,6 +34,7 @@ public class GeneratePlanUsingAiEndpoint : ICarterModule
 
             return Results.Ok(new { plan = result });
         })
+        .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
         .WithName("GeneratePlan")
         .WithTags("OpenAI")
         .Produces<GeneratePlanResult>()

@@ -12,6 +12,7 @@ namespace Scheduling.API.Features.GetTop5Booking
                 var result = await sender.Send(request);
                 return Results.Ok(result);
             })
+            .RequireAuthorization(policy => policy.RequireRole("Manager", "Admin"))
             .WithName("GetTop5DoctorsByBooking")
             .WithTags("Bookings")
             .Produces<GetTopDoctorsResult>(StatusCodes.Status200OK)

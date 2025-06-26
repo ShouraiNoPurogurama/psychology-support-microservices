@@ -29,6 +29,7 @@ namespace Scheduling.API.Features.RegisterDoctorBusyAllDay
 
                 return Results.Ok(result.Adapt<RegisterDoctorBusyAllDayResponse>());
             })
+            .RequireAuthorization(policy => policy.RequireRole("Doctor", "Admin"))
             .WithName("RegisterDoctorBusyAllDay")
             .WithTags("Doctor Schedule")
             .Produces<RegisterDoctorBusyAllDayResponse>()

@@ -1,12 +1,26 @@
-﻿using Carter;
+﻿using BuildingBlocks.Enums;
+using Carter;
 using FluentValidation;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Scheduling.API.Common;
 using Scheduling.API.Dtos;
 
 namespace Scheduling.API.Features.CreateBooking
 {
+    public record CreateBookingRequest(
+        Guid DoctorId,
+        Guid PatientId,
+        DateOnly Date,
+        TimeOnly StartTime,
+        int Duration,
+        decimal Price,
+        string? PromoCode,
+        Guid? GiftCodeId,
+        PaymentMethodName PaymentMethod
+    );
     public record CreateBookingResponse(Guid BookingId, string BookingCode, string PaymentUrl);
 
     public class CreateBookingEndpoint : ICarterModule
@@ -14,20 +28,20 @@ namespace Scheduling.API.Features.CreateBooking
         public void AddRoutes(IEndpointRouteBuilder app)
         {
             app.MapPost("/bookings", async (
-                [FromBody] CreateBookingCommand request,
-                ISender sender) =>
+            [FromBody] CreateBookingRequest request,
+            ISender sender, HttpContext httpContext) =>
             {
-               /* var validationResult = await validator.ValidateAsync(request.Adapt<CreateBookingDto>());
-                if (!validationResult.IsValid)
-                {
-                    return Results.ValidationProblem(validationResult.ToDictionary());
-                }
-*/
-                var result = await sender.Send(request);
-                var response = result.Adapt<CreateBookingResponse>();
+                // Authorization check
+                if (!AuthorizationHelpers.CanModifyPatientProfile(request.PatientId, httpContext.User))
+                    return Results.Forbid();
 
+                var dto = request.Adapt<CreateBookingDto>();
+                var result = await sender.Send(new CreateBookingCommand(dto));
+
+                var response = result.Adapt<CreateBookingResponse>();
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("CreateBooking")
             .WithTags("Bookings")
             .Produces<CreateBookingResponse>()
