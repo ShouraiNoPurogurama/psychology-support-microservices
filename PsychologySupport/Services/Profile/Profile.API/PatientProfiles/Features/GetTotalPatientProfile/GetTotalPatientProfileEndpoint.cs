@@ -25,6 +25,7 @@ namespace Profile.API.PatientProfiles.Features.GetTotalPatientProfile
                 var totalPatients = await sender.Send(query, cancellationToken);
                 return Results.Ok(new { TotalPatients = totalPatients });
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin","Manager"))
             .WithName("GetTotalPatientProfile")
             .WithTags("PatientProfiles")
             .Produces<int>()

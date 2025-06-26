@@ -2,6 +2,8 @@
 using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
+using Profile.API.Common.Helpers;
 using Profile.API.PatientProfiles.Dtos;
 using Profile.API.PatientProfiles.Enum;
 
@@ -25,14 +27,22 @@ public class GetAllMedicalRecordsEndpoint : ICarterModule
     {
         app.MapGet("/medical-records", async (
             [AsParameters] GetAllMedicalRecordsRequest request,
-            ISender sender) =>
+            ISender sender, HttpContext httpContext) =>
         {
+            // Authorization check
+            if (request.PatientId is Guid patientId)
+            {
+                if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User))
+                    return Results.Forbid();
+            }
+
             var query = request.Adapt<GetAllMedicalRecordsQuery>();
 
             var result = await sender.Send(query);
             var response = new GetAllMedicalRecordsResponse(result.MedicalRecords);
             return Results.Ok(response);
         })
+        .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
         .WithName("GetAllMedicalRecords")
         .WithTags("PatientProfiles")
         .Produces<GetAllMedicalRecordsResponse>()

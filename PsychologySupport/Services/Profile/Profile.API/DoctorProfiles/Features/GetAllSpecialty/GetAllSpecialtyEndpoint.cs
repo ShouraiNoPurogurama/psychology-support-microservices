@@ -19,6 +19,7 @@ namespace Profile.API.DoctorProfiles.Features.GetAllSpecialty
 
                 return Results.Ok(response);
             })
+                .RequireAuthorization(policy => policy.RequireRole("Doctor", "Admin","User","Manager"))
                 .WithName("GetAllSpecialties")
                 .WithTags("Specialties")
                 .Produces<GetAllSpecialtiesResponse>()

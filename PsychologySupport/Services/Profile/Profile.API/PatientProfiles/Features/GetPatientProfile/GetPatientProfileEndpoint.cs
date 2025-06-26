@@ -19,6 +19,7 @@ public class GetPatientProfileEndpoint : ICarterModule
                 var response = result.Adapt<GetPatientProfileResponse>();
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin","Manager"))
             .WithName("GetPatientProfile")
             .WithTags("PatientProfiles")
             .Produces<GetPatientProfileResponse>()

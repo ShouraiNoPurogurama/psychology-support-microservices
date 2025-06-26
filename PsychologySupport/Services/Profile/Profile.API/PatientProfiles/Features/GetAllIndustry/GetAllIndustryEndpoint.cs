@@ -18,6 +18,7 @@ public class GetAllIndustryEndpoint : ICarterModule
 
             return Results.Ok(response);
         })
+        .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
         .WithName("GetAllIndustries")
         .WithTags("PatientProfiles")
         .Produces<GetAllIndustryResponse>()

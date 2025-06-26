@@ -1,6 +1,8 @@
 ﻿using Carter;
 using Mapster;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Profile.API.Common.Helpers;
 using Profile.API.PatientProfiles.Features.AddMedicalRecord;
 
 namespace Profile.API.PatientProfiles.Features.AddMedicalHistory;
@@ -18,8 +20,12 @@ public class AddMedicalHistoryEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/patients/medical-history", async ([FromBody] AddMedicalHistoryRequest request, ISender sender) =>
+        app.MapPost("/patients/medical-history", async ([FromBody] AddMedicalHistoryRequest request, ISender sender, HttpContext httpContext) =>
             {
+                // Authorization check
+                if (!AuthorizationHelpers.CanModifyPatientProfile(request.PatientProfileId, httpContext.User))
+                    return Results.Forbid();
+
                 var command = request.Adapt<AddMedicalHistoryCommand>();
 
                 var result = await sender.Send(command);
@@ -28,6 +34,7 @@ public class AddMedicalHistoryEndpoint : ICarterModule
 
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("AddMedicalHistory")
             .WithTags("PatientProfiles")
             .Produces<AddMedicalRecordResponse>()

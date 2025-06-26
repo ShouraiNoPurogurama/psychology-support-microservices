@@ -19,6 +19,7 @@ namespace Profile.API.PatientProfiles.Features.GetAllPhysicalSymptom
 
                 return Results.Ok(response);
             })
+                .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
                 .WithName("GetAllPhysicalSymptoms")
                 .WithTags("PhysicalSymptoms")
                 .Produces<GetAllPhysicalSymptomResponse>()

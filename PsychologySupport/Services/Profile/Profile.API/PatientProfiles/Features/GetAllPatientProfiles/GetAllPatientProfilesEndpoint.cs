@@ -20,6 +20,7 @@ public class GetAllPatientProfilesEndpoint : ICarterModule
 
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("Manager", "Admin"))
             .WithName("GetAllPatientProfiles")
             .WithTags("PatientProfiles")
             .Produces<GetAllPatientProfilesResponse>()

@@ -21,6 +21,7 @@ public class GetDoctorProfileBySpecialitiesEndpoint : ICarterModule
 
                     return Results.Ok(response);
                 })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin","Manager"))
             .WithName("GetDoctorsBySpecialities")
             .WithTags("DoctorProfiles")
             .Produces<GetDoctorsBySpecialitiesResponse>()

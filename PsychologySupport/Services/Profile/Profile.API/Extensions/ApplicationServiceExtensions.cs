@@ -24,6 +24,10 @@ public static class ApplicationServiceExtensions
 
         AddServiceDependencies(services);
 
+        services.AddIdentityServices(config);
+
+        services.AddAuthorization();
+
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
         services.AddValidatorsFromAssemblyContaining<UpdateDoctorProfileValidator>();

@@ -1,6 +1,8 @@
 ﻿using Carter;
 using Mapster;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Profile.API.Common.Helpers;
 using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.CreatePatientProfile;
@@ -23,6 +25,7 @@ public class CreatePatientProfileEndpoint : ICarterModule
 
                 return Results.Created($"/patient-profiles/{response.Id}", response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("CreatePatientProfile")
             .WithTags("PatientProfiles")
             .Produces<CreatePatientProfileResponse>()

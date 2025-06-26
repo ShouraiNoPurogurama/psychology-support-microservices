@@ -17,6 +17,7 @@ namespace Profile.API.PatientProfiles.Features.GetJobByIndustryId
                 var response = result.Adapt<GetJobByIndustryIdResponse>();
                 return Results.Ok(response);
             })
+                .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
                 .WithName("GetJobByIndustryId")
                 .WithTags("PatientProfiles")
                 .Produces<GetJobByIndustryIdResponse>()

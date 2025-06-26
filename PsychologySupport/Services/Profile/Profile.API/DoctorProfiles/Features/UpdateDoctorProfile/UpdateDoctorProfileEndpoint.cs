@@ -31,6 +31,7 @@ public class UpdateDoctorProfileEndpoint : ICarterModule
 
                 return Results.Ok(response);
             })
+         .RequireAuthorization(policy => policy.RequireRole("Doctor", "Admin"))
         .WithName("UpdateDoctorProfile")
         .WithTags("DoctorProfiles")
         .Produces<UpdateDoctorProfileResponse>()

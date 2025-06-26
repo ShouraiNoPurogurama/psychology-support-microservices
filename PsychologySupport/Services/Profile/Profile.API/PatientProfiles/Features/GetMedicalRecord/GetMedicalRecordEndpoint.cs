@@ -1,5 +1,7 @@
 ﻿using Carter;
 using Mapster;
+using Microsoft.AspNetCore.Http;
+using Profile.API.Common.Helpers;
 using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.GetMedicalRecord
@@ -19,6 +21,7 @@ namespace Profile.API.PatientProfiles.Features.GetMedicalRecord
                 var response = result.Adapt<GetMedicalRecordResponse>();
                 return Results.Ok(response);
             })
+                .RequireAuthorization(policy => policy.RequireRole("Doctor", "Admin"))
                 .WithName("GetMedicalRecordById")
                 .WithTags("PatientProfiles")
                 .Produces<GetMedicalRecordResponse>()

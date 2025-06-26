@@ -20,6 +20,7 @@ public class CreateDoctorProfileEndpoint : ICarterModule
                 var response = result.Adapt<CreateDoctorProfileResponse>();
                 return Results.Created($"/doctor-profiles/{response.Id}", response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("Manager", "Admin"))
             .WithName("CreateDoctorProfile")
             .WithTags("DoctorProfiles")
             .Produces<CreateDoctorProfileResponse>()

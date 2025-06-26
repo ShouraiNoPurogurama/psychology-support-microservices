@@ -29,6 +29,7 @@ public class GetPatientProfileByEventEndpoint : ICarterModule
             
             return Results.Ok(response);
         })
+        .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
         .WithName("GetPatientProfileByEvent")
         .WithSummary("Get patient profile by event")
         .Produces<GetDoctorProfileByEventResponse>(StatusCodes.Status200OK)

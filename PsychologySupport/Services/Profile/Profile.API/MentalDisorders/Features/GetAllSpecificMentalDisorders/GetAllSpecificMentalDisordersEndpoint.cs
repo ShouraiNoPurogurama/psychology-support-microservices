@@ -23,6 +23,7 @@ namespace Profile.API.MentalDisorders.Features.GetAllSpecificMentalDisorders
 
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin","Doctor"))
             .WithName("GetAllSpecificMentalDisorders")
             .WithTags("SpecificMentalDisorders")
             .Produces<GetAllSpecificMentalDisordersResponse>()
