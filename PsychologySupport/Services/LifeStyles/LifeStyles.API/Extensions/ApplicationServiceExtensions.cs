@@ -32,6 +32,10 @@ public static class ApplicationServiceExtensions
 
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
+        services.AddIdentityServices(config);
+
+        services.AddAuthorization();
+
         return services;
     }
 
@@ -55,7 +59,7 @@ public static class ApplicationServiceExtensions
             });
             options.AddServer(new OpenApiServer
             {
-                Url = "/lifestyle-service/" 
+                Url = "/lifestyle-service/"
             });
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

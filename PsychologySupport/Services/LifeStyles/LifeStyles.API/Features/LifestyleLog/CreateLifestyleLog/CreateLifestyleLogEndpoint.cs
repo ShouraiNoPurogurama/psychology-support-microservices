@@ -1,6 +1,8 @@
 ﻿using BuildingBlocks.Enums;
 using Carter;
+using LifeStyles.API.Common;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LifeStyles.API.Features.LifestyleLog.CreateLifestyleLog;
@@ -26,8 +28,13 @@ public class CreateLifestyleLogEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapPost("lifestyle-logs",
-            async ([FromBody] CreateLifestyleLogRequest request, ISender sender) =>
+            async (HttpContext httpContext, [FromBody] CreateLifestyleLogRequest request, ISender sender) =>
             {
+                // Authorization check
+                if (!AuthorizationHelpers.HasAccessToPatientProfile(request.PatientProfileId, httpContext.User))
+                    return Results.Forbid();
+
+                // Send command
                 var command = new CreateLifestyleLogCommand(
                     request.PatientProfileId,
                     request.LogDate,
@@ -38,6 +45,7 @@ public class CreateLifestyleLogEndpoint : ICarterModule
 
                 await sender.Send(command);
 
+                // Prepare response
                 var response = new CreateLifestyleLogResponse(
                     request.PatientProfileId,
                     request.LogDate,
@@ -48,11 +56,13 @@ public class CreateLifestyleLogEndpoint : ICarterModule
 
                 return Results.Created($"/lifestyle-logs/{request.PatientProfileId}", response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("CreateLifestyleLog")
             .WithTags("LifestyleLogs")
-            .Produces<CreateLifestyleLogResponse>()
+            .Produces<CreateLifestyleLogResponse>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status403Forbidden)
             .WithSummary("Create a Lifestyle Log")
-            .WithDescription("Create a Lifestyle Log");
+            .WithDescription("Create a Lifestyle Log for a patient.");
     }
 }

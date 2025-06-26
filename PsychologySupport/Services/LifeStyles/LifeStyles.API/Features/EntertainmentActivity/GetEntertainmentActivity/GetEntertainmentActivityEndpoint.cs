@@ -20,6 +20,7 @@ public class GetEntertainmentActivityEndpoint : ICarterModule
                 var response = result.Adapt<GetEntertainmentActivityResponse>();
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetEntertainmentActivity")
             .Produces<GetEntertainmentActivityResponse>()
             .ProducesProblem(StatusCodes.Status404NotFound)

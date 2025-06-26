@@ -9,12 +9,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.Features.TherapeuticActivity.GetAllTherapeuticActivity;
 
-public record GetAllTherapeuticActivitiesQuery([FromQuery] int PageIndex = 1,
-    [FromQuery] int PageSize = 10,
-    [FromQuery] string? Search = null, // Search by Name
-    [FromQuery] IntensityLevel? IntensityLevel = null, // Filter by IntensityLevel
-    [FromQuery] ImpactLevel? ImpactLevel = null) // Filter by ImpactLevel
-    : IQuery<GetAllTherapeuticActivitiesResult>;
+public record GetAllTherapeuticActivitiesQuery(
+    int PageIndex,
+    int PageSize,
+    string? Search,
+    IntensityLevel? IntensityLevel,
+    ImpactLevel? ImpactLevel
+) : IQuery<GetAllTherapeuticActivitiesResult>;
 
 public record GetAllTherapeuticActivitiesResult(PaginatedResult<TherapeuticActivityDto> TherapeuticActivities);
 

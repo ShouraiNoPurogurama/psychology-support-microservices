@@ -10,11 +10,10 @@ using Microsoft.EntityFrameworkCore;
 namespace LifeStyles.API.Features.FoodActivity.GetAllFoodActivity;
 
 public record GetAllFoodActivitiesQuery(
-    [FromQuery] int PageIndex = 1,
-    [FromQuery] int PageSize = 10,
-     [FromQuery] string? Search = null 
+    int PageIndex,
+    int PageSize,
+    string? Search
 ) : IQuery<GetAllFoodActivitiesResult>;
-
 public record GetAllFoodActivitiesResult(PaginatedResult<FoodActivityDto> FoodActivities);
 
 public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery, GetAllFoodActivitiesResult>

@@ -42,5 +42,7 @@ else
 // Apply CORS policy
 app.UseCors("CorsPolicy");
 
+app.UseAuthentication();   
+app.UseAuthorization();
 
 app.Run();

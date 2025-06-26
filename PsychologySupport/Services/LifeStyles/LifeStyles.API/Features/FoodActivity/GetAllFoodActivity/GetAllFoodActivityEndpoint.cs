@@ -6,19 +6,28 @@ using MediatR;
 
 namespace LifeStyles.API.Features.FoodActivity.GetAllFoodActivity;
 
+public record GetAllFoodActivitiesRequest(
+    int PageIndex = 1,
+    int PageSize = 10,
+    string? Search = null
+);
 public record GetAllFoodActivitiesResponse(PaginatedResult<FoodActivityDto> FoodActivities);
 
 public class GetAllFoodActivityEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/food-activities", async ([AsParameters] GetAllFoodActivitiesQuery request, ISender sender) =>
+        app.MapGet("/food-activities", async (
+             [AsParameters] GetAllFoodActivitiesRequest request,
+             ISender sender) =>
         {
-            var result = await sender.Send(request);
-            var response = result.Adapt<GetAllFoodActivitiesResponse>();
+            var query = request.Adapt<GetAllFoodActivitiesQuery>();
+            var result = await sender.Send(query);
+            var response = new GetAllFoodActivitiesResponse(result.FoodActivities);
 
             return Results.Ok(response);
         })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetAllFoodActivities")
             .WithTags("FoodActivities")
             .Produces<GetAllFoodActivitiesResponse>()

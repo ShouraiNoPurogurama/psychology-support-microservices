@@ -11,12 +11,12 @@ using Microsoft.EntityFrameworkCore;
 namespace LifeStyles.API.Features.PhysicalActivity.GetAllPhysicalActivity;
 
 public record GetAllPhysicalActivitiesQuery(
-    [FromQuery] int PageIndex = 1,
-    [FromQuery] int PageSize = 10,
-    [FromQuery] string? Search = null,
-    [FromQuery] IntensityLevel? IntensityLevel = null, 
-    [FromQuery] ImpactLevel? ImpactLevel = null ) 
-: IQuery<GetAllPhysicalActivitiesResult>;
+    int PageIndex,
+    int PageSize,
+    string? Search,
+    IntensityLevel? IntensityLevel,
+    ImpactLevel? ImpactLevel
+) : IQuery<GetAllPhysicalActivitiesResult>;
 
 public record GetAllPhysicalActivitiesResult(PaginatedResult<PhysicalActivityDto> PhysicalActivities);
 

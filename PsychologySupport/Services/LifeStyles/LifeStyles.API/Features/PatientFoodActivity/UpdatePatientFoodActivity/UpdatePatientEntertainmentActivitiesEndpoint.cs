@@ -1,4 +1,5 @@
 ﻿using Carter;
+using LifeStyles.API.Common;
 using LifeStyles.API.Features.PatientFoodActivity.CreatePatientFoodActivity;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -14,8 +15,12 @@ public class UpdatePatientFoodActivitiesEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapPut("patient-Food-activities",
-                async ([FromBody] UpdatePatientFoodActivitiesRequest request, ISender sender) =>
+                async (HttpContext httpContext,[FromBody] UpdatePatientFoodActivitiesRequest request, ISender sender) =>
                 {
+                    // Authorization check
+                    if (!AuthorizationHelpers.HasAccessToPatientProfile(request.PatientProfileId, httpContext.User))
+                        return Results.Forbid();
+
                     var command = new UpdatePatientFoodActivitiesCommand(
                         request.PatientProfileId,
                         request.Activities.Select(a => (a.FoodActivityId, a.PreferenceLevel)).ToList()
@@ -30,6 +35,7 @@ public class UpdatePatientFoodActivitiesEndpoint : ICarterModule
 
                     return Results.Ok(response);
                 })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("UpdatePatientFoodActivities")
             .WithTags("PatientFoodActivities")
             .Produces<UpdatePatientFoodActivitiesResponse>()

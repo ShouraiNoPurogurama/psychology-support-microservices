@@ -20,6 +20,7 @@ public class GetFoodActivityEndpoint : ICarterModule
                 var response = result.Adapt<GetFoodActivityResponse>();
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetFoodActivity")
             .Produces<GetFoodActivityResponse>()
             .ProducesProblem(StatusCodes.Status404NotFound)

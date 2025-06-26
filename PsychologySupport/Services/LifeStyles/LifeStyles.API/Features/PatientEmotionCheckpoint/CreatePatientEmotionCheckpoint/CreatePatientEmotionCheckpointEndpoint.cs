@@ -1,8 +1,10 @@
 ﻿using Carter;
+using LifeStyles.API.Common;
 using LifeStyles.API.Dtos.EmotionSelections;
 using LifeStyles.API.Dtos.PatientEmotionCheckpoints;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LifeStyles.API.Features.PatientEmotionCheckpoint.CreatePatientEmotionCheckpoint;
@@ -19,9 +21,13 @@ public class CreatePatientEmotionCheckpointEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapPost("/patients/{patientProfileId:guid}/emotion-checkpoints",
-                async ([FromRoute] Guid patientProfileId, [FromBody] CreatePatientEmotionCheckpointRequest request, ISender sender,
+                async (HttpContext httpContext,[FromRoute] Guid patientProfileId, [FromBody] CreatePatientEmotionCheckpointRequest request, ISender sender,
                     CancellationToken cancellationToken) =>
                 {
+                    // Authorization check
+                    if (!AuthorizationHelpers.HasAccessToPatientProfile(patientProfileId, httpContext.User))
+                        return Results.Forbid();
+
                     var command = new CreatePatientEmotionCheckpointCommand(
                         patientProfileId,
                         request.Emotions,
@@ -33,6 +39,7 @@ public class CreatePatientEmotionCheckpointEndpoint : ICarterModule
 
                     return Results.Ok(response);
                 })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("CreatePatientEmotionCheckpoint")
             .WithTags("PatientEmotionCheckpoint")
             .WithDescription("Creates a new patient emotion checkpoint.")

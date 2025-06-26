@@ -1,10 +1,12 @@
 ﻿using Carter;
-using MediatR;
+using LifeStyles.API.Common;
 using Mapster;
+using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace LifeStyles.API.Features.PatientImprovementGoal.GetPatientImprovementGoal;
 
-public record GetPatientImprovementGoalRequest(Guid PatientProfileId, DateOnly Date);
+public record GetPatientImprovementGoalRequest(Guid PatientProfileId, DateOnly Date); // clean sau 
 
 public record GetPatientImprovementGoalResponse(IEnumerable<Dtos.PatientImprovementGoalDto> Goals);
 
@@ -13,13 +15,18 @@ public class GetPatientImprovementGoalEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapGet("/patient-improvement-goals/{patientProfileId:guid}",
-            async (Guid patientProfileId, [AsParameters] QueryDate query, ISender sender) =>
+            async (HttpContext httpContext,Guid patientProfileId, [AsParameters] QueryDate query, ISender sender) =>
             {
+                // Authorization check
+                if (!AuthorizationHelpers.HasAccessToPatientProfile(patientProfileId, httpContext.User))
+                    return Results.Forbid();
+
                 var queryObj = new GetPatientImprovementGoalQuery(patientProfileId, query.Date);
                 var result = await sender.Send(queryObj);
                 var response = result.Adapt<GetPatientImprovementGoalResponse>();
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetPatientImprovementGoals")
             .WithTags("Patient Improvement Goals")
             .WithSummary("GetPatientImprovementGoals")

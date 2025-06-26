@@ -20,6 +20,7 @@ namespace LifeStyles.API.Features.FoodNutrient.GetAllFoodNutrient
 
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetAllFoodNutrients")
             .WithTags("FoodNutrients")
             .Produces<GetAllFoodNutrientResponse>()

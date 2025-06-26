@@ -30,6 +30,7 @@ public class GetAllEmotionsEndpoint : ICarterModule
             var result = await sender.Send(query);
             var response = new GetAllEmotionsResponse(result.Emotions);
             return Results.Ok(response);
-        });
+        })
+        .RequireAuthorization(policy => policy.RequireRole("User", "Admin"));
     }
 }

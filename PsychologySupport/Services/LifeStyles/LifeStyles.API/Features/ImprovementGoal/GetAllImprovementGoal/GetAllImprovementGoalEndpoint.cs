@@ -20,6 +20,7 @@ public class GetAllImprovementGoalEndpoint : ICarterModule
 
             return Results.Ok(response);
         })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetAllImprovementGoals")
             .WithTags("ImprovementGoals")
             .WithSummary("Get all improvement goals")

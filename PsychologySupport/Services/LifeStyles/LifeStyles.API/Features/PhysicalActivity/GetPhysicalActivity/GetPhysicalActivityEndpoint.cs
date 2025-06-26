@@ -21,6 +21,7 @@ public class GetPhysicalActivityEndpoint : ICarterModule
 
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetPhysicalActivity")
             .Produces<GetPhysicalActivityResponse>()
             .ProducesProblem(StatusCodes.Status404NotFound)

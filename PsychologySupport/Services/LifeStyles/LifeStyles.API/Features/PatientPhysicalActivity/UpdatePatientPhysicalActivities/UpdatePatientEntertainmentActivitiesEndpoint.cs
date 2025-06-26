@@ -1,6 +1,8 @@
 ﻿using Carter;
+using LifeStyles.API.Common;
 using LifeStyles.API.Features.PatientPhysicalActivity.CreatePatientPhysicalActivity;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LifeStyles.API.Features.PatientPhysicalActivity.UpdatePatientPhysicalActivities;
@@ -14,8 +16,12 @@ public class UpdatePatientPhysicalActivitiesEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapPut("patient-Physical-activities",
-                async ([FromBody] UpdatePatientPhysicalActivitiesRequest request, ISender sender) =>
+                async (HttpContext httpContext, [FromBody] UpdatePatientPhysicalActivitiesRequest request, ISender sender) =>
                 {
+                    // Authorization check
+                    if (!AuthorizationHelpers.HasAccessToPatientProfile(request.PatientProfileId, httpContext.User))
+                        return Results.Forbid();
+
                     var command = new UpdatePatientPhysicalActivitiesCommand(
                         request.PatientProfileId,
                         request.Activities.Select(a => (a.PhysicalActivityId, a.PreferenceLevel)).ToList()
@@ -30,6 +36,7 @@ public class UpdatePatientPhysicalActivitiesEndpoint : ICarterModule
 
                     return Results.Ok(response);
                 })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("UpdatePatientPhysicalActivities")
             .WithTags("PatientPhysicalActivities")
             .Produces<UpdatePatientPhysicalActivitiesResponse>()

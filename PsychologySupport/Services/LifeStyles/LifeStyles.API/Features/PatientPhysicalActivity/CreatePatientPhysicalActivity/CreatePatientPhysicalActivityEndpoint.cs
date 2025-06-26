@@ -1,6 +1,8 @@
 ﻿using BuildingBlocks.Enums;
 using Carter;
+using LifeStyles.API.Common;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LifeStyles.API.Features.PatientPhysicalActivity.CreatePatientPhysicalActivity;
@@ -21,9 +23,13 @@ public class CreatePatientPhysicalActivityEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("patient-physical-activities", async (
+        app.MapPost("patient-physical-activities", async (HttpContext httpContext,
                 [FromBody] CreatePatientPhysicalActivityRequest request, ISender sender) =>
             {
+                // Authorization check
+                if (!AuthorizationHelpers.HasAccessToPatientProfile(request.PatientProfileId, httpContext.User))
+                    return Results.Forbid();
+
                 var command = new CreatePatientPhysicalActivityCommand(
                     request.PatientProfileId,
                     request.Activities.Select(a => (a.PhysicalActivityId, a.PreferenceLevel)).ToList()
@@ -38,6 +44,7 @@ public class CreatePatientPhysicalActivityEndpoint : ICarterModule
 
                 return Results.Created($"/patient-physical-activities/{request.PatientProfileId}", response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("CreatePatientPhysicalActivity")
             .WithTags("PatientPhysicalActivities")
             .Produces<CreatePatientPhysicalActivityResponse>()

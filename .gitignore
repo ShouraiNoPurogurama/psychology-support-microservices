@@ -420,3 +420,7 @@ PsychologySupport/Services/Scheduling/Scheduling.API/Dtos/ClusterData.cs
 PsychologySupport/Services/Promotion/Promotion.Grpc/PromotionDb
 PsychologySupport/.vscode/
 /PsychologySupport/docker-compose.yml
+
+public_key.xml
+Keys/
+*.xml
