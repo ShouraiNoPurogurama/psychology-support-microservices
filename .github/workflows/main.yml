@@ -116,6 +116,14 @@ jobs:
           ${{ secrets.RSA_PUBLIC_KEYS }}
           EOF
 
+          cat <<EOF > Services/Scheduling/Scheduling.API/Keys/public_key.xml
+          ${{ secrets.RSA_PUBLIC_KEYS }}
+          EOF
+
+          cat <<EOF > Services/Profile/Profile.API/Keys/public_key.xml
+          ${{ secrets.RSA_PUBLIC_KEYS }}
+          EOF
+
           CHANGED=$(git diff --name-only HEAD^ HEAD \
             | grep -E '^PsychologySupport/Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+' \
             | awk -F/ '{
