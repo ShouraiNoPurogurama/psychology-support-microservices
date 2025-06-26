@@ -15,6 +15,8 @@ public static class DependencyInjection
         services.AddHealthChecks()
             .AddSqlServer(configuration.GetConnectionString("Database")!);
 
+        services.AddAuthorization();
+
         ConfigureSwagger(services);
         ConfigureCors(services);
         
@@ -49,7 +51,7 @@ public static class DependencyInjection
             {
                 Url = "/test-service/"
             });
-            
+
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",

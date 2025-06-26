@@ -21,6 +21,7 @@ public class GetAllTestsEndpoint : ICarterModule
 
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetAllTests")
             .WithTags("Tests")
             .Produces<GetAllTestsResponse>()

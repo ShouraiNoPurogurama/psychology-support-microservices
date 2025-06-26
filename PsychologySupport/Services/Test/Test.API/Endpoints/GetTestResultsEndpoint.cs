@@ -22,6 +22,7 @@ namespace Test.API.Endpoints
 
                 return Results.Ok(response);
             })
+                .RequireAuthorization(policy => policy.RequireRole("User", "Admin","Manager"))
                 .WithName("GetTestResult")
                 .WithTags("Test Results")
                 .Produces<GetTestResultResponse>()

@@ -2,7 +2,9 @@
 using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Test.API.Common;
 using Test.Application.Dtos;
 using Test.Application.TestOutput.Queries;
 using Test.Domain.Enums;
@@ -25,8 +27,12 @@ public class GetAllTestResultsEndpoint : ICarterModule
     {
         app.MapGet("/test-results/{patientId:guid}", async (
                 [AsParameters] GetAllTestResultsRequest request, [FromRoute] Guid patientId,
-                ISender sender) =>
+                ISender sender, HttpContext httpContext) =>
             {
+                // Authorization check
+                if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User))
+                    return Results.Forbid();
+
                 var query = request.Adapt<GetAllTestResultsQuery>() with { PatientId = patientId };
 
                 var result = await sender.Send(query);
@@ -35,6 +41,7 @@ public class GetAllTestResultsEndpoint : ICarterModule
 
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetAllTestResults")
             .WithTags("Test Results")
             .Produces<GetAllTestResultsResponse>()

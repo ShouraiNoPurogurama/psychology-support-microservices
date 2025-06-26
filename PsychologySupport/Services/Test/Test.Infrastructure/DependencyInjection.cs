@@ -7,6 +7,7 @@ using QuestPDF.Infrastructure;
 using Test.Application.Data;
 using Test.Application.ServiceContracts;
 using Test.Infrastructure.Data;
+using Test.Infrastructure.Data.Extensions;
 using Test.Infrastructure.Services;
 using Test.Infrastructure.Services.Pdf;
 
@@ -30,6 +31,8 @@ public static class DependencyInjection
         services.AddScoped<IAIClient, GeminiClient>();
         services.AddTransient<ITestResultPdfService, TestResultPdfService>();
         services.AddHttpClient();
+
+        services.AddIdentityServices(config);
 
         // Đăng ký Interceptors
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();

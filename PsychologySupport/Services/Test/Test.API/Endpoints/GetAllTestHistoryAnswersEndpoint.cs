@@ -23,6 +23,7 @@ public class GetAllTestHistoryAnswersEndpoint : ICarterModule
 
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetAllTestHistoryAnswers")
             .WithTags("Tests")
             .Produces<GetAllTestHistoryAnswersResponse>()

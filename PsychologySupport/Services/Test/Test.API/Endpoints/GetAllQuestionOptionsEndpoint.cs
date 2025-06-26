@@ -23,6 +23,7 @@ public class GetAllQuestionOptionsEndpoint : ICarterModule
 
                 return Results.Ok(response);
             })
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetAllQuestionOptions")
             .WithTags("Test")
             .Produces<GetAllQuestionOptionsResponse>()
