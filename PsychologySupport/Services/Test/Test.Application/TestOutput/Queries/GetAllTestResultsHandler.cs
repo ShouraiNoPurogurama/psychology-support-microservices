@@ -3,22 +3,24 @@ using BuildingBlocks.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Test.Application.Data;
+using Test.Application.Dtos;
 using Test.Domain.Enums;
 using Test.Domain.Models;
+using Test.Domain.ValueObjects;
 
 namespace Test.Application.TestOutput.Queries;
 
 public record GetAllTestResultsQuery(
-    [FromRoute] Guid PatientId,
-    [FromQuery] int PageIndex,
-    [FromQuery] int PageSize,
-    [FromQuery] string? Search = "", // TestId
-    [FromQuery] string? SortBy = "TakenAt", // Sort TakenAt
-    [FromQuery] string? SortOrder = "asc", // Asc or Desc
-    [FromQuery] SeverityLevel? SeverityLevel = null // Filter by SeverityLevel
+    Guid PatientId,
+    int PageIndex,
+    int PageSize,
+    string? Search = "", // TestId
+    string? SortBy = "TakenAt", // Sort TakenAt
+    string? SortOrder = "asc", // Asc or Desc
+    SeverityLevel? SeverityLevel = null // Filter by SeverityLevel
 ) : IQuery<GetAllTestResultsResult>;
 
-public record GetAllTestResultsResult(PaginatedResult<TestResult> TestResults);
+public record GetAllTestResultsResult(PaginatedResult<GetAllTestResultDto> TestResults);
 
 public class GetAllTestResultsHandler
     : IQueryHandler<GetAllTestResultsQuery, GetAllTestResultsResult>
@@ -58,17 +60,30 @@ public class GetAllTestResultsHandler
         }
 
 
-        var totalCount = await query.CountAsync(cancellationToken);
-        var testResults = await query
+        var dtoList = await query
             .Skip(request.PageIndex * request.PageSize)
             .Take(request.PageSize)
+            .Select(tr => new GetAllTestResultDto(
+                tr.Id,
+                tr.TestId,
+                tr.PatientId,
+                tr.TakenAt,
+                tr.SeverityLevel,
+                tr.DepressionScore,
+                tr.AnxietyScore,
+                tr.StressScore,
+                Recommendation.FromJson(EF.Property<string>(tr, "RecommendationJson"))
+            ))
             .ToListAsync(cancellationToken);
 
-        var paginatedResult = new PaginatedResult<TestResult>(
+        
+        var totalCount = await query.CountAsync(cancellationToken);
+        
+        var paginatedResult = new PaginatedResult<GetAllTestResultDto>(
             request.PageIndex,
             request.PageSize,
             totalCount,
-            testResults
+            dtoList
         );
 
         return new GetAllTestResultsResult(paginatedResult);

@@ -4,7 +4,8 @@ namespace Test.Domain.ValueObjects;
 
 public class Recommendation
 {
-    private Recommendation(string overview, string emotionAnalysis, List<PersonalizedSuggestion> suggestions, string closing)
+    [JsonConstructor]
+    public Recommendation(string overview, string emotionAnalysis, List<PersonalizedSuggestion> suggestions, string closing)
     {
         Overview = overview;
         EmotionAnalysis = emotionAnalysis;
@@ -36,6 +37,7 @@ public class Recommendation
 
 public class PersonalizedSuggestion
 {
+    [JsonConstructor]
     public PersonalizedSuggestion(string title, string description, List<string> tips, string reference)
     {
         Title = title;

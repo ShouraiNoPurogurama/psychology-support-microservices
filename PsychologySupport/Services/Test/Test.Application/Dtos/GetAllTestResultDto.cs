@@ -3,8 +3,7 @@ using Test.Domain.ValueObjects;
 
 namespace Test.Application.Dtos;
 
-public record TestResultDto(
-    Guid Id,
+public record GetAllTestResultDto(Guid Id,
     Guid TestId,
     Guid PatientId,
     DateTime TakenAt,
@@ -12,7 +11,4 @@ public record TestResultDto(
     Score DepressionScore,
     Score AnxietyScore,
     Score StressScore,
-    Recommendation Recommendation,
-    string PatientName,
-    int PatientAge
-    );
+    Recommendation Recommendation);
