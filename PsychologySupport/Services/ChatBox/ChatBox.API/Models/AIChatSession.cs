@@ -14,5 +14,7 @@ public class AIChatSession : DomainEventContainer
     public string? Summarization { get; set; }  
     public DateTime? LastSummarizedAt { get; set; } 
     public int? LastSummarizedIndex { get; set; } 
+    
+    public string PersonaSnapshot { get; set; } 
 }
 

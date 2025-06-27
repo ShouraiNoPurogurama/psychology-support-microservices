@@ -39,15 +39,23 @@ public class AuthService(
         var user = registerRequest.Adapt<User>();
         user.Email = user.UserName = registerRequest.Email;
 
-        // var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        //
-        // var sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
-        //     user.Email,
-        //     "Xác nhận tài khoản",
-        //     $"Vui lòng xác nhận tài khoản của bạn bằng cách nhấp vào liên kết sau: {configuration["Mail:ConfirmEmailUrl"]}?token={emailConfirmationToken}&email={user.Email}"
-        // );
+        var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         
-        user.EmailConfirmed = true;
+        var baseUrl = configuration["Mail:ConfirmEmailUrl"]!;
+
+        var url = string.Format(
+            baseUrl,
+            Uri.EscapeDataString(emailConfirmationToken),
+            Uri.EscapeDataString(user.Email)
+        );
+        
+        var sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
+            user.Email,
+            "Xác nhận tài khoản",
+            $"Vui lòng xác nhận tài khoản của bạn bằng cách nhấp vào liên kết sau: {url}"
+        );
+        
+        // user.EmailConfirmed = true;
         user.PhoneNumberConfirmed = true;
 
         var result = await _userManager.CreateAsync(user, registerRequest.Password);
@@ -82,6 +90,8 @@ public class AuthService(
         if (!profileResponse.Message.Success)
             throw new InvalidDataException($"Patient profile creation failed: {profileResponse.Message.Message}");
 
+        await publishEndpoint.Publish(sendEmailIntegrationEvent);
+        
         return true;
     }
 
