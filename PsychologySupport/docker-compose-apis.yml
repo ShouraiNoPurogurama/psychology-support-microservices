@@ -78,6 +78,7 @@ services:
       dockerfile: Services/LifeStyles/LifeStyles.API/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
+      - ./Services/LifeStyle/LifeStyle.API/RSAKeys:/app/RSAKeys
 
   notification.api:
     image: ${DOCKER_REGISTRY-}notificationapi
@@ -114,6 +115,7 @@ services:
       dockerfile: Services/Payment/Payment.API/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
+      - ./Services/Payment/Payment.API/RSAKeys:/app/RSAKeys
 
   profile.api:
     image: ${DOCKER_REGISTRY-}profileapi
@@ -169,6 +171,7 @@ services:
       dockerfile: Services/Scheduling/Scheduling.API/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
+      - ./Services/Scheduling/Scheduling.API/RSAKeys:/app/RSAKeys
 
   subscription.api:
     image: ${DOCKER_REGISTRY-}subscriptionapi
