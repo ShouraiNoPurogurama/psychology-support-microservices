@@ -153,6 +153,6 @@ jobs:
             echo "✅ $svc is up and running."
             echo "---------------------------------------------"
           done
-            echo "🧹 Cleaning up Docker builder cache..."
-            docker builder prune -f
-            echo "✅ Docker cache cleaned."
+            # echo "🧹 Cleaning up Docker builder cache..."
+            # docker builder prune -f
+            # echo "✅ Docker cache cleaned."
