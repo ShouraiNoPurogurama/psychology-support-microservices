@@ -28,7 +28,11 @@ public class CreatePatientPhysicalActivityEndpoint : ICarterModule
             {
                 // Authorization check
                 if (!AuthorizationHelpers.HasAccessToPatientProfile(request.PatientProfileId, httpContext.User))
-                    return Results.Forbid();
+                    return Results.Problem(
+                               statusCode: StatusCodes.Status403Forbidden,
+                               title: "Forbidden",
+                               detail: "You do not have permission to access this resource."
+                           );
 
                 var command = new CreatePatientPhysicalActivityCommand(
                     request.PatientProfileId,

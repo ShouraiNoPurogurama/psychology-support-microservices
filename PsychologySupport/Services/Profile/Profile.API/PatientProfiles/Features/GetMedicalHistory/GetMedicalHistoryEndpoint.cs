@@ -18,7 +18,11 @@ public class GetMedicalHistoryEndpoint : ICarterModule
             {
                 // Authorization check
                 if (!AuthorizationHelpers.CanModifyPatientProfile(patientId, httpContext.User))
-                    return Results.Forbid();
+                    return Results.Problem(
+                              statusCode: StatusCodes.Status403Forbidden,
+                              title: "Forbidden",
+                              detail: "You do not have permission to access this resource."
+                          );
 
                 var query = new GetMedicalHistoryQuery(patientId);
                 var result = await sender.Send(query);

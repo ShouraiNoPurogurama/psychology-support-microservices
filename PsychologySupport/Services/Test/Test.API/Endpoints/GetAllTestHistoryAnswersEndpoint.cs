@@ -1,6 +1,8 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
 using MediatR;
+using Microsoft.AspNetCore.Http;
+using Test.API.Common;
 using Test.Application.Dtos;
 using Test.Application.TestOutput.Queries;
 using Test.Domain.Models;
@@ -15,8 +17,16 @@ public class GetAllTestHistoryAnswersEndpoint : ICarterModule
     {
         app.MapGet("/test-history-answers/{testResultId:guid}", async (
                 Guid testResultId,
-                ISender sender) =>
+                ISender sender, HttpContext httpContext) =>
             {
+                // Authorization check
+                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
+                    return Results.Problem(
+                               statusCode: StatusCodes.Status403Forbidden,
+                               title: "Forbidden",
+                               detail: "You do not have permission to access this resource."
+                           );
+
                 var query = new GetAllTestHistoryAnswersQuery(testResultId);
                 var result = await sender.Send(query);
                 var response = new GetAllTestHistoryAnswersResponse(result.Answer);

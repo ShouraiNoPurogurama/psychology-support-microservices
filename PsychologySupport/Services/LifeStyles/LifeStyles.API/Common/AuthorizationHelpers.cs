@@ -17,5 +17,12 @@ namespace LifeStyles.API.Common
 
             return patientProfileId == profileId;
         }
+
+        public static bool HasViewAccessToPatientProfile(ClaimsPrincipal user)
+        {
+            var role = user.FindFirstValue(ClaimTypes.Role);
+
+            return role is "User" or "Manager" or "Admin";
+        }
     }
 }

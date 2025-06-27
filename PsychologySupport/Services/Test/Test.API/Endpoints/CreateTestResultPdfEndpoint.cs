@@ -26,7 +26,11 @@ public class CreateTestResultPdfEndpoint : ICarterModule
             {
                 // Authorization check
                 if (!AuthorizationHelpers.CanModifyPatientProfile(request.PatientId, httpContext.User))
-                    return Results.Forbid();
+                    return Results.Problem(
+                               statusCode: StatusCodes.Status403Forbidden,
+                               title: "Forbidden",
+                               detail: "You do not have permission to access this resource."
+                           );
 
                 var command = request.Adapt<CreateTestResultPdfCommand>();
                 

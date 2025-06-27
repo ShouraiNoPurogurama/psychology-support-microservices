@@ -32,5 +32,12 @@ namespace Payment.API.Common
 
             return patientProfileId == profileId;
         }
+
+        public static bool HasViewAccessToPatientProfile(ClaimsPrincipal user)
+        {
+            var role = user.FindFirstValue(ClaimTypes.Role);
+
+            return role is "Manager" or "Admin";
+        }
     }
 }

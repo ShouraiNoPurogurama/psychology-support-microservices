@@ -17,7 +17,11 @@ namespace Scheduling.API.Features.Schedule.CreateScheduleFeedback
                 {
                     // Authorization check
                     if (!AuthorizationHelpers.CanModifyPatientProfile(request.PatientId, httpContext.User))
-                        return Results.Forbid();
+                        return Results.Problem(
+                              statusCode: StatusCodes.Status403Forbidden,
+                              title: "Forbidden",
+                              detail: "You do not have permission to access this resource."
+                          );
 
                     var command = new CreateScheduleFeedbackCommand(
                         request.ScheduleId,
