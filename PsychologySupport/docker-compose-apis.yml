@@ -78,7 +78,7 @@ services:
       dockerfile: Services/LifeStyles/LifeStyles.API/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
-      - ./Services/LifeStyle/LifeStyle.API/RSAKeys:/app/RSAKeys
+      - ./Services/LifeStyles/LifeStyles.API/RSAKeys:/app/RSAKeys
 
   notification.api:
     image: ${DOCKER_REGISTRY-}notificationapi
