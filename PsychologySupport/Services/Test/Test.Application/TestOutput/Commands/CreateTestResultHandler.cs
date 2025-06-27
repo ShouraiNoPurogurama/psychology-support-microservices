@@ -90,7 +90,7 @@ public class CreateTestResultHandler(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         //Publish notification 
-        await publisher.Publish(new TestResultCreatedEvent(testResult.Id, request.SelectedOptionIds), cancellationToken);
+        // await publisher.Publish(new TestResultCreatedEvent(testResult.Id, request.SelectedOptionIds), cancellationToken);
 
         var result = new CreateTestResultResult(new TestResultDto
         (

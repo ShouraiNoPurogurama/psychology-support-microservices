@@ -9,6 +9,8 @@ public class AIMessage
     public bool SenderIsEmo { get; set; }
     
     public Guid SessionId { get; set; }
+
+    public int BlockNumber { get; set; } = 0;
     
     public string Content { get; set; } = string.Empty;
     

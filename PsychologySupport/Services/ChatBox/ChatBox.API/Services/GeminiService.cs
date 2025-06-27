@@ -62,8 +62,8 @@ public class GeminiService(
             if (string.IsNullOrWhiteSpace(responseText))
                 throw new Exception("Failed to get a response from Gemini.");
 
-            var aiMessages = SplitGeminiResponse(request.SessionId, responseText);
-
+            var aiMessages = SplitGeminiResponse(request.SessionId, responseText);  
+            
             await SaveMessagesAsync(request.SessionId, userId, request.UserMessage, request.SentAt, aiMessages);
 
             //Tự động tóm tắt nếu vượt ngưỡng
@@ -134,6 +134,23 @@ public class GeminiService(
             contentParts.Add(new GeminiContentDto(
                 "user", [new GeminiContentPartDto($"Tóm tắt trước đó của cuộc hội thoại:\n{session.Summarization}")]
             ));
+        }
+        
+        if (messages.Count == 0)
+        {
+            var lastSequenceIndex = await GetLastMessageSequenceIndex(request.SessionId);
+            
+            var lastMessageBlock = await dbContext.AIChatMessages
+                .Where(m => m.SessionId == request.SessionId && m.BlockNumber == lastSequenceIndex)
+                .OrderBy(m => m.CreatedDate)
+                .ToListAsync();
+
+            foreach (var message in lastMessageBlock)
+            {
+                contentParts.Add(new GeminiContentDto(
+                    message.SenderIsEmo ? "model" : "user", [new GeminiContentPartDto($"{message.Content}")]
+                ));
+            }
         }
 
         //Thêm các message chưa tóm tắt vào
@@ -259,6 +276,10 @@ public class GeminiService(
     private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string userMessage, DateTime userMessageSentAt,
         List<AIMessage> aiResponse)
     {
+        var lastSeq = await GetLastMessageSequenceIndex(sessionId);
+        
+        var nextSeq = lastSeq + 1;
+        
         dbContext.AIChatMessages.Add(
             new AIMessage
             {
@@ -268,12 +289,29 @@ public class GeminiService(
                 SenderIsEmo = false,
                 Content = userMessage,
                 CreatedDate = userMessageSentAt,
-                IsRead = true
+                IsRead = true,
+                BlockNumber = nextSeq
             });
+
+        foreach (var message in aiResponse)
+        {
+            message.BlockNumber = nextSeq;
+        }
 
         dbContext.AIChatMessages.AddRange(aiResponse);
 
         await dbContext.SaveChangesAsync();
+    }
+
+    private async Task<int> GetLastMessageSequenceIndex(Guid sessionId)
+    {
+        var lastSeq = await dbContext.AIChatMessages
+            .Where(m => m.SessionId == sessionId)
+            .OrderByDescending(m => m.BlockNumber)
+            .Select(m => m.BlockNumber)
+            .FirstOrDefaultAsync();
+        
+        return lastSeq;
     }
 
 
