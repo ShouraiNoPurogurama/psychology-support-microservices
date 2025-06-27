@@ -132,6 +132,7 @@ services:
       dockerfile: Services/Profile/Profile.API/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
+      - ./Services/Profile/Profile.API/RSAKeys:/app/RSAKeys
 
   promotion.grpc:
     image: ${DOCKER_REGISTRY-}promotiongrpc
@@ -206,6 +207,7 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ~/gcp/compute-default-sa.json:/app/gcloud/compute-default-sa.json:ro
+      - ./Services/Test/Test.API/RSAKeys:/app/RSAKeys
 
   yarpapigateway:
     image: ${DOCKER_REGISTRY-}yarpapigateway
