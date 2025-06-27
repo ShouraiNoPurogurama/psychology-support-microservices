@@ -104,23 +104,27 @@ jobs:
           ${{ secrets.APPSETTINGS_TEST }}
           EOF
 
-          cat <<EOF > Services/Test/Test.API/Keys/public_key.xml
+          cat <<EOF > Services/Test/Test.API/RSAKeys/PublicKey.xml
           ${{ secrets.RSA_PUBLIC_KEYS }}
           EOF
 
-          cat <<EOF > Services/LifeStyles/LifeStyles.API/Keys/public_key.xml
+          cat <<EOF > Services/LifeStyles/LifeStyles.API/RSAKeys/PublicKey.xml
           ${{ secrets.RSA_PUBLIC_KEYS }}
           EOF
 
-          cat <<EOF > Services/Payment/Payment.API/Keys/public_key.xml
+          cat <<EOF > Services/Payment/Payment.API/RSAKeys/PublicKey.xml
           ${{ secrets.RSA_PUBLIC_KEYS }}
           EOF
 
-          cat <<EOF > Services/Scheduling/Scheduling.API/Keys/public_key.xml
+          cat <<EOF > Services/Scheduling/Scheduling.API/RSAKeys/PublicKey.xml
           ${{ secrets.RSA_PUBLIC_KEYS }}
           EOF
 
-          cat <<EOF > Services/Profile/Profile.API/Keys/public_key.xml
+          cat <<EOF > Services/Profile/Profile.API/RSAKeys/PublicKey.xml
+          ${{ secrets.RSA_PUBLIC_KEYS }}
+          EOF
+
+          cat <<EOF > Services/Subscription/Subscription.API/RSAKeys/PublicKey.xml
           ${{ secrets.RSA_PUBLIC_KEYS }}
           EOF
 
