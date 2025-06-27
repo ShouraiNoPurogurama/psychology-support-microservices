@@ -33,4 +33,5 @@ RUN dotnet publish "./Test.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY Services/Test/Test.API/Lookup/Dass21Percentiles.csv ./Lookup/Dass21Percentiles.csv
 ENTRYPOINT ["dotnet", "Test.API.dll"]
