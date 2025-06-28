@@ -15,6 +15,7 @@ public class AuthDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<User> Users { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<Device> Devices { get; set; }
+    public DbSet<DeviceSession> DeviceSessions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

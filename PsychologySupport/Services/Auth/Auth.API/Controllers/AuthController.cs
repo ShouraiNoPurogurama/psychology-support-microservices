@@ -53,4 +53,14 @@ public class AuthController(
         var result = await authService.ConfirmEmailAsync(confirmEmailRequest);
         return Ok(result);
     }
+
+    [HttpPost("revoke-token")]
+    public async Task<IActionResult> RevokeToken([FromBody] TokenApiRequest request)
+    {
+        if (!ModelState.IsValid) return BadRequest();
+
+        var result = await authService.RevokeAsync(request);
+        return result ? Ok(new { message = "Token đã được thu hồi" }) : BadRequest("Thu hồi token thất bại");
+    }
+
 }
