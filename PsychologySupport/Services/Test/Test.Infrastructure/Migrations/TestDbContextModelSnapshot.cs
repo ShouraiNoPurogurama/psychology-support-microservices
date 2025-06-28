@@ -34,7 +34,7 @@ namespace Test.Infrastructure.Migrations
 
                     b.HasIndex("TestResultsId");
 
-                    b.ToTable("QuestionOptionTestResult");
+                    b.ToTable("QuestionOptionTestResult", (string)null);
                 });
 
             modelBuilder.Entity("Test.Domain.Models.Category", b =>
@@ -65,7 +65,7 @@ namespace Test.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Test.Domain.Models.QuestionOption", b =>
@@ -103,7 +103,7 @@ namespace Test.Infrastructure.Migrations
 
                     b.HasIndex("TestQuestionId");
 
-                    b.ToTable("QuestionOptions");
+                    b.ToTable("QuestionOptions", (string)null);
                 });
 
             modelBuilder.Entity("Test.Domain.Models.Test", b =>
@@ -129,7 +129,7 @@ namespace Test.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tests");
+                    b.ToTable("Tests", (string)null);
                 });
 
             modelBuilder.Entity("Test.Domain.Models.TestQuestion", b =>
@@ -164,7 +164,7 @@ namespace Test.Infrastructure.Migrations
 
                     b.HasIndex("TestId");
 
-                    b.ToTable("TestQuestions");
+                    b.ToTable("TestQuestions", (string)null);
                 });
 
             modelBuilder.Entity("Test.Domain.Models.TestResult", b =>
@@ -215,7 +215,7 @@ namespace Test.Infrastructure.Migrations
 
                     b.HasIndex("TestId");
 
-                    b.ToTable("TestResults");
+                    b.ToTable("TestResults", (string)null);
                 });
 
             modelBuilder.Entity("QuestionOptionTestResult", b =>

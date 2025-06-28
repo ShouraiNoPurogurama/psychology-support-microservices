@@ -16,7 +16,9 @@ public class Dass21PdfDocument(
     Score stress,
     SeverityLevel severityLevel,
     string completeTime,
-    Recommendation recommendation)
+    Recommendation recommendation,
+    Dass21PercentileLookup lookup
+    )
     : IDocument
 {
     public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
@@ -30,6 +32,15 @@ public class Dass21PdfDocument(
         var depressionDescriptor = Score.GetDepressionDescriptor(depressionScore);
         var anxietyDescriptor = Score.GetAnxietyDescriptor(anxietyScore);
         var stressDescriptor = Score.GetStressDescriptor(stressScore);
+        
+        var csvPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Lookup", "Dass21Percentiles.csv");
+
+        var depressionPercentile = lookup.GetPercentile("depression", depressionScore);
+        var anxietyPercentile = lookup.GetPercentile("anxiety", anxietyScore);
+        var stressPercentile = lookup.GetPercentile("stress", stressScore);
+        var totalPercentile = lookup.GetPercentile("total", depressionScore + anxietyScore + stressScore);
+        
+        var avgPercentile = 
         
         container.Page(page =>
         {
@@ -140,11 +151,11 @@ public class Dass21PdfDocument(
                     var severityLevelColor = QuestPDFUtils.GetSeverityLevelColor(severityLevel);
                     var vietnameseSeverityLevel = severityLevel.ToVietnamese();
                     
-                    AddResultRow("Trầm cảm (Depression)", depressionScore, depressionDescriptor, "99.7%", depressionTextColor);
-                    AddResultRow("Lo âu (Anxiety)", anxietyScore, anxietyDescriptor, "99.5%", anxietyTextColor);
-                    AddResultRow("Căng thẳng (Stress)", stressScore, stressDescriptor, "98.7%", stressTextColor);
+                    AddResultRow("Trầm cảm (Depression)", depressionScore, depressionDescriptor, depressionPercentile.ToString(), depressionTextColor);
+                    AddResultRow("Lo âu (Anxiety)", anxietyScore, anxietyDescriptor, anxietyPercentile.ToString(), anxietyTextColor);
+                    AddResultRow("Căng thẳng (Stress)", stressScore, stressDescriptor, stressPercentile.ToString(), stressTextColor);
                     AddResultRow("TỔNG ĐIỂM", depressionScore + anxietyScore + stressScore, 
-                        vietnameseSeverityLevel, "99.9%", severityLevelColor, true);
+                        vietnameseSeverityLevel, totalPercentile.ToString(), severityLevelColor, true);
                 });
 
                 // Chart Section

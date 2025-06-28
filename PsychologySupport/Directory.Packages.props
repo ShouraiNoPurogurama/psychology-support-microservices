@@ -10,6 +10,7 @@
     <PackageVersion Include="AutoGen.Gemini" Version="0.2.3" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.23.0" />
     <PackageVersion Include="Carter" Version="9.0.0" />
+    <PackageVersion Include="CsvHelper" Version="33.1.0" />
     <PackageVersion Include="FirebaseAdmin" Version="3.2.0" />
     <PackageVersion Include="FluentValidation" Version="12.0.0" />
     <PackageVersion Include="FluentValidation.AspNetCore" Version="11.3.0" />

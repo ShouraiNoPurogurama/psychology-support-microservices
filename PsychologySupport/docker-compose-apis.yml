@@ -78,6 +78,7 @@ services:
       dockerfile: Services/LifeStyles/LifeStyles.API/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
+      - ./Services/LifeStyles/LifeStyles.API/RSAKeys:/app/RSAKeys
 
   notification.api:
     image: ${DOCKER_REGISTRY-}notificationapi
@@ -114,6 +115,7 @@ services:
       dockerfile: Services/Payment/Payment.API/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
+      - ./Services/Payment/Payment.API/RSAKeys:/app/RSAKeys
 
   profile.api:
     image: ${DOCKER_REGISTRY-}profileapi
@@ -132,6 +134,7 @@ services:
       dockerfile: Services/Profile/Profile.API/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
+      - ./Services/Profile/Profile.API/RSAKeys:/app/RSAKeys
 
   promotion.grpc:
     image: ${DOCKER_REGISTRY-}promotiongrpc
@@ -168,6 +171,7 @@ services:
       dockerfile: Services/Scheduling/Scheduling.API/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
+      - ./Services/Scheduling/Scheduling.API/RSAKeys:/app/RSAKeys
 
   subscription.api:
     image: ${DOCKER_REGISTRY-}subscriptionapi
@@ -206,6 +210,7 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ~/gcp/compute-default-sa.json:/app/gcloud/compute-default-sa.json:ro
+      - ./Services/Test/Test.API/RSAKeys:/app/RSAKeys
 
   yarpapigateway:
     image: ${DOCKER_REGISTRY-}yarpapigateway

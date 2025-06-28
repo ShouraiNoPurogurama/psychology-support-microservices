@@ -106,7 +106,7 @@ namespace Scheduling.API.Extensions
                 });
                 options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
                 {
-                    // Url = "/scheduling-service/"
+                     Url = "/scheduling-service/"
                 });
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

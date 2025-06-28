@@ -33,7 +33,7 @@ public class TestResult : AggregateRoot<Guid>
     
     public string RecommendationJson
     {
-        get => Recommendation?.ToJson() ?? "";
+        get => Recommendation.ToJson() ?? "";
         set => Recommendation = Recommendation.FromJson(value);
     }
 
