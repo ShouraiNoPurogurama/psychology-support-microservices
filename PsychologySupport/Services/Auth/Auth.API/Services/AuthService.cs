@@ -293,7 +293,7 @@ public class AuthService(
         user.LockoutEnd = null;
         await _userManager.UpdateAsync(user);
 
-        // Create Device
+        // Create or update Device
         var device = await authDbContext.Devices.FirstOrDefaultAsync(d =>
             d.ClientDeviceId == loginRequest.ClientDeviceId && d.UserId == user.Id);
 
@@ -311,7 +311,8 @@ public class AuthService(
         }
         else
         {
-            device.DeviceToken = loginRequest.DeviceToken; // Có thể thay đổi
+            device.ClientDeviceId = loginRequest.ClientDeviceId!;
+            device.DeviceToken = loginRequest.DeviceToken;
             device.LastUsedAt = DateTime.UtcNow;
             device.DeviceType = loginRequest.DeviceType!.Value;
             authDbContext.Devices.Update(device);
@@ -319,7 +320,33 @@ public class AuthService(
 
         await authDbContext.SaveChangesAsync();
 
-        // Create token và refresh token
+        // Limit sessions per device type
+        int allowedLimit = loginRequest.DeviceType switch
+        {
+            DeviceType.Web => 2,
+            DeviceType.IOS => 1,
+            DeviceType.Android => 1,
+            _ => 1
+        };
+
+        var allDeviceIds = await authDbContext.Devices
+            .Where(d => d.UserId == user.Id && d.DeviceType == loginRequest.DeviceType)
+            .Select(d => d.Id)
+            .ToListAsync();
+
+        var activeSessions = await authDbContext.DeviceSessions
+            .Where(s => allDeviceIds.Contains(s.DeviceId) && !s.IsRevoked)
+            .OrderBy(s => s.LastRefeshToken ?? s.CreatedAt)
+            .ToListAsync();
+
+        if (activeSessions.Count >= allowedLimit)
+        {
+            var oldestSession = activeSessions.First();
+            oldestSession.IsRevoked = true;
+            oldestSession.RevokedAt = DateTimeOffset.UtcNow;
+        }
+
+        // create access token and refresh token
         var accessToken = await tokenService.GenerateJWTToken(user);
         var refreshToken = tokenService.GenerateRefreshToken();
 
@@ -328,6 +355,8 @@ public class AuthService(
             DeviceId = device.Id,
             AccessTokenId = accessToken.Jti,
             RefreshToken = refreshToken,
+            CreatedAt = DateTimeOffset.UtcNow,
+            LastRefeshToken = DateTimeOffset.UtcNow
         };
 
         authDbContext.DeviceSessions.Add(session);
@@ -361,24 +390,17 @@ public class AuthService(
         if (session == null || session.AccessTokenId != jti)
             throw new BadRequestException("Session hoặc Refresh token không hợp lệ");
 
-        // Revoke old session
-        session.IsRevoked = true;
-        session.RevokedAt = DateTimeOffset.UtcNow;
-
-        // Create new access token and session
-        var accessToken = await tokenService.GenerateJWTToken(user);
+        /// Cập nhật lại token
+        var newAccessToken = await tokenService.GenerateJWTToken(user);
         var newRefreshToken = tokenService.GenerateRefreshToken();
 
-        var newSession = new DeviceSession
-        {
-            DeviceId = device.Id,
-            AccessTokenId = accessToken.Jti
-        };
+        session.AccessTokenId = newAccessToken.Jti;
+        session.RefreshToken = newRefreshToken;
+        session.LastRefeshToken = DateTimeOffset.UtcNow;
 
-        authDbContext.DeviceSessions.Add(newSession);
         await authDbContext.SaveChangesAsync();
 
-        return new LoginResponse(accessToken.Token, newRefreshToken);
+        return new LoginResponse(newAccessToken.Token, newRefreshToken);
     }
 
     public async Task<bool> RevokeAsync(TokenApiRequest request)

@@ -1,4 +1,5 @@
-﻿using Auth.API.Data;
+﻿using Auth.API.BackgroundServices;
+using Auth.API.Data;
 using Auth.API.ServiceContracts;
 using Auth.API.Services;
 using BuildingBlocks.Behaviors;
@@ -29,6 +30,9 @@ public static class ApplicationServiceExtensions
         AddServiceDependencies(services);
 
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+
+        services.AddHostedService<RevokeSessionCleanupService>();
+
 
         return services;
     }
