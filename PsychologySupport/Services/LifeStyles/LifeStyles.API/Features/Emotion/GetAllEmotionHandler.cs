@@ -1,8 +1,11 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Messaging.Events.Translation;
 using BuildingBlocks.Pagination;
 using LifeStyles.API.Data;
 using LifeStyles.API.Dtos.Emotions;
+using LifeStyles.API.Extensions;
 using Mapster;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.Features.Emotion;
@@ -15,8 +18,9 @@ public record GetAllEmotionQuery(
 
 public record GetAllEmotionResult(PaginatedResult<EmotionDto> Emotions);
 
-public class GetAllEmotionHandler (LifeStylesDbContext dbContext) : IQueryHandler<GetAllEmotionQuery, GetAllEmotionResult>
+public class GetAllEmotionHandler (LifeStylesDbContext dbContext, IRequestClient<GetTranslatedDataRequest> translationClient) : IQueryHandler<GetAllEmotionQuery, GetAllEmotionResult>
 {
+
     public async Task<GetAllEmotionResult> Handle(GetAllEmotionQuery request, CancellationToken cancellationToken)
     {
         var query = dbContext.Emotions.AsQueryable();
@@ -46,13 +50,20 @@ public class GetAllEmotionHandler (LifeStylesDbContext dbContext) : IQueryHandle
             .Take(request.PaginationRequest.PageSize)
             .ProjectToType<EmotionDto>()
             .ToListAsync(cancellationToken: cancellationToken);
+
+        var translatedItems = await items.TranslateEntitiesAsync(nameof(Models.Emotion),
+            translationClient,
+            e => e.Id.ToString(),
+            cancellationToken,
+            e => e.Name
+        );
         
         return new GetAllEmotionResult(
             new PaginatedResult<EmotionDto>(
                 request.PaginationRequest.PageIndex,
                 request.PaginationRequest.PageSize,
                 total,
-                items
+                translatedItems
             )
         );
     }

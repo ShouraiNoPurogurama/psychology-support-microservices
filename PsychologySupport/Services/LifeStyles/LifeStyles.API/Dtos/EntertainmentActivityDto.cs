@@ -6,6 +6,6 @@ public record EntertainmentActivityDto(
     Guid Id,
     string Name,
     string Description,
-    IntensityLevel IntensityLevel,
-    ImpactLevel ImpactLevel
+    string IntensityLevel,
+    string ImpactLevel
 );

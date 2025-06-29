@@ -1,13 +1,11 @@
-﻿using BuildingBlocks.Enums;
-
-namespace LifeStyles.API.Dtos;
+﻿namespace LifeStyles.API.Dtos;
 
 public record FoodActivityDto(
     Guid Id,
     string Name,
     string Description,
-    MealTime MealTime,
+    string MealTime,
     IEnumerable<string> FoodNutrients,
     IEnumerable<string> FoodCategories,
-    IntensityLevel IntensityLevel
+    string IntensityLevel
 );

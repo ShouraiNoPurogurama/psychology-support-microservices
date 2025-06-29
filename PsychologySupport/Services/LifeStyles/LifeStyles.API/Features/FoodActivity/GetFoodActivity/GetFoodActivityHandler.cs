@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
 using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
@@ -25,10 +26,10 @@ public class GetFoodActivityHandler(LifeStylesDbContext context)
             activity.Id,
             activity.Name,
             activity.Description,
-            activity.MealTime,
+            activity.MealTime.ToReadableString(),
             activity.FoodNutrients.Select(fn => fn.Name),
             activity.FoodCategories.Select(fc => fc.Name),
-            activity.IntensityLevel
+            activity.IntensityLevel.ToReadableString()
         );
 
         return new GetFoodActivityResult(activityDto);

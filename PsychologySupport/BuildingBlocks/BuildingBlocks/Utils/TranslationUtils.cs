@@ -1,4 +1,8 @@
-﻿using System.Linq.Expressions;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace BuildingBlocks.Utils;
 
@@ -165,6 +169,28 @@ public static class TranslationUtils
             translations.MapTranslatedProperties(obj, entityName, properties)
         ).ToList();
     }
+    
+    public static IEnumerable<string> MapTranslatedStrings(
+        this Dictionary<string, string> translations,
+        IEnumerable<string> originalValues,
+        string entityName)
+    {
+        foreach (var value in originalValues)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                yield return value;
+                continue;
+            }
+
+            var id = EncodeStringId(value);
+            var key = $"{entityName}_Name_{id}";
+
+            yield return translations.GetValueOrDefault(key, value);
+        }
+    }
+
+
 
     //7. Get translated value with fallback
     /// <summary>
@@ -256,6 +282,24 @@ public static class TranslationUtils
         }
 
         public Dictionary<string, string> Build() => _translationDict;
+        
+        /// //////////////////
+
+        public TranslationBuilder AddStrings(IEnumerable<string> values, string entityName)
+        {
+            foreach (var value in values.Distinct())
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    var id = EncodeStringId(value);
+                    var key = $"{entityName}_Name_{id}";
+                    _translationDict[key] = value;
+                }
+            }
+
+            return this;
+        }
+
     }
 
     /// <summary>
@@ -311,8 +355,26 @@ public static class TranslationUtils
             }
         }
 
-        //Fallback to hash code
-        return obj.GetHashCode().ToString();
+        var encodedId = EncodeStringId(obj);
+
+        return encodedId;
+    }
+
+    private static string EncodeStringId<T>([DisallowNull] T obj)
+    {
+        //Fallback: generate a stable hash from serialized object (e.g. JSON)
+        var serialized = JsonSerializer.Serialize(obj, new JsonSerializerOptions
+        {
+            ReferenceHandler = ReferenceHandler.IgnoreCycles,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+        
+        var bytes = Encoding.UTF8.GetBytes(serialized);
+        var base64 = Convert.ToBase64String(bytes);
+
+        //Replace unsafe URL characters
+        var result = base64.Replace("=", "").Replace("/", "_").Replace("+", "-");
+        return result;
     }
 
     private static string GetPropertyName<T, TProp>(Expression<Func<T, TProp>> expression)
@@ -347,6 +409,8 @@ public class TranslationContext<T> where T : class
     {
         return _translations.MapTranslatedPropertiesForCollection(objects, _entityName, properties);
     }
+    
+    
 }
 
 //12. Factory for creating translation contexts
