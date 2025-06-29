@@ -27,9 +27,9 @@ public class AggregatePatientProfileRequestHandler(ISender sender, ILogger<Aggre
         var response = new AggregatePatientProfileResponse(
             Id: dto.Id,
             FullName: dto.FullName,
-            Gender: dto.Gender,
+            Gender: dto.Gender.ToString(),
             Allergies: dto.Allergies,
-            PersonalityTraits: dto.PersonalityTraits,
+            PersonalityTraits: dto.PersonalityTraits.ToString(),
             Address: dto.ContactInfo.Address,
             PhoneNumber: dto.ContactInfo.PhoneNumber,
             Email: dto.ContactInfo.Email,
