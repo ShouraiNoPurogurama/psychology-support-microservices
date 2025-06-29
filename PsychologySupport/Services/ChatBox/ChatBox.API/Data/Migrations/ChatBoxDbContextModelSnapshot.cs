@@ -45,6 +45,9 @@ namespace ChatBox.API.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("PersonaSnapshot")
+                        .HasColumnType("text");
+
                     b.Property<string>("Summarization")
                         .HasColumnType("text");
 
