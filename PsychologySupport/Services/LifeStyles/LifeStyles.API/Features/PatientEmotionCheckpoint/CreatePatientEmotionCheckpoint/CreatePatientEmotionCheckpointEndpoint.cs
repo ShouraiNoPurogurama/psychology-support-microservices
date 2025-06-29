@@ -26,7 +26,11 @@ public class CreatePatientEmotionCheckpointEndpoint : ICarterModule
                 {
                     // Authorization check
                     if (!AuthorizationHelpers.HasAccessToPatientProfile(patientProfileId, httpContext.User))
-                        return Results.Forbid();
+                        return Results.Problem(
+                               statusCode: StatusCodes.Status403Forbidden,
+                               title: "Forbidden",
+                               detail: "You do not have permission to access this resource."
+                           );
 
                     var command = new CreatePatientEmotionCheckpointCommand(
                         patientProfileId,

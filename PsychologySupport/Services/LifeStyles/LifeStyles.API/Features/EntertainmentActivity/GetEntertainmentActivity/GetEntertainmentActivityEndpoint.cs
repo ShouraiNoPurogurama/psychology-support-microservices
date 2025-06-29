@@ -1,7 +1,9 @@
 ﻿using Carter;
+using LifeStyles.API.Common;
 using LifeStyles.API.Dtos;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace LifeStyles.API.Features.EntertainmentActivity.GetEntertainmentActivity;
 
@@ -13,8 +15,15 @@ public class GetEntertainmentActivityEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/entertainment-activities/{id:guid}", async (Guid id, ISender sender) =>
+        app.MapGet("/entertainment-activities/{id:guid}", async (Guid id, ISender sender, HttpContext httpContext) =>
             {
+                // Authorization check
+                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
+                    return Results.Problem(
+                               statusCode: StatusCodes.Status403Forbidden,
+                               title: "Forbidden",
+                               detail: "You do not have permission to access this resource."
+                           );
                 var query = new GetEntertainmentActivityQuery(id);
                 var result = await sender.Send(query);
                 var response = result.Adapt<GetEntertainmentActivityResponse>();

@@ -15,6 +15,7 @@ using Mapster;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Auth.API.Services;
 
@@ -95,82 +96,82 @@ public class AuthService(
         return true;
     }
 
-    public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
-    {
-        User user;
-        if (!string.IsNullOrWhiteSpace(loginRequest.Email))
-        {
-            user = await _userManager.Users
-                       .FirstOrDefaultAsync(u => u.Email == loginRequest.Email && !u.LockoutEnabled)
-                   ?? throw new UserNotFoundException(loginRequest.Email);
+    //public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
+    //{
+    //    User user;
+    //    if (!string.IsNullOrWhiteSpace(loginRequest.Email))
+    //    {
+    //        user = await _userManager.Users
+    //                   .FirstOrDefaultAsync(u => u.Email == loginRequest.Email && !u.LockoutEnabled)
+    //               ?? throw new UserNotFoundException(loginRequest.Email);
 
-            if (!user.EmailConfirmed)
-                throw new ForbiddenException("Tài khoản chưa được xác nhận. Vui lòng kiểm tra email để xác nhận tài khoản.");
+    //        if (!user.EmailConfirmed)
+    //            throw new ForbiddenException("Tài khoản chưa được xác nhận. Vui lòng kiểm tra email để xác nhận tài khoản.");
             
-        }
-        else
-        {
-            user = await _userManager.Users.FirstOrDefaultAsync(u =>
-                       u.PhoneNumber == loginRequest.PhoneNumber && !u.LockoutEnabled)
-                   ?? throw new UserNotFoundException(loginRequest.PhoneNumber);
+    //    }
+    //    else
+    //    {
+    //        user = await _userManager.Users.FirstOrDefaultAsync(u =>
+    //                   u.PhoneNumber == loginRequest.PhoneNumber && !u.LockoutEnabled)
+    //               ?? throw new UserNotFoundException(loginRequest.PhoneNumber);
 
-            if (!user.PhoneNumberConfirmed)
-                throw new ForbiddenException(
-                    "Tài khoản chưa được xác nhận. Vui lòng kiểm tra tin nhắn SMS để xác nhận tài khoản.");
-        }
+    //        if (!user.PhoneNumberConfirmed)
+    //            throw new ForbiddenException(
+    //                "Tài khoản chưa được xác nhận. Vui lòng kiểm tra tin nhắn SMS để xác nhận tài khoản.");
+    //    }
 
-        var currentTime = CoreUtils.SystemTimeNow;
+    //    var currentTime = CoreUtils.SystemTimeNow;
 
-        if (user is { LockoutEnabled: true, LockoutEnd: not null } && user.LockoutEnd.Value > currentTime)
-        {
-            var remainingLockoutTime = user.LockoutEnd.Value - currentTime;
-            throw new ForbiddenException(
-                $"Tài khoản của bạn đã bị khóa. Vui lòng thử lại sau {remainingLockoutTime.TotalMinutes:N0} phút.");
-        }
+    //    if (user is { LockoutEnabled: true, LockoutEnd: not null } && user.LockoutEnd.Value > currentTime)
+    //    {
+    //        var remainingLockoutTime = user.LockoutEnd.Value - currentTime;
+    //        throw new ForbiddenException(
+    //            $"Tài khoản của bạn đã bị khóa. Vui lòng thử lại sau {remainingLockoutTime.TotalMinutes:N0} phút.");
+    //    }
 
-        if (!tokenService.VerifyPassword(loginRequest.Password, user.PasswordHash!, user))
-        {
-            user.AccessFailedCount++;
+    //    if (!tokenService.VerifyPassword(loginRequest.Password, user.PasswordHash!, user))
+    //    {
+    //        user.AccessFailedCount++;
 
-            if (user.AccessFailedCount >= 3)
-            {
-                user.LockoutEnd = currentTime.AddMinutes(LockoutTimeInMinutes);
-                await _userManager.UpdateAsync(user);
-                throw new ForbiddenException(
-                    $"Bạn đã đăng nhập sai quá số lần quy định. Tài khoản đã bị khóa trong {LockoutTimeInMinutes} phút");
-            }
+    //        if (user.AccessFailedCount >= 3)
+    //        {
+    //            user.LockoutEnd = currentTime.AddMinutes(LockoutTimeInMinutes);
+    //            await _userManager.UpdateAsync(user);
+    //            throw new ForbiddenException(
+    //                $"Bạn đã đăng nhập sai quá số lần quy định. Tài khoản đã bị khóa trong {LockoutTimeInMinutes} phút");
+    //        }
 
-            await _userManager.UpdateAsync(user);
-            throw new ForbiddenException("Email hoặc mật khẩu không hợp lệ.");
-        }
+    //        await _userManager.UpdateAsync(user);
+    //        throw new ForbiddenException("Email hoặc mật khẩu không hợp lệ.");
+    //    }
 
-        if (!string.IsNullOrWhiteSpace(loginRequest.DeviceToken))
-        {
-            var device = new Device
-            {
-                UserId = user.Id,
-                DeviceToken = loginRequest.DeviceToken,
-                DeviceType = loginRequest.DeviceType!.Value,
-                LastUsedAt = DateTime.UtcNow
-            };
+    //    if (!string.IsNullOrWhiteSpace(loginRequest.DeviceToken))
+    //    {
+    //        var device = new Device
+    //        {
+    //            UserId = user.Id,
+    //            DeviceToken = loginRequest.DeviceToken,
+    //            DeviceType = loginRequest.DeviceType!.Value,
+    //            LastUsedAt = DateTime.UtcNow
+    //        };
 
-            authDbContext.Devices.Add(device);
-            await authDbContext.SaveChangesAsync();
-        }
+    //        authDbContext.Devices.Add(device);
+    //        await authDbContext.SaveChangesAsync();
+    //    }
         
-        user.AccessFailedCount = 0;
-        user.LockoutEnd = null;
-        await _userManager.UpdateAsync(user);
+    //    user.AccessFailedCount = 0;
+    //    user.LockoutEnd = null;
+    //    await _userManager.UpdateAsync(user);
 
-        var token = await tokenService.GenerateJWTToken(user);
-        var refreshToken = tokenService.GenerateRefreshToken();
-        await tokenService.SaveRefreshToken(user, refreshToken);
+    //    var token = await tokenService.GenerateJWTToken(user);
+    //    var refreshToken = tokenService.GenerateRefreshToken();
+    //    await tokenService.SaveRefreshToken(user, refreshToken);
 
-        return new LoginResponse(
-            token,
-            refreshToken
-        );
-    }
+    //    return new LoginResponse(
+    //        token,
+    //        refreshToken
+    //    );
+    //}
     
     public async Task<bool> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest)
     {
@@ -221,25 +222,218 @@ public class AuthService(
         return result.Succeeded;
     }
 
-    public async Task<LoginResponse> RefreshAsync(TokenApiRequest tokenApiRequest)
-    {
-        var accessToken = tokenApiRequest.Token;
-        var refreshToken = tokenApiRequest.RefreshToken;
+    //public async Task<LoginResponse> RefreshAsync(TokenApiRequest tokenApiRequest)
+    //{
+    //    var accessToken = tokenApiRequest.Token;
+    //    var refreshToken = tokenApiRequest.RefreshToken;
 
-        var principal = tokenService.GetPrincipalFromExpiredToken(accessToken)
+    //    var principal = tokenService.GetPrincipalFromExpiredToken(accessToken)
+    //                    ?? throw new BadRequestException("Access token không hợp lệ");
+
+    //    var userId = principal.Claims.First(c => c.Type == "userId").Value;
+
+    //    var user = await _userManager.FindByIdAsync(userId)
+    //               ?? throw new UserNotFoundException(userId);
+
+    //    if (!await tokenService.ValidateRefreshToken(user, refreshToken))
+    //        throw new BadRequestException("Refresh token không hợp lệ");
+
+    //    var newAccessToken = await tokenService.GenerateJWTToken(user);
+    //    var newRefreshToken = tokenService.GenerateRefreshToken();
+
+    //    return new LoginResponse(newAccessToken, newRefreshToken);
+    //}
+
+    public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
+    {
+        User user;
+        if (!string.IsNullOrWhiteSpace(loginRequest.Email))
+        {
+            user = await _userManager.Users
+                       .FirstOrDefaultAsync(u => u.Email == loginRequest.Email && !u.LockoutEnabled)
+                   ?? throw new UserNotFoundException(loginRequest.Email);
+
+            if (!user.EmailConfirmed)
+                throw new ForbiddenException("Tài khoản chưa được xác nhận. Vui lòng kiểm tra email.");
+        }
+        else
+        {
+            user = await _userManager.Users
+                       .FirstOrDefaultAsync(u => u.PhoneNumber == loginRequest.PhoneNumber && !u.LockoutEnabled)
+                   ?? throw new UserNotFoundException(loginRequest.PhoneNumber);
+
+            if (!user.PhoneNumberConfirmed)
+                throw new ForbiddenException("Tài khoản chưa xác nhận bằng số điện thoại.");
+        }
+
+        var currentTime = CoreUtils.SystemTimeNow;
+
+        if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > currentTime)
+        {
+            var remain = user.LockoutEnd.Value - currentTime;
+            throw new ForbiddenException($"Tài khoản bị khóa. Vui lòng thử lại sau {remain.TotalMinutes:N0} phút.");
+        }
+
+        if (!tokenService.VerifyPassword(loginRequest.Password, user.PasswordHash!, user))
+        {
+            user.AccessFailedCount++;
+            if (user.AccessFailedCount >= 3)
+            {
+                user.LockoutEnd = currentTime.AddMinutes(LockoutTimeInMinutes);
+                await _userManager.UpdateAsync(user);
+                throw new ForbiddenException("Sai quá số lần quy định. Tài khoản bị khóa tạm thời.");
+            }
+
+            await _userManager.UpdateAsync(user);
+            throw new ForbiddenException("Email hoặc mật khẩu không hợp lệ.");
+        }
+
+        // Reset lockout counter
+        user.AccessFailedCount = 0;
+        user.LockoutEnd = null;
+        await _userManager.UpdateAsync(user);
+
+        // Create or update Device
+        var device = await authDbContext.Devices.FirstOrDefaultAsync(d =>
+            d.ClientDeviceId == loginRequest.ClientDeviceId && d.UserId == user.Id);
+
+        if (device is null)
+        {
+            device = new Device
+            {
+                UserId = user.Id,
+                ClientDeviceId = loginRequest.ClientDeviceId!,
+                DeviceType = loginRequest.DeviceType!.Value,
+                DeviceToken = loginRequest.DeviceToken,
+                LastUsedAt = DateTime.UtcNow
+            };
+            authDbContext.Devices.Add(device);
+        }
+        else
+        {
+            device.ClientDeviceId = loginRequest.ClientDeviceId!;
+            device.DeviceToken = loginRequest.DeviceToken;
+            device.LastUsedAt = DateTime.UtcNow;
+            device.DeviceType = loginRequest.DeviceType!.Value;
+            authDbContext.Devices.Update(device);
+        }
+
+        await authDbContext.SaveChangesAsync();
+
+        // Limit sessions per device type
+        int allowedLimit = loginRequest.DeviceType switch
+        {
+            DeviceType.Web => 2,
+            DeviceType.IOS => 1,
+            DeviceType.Android => 1,
+            _ => 1
+        };
+
+        var allDeviceIds = await authDbContext.Devices
+            .Where(d => d.UserId == user.Id && d.DeviceType == loginRequest.DeviceType)
+            .Select(d => d.Id)
+            .ToListAsync();
+
+        var activeSessions = await authDbContext.DeviceSessions
+            .Where(s => allDeviceIds.Contains(s.DeviceId) && !s.IsRevoked)
+            .OrderBy(s => s.LastRefeshToken ?? s.CreatedAt)
+            .ToListAsync();
+
+        if (activeSessions.Count >= allowedLimit)
+        {
+            var oldestSession = activeSessions.First();
+            oldestSession.IsRevoked = true;
+            oldestSession.RevokedAt = DateTimeOffset.UtcNow;
+        }
+
+        // create access token and refresh token
+        var accessToken = await tokenService.GenerateJWTToken(user);
+        var refreshToken = tokenService.GenerateRefreshToken();
+
+        var session = new DeviceSession
+        {
+            DeviceId = device.Id,
+            AccessTokenId = accessToken.Jti,
+            RefreshToken = refreshToken,
+            CreatedAt = DateTimeOffset.UtcNow,
+            LastRefeshToken = DateTimeOffset.UtcNow
+        };
+
+        authDbContext.DeviceSessions.Add(session);
+        await authDbContext.SaveChangesAsync();
+
+        return new LoginResponse(accessToken.Token, refreshToken);
+    }
+
+    public async Task<LoginResponse> RefreshAsync(TokenApiRequest request)
+    {
+        var principal = tokenService.GetPrincipalFromExpiredToken(request.Token)
                         ?? throw new BadRequestException("Access token không hợp lệ");
 
         var userId = principal.Claims.First(c => c.Type == "userId").Value;
+        var jti = principal.Claims.First(c => c.Type == JwtRegisteredClaimNames.Jti).Value;
 
         var user = await _userManager.FindByIdAsync(userId)
                    ?? throw new UserNotFoundException(userId);
 
-        if (!await tokenService.ValidateRefreshToken(user, refreshToken))
-            throw new BadRequestException("Refresh token không hợp lệ");
+        var device = await authDbContext.Devices
+            .FirstOrDefaultAsync(d => d.ClientDeviceId == request.ClientDeviceId && d.UserId == user.Id)
+            ?? throw new NotFoundException("Thiết bị không hợp lệ");
 
+        var session = await authDbContext.DeviceSessions
+            .FirstOrDefaultAsync(s =>
+                s.DeviceId == device.Id &&
+                s.AccessTokenId == jti &&
+                s.RefreshToken == request.RefreshToken &&
+                !s.IsRevoked);
+
+        if (session == null || session.AccessTokenId != jti)
+            throw new BadRequestException("Session hoặc Refresh token không hợp lệ");
+
+        /// Cập nhật lại token
         var newAccessToken = await tokenService.GenerateJWTToken(user);
         var newRefreshToken = tokenService.GenerateRefreshToken();
 
-        return new LoginResponse(newAccessToken, newRefreshToken);
+        session.AccessTokenId = newAccessToken.Jti;
+        session.RefreshToken = newRefreshToken;
+        session.LastRefeshToken = DateTimeOffset.UtcNow;
+
+        await authDbContext.SaveChangesAsync();
+
+        return new LoginResponse(newAccessToken.Token, newRefreshToken);
     }
+
+    public async Task<bool> RevokeAsync(TokenApiRequest request)
+    {
+        var principal = tokenService.GetPrincipalFromExpiredToken(request.Token)
+                        ?? throw new BadRequestException("Access token không hợp lệ");
+
+        var userId = principal.Claims.First(c => c.Type == "userId").Value;
+        var jti = principal.Claims.First(c => c.Type == JwtRegisteredClaimNames.Jti).Value;
+
+        var user = await _userManager.FindByIdAsync(userId)
+                   ?? throw new UserNotFoundException(userId);
+
+        var device = await authDbContext.Devices
+            .FirstOrDefaultAsync(d => d.ClientDeviceId == request.ClientDeviceId && d.UserId == user.Id)
+            ?? throw new NotFoundException("Thiết bị không hợp lệ");
+
+        var session = await authDbContext.DeviceSessions
+            .FirstOrDefaultAsync(s =>
+                s.DeviceId == device.Id &&
+                s.AccessTokenId == jti &&
+                s.RefreshToken == request.RefreshToken &&
+                !s.IsRevoked);
+
+        if (session == null)
+            throw new NotFoundException("Session không tồn tại hoặc đã bị thu hồi");
+
+        session.IsRevoked = true;
+        session.RevokedAt = DateTimeOffset.UtcNow;
+
+
+        await authDbContext.SaveChangesAsync();
+        return true;
+    }
+
 }

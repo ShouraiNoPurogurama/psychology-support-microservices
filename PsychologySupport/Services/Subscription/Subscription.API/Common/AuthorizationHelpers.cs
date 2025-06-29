@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace Payment.API.Common
+namespace Subscription.API.Common
 {
     public static class AuthorizationHelpers
     {
@@ -26,7 +26,6 @@ namespace Payment.API.Common
             if (!Guid.TryParse(profileIdStr, out var profileId))
                 return false;
 
-            // Chỉ cho Admin hoặc chính chủ sửa
             if (role == "Admin")
                 return true;
 

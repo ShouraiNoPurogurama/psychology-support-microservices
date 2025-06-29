@@ -33,7 +33,11 @@ namespace Scheduling.API.Features.CreateBooking
             {
                 // Authorization check
                 if (!AuthorizationHelpers.CanModifyPatientProfile(request.PatientId, httpContext.User))
-                    return Results.Forbid();
+                    return Results.Problem(
+                              statusCode: StatusCodes.Status403Forbidden,
+                              title: "Forbidden",
+                              detail: "You do not have permission to access this resource."
+                          );
 
                 var dto = request.Adapt<CreateBookingDto>();
                 var result = await sender.Send(new CreateBookingCommand(dto));

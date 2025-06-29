@@ -33,7 +33,11 @@ namespace Payment.API.Endpoints
                 if (request.PatientProfileId is Guid patientId)
                 {
                     if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User))
-                        return Results.Forbid();
+                        return Results.Problem(
+                                statusCode: StatusCodes.Status403Forbidden,
+                                title: "Forbidden",
+                                detail: "You do not have permission to access this resource."
+                            );
                 }
 
                 var query = request.Adapt<GetAllPaymentsQuery>();

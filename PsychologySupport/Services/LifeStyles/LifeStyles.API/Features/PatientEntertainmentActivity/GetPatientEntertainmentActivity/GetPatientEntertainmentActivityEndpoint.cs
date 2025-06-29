@@ -20,7 +20,11 @@ public class GetPatientEntertainmentActivityEndpoint : ICarterModule
                 {
                     // Authorization check
                     if (!AuthorizationHelpers.HasAccessToPatientProfile(patientProfileId, httpContext.User))
-                        return Results.Forbid();
+                        return Results.Problem(
+                               statusCode: StatusCodes.Status403Forbidden,
+                               title: "Forbidden",
+                               detail: "You do not have permission to access this resource."
+                           );
 
                     var query = new GetPatientEntertainmentActivityQuery(patientProfileId);
                     var result = await sender.Send(query);

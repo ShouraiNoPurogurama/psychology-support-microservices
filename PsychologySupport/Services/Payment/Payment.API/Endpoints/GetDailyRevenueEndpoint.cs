@@ -1,6 +1,8 @@
 ﻿using Carter;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Payment.API.Common;
 using Payment.Application.Payments.Queries;
 
 namespace Payment.API.Endpoints
@@ -13,8 +15,16 @@ namespace Payment.API.Endpoints
                 [FromQuery] DateOnly startTime,
                 [FromQuery] DateOnly endTime,
                 ISender sender,
-                CancellationToken cancellationToken) =>
+                CancellationToken cancellationToken, HttpContext httpContext) =>
             {
+                // Authorization check
+                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
+                    return Results.Problem(
+                               statusCode: StatusCodes.Status403Forbidden,
+                               title: "Forbidden",
+                               detail: "You do not have permission to access this resource."
+                           );
+
                 var query = new GetDailyRevenueQuery(startTime, endTime);
                 var result = await sender.Send(query, cancellationToken);
                 return Results.Ok(result);

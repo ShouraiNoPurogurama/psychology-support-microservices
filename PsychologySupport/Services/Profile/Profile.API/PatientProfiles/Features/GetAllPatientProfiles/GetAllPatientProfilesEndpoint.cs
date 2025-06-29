@@ -1,6 +1,8 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
+using Microsoft.AspNetCore.Http;
+using Profile.API.Common.Helpers;
 using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.GetAllPatientProfiles;
@@ -11,8 +13,15 @@ public class GetAllPatientProfilesEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/patients", async ([AsParameters] GetAllPatientProfilesQuery request, ISender sender) =>
+        app.MapGet("/patients", async ([AsParameters] GetAllPatientProfilesQuery request, ISender sender, HttpContext httpContext) =>
             {
+                // Authorization check
+                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
+                    return Results.Problem(
+                               statusCode: StatusCodes.Status403Forbidden,
+                               title: "Forbidden",
+                               detail: "You do not have permission to access this resource."
+                           );
 
                 var result = await sender.Send(request);
 

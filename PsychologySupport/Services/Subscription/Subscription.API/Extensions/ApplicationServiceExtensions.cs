@@ -22,7 +22,12 @@ public static class ApplicationServiceExtensions
         services.AddExceptionHandler<CustomExceptionHandler>();
 
         services.RegisterMapsterConfiguration();
-        
+
+
+        services.AddIdentityServices(config);
+
+        services.AddAuthorization();
+
         ConfigureSwagger(services);
         ConfigureCORS(services);
         ConfigureMediatR(services);

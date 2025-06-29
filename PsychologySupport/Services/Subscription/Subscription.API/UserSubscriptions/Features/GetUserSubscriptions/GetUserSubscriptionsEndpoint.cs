@@ -2,7 +2,9 @@
 using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Subscription.API.Common;
 using Subscription.API.Data.Common;
 using Subscription.API.UserSubscriptions.Dtos;
 
@@ -25,8 +27,16 @@ public class GetUserSubscriptionsEndpoint : ICarterModule
     {
         app.MapGet("/user-subscriptions", async (
                 [AsParameters] GetUserSubscriptionsRequest request,
-                ISender sender) =>
+                ISender sender, HttpContext httpContext) =>
             {
+                // Authorization check
+                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
+                    return Results.Problem(
+                               statusCode: StatusCodes.Status403Forbidden,
+                               title: "Forbidden",
+                               detail: "You do not have permission to access this resource."
+                           );
+
                 var query = request.Adapt<GetUserSubscriptionsQuery>();
                 var result = await sender.Send(query);
                 var response = result.Adapt<GetUserSubscriptionsResult>();

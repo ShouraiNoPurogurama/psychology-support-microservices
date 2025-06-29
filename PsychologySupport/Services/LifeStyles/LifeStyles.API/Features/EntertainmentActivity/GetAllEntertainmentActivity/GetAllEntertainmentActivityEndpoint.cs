@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.Enums;
 using BuildingBlocks.Pagination;
 using Carter;
+using LifeStyles.API.Common;
 using LifeStyles.API.Dtos;
 using Mapster;
 using MediatR;
@@ -22,8 +23,16 @@ public class GetAllEntertainmentActivityEndpoint : ICarterModule
     {
         app.MapGet("/entertainment-activities", async (
             [AsParameters] GetAllEntertainmentActivitiesRequest request,
-            ISender sender) =>
+            ISender sender, HttpContext httpContext) =>
         {
+            // Authorization check
+            if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
+                return Results.Problem(
+                           statusCode: StatusCodes.Status403Forbidden,
+                           title: "Forbidden",
+                           detail: "You do not have permission to access this resource."
+                       );
+
             var query = request.Adapt<GetAllEntertainmentActivitiesQuery>();
 
             var result = await sender.Send(query);

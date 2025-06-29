@@ -33,7 +33,11 @@ public class GetAllMedicalRecordsEndpoint : ICarterModule
             if (request.PatientId is Guid patientId)
             {
                 if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User))
-                    return Results.Forbid();
+                    return Results.Problem(
+                              statusCode: StatusCodes.Status403Forbidden,
+                              title: "Forbidden",
+                              detail: "You do not have permission to access this resource."
+                          );
             }
 
             var query = request.Adapt<GetAllMedicalRecordsQuery>();

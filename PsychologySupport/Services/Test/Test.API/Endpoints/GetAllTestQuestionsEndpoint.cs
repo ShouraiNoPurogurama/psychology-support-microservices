@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
 using MediatR;
+using Test.API.Common;
 using Test.Application.Dtos;
 using Test.Application.Tests.Queries;
 using Test.Domain.Models;
@@ -14,8 +15,16 @@ public class GetAllTestQuestionsEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapGet("/test-questions/{testId:guid}",
-                async (Guid testId, [AsParameters] PaginationRequest request, ISender sender) =>
+                async (Guid testId, [AsParameters] PaginationRequest request, ISender sender, HttpContext httpContext) =>
                 {
+                    // Authorization check
+                    if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
+                        return Results.Problem(
+                                   statusCode: StatusCodes.Status403Forbidden,
+                                   title: "Forbidden",
+                                   detail: "You do not have permission to access this resource."
+                               );
+
                     var query = new GetAllTestQuestionsQuery(testId, request);
                     
                     var result = await sender.Send(query);

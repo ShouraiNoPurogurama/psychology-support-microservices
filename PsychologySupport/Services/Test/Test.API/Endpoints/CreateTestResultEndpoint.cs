@@ -1,12 +1,10 @@
 ﻿using Carter;
 using Mapster;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Test.API.Common;
 using Test.Application.Dtos;
 using Test.Application.TestOutput.Commands;
-using Test.Domain.ValueObjects;
 
 namespace Test.API.Endpoints;
 
@@ -26,7 +24,11 @@ public class CreateTestResultEndpoint : ICarterModule
             {
                 // Authorization check
                 if (!AuthorizationHelpers.CanModifyPatientProfile(request.PatientId, httpContext.User))
-                    return Results.Forbid();
+                    return Results.Problem(
+                               statusCode: StatusCodes.Status403Forbidden,
+                               title: "Forbidden",
+                               detail: "You do not have permission to access this resource."
+                           );
 
                 var command = request.Adapt<CreateTestResultCommand>();
 

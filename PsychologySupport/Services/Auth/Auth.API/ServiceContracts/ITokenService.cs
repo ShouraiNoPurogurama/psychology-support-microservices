@@ -6,7 +6,7 @@ namespace Auth.API.ServiceContracts;
 public interface ITokenService
 {
     // ReSharper disable once InconsistentNaming
-    Task<string> GenerateJWTToken(User user);
+    Task<(string Token, string Jti)> GenerateJWTToken(User user);
 
     Guid GetUserIdFromHttpContext(HttpContext httpContext);
 

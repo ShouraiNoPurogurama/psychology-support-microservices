@@ -22,7 +22,11 @@ public class CreatePayOSCallBackUrlForBookingEndpoint : ICarterModule
         {
             // Authorization check
             if (!AuthorizationHelpers.CanModifyPatientProfile(request.BuyBooking.PatientId, httpContext.User))
-                return Results.Forbid();
+                return Results.Problem(
+                               statusCode: StatusCodes.Status403Forbidden,
+                               title: "Forbidden",
+                               detail: "You do not have permission to access this resource."
+                           );
 
             var command = new CreatePayOSCallBackUrlForBookingCommand(request.BuyBooking);
             var result = await sender.Send(command);

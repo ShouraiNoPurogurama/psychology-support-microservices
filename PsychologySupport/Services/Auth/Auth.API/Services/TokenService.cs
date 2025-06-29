@@ -26,7 +26,7 @@ public class TokenService(
 {
     private readonly PasswordHasher<User> _passwordHasher = new();
 
-    public async Task<string> GenerateJWTToken(User user)
+    public async Task<(string Token, string Jti)> GenerateJWTToken(User user)
     {
         var roles = await userManager.GetRolesAsync(user);
 
@@ -60,10 +60,11 @@ public class TokenService(
 
         var subscriptionPlan = subscriptionResponse.Message.PlanName;
 
+        var jti = Guid.NewGuid().ToString(); // JWT ID (JTI) for unique identification of the token
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Email!),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(JwtRegisteredClaimNames.Jti, jti),
             new Claim("userId", user.Id.ToString()),
             new Claim("profileId", profileId.ToString()),
             new Claim("subscription", subscriptionPlan),
@@ -85,7 +86,9 @@ public class TokenService(
             signingCredentials: signingCredential
         );
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+        return (tokenString, jti);
     }
 
     private RsaSecurityKey GetRsaSecurityKey()
@@ -181,7 +184,7 @@ public class TokenService(
 
         await SaveRefreshToken(user, newRefreshToken);
 
-        return (newJwtToken, newRefreshToken);
+        return (newJwtToken.Token, newRefreshToken);
     }
 
     public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)

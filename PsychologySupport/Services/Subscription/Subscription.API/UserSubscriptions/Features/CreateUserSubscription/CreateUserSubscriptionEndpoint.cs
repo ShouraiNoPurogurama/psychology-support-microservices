@@ -1,7 +1,9 @@
 ﻿using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Subscription.API.Common;
 using Subscription.API.UserSubscriptions.Dtos;
 
 namespace Subscription.API.UserSubscriptions.Features.CreateUserSubscription;
@@ -14,8 +16,16 @@ public class CreateUserSubscriptionEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("user-subscriptions", async ([FromBody] CreateUserSubscriptionRequest request, ISender sender) =>
+        app.MapPost("user-subscriptions", async ([FromBody] CreateUserSubscriptionRequest request, ISender sender, HttpContext httpContext) =>
                 {
+                    // Authorization check
+                    if (!AuthorizationHelpers.CanModifyPatientProfile(request.UserSubscription.PatientId, httpContext.User))
+                        return Results.Problem(
+                                       statusCode: StatusCodes.Status403Forbidden,
+                                       title: "Forbidden",
+                                       detail: "You do not have permission to access this resource."
+                                   );
+
                     var command = request.Adapt<CreateUserSubscriptionCommand>();
 
                     var result = await sender.Send(command);

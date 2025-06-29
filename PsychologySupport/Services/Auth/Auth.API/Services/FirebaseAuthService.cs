@@ -77,7 +77,7 @@ namespace Auth.API.Services
             var refreshToken = tokenService.GenerateRefreshToken();
             await tokenService.SaveRefreshToken(user, refreshToken);
 
-            return new LoginResponse(accessToken, refreshToken);
+            return new LoginResponse(accessToken.Token, refreshToken);
         }
     }
 }

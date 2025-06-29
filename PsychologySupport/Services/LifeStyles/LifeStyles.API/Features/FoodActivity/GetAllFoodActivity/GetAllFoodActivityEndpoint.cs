@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
+using LifeStyles.API.Common;
 using LifeStyles.API.Dtos;
 using Mapster;
 using MediatR;
@@ -19,8 +20,16 @@ public class GetAllFoodActivityEndpoint : ICarterModule
     {
         app.MapGet("/food-activities", async (
              [AsParameters] GetAllFoodActivitiesRequest request,
-             ISender sender) =>
+             ISender sender, HttpContext httpContext) =>
         {
+            // Authorization check
+            if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
+                return Results.Problem(
+                           statusCode: StatusCodes.Status403Forbidden,
+                           title: "Forbidden",
+                           detail: "You do not have permission to access this resource."
+                       );
+
             var query = request.Adapt<GetAllFoodActivitiesQuery>();
             var result = await sender.Send(query);
             var response = new GetAllFoodActivitiesResponse(result.FoodActivities);

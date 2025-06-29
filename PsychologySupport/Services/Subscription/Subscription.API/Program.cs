@@ -36,6 +36,8 @@ else
     });
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseRouting();
 

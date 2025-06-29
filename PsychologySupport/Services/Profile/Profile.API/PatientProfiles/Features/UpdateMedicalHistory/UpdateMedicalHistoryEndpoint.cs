@@ -24,7 +24,11 @@ public class UpdateMedicalHistoryEndpoint : ICarterModule
             {
                 // Authorization check
                 if (!AuthorizationHelpers.CanModifyPatientProfile(request.PatientProfileId, httpContext.User))
-                    return Results.Forbid();
+                    return Results.Problem(
+                              statusCode: StatusCodes.Status403Forbidden,
+                              title: "Forbidden",
+                              detail: "You do not have permission to access this resource."
+                          );
 
                 var command = request.Adapt<UpdateMedicalHistoryCommand>();
                 var result = await sender.Send(command);

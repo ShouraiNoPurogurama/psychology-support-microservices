@@ -1,6 +1,7 @@
 ﻿using Carter;
 using Mapster;
 using MediatR;
+using Test.API.Common;
 using Test.Application.Dtos;
 using Test.Application.TestOutput.Queries;
 
@@ -14,8 +15,16 @@ namespace Test.API.Endpoints
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/test-result/{testResultId:guid}", async (Guid testResultId, ISender sender) =>
+            app.MapGet("/test-result/{testResultId:guid}", async (Guid testResultId, ISender sender, HttpContext httpContext) =>
             {
+                // Authorization check
+                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
+                    return Results.Problem(
+                               statusCode: StatusCodes.Status403Forbidden,
+                               title: "Forbidden",
+                               detail: "You do not have permission to access this resource."
+                           );
+
                 var query = new GetTestResultQuery(testResultId);
                 var result = await sender.Send(query);
                 var response = result.Adapt<GetTestResultResponse>();
