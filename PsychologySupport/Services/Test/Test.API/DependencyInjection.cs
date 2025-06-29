@@ -49,7 +49,7 @@ public static class DependencyInjection
             });
             options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
             {
-                Url = "/test-service/"
+                // Url = "/test-service/"
             });
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
