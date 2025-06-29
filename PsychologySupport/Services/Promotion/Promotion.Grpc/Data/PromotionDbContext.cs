@@ -14,7 +14,10 @@ public class PromotionDbContext : DbContext
     public DbSet<Models.PromotionType> PromotionTypes => Set<Models.PromotionType>();
     
     public DbSet<PromotionTypeServicePackage> PromotionTypeServicePackages => Set<PromotionTypeServicePackage>();
-    
+
+    public DbSet<PromotionServicePackage> PromotionServicePackages { get; set; }
+
+
     public PromotionDbContext(DbContextOptions<PromotionDbContext> options) : base(options)
     {
         
@@ -30,6 +33,17 @@ public class PromotionDbContext : DbContext
                 .WithMany(pt => pt.PromotionTypeServicePackages)
                 .HasForeignKey(x => x.PromotionTypeId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<PromotionServicePackage>(e =>
+        {
+            e.HasKey(x => new { x.PromotionId, x.ServicePackageId });
+
+            e.HasOne(x => x.Promotion)
+                .WithMany(p => p.PromotionServicePackages)
+                .HasForeignKey(x => x.PromotionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
         });
 
         base.OnModelCreating(builder);

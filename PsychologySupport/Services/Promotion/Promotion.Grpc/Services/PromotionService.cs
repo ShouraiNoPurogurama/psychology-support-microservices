@@ -224,6 +224,7 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
         }
 
         var giftCode = request.CreateGiftCodeDto.Adapt<GiftCode>();
+        giftCode.IsActive = true;
 
         promotion.GiftCodes.Add(giftCode);
 
@@ -357,6 +358,44 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
         return new GetPromotionByIdResponse
         {
             Promotion = promotionDto
+        };
+    }
+
+    public override async Task<GetGiftCodeByCodeResponse> GetGiftCodeByCode(GetGiftCodeByCodeRequest request, ServerCallContext context)
+    {
+        if (string.IsNullOrWhiteSpace(request.Code))
+        {
+            return new GetGiftCodeByCodeResponse
+            {
+                GiftCode = null
+            };
+        }
+
+        var giftCode = await dbContext.GiftCodes
+            .Include(g => g.Promotion)
+            .ThenInclude(p => p.PromotionType)
+            .FirstOrDefaultAsync(g => g.Code == request.Code.Trim() && g.IsActive && g.Promotion.IsActive);
+
+        if (giftCode == null)
+        {
+            return new GetGiftCodeByCodeResponse
+            {
+                GiftCode = null
+            };
+        }
+
+        var servicePackageId = await dbContext.PromotionServicePackages
+            .Where(x => x.PromotionId == giftCode.PromotionId)
+            .Select(x => x.ServicePackageId)
+            .FirstOrDefaultAsync();
+
+        var dto = giftCode.Adapt<GiftCodeByCodeDto>();
+
+        dto.ServicePackageId = servicePackageId;
+
+        return new GetGiftCodeByCodeResponse
+        {
+            GiftCode = dto
         };
     }
 

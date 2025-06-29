@@ -75,4 +75,36 @@ public class UserSubscription : AggregateRoot<Guid>
 
         return userSubscription;
     }
+
+    public static UserSubscription Activate(Guid patientId, Guid servicePackageId, DateTime startDate,
+       Guid? promoCodeId, Guid? giftId, ServicePackage servicePackage, decimal finalPrice)
+    {
+        #region Validations
+
+        ArgumentException.ThrowIfNullOrEmpty(nameof(patientId), patientId.ToString());
+        ArgumentException.ThrowIfNullOrEmpty(nameof(servicePackageId), servicePackageId.ToString());
+        ArgumentNullException.ThrowIfNull(servicePackage, nameof(servicePackage));
+        ArgumentOutOfRangeException.ThrowIfLessThan(finalPrice, 0);
+
+        if (!servicePackage.IsActive)
+            throw new InvalidOperationException("ServicePackage must be active.");
+
+        #endregion
+
+        if (promoCodeId == Guid.Empty)
+        {
+            promoCodeId = null;
+        }
+
+        if (giftId == Guid.Empty)
+        {
+            giftId = null;
+        }
+
+        var userSubscription = new UserSubscription(patientId, servicePackageId, startDate.ToUniversalTime(),
+            startDate.AddDays(servicePackage.DurationDays).ToUniversalTime(), promoCodeId, giftId,
+            SubscriptionStatus.Active, servicePackage, finalPrice);
+
+        return userSubscription;
+    }
 }

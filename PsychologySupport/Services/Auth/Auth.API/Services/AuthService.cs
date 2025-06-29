@@ -15,6 +15,7 @@ using Mapster;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Promotion.Grpc;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace Auth.API.Services;
@@ -25,7 +26,8 @@ public class AuthService(
     ITokenService tokenService,
     IRequestClient<CreatePatientProfileRequest> _profileClient,
     AuthDbContext authDbContext,
-    IPublishEndpoint publishEndpoint
+    IPublishEndpoint publishEndpoint,
+    PromotionService.PromotionServiceClient _promotionGrpcClient
     ) : IAuthService
 {
     private const int LockoutTimeInMinutes = 15;
@@ -91,8 +93,28 @@ public class AuthService(
         if (!profileResponse.Message.Success)
             throw new InvalidDataException($"Patient profile creation failed: {profileResponse.Message.Message}");
 
-        // await publishEndpoint.Publish(sendEmailIntegrationEvent);
-        
+        // Tạo GiftCode nếu có PromotionId
+        if (!string.IsNullOrWhiteSpace(registerRequest.promotionId))
+        {
+            var addGiftCodeRequest = new AddGiftCodesToPromotionRequest
+            {
+                PromotionId = registerRequest.promotionId!,
+                CreateGiftCodeDto = new CreateGiftCodeDto
+                {
+                    PatientId = user.Id.ToString(),
+                    MoneyValue = 0,
+                    Title = "GiftCode kích hoạt dịch vụ",
+                    Description = "GiftCode này được tạo khi đăng ký tài khoản mới để kích hoạt dịch vụ.",
+                    Code = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()
+                }
+            };
+
+            await _promotionGrpcClient.AddGiftCodesToPromotionAsync(addGiftCodeRequest);
+        }
+
+
+        // await publishEndpoint.Publish(sendEmailIntegrationEvent); // Gửi sự kiện gửi email xác nhận tài khoản và kèm GiftCode nếu có
+
         return true;
     }
 

@@ -21,6 +21,7 @@ service PromotionService {
   rpc ReactivatePromoCode(ReactivatePromoCodeRequest) returns (ReactivatePromoCodeResponse);
   rpc ReactivateGiftCode(ReactivateGiftCodeRequest) returns (ReactivateGiftCodeResponse);
   rpc GetPromotionById(GetPromotionByIdRequest) returns (GetPromotionByIdResponse);
+  rpc GetGiftCodeByCode(GetGiftCodeByCodeRequest) returns  (GetGiftCodeByCodeResponse);
 }
 
 message GetPromotionsByServicePackageIdRequest {
@@ -108,6 +109,7 @@ message GiftCodeDto {
   string description = 5;
   bool isActive = 6;
   string patientId = 7;
+  string code = 8;
 }
 
 message GiftCodeActivateDto {
@@ -117,6 +119,7 @@ message GiftCodeActivateDto {
   string title = 4;
   string description = 5;
   PromotionTypeDto promotionType = 7;
+  string code = 8;
 }
 
 //For listing of promo codes
@@ -143,6 +146,7 @@ message CreateGiftCodeDto {
   double moneyValue = 2; //Using double as protobuf does not natively support decimal
   string title = 3;
   string description = 4;
+  string code = 5;
 }
 
 //For activating promo by code
@@ -202,4 +206,24 @@ message GetPromotionByIdRequest {
 
 message GetPromotionByIdResponse {
   PromotionDto promotion = 1;
+}
+
+message GiftCodeByCodeDto {
+  string id = 1;
+  string promotionId = 2;
+  double moneyValue = 3; 
+  string title = 4;
+  string description = 5;
+  bool isActive = 6;
+  string patientId = 7;
+  string code = 8;
+  string servicePackageId = 9;
+}
+
+message GetGiftCodeByCodeRequest {
+  string code = 1;
+}
+
+message GetGiftCodeByCodeResponse {
+  GiftCodeByCodeDto giftCode = 1;
 }

@@ -8,6 +8,8 @@ using Carter;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
+using Grpc;
+using Promotion.Grpc;
 
 namespace Auth.API.Extensions;
 
@@ -33,6 +35,7 @@ public static class ApplicationServiceExtensions
 
         services.AddHostedService<RevokeSessionCleanupService>();
 
+        AddGrpcServiceDependencies(services, config);
 
         return services;
     }
@@ -76,7 +79,21 @@ public static class ApplicationServiceExtensions
             });
         });
     }
-
+    private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
+    {
+        services.AddGrpcClient<PromotionService.PromotionServiceClient>(options =>
+        {
+            options.Address = new Uri(config["GrpcSettings:PromotionUrl"]!);
+        })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                return handler;
+            });
+    }
     private static void AddServiceDependencies(IServiceCollection services)
     {
         services.AddScoped<IAuthService, AuthService>();

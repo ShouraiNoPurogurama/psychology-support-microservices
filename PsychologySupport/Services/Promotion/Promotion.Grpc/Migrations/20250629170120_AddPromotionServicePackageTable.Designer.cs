@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Promotion.Grpc.Data;
@@ -11,9 +12,11 @@ using Promotion.Grpc.Data;
 namespace Promotion.Grpc.Migrations
 {
     [DbContext(typeof(PromotionDbContext))]
-    partial class PromotionDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250629170120_AddPromotionServicePackageTable")]
+    partial class AddPromotionServicePackageTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
