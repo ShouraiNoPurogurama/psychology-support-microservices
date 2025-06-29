@@ -1,26 +1,36 @@
-﻿using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Enums;
+using BuildingBlocks.Messaging.Events.Translation;
+using BuildingBlocks.Pagination;
+using BuildingBlocks.Utils;
 using Mapster;
+using Profile.API.Extensions;
 using Profile.API.MentalDisorders.Dtos;
 using Profile.API.MentalDisorders.Models;
 
 namespace Profile.API.MentalDisorders.Features.GetAllSpecificMentalDisorders
 {
     public record GetAllSpecificMentalDisordersQuery(
-    PaginationRequest PaginationRequest,
-    string? Search = "") : IQuery<GetAllSpecificMentalDisordersResult>;
+        PaginationRequest PaginationRequest,
+        string? Search = "") : IQuery<GetAllSpecificMentalDisordersResult>;
 
     public record GetAllSpecificMentalDisordersResult(PaginatedResult<SpecificMentalDisorderDto> SpecificMentalDisorder);
 
-    public class GetAllSpecificMentalDisordersHandler : IQueryHandler<GetAllSpecificMentalDisordersQuery, GetAllSpecificMentalDisordersResult>
+    public class GetAllSpecificMentalDisordersHandler : IQueryHandler<GetAllSpecificMentalDisordersQuery,
+        GetAllSpecificMentalDisordersResult>
     {
         private readonly ProfileDbContext _context;
+        private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
 
-        public GetAllSpecificMentalDisordersHandler(ProfileDbContext context)
+
+        public GetAllSpecificMentalDisordersHandler(ProfileDbContext context,
+            IRequestClient<GetTranslatedDataRequest> translationClient)
         {
             _context = context;
+            _translationClient = translationClient;
         }
 
-        public async Task<GetAllSpecificMentalDisordersResult> Handle(GetAllSpecificMentalDisordersQuery request, CancellationToken cancellationToken)
+        public async Task<GetAllSpecificMentalDisordersResult> Handle(GetAllSpecificMentalDisordersQuery request,
+            CancellationToken cancellationToken)
         {
             var pageSize = request.PaginationRequest.PageSize;
             var pageIndex = request.PaginationRequest.PageIndex;
@@ -43,10 +53,21 @@ namespace Profile.API.MentalDisorders.Features.GetAllSpecificMentalDisorders
                 .OrderBy(s => s.Name)
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
+                .ProjectToType<SpecificMentalDisorderDto>()
                 .ToListAsync(cancellationToken);
 
+            var translatedSpecificMentalDisorders = await specificMentalDisorders.TranslateEntitiesAsync(
+                nameof(SpecificMentalDisorder),
+                _translationClient,
+                s => s.Id.ToString(),
+                cancellationToken,
+                s => s.Name,
+                s => s.Description,
+                s => s.MentalDisorderName
+            );
+            
             var result = new PaginatedResult<SpecificMentalDisorderDto>(
-                pageIndex, pageSize, totalCount, specificMentalDisorders.Adapt<IEnumerable<SpecificMentalDisorderDto>>());
+                pageIndex, pageSize, totalCount, translatedSpecificMentalDisorders);
 
             return new GetAllSpecificMentalDisordersResult(result);
         }

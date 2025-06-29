@@ -1,10 +1,11 @@
-﻿using Carter;
+﻿using BuildingBlocks.Enums;
+using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Translation.API.Features.TranslateData;
 
-public record TranslateDataRequest(Dictionary<string, string> Originals, string TargetLanguage = "vi");
+public record TranslateDataRequest(Dictionary<string, string> Originals, SupportedLang TargetLanguage = SupportedLang.vi);
 
 public record TranslateDataResponse(Dictionary<string, string> Translations);
 

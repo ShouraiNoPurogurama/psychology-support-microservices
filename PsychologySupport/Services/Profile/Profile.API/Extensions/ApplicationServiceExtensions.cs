@@ -31,6 +31,7 @@ public static class ApplicationServiceExtensions
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
         services.AddValidatorsFromAssemblyContaining<UpdateDoctorProfileValidator>();
+        
         services.AddValidatorsFromAssemblyContaining<UpdatePatientProfileValidator>();
 
         return services;
@@ -77,7 +78,7 @@ public static class ApplicationServiceExtensions
             });
             options.AddServer(new OpenApiServer
             {
-                Url = "/profile-service/"
+                // Url = "/profile-service/"
             });
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

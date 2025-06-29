@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Enums;
 using BuildingBlocks.Messaging.Events.Translation;
 using BuildingBlocks.Pagination;
 using BuildingBlocks.Utils;
@@ -19,7 +20,6 @@ public class GetAllTestQuestionsHandler : IQueryHandler<GetAllTestQuestionsQuery
 {
     private readonly ITestDbContext _context;
     private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
-
 
     public GetAllTestQuestionsHandler(ITestDbContext context, IRequestClient<GetTranslatedDataRequest> translationClient)
     {
@@ -48,7 +48,7 @@ public class GetAllTestQuestionsHandler : IQueryHandler<GetAllTestQuestionsQuery
 
         //Gọi translation service
         var translationResponse = await _translationClient.GetResponse<GetTranslatedDataResponse>(
-            new GetTranslatedDataRequest(translationDict, "vi"), cancellationToken);
+            new GetTranslatedDataRequest(translationDict, SupportedLang.vi), cancellationToken);
 
         var translations = translationResponse.Message.Translations;
 

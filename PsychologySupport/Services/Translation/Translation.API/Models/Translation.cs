@@ -1,4 +1,4 @@
-﻿using Translation.API.Enums;
+﻿using BuildingBlocks.Enums;
 
 namespace Translation.API.Models;
 

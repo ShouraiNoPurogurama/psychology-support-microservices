@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Translation.API.Enums;
+﻿using BuildingBlocks.Enums;
+using Microsoft.EntityFrameworkCore;
 using Translation.API.Models;
 
 namespace Translation.API.Data;

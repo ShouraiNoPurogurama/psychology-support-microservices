@@ -1,3 +1,5 @@
-﻿namespace BuildingBlocks.Messaging.Events.Translation;
+﻿using BuildingBlocks.Enums;
 
-public record GetTranslatedDataRequest(Dictionary<string, string> Originals, string TargetLanguage);
+namespace BuildingBlocks.Messaging.Events.Translation;
+
+public record GetTranslatedDataRequest(Dictionary<string, string> Originals, SupportedLang TargetLanguage);

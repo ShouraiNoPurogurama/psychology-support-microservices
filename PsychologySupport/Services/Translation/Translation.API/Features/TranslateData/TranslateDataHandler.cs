@@ -1,12 +1,12 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Enums;
 using Microsoft.EntityFrameworkCore;
 using Translation.API.Data;
-using Translation.API.Enums;
 using Translation.API.Services;
 
 namespace Translation.API.Features.TranslateData;
 
-public record TranslateDataCommand(Dictionary<string, string> Originals, string TargetLanguage) : ICommand<TranslateDataResult>;
+public record TranslateDataCommand(Dictionary<string, string> Originals, SupportedLang TargetLanguage) : ICommand<TranslateDataResult>;
 
 public record TranslateDataResult(Dictionary<string, string> Translations);
 
@@ -21,13 +21,10 @@ public class TranslateDataHandler(
         var originals = request.Originals;
         var requestedKeys = originals.Keys.Distinct().ToList();
 
-        var targetLang = Enum.TryParse<SupportedLang>(request.TargetLanguage, out var lang)
-            ? lang
-            : SupportedLang.en; 
         
         // 1. Lấy các bản dịch đã có (lang = "vi")
         var existing = await db.Translations
-            .Where(t => requestedKeys.Contains(t.TextKey) && t.Lang == targetLang)
+            .Where(t => requestedKeys.Contains(t.TextKey) && t.Lang == request.TargetLanguage)
             .ToListAsync(cancellationToken);
 
         var existingDict = existing.ToDictionary(t => t.TextKey, t => t.TranslatedValue);
@@ -73,7 +70,7 @@ public class TranslateDataHandler(
         {
             Id = Guid.NewGuid(),
             TextKey = kv.Key,
-            Lang = targetLang,
+            Lang = request.TargetLanguage,
             TranslatedValue = kv.Value,
             CreatedAt = DateTimeOffset.UtcNow,
             IsStable = false
