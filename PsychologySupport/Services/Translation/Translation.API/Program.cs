@@ -1,3 +1,4 @@
+using BuildingBlocks.Exceptions.Handler;
 using Carter;
 using Translation.API.Extensions;
 
@@ -8,6 +9,8 @@ builder.Configuration.LoadConfiguration(builder.Environment);
 var services = builder.Services;
 
 services.AddApplicationServices(builder.Configuration);
+services.AddExceptionHandler<CustomExceptionHandler>();
+
 
 // Configure the HTTP request pipeline
 var app = builder.Build();
@@ -24,7 +27,7 @@ app.MapCarter();
 app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
-    // app.InitializeDatabaseAsync();
+    app.InitializeDatabaseAsync();
     app.UseSwaggerUI();
 }
 else

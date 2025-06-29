@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Translation.API.Enums;
 using Translation.API.Models;
 
 namespace Translation.API.Data;
@@ -10,14 +11,15 @@ public class TranslationDbContext : DbContext
     {
     }
 
-    public DbSet<TranslatableField> TranslatableFields { get; set; } = default!;
-    public DbSet<Models.Translation> Translations { get; set; } = default!;
+    public DbSet<TranslatableField> TranslatableFields  => Set<TranslatableField>();
+    public DbSet<Models.Translation> Translations => Set<Models.Translation>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(modelBuilder);
+        base.OnModelCreating(builder);
+        builder.HasDefaultSchema("public");
 
-        modelBuilder.Entity<TranslatableField>(entity =>
+        builder.Entity<TranslatableField>(entity =>
         {
             entity.ToTable("TranslatableFields");
 
@@ -27,9 +29,17 @@ public class TranslationDbContext : DbContext
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
         });
 
-        modelBuilder.Entity<Models.Translation>(entity =>
+        builder.Entity<Models.Translation>(entity =>
         {
             entity.ToTable("Translations");
+            
+            entity.Property(e => e.Lang)
+                .HasConversion(
+                    lang => lang.ToString(),                      
+                    dbValue => Enum.Parse<SupportedLang>(dbValue) 
+                )
+                .HasMaxLength(10)
+                .IsRequired();
 
             entity.HasIndex(e => new { e.TextKey, e.Lang })
                 .HasDatabaseName("idx_Translations_TextKey_Lang");

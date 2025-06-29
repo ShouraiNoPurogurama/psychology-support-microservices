@@ -32,9 +32,7 @@ public static class ApplicationServiceExtensions
 
         ConfigureMediatR(services);
         
-        services.AddIdentityServices(config);
-        
-        services.AddSignalR();
+        // services.AddIdentityServices(config);
         
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
         
@@ -64,7 +62,7 @@ public static class ApplicationServiceExtensions
             });
             options.AddServer(new OpenApiServer
             {
-                Url = "/translation-service/"
+                // Url = "/translation-service/"
             });
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
@@ -112,6 +110,8 @@ public static class ApplicationServiceExtensions
         services.AddScoped<GeminiService>();
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        
+        services.AddHttpClient();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
