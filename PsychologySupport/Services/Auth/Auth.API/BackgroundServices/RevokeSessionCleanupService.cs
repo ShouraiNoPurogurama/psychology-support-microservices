@@ -7,8 +7,8 @@ namespace Auth.API.BackgroundServices
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<RevokeSessionCleanupService> _logger;
-        //private static readonly TimeSpan CleanupInterval = TimeSpan.FromHours(24); // chạy mỗi ngày
-        private static readonly TimeSpan CleanupInterval = TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan CleanupInterval = TimeSpan.FromHours(24);
+        //private static readonly TimeSpan CleanupInterval = TimeSpan.FromMinutes(2);
 
         public RevokeSessionCleanupService(IServiceProvider serviceProvider, ILogger<RevokeSessionCleanupService> logger)
         {
