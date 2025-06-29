@@ -1,6 +1,4 @@
-﻿using BuildingBlocks.Enums;
-
-namespace LifeStyles.API.Dtos;
+﻿namespace LifeStyles.API.Dtos;
 
 public record TherapeuticActivityDto(
     Guid Id,
@@ -8,6 +6,6 @@ public record TherapeuticActivityDto(
     string Name,
     string Description,
     string Instructions,
-    IntensityLevel IntensityLevel,
-    ImpactLevel ImpactLevel
+    string IntensityLevel,
+    string ImpactLevel
 );

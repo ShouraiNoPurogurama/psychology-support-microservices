@@ -1,10 +1,12 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
+using BuildingBlocks.Messaging.Events.Translation;
 using BuildingBlocks.Pagination;
 using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
+using LifeStyles.API.Extensions;
 using Mapster;
-using Microsoft.AspNetCore.Mvc;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.Features.TherapeuticActivity.GetAllTherapeuticActivity;
@@ -23,14 +25,15 @@ public class GetAllTherapeuticActivityHandler
     : IQueryHandler<GetAllTherapeuticActivitiesQuery, GetAllTherapeuticActivitiesResult>
 {
     private readonly LifeStylesDbContext _context;
-    // private readonly IRedisCache _redisCache;
+    private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
 
-    public GetAllTherapeuticActivityHandler(LifeStylesDbContext context
-        // , IRedisCache redisCache
-        )
+    public GetAllTherapeuticActivityHandler(
+        LifeStylesDbContext context,
+        IRequestClient<GetTranslatedDataRequest> translationClient
+    )
     {
         _context = context;
-        // _redisCache = redisCache;
+        _translationClient = translationClient;
     }
 
     public async Task<GetAllTherapeuticActivitiesResult> Handle(
@@ -40,30 +43,18 @@ public class GetAllTherapeuticActivityHandler
         var pageSize = request.PageSize;
         var pageIndex = request.PageIndex;
 
-        // var cacheKey = $"therapeuticActivities:{request.Search}:{request.IntensityLevel}:{request.ImpactLevel}:page{pageIndex}:size{pageSize}";
-
-        // Try to get cached data
-        // var cachedData = await _redisCache.GetCacheDataAsync<PaginatedResult<TherapeuticActivityDto>?>(cacheKey);
-        // if (cachedData is not null)
-        // {
-        //     return new GetAllTherapeuticActivitiesResult(cachedData);
-        // }
-
         var query = _context.TherapeuticActivities.AsQueryable();
 
-        // Search by Name
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             query = query.Where(ea => ea.Name.Contains(request.Search));
         }
 
-        // Filter by IntensityLevel
         if (request.IntensityLevel.HasValue)
         {
             query = query.Where(ea => ea.IntensityLevel == request.IntensityLevel.Value);
         }
 
-        // Filter by ImpactLevel
         if (request.ImpactLevel.HasValue)
         {
             query = query.Where(ea => ea.ImpactLevel == request.ImpactLevel.Value);
@@ -75,17 +66,25 @@ public class GetAllTherapeuticActivityHandler
             .OrderBy(ea => ea.Name)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
+            .ProjectToType<TherapeuticActivityDto>()
             .ToListAsync(cancellationToken);
+
+        var translatedActivities = await activities.TranslateEntitiesAsync(
+            nameof(Models.TherapeuticActivity), _translationClient, a => a.Id.ToString(), cancellationToken,
+            a => a.Name,
+            a => a.Description,
+            a => a.IntensityLevel,
+            a => a.ImpactLevel,
+            a => a.TherapeuticTypeName,
+            a => a.Instructions
+        );
 
         var result = new PaginatedResult<TherapeuticActivityDto>(
             pageIndex,
             pageSize,
             totalCount,
-            activities.Adapt<IEnumerable<TherapeuticActivityDto>>()
+            translatedActivities
         );
-
-        // Store result in Redis with a 10-minute expiration time
-        // await _redisCache.SetCacheDataAsync(cacheKey, result, TimeSpan.FromMinutes(10));
 
         return new GetAllTherapeuticActivitiesResult(result);
     }

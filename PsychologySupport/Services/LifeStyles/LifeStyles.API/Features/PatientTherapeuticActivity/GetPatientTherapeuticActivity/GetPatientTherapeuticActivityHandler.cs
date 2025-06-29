@@ -21,9 +21,6 @@ public class GetPatientTherapeuticActivityHandler(LifeStylesDbContext context)
             .Where(ppa => ppa.PatientProfileId == request.PatientProfileId)
             .ToListAsync(cancellationToken);
 
-        if (!activities.Any())
-            throw new LifeStylesNotFoundException("Hoạt động thiền định của người dùng", request.PatientProfileId);
-
         var activitiesDto = activities.Adapt<IEnumerable<Models.PatientTherapeuticActivity>>();
 
         return new GetPatientTherapeuticActivityResult(activitiesDto);
