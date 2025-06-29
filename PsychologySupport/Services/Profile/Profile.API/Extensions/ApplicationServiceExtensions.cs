@@ -78,7 +78,7 @@ public static class ApplicationServiceExtensions
             });
             options.AddServer(new OpenApiServer
             {
-                Url = "/profile-service/"
+                // Url = "/profile-service/"
             });
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

@@ -9,12 +9,12 @@ public record GetPatientProfileDto(
     Guid Id,
     Guid UserId,
     string FullName,
-    UserGender Gender,
+    string Gender,
     string? Allergies,
     string PersonalityTraits,
     ContactInfo ContactInfo,
     MedicalHistoryDto? MedicalHistory,
-    string? Job,
+    Job? Job,
     DateOnly BirthDate,
     IEnumerable<MedicalRecordDto> MedicalRecords
 );
