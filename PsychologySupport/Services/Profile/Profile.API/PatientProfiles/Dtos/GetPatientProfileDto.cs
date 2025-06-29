@@ -11,10 +11,10 @@ public record GetPatientProfileDto(
     string FullName,
     UserGender Gender,
     string? Allergies,
-    PersonalityTrait PersonalityTraits,
+    string PersonalityTraits,
     ContactInfo ContactInfo,
     MedicalHistoryDto? MedicalHistory,
-    Job? Job,
+    string? Job,
     DateOnly BirthDate,
     IEnumerable<MedicalRecordDto> MedicalRecords
 );
