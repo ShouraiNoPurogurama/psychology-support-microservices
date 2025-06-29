@@ -190,6 +190,7 @@ services:
       dockerfile: Services/Subscription/Subscription.API/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
+      - ./Services/Subscription/Subscription.API/RSAKeys:/app/RSAKeys
 
   test.api:
     image: ${DOCKER_REGISTRY-}testapi
