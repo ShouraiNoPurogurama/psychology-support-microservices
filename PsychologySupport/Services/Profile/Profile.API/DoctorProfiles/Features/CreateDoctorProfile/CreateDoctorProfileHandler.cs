@@ -29,7 +29,7 @@ public class CreateDoctorProfileHandler(ProfileDbContext context,
 
         if (!response.Message.Success)
         {
-            throw new InvalidOperationException("User creation failed. Cannot create DoctorProfile.");
+            throw new InvalidOperationException("Tạo hồ sơ bác sĩ không thành công: " + response.Message);
         }
 
         var doctorProfile = DoctorProfile.Create(

@@ -24,28 +24,28 @@ namespace Image.API.Services
         private void ValidateFile(IFormFile file)
         {
             if (file == null || file.Length == 0)
-                throw new ArgumentException("File cannot be empty.");
+                throw new ArgumentException("Vui lòng chọn ảnh để tải lên.");
 
 
             if (file.Length > MaxFileSizeInBytes)
-                throw new ArgumentException($"File size cannot exceed {MaxFileSizeInBytes / (1024 * 1024)} MB.");
+                throw new ArgumentException($"Dung lượng ảnh không được vượt quá  {MaxFileSizeInBytes / (1024 * 1024)} MB.");
 
   
             var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
             var fileExtension = Path.GetExtension(file.FileName).ToLower();
             if (!validExtensions.Contains(fileExtension))
-                throw new ArgumentException("Invalid file type. Only image files are allowed (JPG, JPEG, PNG, GIF, BMP).");
+                throw new ArgumentException("Chỉ chấp nhận các định dạng ảnh: JPG, JPEG, PNG, GIF, BMP.");
 
       
             try
             {
                 using var image = SixLabors.ImageSharp.Image.Load(file.OpenReadStream());
                 if (image == null)
-                    throw new ArgumentException("Invalid image format.");
+                    throw new ArgumentException("Định dạng ảnh không hợp lệ. Vui lòng thử lại với ảnh khác.");
             }
             catch
             {
-                throw new ArgumentException("Invalid image format.");
+                throw new ArgumentException("Định dạng ảnh không hợp lệ. Vui lòng thử lại với ảnh khác.");
             }
         }
 
@@ -100,7 +100,7 @@ namespace Image.API.Services
                 .FirstOrDefaultAsync();
 
             if (existingImage == null)
-                throw new KeyNotFoundException($"No image found for the specified Owner Type: {ownerType} with ID: {ownerId}.");
+                throw new KeyNotFoundException($"Không tìm thấy ảnh cho đối tượng đã chọn.: {ownerType} với ID: {ownerId}.");
 
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
             var blobClient = blobContainerClient.GetBlobClient(existingImage.Name);

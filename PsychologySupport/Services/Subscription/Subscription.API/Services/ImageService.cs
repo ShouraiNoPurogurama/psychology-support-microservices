@@ -58,7 +58,7 @@ public class ImageService : IImageService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting image");
+            _logger.LogError(ex, "Xảy ra lỗi khi xóa ảnh có ID: {ImageId}", imageId);
             return false;
         }
     }

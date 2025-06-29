@@ -38,13 +38,14 @@ public class MedicalHistory : Entity<Guid>
         List<SpecificMentalDisorder> specificMentalDisorders, List<PhysicalSymptom> physicalSymptoms)
     {
         if (patientId == Guid.Empty)
-            throw new ArgumentException("Patient ID cannot be empty.", nameof(patientId));
+            throw new ArgumentException("ID người dùng không được để trống.", nameof(patientId));
 
         if (diagnosedAt > DateTimeOffset.UtcNow)
-            throw new ArgumentException("Diagnose time must be before current time.", nameof(diagnosedAt));
+            throw new ArgumentException("Thời điểm chẩn đoán phải trước thời gian hiện tại.", nameof(diagnosedAt));
 
         if (specificMentalDisorders.Count == 0 && physicalSymptoms.Count == 0)
-            throw new ArgumentException("Specific mental disorders and Physical symptoms cannot be both empty",
+            throw new ArgumentException(
+                "Vui lòng chọn ít nhất một rối loạn tâm lý hoặc một triệu chứng thể chất để tiếp tục.",
                 nameof(specificMentalDisorders) + ", " + nameof(physicalSymptoms));
 
         return new MedicalHistory(patientId, description, diagnosedAt, specificMentalDisorders, physicalSymptoms);
@@ -54,10 +55,11 @@ public class MedicalHistory : Entity<Guid>
         List<SpecificMentalDisorder> specificMentalDisorders, List<PhysicalSymptom> physicalSymptoms)
     {
         if (diagnosedAt > DateTimeOffset.UtcNow)
-            throw new ArgumentException("Diagnose time must be before current time.", nameof(diagnosedAt));
+            throw new ArgumentException("Thời điểm chẩn đoán phải trước thời gian hiện tại.", nameof(diagnosedAt));
 
         if (specificMentalDisorders.Count == 0 && physicalSymptoms.Count == 0)
-            throw new ArgumentException("Specific mental disorders and Physical symptoms cannot be both empty.",
+            throw new ArgumentException(
+                "Vui lòng chọn ít nhất một rối loạn tâm lý hoặc một triệu chứng thể chất để tiếp tục.",
                 nameof(specificMentalDisorders) + ", " + nameof(physicalSymptoms));
 
         Description = description;

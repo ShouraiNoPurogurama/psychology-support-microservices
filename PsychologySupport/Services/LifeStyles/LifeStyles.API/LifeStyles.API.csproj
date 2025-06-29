@@ -23,4 +23,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Features\CurrentEmotion\CreateCurrentEmotion\" />
+    <Folder Include="Features\CurrentEmotion\GetCurrentEmotion\" />
+  </ItemGroup>
 </Project>

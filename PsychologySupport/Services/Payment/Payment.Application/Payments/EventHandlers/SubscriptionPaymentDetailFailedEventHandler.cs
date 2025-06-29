@@ -24,8 +24,8 @@ public class SubscriptionPaymentDetailFailedEventHandler(
 
         SendEmailIntegrationEvent sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
             notification.PatientEmail,
-            "Subscription Payment Failed",
-            "Your subscription payment has failed. Please check your payment details and try again.");
+            "Thanh toán gói đăng ký thất bại",
+            "Thanh toán cho gói đăng ký của bạn đã thất bại. Vui lòng kiểm tra lại thông tin thanh toán và thử lại.");
 
         var userDataResponse =
             await authClient.GetResponse<GetUserDataResponse>(new GetUserDataRequest(null, notification.PatientEmail),
@@ -36,7 +36,8 @@ public class SubscriptionPaymentDetailFailedEventHandler(
         if (FCMTokens.Any())
         {
             var sendMobilePushNotificationEvent = new SendMobilePushNotificationIntegrationEvent(
-                FCMTokens, "Subscription Payment Failed", "Your subscription payment has failed. Please check your payment details and try again.");
+                FCMTokens,     "Thanh toán gói đăng ký thất bại",
+                "Thanh toán cho gói đăng ký của bạn đã thất bại. Vui lòng kiểm tra lại thông tin thanh toán và thử lại.");
 
             await publishEndpoint.Publish(sendMobilePushNotificationEvent, cancellationToken);
         }

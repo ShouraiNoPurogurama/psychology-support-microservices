@@ -24,9 +24,9 @@ public class BookingPaymentDetailFailedEventHandler(
 
         SendEmailIntegrationEvent sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
             notification.PatientEmail,
-            "Booking Payment Failed",
-            "Your booking payment has failed. Please check your payment details and try again.");
-
+            "Thanh toán Booking thất bại",
+            "Thanh toán cho Booking thất bại. Vui lòng kiểm tra lại thông tin thanh toán và thử lại.");
+            
         var userDataResponse =
             await authClient.GetResponse<GetUserDataResponse>(new GetUserDataRequest(null, notification.PatientEmail),
                 cancellationToken);
@@ -36,7 +36,8 @@ public class BookingPaymentDetailFailedEventHandler(
         if (FCMTokens.Any())
         {
             var sendMobilePushNotificationEvent = new SendMobilePushNotificationIntegrationEvent(
-                FCMTokens, "Booking Payment Failed", "Your booking payment has failed. Please check your payment details and try again.");
+                FCMTokens,             "Thanh toán Booking thất bại",
+                "Thanh toán cho Booking thất bại. Vui lòng kiểm tra lại thông tin thanh toán và thử lại.");
             
             await publishEndpoint.Publish(sendMobilePushNotificationEvent, cancellationToken);
         }

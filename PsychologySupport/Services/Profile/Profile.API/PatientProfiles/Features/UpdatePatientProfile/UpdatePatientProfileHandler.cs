@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Data.Common;
+using Profile.API.Exceptions;
 using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.UpdatePatientProfile;
@@ -22,7 +23,7 @@ public class UpdatePatientProfileHandler : ICommandHandler<UpdatePatientProfileC
     public async Task<UpdatePatientProfileResult> Handle(UpdatePatientProfileCommand request, CancellationToken cancellationToken)
     {
         var patientProfile = await _context.PatientProfiles.FindAsync([request.Id], cancellationToken)
-                             ?? throw new KeyNotFoundException("Patient profile not found.");
+                             ?? throw new ProfileNotFoundException(request.Id);
 
         var dto = request.PatientProfileUpdate;
         

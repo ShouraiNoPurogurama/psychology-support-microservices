@@ -23,7 +23,7 @@ namespace Scheduling.API.Features.RegisterDoctorBusyAllDay
             var dto = request.DoctorBusyDto;
             var doctorSlot = await _context.DoctorSlotDurations.FirstOrDefaultAsync(d => d.DoctorId == dto.DoctorId, cancellationToken);
             if (doctorSlot == null)
-                throw new NotFoundException($"Doctor slot duration not found for DoctorId {dto.DoctorId}");
+                throw new NotFoundException($"Chưa thiết lập được thời gian mỗi lượt khám cho bác sĩ (ID: {dto.DoctorId}).");
 
             var dayOfWeek = dto.Date.DayOfWeek;
             var timeSlotTemplates = await _context.TimeSlotTemplates

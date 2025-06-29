@@ -8,7 +8,7 @@ public class LifeStylesNotFoundException : NotFoundException
     {
     }
 
-    public LifeStylesNotFoundException(string name, Guid id) : base($"Entity \"{name}\" with Id {id} was not found.")
+    public LifeStylesNotFoundException(string name, Guid id) : base($"Không tìm thấy entity \"{name}\" với ID là {id}.")
     {
     }
 }

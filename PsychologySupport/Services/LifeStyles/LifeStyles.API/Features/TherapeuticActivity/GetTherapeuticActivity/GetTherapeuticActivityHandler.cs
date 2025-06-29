@@ -20,7 +20,7 @@ public class GetTherapeuticActivityHandler(LifeStylesDbContext context)
         var activity = await context.TherapeuticActivities
                            .Include(ta => ta.TherapeuticType) // Load TherapeuticType để lấy Name
                            .FirstOrDefaultAsync(ta => ta.Id == request.Id, cancellationToken)
-                       ?? throw new NotFoundException("Therapeutic Activity", request.Id);
+                       ?? throw new NotFoundException("Hoạt động Thiền Định", request.Id);
 
         var activityDto = activity.Adapt<TherapeuticActivityDto>();
 

@@ -28,7 +28,7 @@ namespace Scheduling.API.Features.CreateDoctorAvailability
                 .ToList();
 
             if (existingAvailabilities.Any())
-                throw new BadRequestException($"Doctor is already booked for the following time slots: {string.Join(", ", existingAvailabilities)}");
+                throw new BadRequestException($"Bác sĩ đã có lịch vào các khung giờ sau: {string.Join(", ", existingAvailabilities)}. Vui lòng chọn khung giờ khác.");
 
             var doctorAvailabilities = dto.StartTimes.Select(startTime => new DoctorAvailability
             {

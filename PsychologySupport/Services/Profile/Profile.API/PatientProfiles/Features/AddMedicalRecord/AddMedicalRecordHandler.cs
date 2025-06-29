@@ -1,4 +1,5 @@
-﻿using Profile.API.PatientProfiles.Enum;
+﻿using Profile.API.Exceptions;
+using Profile.API.PatientProfiles.Enum;
 
 namespace Profile.API.PatientProfiles.Features.AddMedicalRecord;
 
@@ -26,7 +27,7 @@ public class AddMedicalRecordHandler : ICommandHandler<AddMedicalRecordCommand, 
         var patientProfile = await _context.PatientProfiles.FindAsync(request.PatientProfileId);
 
         if (patientProfile == null)
-            throw new ArgumentException($"PatientProfile with ID {request.PatientProfileId} not found.");
+            throw new ProfileNotFoundException($"Không tìm thấy hồ sơ người dùng với ID {request.PatientProfileId}");
 
         var existingDisorders = await _context.SpecificMentalDisorders
             .Where(s => request.ExistingDisorderIds.Contains(s.Id))

@@ -18,7 +18,7 @@ public class UpdateBookingStatusHandler(SchedulingDbContext dbContext)
 
         if (booking is null)
         {
-            throw new NotFoundException($"Booking with ID {request.BookingId} not found.");
+            throw new NotFoundException($"Không tìm thấy booking với ID {request.BookingId}.");
         }
 
         booking.Status = request.Status;

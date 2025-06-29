@@ -8,7 +8,7 @@ public class ValidatorService
     public void ValidateCreatePromotionRequest(CreatePromotionRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.PromotionTypeId) || !Guid.TryParse(request.PromotionTypeId, out _))
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid Promotion Type Id"));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, $"Promotion Type không hợp lệ"));
 
         ValidateStartEndDates(request.StartDate, request.EndDate);
 
@@ -27,32 +27,32 @@ public class ValidatorService
     public void ValidateGuid(string id, string entityName)
     {
         if (string.IsNullOrWhiteSpace(id) || !Guid.TryParse(id, out _))
-            throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid {entityName} Id"));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, $"ID của {entityName} không hợp lệ."));
     }
 
     private void ValidateStartEndDates(Timestamp startDate, Timestamp endDate)
     {
         if (startDate > endDate)
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Start date must be before end date"));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Ngày bắt đầu phải trước ngày kết thúc."));
 
         if (endDate.ToDateTime() <= DateTime.UtcNow)
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "End date must be in the future"));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Ngày kết thúc phải nằm trong tương lai."));
     }
 
     private void ValidateCreatePromoCodesDto(CreatePromoCodesDto dto)
     {
         if (dto.Quantity < 0)
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Promo code quantity must be greater than 0"));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Số lượng mã khuyến mãi phải lớn hơn 0."));
 
         if (dto.Value is <= 0 or > 100)
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Promo code value must be between 0 and 100"));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Giá trị mã khuyến mãi (%) phải nằm trong khoảng từ 1 đến 100."));
 
-        //Extra Validations for name, and other string fields can be added here
         if (string.IsNullOrWhiteSpace(dto.Description))
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Promo code description cannot be empty"));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Mô tả mã khuyến mãi không được để trống."));
 
         if (string.IsNullOrWhiteSpace(dto.Name))
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Promo code name cannot be empty"));
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Tên mã khuyến mãi không được để trống."));
     }
     #endregion
+
 }

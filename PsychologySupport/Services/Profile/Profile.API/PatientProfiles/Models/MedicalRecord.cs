@@ -48,16 +48,16 @@ public class MedicalRecord : Entity<Guid>
         List<SpecificMentalDisorder> disorders)
     {
         if (patientId == Guid.Empty)
-            throw new ArgumentException("Patient ID cannot be empty.", nameof(patientId));
+            throw new ArgumentException("ID người dùng không được để trống.", nameof(patientId));
 
         if (doctorId == Guid.Empty)
-            throw new ArgumentException("Doctor ID cannot be empty.", nameof(doctorId));
+            throw new ArgumentException("ID bác sĩ không được để trống.", nameof(doctorId));
 
         if (medicalHistoryId == Guid.Empty)
-            throw new ArgumentException("Medical history ID cannot be empty.", nameof(medicalHistoryId));
+            throw new ArgumentException("ID tiền sử bệnh không được để trống.", nameof(medicalHistoryId));
 
         if (string.IsNullOrWhiteSpace(notes))
-            throw new ArgumentException("Notes cannot be empty.", nameof(notes));
+            throw new ArgumentException("Ghi chú không được để trống.", nameof(notes));
 
         return new MedicalRecord(Guid.NewGuid(), patientId, doctorId, medicalHistoryId, notes, status, disorders);
     }
@@ -66,16 +66,17 @@ public class MedicalRecord : Entity<Guid>
         string notes, MedicalRecordStatus status, List<SpecificMentalDisorder> disorders)
     {
         if (patientId == Guid.Empty)
-            throw new ArgumentException("Patient ID cannot be empty.", nameof(patientId));
+            throw new ArgumentException("ID người dùng không được để trống.", nameof(patientId));
 
         if (doctorId == Guid.Empty)
-            throw new ArgumentException("Doctor ID cannot be empty.", nameof(doctorId));
+            throw new ArgumentException("ID bác sĩ không được để trống.", nameof(doctorId));
 
         if (medicalHistoryId == Guid.Empty)
-            throw new ArgumentException("Medical history ID cannot be empty.", nameof(medicalHistoryId));
+            throw new ArgumentException("ID tiền sử bệnh không được để trống.", nameof(medicalHistoryId));
 
         if (string.IsNullOrWhiteSpace(notes))
-            throw new ArgumentException("Notes cannot be empty.", nameof(notes));
+            throw new ArgumentException("Ghi chú không được để trống.", nameof(notes));
+
 
         PatientProfileId = patientId;
         DoctorProfileId = doctorId;

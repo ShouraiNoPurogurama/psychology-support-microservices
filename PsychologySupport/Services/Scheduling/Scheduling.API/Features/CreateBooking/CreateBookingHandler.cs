@@ -36,20 +36,20 @@ namespace Scheduling.API.Features.CreateBooking
                 new GetPatientProfileRequest(dto.PatientId), cancellationToken);
 
             if (!patient.Message.PatientExists)
-                throw new NotFoundException("Patient", dto.PatientId);
+                throw new NotFoundException("Người dùng", dto.PatientId);
 
             // check doctor
             var doctor = await doctorClient.GetResponse<GetDoctorProfileResponse>(
                 new GetDoctorProfileRequest(dto.DoctorId), cancellationToken);
 
             if (!doctor.Message.DoctorExists)
-                throw new NotFoundException("Doctor", dto.DoctorId);
+                throw new NotFoundException("Bác sĩ", dto.DoctorId);
 
             var isValidSlotDuration = await dbContext.DoctorSlotDurations
                 .AnyAsync(d => d.DoctorId == dto.DoctorId && d.SlotDuration == dto.Duration, cancellationToken);
 
             if (!isValidSlotDuration)
-                throw new BadRequestException("Slot duration does not match with doctor's slot duration");
+                throw new BadRequestException("Thời lượng đặt lịch không khớp với thời lượng mà bác sĩ đã cấu hình.");
 
             // check booking time
             var bookingExistInSameTime = await dbContext.Bookings
@@ -58,7 +58,7 @@ namespace Scheduling.API.Features.CreateBooking
 
             if (bookingExistInSameTime)
             {
-                throw new BadRequestException("Doctor is not available in this time");
+                throw new BadRequestException("Bác sĩ trong khung giờ này đã được người dùng khác đặt trước. Vui lòng chọn thời gian khác.");
             }
 
             //TODO Check price per hour of doctor matching with Experience and Pricing Service

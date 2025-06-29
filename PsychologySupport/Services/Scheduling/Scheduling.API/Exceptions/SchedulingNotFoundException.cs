@@ -11,5 +11,9 @@ namespace Scheduling.API.Exceptions
         public ScheduleNotFoundException(string name, Guid id) : base($"Entity \"{name}\" with Id {id} was not found.")
         {
         }
+        
+        public ScheduleNotFoundException(Guid id) : base($"Không tìm thấy lộ trình với ID: {id}.")
+        {
+        }
     }
 }

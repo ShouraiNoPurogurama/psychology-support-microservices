@@ -32,13 +32,14 @@ public class BookingPaymentDetailCompletedEventHandler(
 
         var activateBookingEvent = new BookingPaymentDetailSuccessIntegrationEvent(notification.BookingId);
 
-        var sendEmailEvent = new SendEmailIntegrationEvent(notification.PatientEmail, "Booking Activated",
-            "Your booking has been paid successfully.");
+        var sendEmailEvent = new SendEmailIntegrationEvent(notification.PatientEmail, "Booking đã được kích hoạt",
+            "Booking của bạn đã được thanh toán thành công.");
 
         if (FCMTokens.Any())
         {
             var sendMobilePushNotificationEvent = new SendMobilePushNotificationIntegrationEvent(
-                FCMTokens, "Booking Activated", "Your booking has been paid successfully.");
+                FCMTokens, "Booking đã được kích hoạt",
+                "Booking của bạn đã được thanh toán thành công.");
             
             await publishEndpoint.Publish(sendMobilePushNotificationEvent, cancellationToken);
         }

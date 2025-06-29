@@ -22,7 +22,7 @@ public class GetPatientFoodActivityHandler(LifeStylesDbContext context)
             .ToListAsync(cancellationToken);
 
         if (!activities.Any())
-            throw new LifeStylesNotFoundException("Patient Food Activity", request.PatientProfileId);
+            throw new LifeStylesNotFoundException("Hoạt động ăn uống của người dùng", request.PatientProfileId);
 
         var activitiesDto = activities.Adapt<IEnumerable<Models.PatientFoodActivity>>();
 

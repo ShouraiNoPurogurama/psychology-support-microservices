@@ -83,7 +83,8 @@ public class SessionService(ChatBoxDbContext dbContext)
     {
         var session = await dbContext.AIChatSessions
             .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.IsActive == true)
-            ?? throw new NotFoundException($"Session {sessionId} not found or does not belong to the user.");
+            ?? throw new NotFoundException($"Không tìm thấy phiên trò chuyện {sessionId} hoặc phiên không thuộc về người dùng.");
+
         
         return session;
     }
@@ -93,7 +94,8 @@ public class SessionService(ChatBoxDbContext dbContext)
         var session = await dbContext.AIChatSessions
             .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.IsActive == true)
             
-            ?? throw new NotFoundException($"Session {sessionId} not found or does not belong to the user.");
+            ?? throw new NotFoundException($"Không tìm thấy phiên trò chuyện {sessionId} hoặc phiên không thuộc về người dùng.");
+
 
         session.IsActive = false;
         await dbContext.SaveChangesAsync();
@@ -104,7 +106,7 @@ public class SessionService(ChatBoxDbContext dbContext)
     {
         if (pageSize <= 0 || pageIndex <= 0)
         {
-            throw new ArgumentException("Invalid pagination parameters.");
+            throw new ArgumentException("Tham số phân trang không hợp lệ.");
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Scheduling.API.Features.GetDoctorSchedule
 
             var doctorSlots = await context.DoctorSlotDurations
                 .FirstOrDefaultAsync(d => d.DoctorId == request.DoctorId, cancellationToken)
-                ?? throw new NotFoundException("Doctor Slot Duration", request.DoctorId);
+                ?? throw new NotFoundException("Thời lượng đặt lịch của bác sĩ không được tìm thấy.", request.DoctorId);
 
             var bookedSlots = await context.Bookings
                 .Where(b => b.DoctorId == request.DoctorId && b.Date == vietnamDate && b.Status != BookingStatus.PaymentFailed && b.Status != BookingStatus.Cancelled)
@@ -51,8 +51,10 @@ namespace Scheduling.API.Features.GetDoctorSchedule
                     var bookedSlot = bookedSlots.FirstOrDefault(b => b.StartTime <= slot.StartTime &&
                                                                      b.StartTime.Add(TimeSpan.FromMinutes(b.Duration)) > slot.StartTime);
                     bool isUnavailable = bookedSlot != null || unavailableSlots.Contains(slot.StartTime);
-                    string occupiedInfo = bookedSlot != null ? $"BookingCode: {bookedSlot.BookingCode}"
-                                        : (unavailableSlots.Contains(slot.StartTime) ? "Doctor unavailable" : "");
+                    string occupiedInfo = bookedSlot != null
+                        ? "Đã được đặt trước"
+                        : (unavailableSlots.Contains(slot.StartTime) ? "Khung giờ không khả dụng" : "");
+
 
                     return new TimeSlotDto(
                         isUnavailable ? SlotStatus.Unavailable : SlotStatus.Available,

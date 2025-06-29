@@ -27,7 +27,7 @@ public class CreatePatientFoodActivityHandler(
             await client.GetResponse<PatientProfileExistenceResponse>(
                 new PatientProfileExistenceRequest(request.PatientProfileId), cancellationToken);
 
-        if (!response.Message.IsExist) throw new LifeStylesNotFoundException("PatientProfile", request.PatientProfileId);
+        if (!response.Message.IsExist) throw new LifeStylesNotFoundException("Profile người dùng", request.PatientProfileId);
 
         var activities = request.Activities.Select(a => new Models.PatientFoodActivity
             {

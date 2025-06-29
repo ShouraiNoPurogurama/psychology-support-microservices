@@ -37,13 +37,16 @@ namespace Profile.API.EventHandlers
                  
                 await _dbContext.SaveChangesAsync();
                 
-                await _publishEndpoint.Publish(new SendEmailIntegrationEvent(request.ContactInfo.Email, "Patient Profile Created!",
-                    "Your profile has been created successfully."));
+                await _publishEndpoint.Publish(new SendEmailIntegrationEvent(
+                    request.ContactInfo.Email,
+                    "Hồ sơ EmoEase của bạn đã được tạo thành công",
+                    "Chúc mừng! Hồ sơ người dùng của bạn đã được tạo trên hệ thống EmoEase. Hãy đăng nhập để cập nhật thêm thông tin nếu cần."));
+
                 
                 await context.RespondAsync(new CreatePatientProfileResponse(
                     newProfile.Id,
                     true,
-                    "Patient profile created successfully."
+                    "Hồ sơ người dùng đã được tạo thành công."
                 ));
             }
             catch (Exception ex)
@@ -51,8 +54,7 @@ namespace Profile.API.EventHandlers
                 await context.RespondAsync(new CreatePatientProfileResponse(
                     Guid.Empty,
                     false,
-                    $"Failed to create patient profile: {ex.Message}"
-                ));
+                    $"Không thể tạo hồ sơ người dùng: {ex.Message}"));
                 return;
             }
         }

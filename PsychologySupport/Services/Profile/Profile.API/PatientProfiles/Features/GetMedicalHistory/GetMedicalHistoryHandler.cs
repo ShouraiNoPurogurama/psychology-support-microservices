@@ -1,4 +1,5 @@
-﻿using Profile.API.MentalDisorders.Dtos;
+﻿using Profile.API.Exceptions;
+using Profile.API.MentalDisorders.Dtos;
 using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.GetMedicalHistory;
@@ -26,9 +27,9 @@ public class GetMedicalHistoryHandler : IRequestHandler<GetMedicalHistoryQuery, 
             .ThenInclude(mh => mh.PhysicalSymptoms)
             .FirstOrDefaultAsync(p => p.Id == request.PatientId, cancellationToken);
 
-        if (patient is null) throw new KeyNotFoundException("Patient not found.");
+        if (patient is null) throw new ProfileNotFoundException(request.PatientId);
 
-        if (patient.MedicalHistory is null) throw new KeyNotFoundException("Medical history not found.");
+        if (patient.MedicalHistory is null) throw new KeyNotFoundException($"Không tìm thấy hồ sơ y tế cho người dùng {request.PatientId}");
 
         var medicalHistoryDto = new MedicalHistoryDto(
             patient.MedicalHistory.Description,

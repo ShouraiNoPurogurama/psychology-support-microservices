@@ -28,7 +28,7 @@ namespace Profile.API.PatientProfiles.Features.GetMedicalRecord
                 .ThenInclude(md => md.MentalDisorder)
                 .FirstOrDefaultAsync(m => m.Id == request.MedicalRecordId, cancellationToken);
 
-            if (medicalRecord is null) throw new KeyNotFoundException("Medical record not found.");
+            if (medicalRecord is null) throw new KeyNotFoundException($"Không tìm thấy hồ sơ y tế {request.MedicalRecordId}");
 
             var medicalRecordDto = medicalRecord.Adapt<MedicalRecordDto>();
 

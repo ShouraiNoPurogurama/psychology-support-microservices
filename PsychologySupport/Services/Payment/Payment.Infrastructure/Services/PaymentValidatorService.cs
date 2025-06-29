@@ -20,7 +20,7 @@ public class PaymentValidatorService(
     {
         if (paymentMethod != PaymentMethodName.VNPay)
         {
-            throw new BadRequestException("Invalid payment method");
+            throw new BadRequestException("Phương thức thanh toán không hợp lệ.");
         }
     }
 
@@ -28,7 +28,7 @@ public class PaymentValidatorService(
     {
         if (paymentMethod != PaymentMethodName.PayOS)
         {
-            throw new BadRequestException("Invalid payment method");
+            throw new BadRequestException("Phương thức thanh toán không hợp lệ.");
         }
     }
 
@@ -57,7 +57,7 @@ public class PaymentValidatorService(
 
         if (!patient.Message.IsExist)
         {
-            throw new BadRequestException("Patient not found");
+            throw new BadRequestException("Không tìm thấy hồ sơ người dùng.");
         }
     }
 
@@ -71,7 +71,7 @@ public class PaymentValidatorService(
 
         if (!validationResult.Message.IsSuccess)
         {
-            throw new BadRequestException(string.Join(", ", validationResult.Message.Errors));
+            throw new BadRequestException("Dữ liệu không hợp lệ: " + string.Join(", ", validationResult.Message.Errors));
         }
     }
 
@@ -82,7 +82,7 @@ public class PaymentValidatorService(
 
         if (!validationResult.Message.IsSuccess)
         {
-            throw new BadRequestException(string.Join(", ", validationResult.Message.Errors));
+            throw new BadRequestException("Dữ liệu không hợp lệ: " + string.Join(", ", validationResult.Message.Errors));
         }
     }
 
@@ -100,7 +100,7 @@ public class PaymentValidatorService(
 
         if (!validationResult.Message.IsSuccess)
         {
-            throw new BadRequestException(string.Join(", ", validationResult.Message.Errors));
+            throw new BadRequestException("Dữ liệu không hợp lệ: " + string.Join(", ", validationResult.Message.Errors));
         }
     }
 }

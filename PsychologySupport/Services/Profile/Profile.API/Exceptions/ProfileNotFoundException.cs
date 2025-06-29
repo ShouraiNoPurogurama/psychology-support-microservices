@@ -6,7 +6,11 @@ public class ProfileNotFoundException : NotFoundException
     {
     }
 
-    public ProfileNotFoundException(string name, Guid id) : base($"Entity \"{name}\" with Id {id} was not found.")
+    public ProfileNotFoundException(string name, Guid id) : base($"Không tìm thấy hồ sơ \"{name}\" với Id là {id}.")
+    {
+    }
+    
+    public ProfileNotFoundException(Guid id) : base($"Không tìm thấy hồ sơ với chữ ID là {id}.")
     {
     }
 }

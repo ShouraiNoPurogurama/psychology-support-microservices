@@ -134,7 +134,8 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
 
         if (promotionType is null)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, "Promotion type not found"));
+            throw new RpcException(new Status(StatusCode.NotFound, $"Không tìm thấy loại khuyến mãi: {request.PromotionTypeId}."));
+
         }
 
         promotion.Id = Guid.NewGuid().ToString();
@@ -169,7 +170,7 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
         validator.ValidateUpdatePromotionRequest(request);
 
         var promotion = await dbContext.Promotions.FindAsync(request.PromotionId)
-                        ?? throw new RpcException(new Status(StatusCode.NotFound, "Promotion not found"));
+                        ?? throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy khuyến mãi."));
 
         promotion.EffectiveDate = request.StartDate.ToDateTime();
         promotion.EndDate = request.EndDate.ToDateTime();
@@ -261,7 +262,7 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
     {
         var promoCode = await dbContext.PromoCodes
                             .FindAsync(request.PromoCodeId)
-                        ?? throw new RpcException(new Status(StatusCode.NotFound, "Promo code not found"));
+                        ?? throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy mã khuyến mãi."));
 
         promoCode.IsActive = false;
 
@@ -277,7 +278,7 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
     {
         var promoCode = await dbContext.GiftCodes
                             .FindAsync(request.GiftCodeId)
-                        ?? throw new RpcException(new Status(StatusCode.NotFound, "Gift code not found"));
+                        ?? throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy mã quà tặng."));
 
         promoCode.IsActive = false;
 
@@ -345,7 +346,7 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
 
         if (promotion == null)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, "Promotion not found"));
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy khuyến mãi."));
         }
 
         var promotionDto = promotion.Adapt<PromotionDto>();

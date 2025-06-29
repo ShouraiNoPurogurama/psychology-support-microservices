@@ -20,9 +20,8 @@ public class SubscriptionPaymentCompletedEventHandler(
 
         var activateSubscriptionEvent = new SubscriptionPaymentSuccessIntegrationEvent(notification.SubscriptionId);
 
-        var sendEmailEvent = new SendEmailIntegrationEvent(notification.PatientEmail, "Subscription Activated",
-            "Your subscription has been activated successfully.");
-        
+        var sendEmailEvent = new SendEmailIntegrationEvent(notification.PatientEmail,  "Gói đăng ký đã được kích hoạt",
+            "Gói đăng ký của bạn đã được kích hoạt thành công.");
         var userDataResponse =
             await authClient.GetResponse<GetUserDataResponse>(new GetUserDataRequest(null, notification.PatientEmail),
                 cancellationToken);
@@ -32,7 +31,8 @@ public class SubscriptionPaymentCompletedEventHandler(
         if (FCMTokens.Any())
         {
             var sendMobilePushNotificationEvent = new SendMobilePushNotificationIntegrationEvent(
-                FCMTokens, "Subscription Activated", "Your subscription has been activated successfully.");
+                FCMTokens,  "Gói đăng ký đã được kích hoạt",
+                "Gói đăng ký của bạn đã được kích hoạt thành công.");
 
             await publishEndpoint.Publish(sendMobilePushNotificationEvent, cancellationToken);
         }

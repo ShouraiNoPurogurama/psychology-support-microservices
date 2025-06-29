@@ -69,7 +69,7 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
         }
         else
         {
-            throw new InvalidOperationException("Payment must have either a subscription or a booking associated.");
+            throw new InvalidOperationException("Xử lý thanh toán thất bại. Giao dịch thanh toán phải liên kết với ít nhất một gói đăng ký hoặc một đặt lịch.");
         }
 
         var paymentInfo = await _payOSService.GetPaymentLinkInformationAsync(paymentCode);
@@ -100,7 +100,7 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
                     break;
 
                 default:
-                    throw new BadRequestException($"Unhandled payment status from PayOS: {status}");
+                    throw new BadRequestException($"Trạng thái thanh toán từ PayOS không được xử lý: {{status}}");
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);

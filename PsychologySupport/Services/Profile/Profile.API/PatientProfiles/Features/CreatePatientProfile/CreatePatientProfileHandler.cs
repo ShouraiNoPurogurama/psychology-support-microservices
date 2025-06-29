@@ -25,7 +25,7 @@ public class CreatePatientProfileHandler : ICommandHandler<CreatePatientProfileC
             var dto = request.PatientProfileCreate;
 
             if (_context.PatientProfiles.Any(p => p.UserId == dto.UserId))
-                throw new BadRequestException("Patient profile already exists.");
+                throw new BadRequestException("Hồ sơ người dùng này đã tồn tại trong hệ thống.");
 
             var patientProfile = PatientProfile.Create(
                 dto.UserId,
@@ -47,9 +47,8 @@ public class CreatePatientProfileHandler : ICommandHandler<CreatePatientProfileC
                 patientProfile.Gender,
                 patientProfile.ContactInfo.PhoneNumber,
                 patientProfile.ContactInfo.Email,
-                "Patient profile created successfully.",
-                "Hello world"
-            );
+                "Hồ sơ EmoEase của bạn đã được tạo thành công",
+                "Chúc mừng! Hồ sơ bệnh nhân của bạn đã được tạo trên hệ thống EmoEase. Hãy đăng nhập để cập nhật thêm thông tin nếu cần.");
 
             await _publishEndpoint.Publish(patientProfileCreatedEvent, cancellationToken);
 
@@ -57,7 +56,7 @@ public class CreatePatientProfileHandler : ICommandHandler<CreatePatientProfileC
         }
         catch (DbUpdateException ex)
         {
-            throw new Exception($"Database error: {ex.InnerException?.Message}", ex);
+            throw new Exception($"Lỗi kết nối database: {ex.InnerException?.Message}", ex);
         }
     }
 }

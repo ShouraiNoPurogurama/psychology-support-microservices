@@ -28,7 +28,7 @@ namespace Scheduling.API.Features.Schedule.ImportSchedule
 
             if (scheduleDto == null)
             {
-                throw new Exception("Invalid JSON data");
+                throw new Exception("Dữ liệu từ JSON không hợp lệ");
             }
             
             

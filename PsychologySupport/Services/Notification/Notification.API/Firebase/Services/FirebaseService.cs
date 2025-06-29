@@ -1,7 +1,6 @@
 ﻿using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
-using Mapster;
 using Notification.API.Firebase.ServiceContracts;
 
 namespace Notification.API.Firebase.Services;

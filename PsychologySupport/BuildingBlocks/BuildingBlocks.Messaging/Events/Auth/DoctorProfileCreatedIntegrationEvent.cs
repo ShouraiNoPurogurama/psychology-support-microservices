@@ -19,7 +19,7 @@ namespace BuildingBlocks.Messaging.Events.Auth
         string Password
         ) : SendEmailIntegrationEvent(
             Email,
-            "Welcome to Psychology Support",
-            $"Dear {FullName},\n\nYour account has been created.\n\nLogin: {Email}\nPassword: {Password}\n\nPlease change your password after logging in."
+            "Chào mừng bạn đến với EmoEase",
+            $"Xin chào {FullName},\n\nTài khoản của bạn đã được tạo thành công.\n\nTên đăng nhập: {Email}\nMật khẩu: {Password}\n\nVui lòng đổi mật khẩu sau khi đăng nhập."
     );
 }

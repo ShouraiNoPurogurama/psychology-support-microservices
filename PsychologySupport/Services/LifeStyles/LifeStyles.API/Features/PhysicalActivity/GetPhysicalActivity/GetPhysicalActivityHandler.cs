@@ -18,7 +18,7 @@ public class GetPhysicalActivityHandler(LifeStylesDbContext context)
     {
         var activity = await context.PhysicalActivities
                            .FirstOrDefaultAsync(pa => pa.Id == request.Id, cancellationToken)
-                       ?? throw new NotFoundException("Physical Activity", request.Id);
+                       ?? throw new NotFoundException("Hoạt động Thể Chất", request.Id);
 
         var activityDto = activity.Adapt<PhysicalActivityDto>();
 

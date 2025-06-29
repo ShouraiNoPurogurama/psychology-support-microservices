@@ -23,7 +23,7 @@ public class ValidateBookingRequestHandler(
         var booking = await dbContext.Bookings.FindAsync(request.BookingId);
         if (booking == null)
         {
-            errors.Add("Booking not found");
+            errors.Add("Không tìm thấy lịch hẹn tương ứng.\n");
 
             await context.RespondAsync(ValidateBookingResponse.Failed(errors));
             return;
@@ -31,22 +31,22 @@ public class ValidateBookingRequestHandler(
 
         if (request.PatientId != booking.PatientId)
         {
-            errors.Add("PatientId not match");
+            errors.Add("Tài khoản người dùng không khớp với lịch hẹn.");
         }
 
         if (request.DoctorId != booking.DoctorId)
         {
-            errors.Add("DoctorId not match");
+            errors.Add("Bác sĩ không đúng với lịch hẹn đã chọn.");
         }
 
         if (request.Date != booking.Date || request.StartTime != booking.StartTime)
         {
-            errors.Add("Booking time does not match");
+            errors.Add("Thời gian hẹn không trùng khớp với thông tin đặt lịch.");
         }
 
         if (request.Duration != booking.Duration)
         {
-            errors.Add("Booking duration does not match");
+            errors.Add("Thời lượng khám không khớp với thông tin lịch hẹn.");
         }
 
         if (!string.IsNullOrWhiteSpace(request.PromoCode))
@@ -59,7 +59,7 @@ public class ValidateBookingRequestHandler(
 
             if (promotion.PromoCode is null)
             {
-                errors.Add("Promotion code is not valid");
+                errors.Add("Mã khuyến mãi không hợp lệ hoặc đã hết hạn.\n");
             }
         }
 
@@ -75,7 +75,7 @@ public class ValidateBookingRequestHandler(
 
             if (appliedGift is null)
             {
-                errors.Add("Gift code is not valid");
+                errors.Add("Mã quà tặng không hợp lệ hoặc không thuộc về người dùng.");
             }
         }
 
@@ -85,7 +85,7 @@ public class ValidateBookingRequestHandler(
 
         if (finalPrice != request.FinalPrice)
         {
-            errors.Add("Final price is not valid");
+            errors.Add("Giá cuối cùng không hợp lệ. Vui lòng kiểm tra lại khuyến mãi và mã quà tặng.");
         }
 
         switch (errors.Count == 0)

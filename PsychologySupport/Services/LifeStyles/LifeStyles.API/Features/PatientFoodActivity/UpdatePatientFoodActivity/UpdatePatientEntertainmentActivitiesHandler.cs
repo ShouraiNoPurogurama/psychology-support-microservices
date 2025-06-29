@@ -34,7 +34,7 @@ public class UpdatePatientFoodActivitiesHandler
             await _client.GetResponse<PatientProfileExistenceResponse>(
                 new PatientProfileExistenceRequest(request.PatientProfileId), cancellationToken);
 
-        if (!response.Message.IsExist) throw new LifeStylesNotFoundException("PatientProfile", request.PatientProfileId);
+        if (!response.Message.IsExist) throw new LifeStylesNotFoundException("Profile người dùng", request.PatientProfileId);
 
         var existingActivities = _context.PatientFoodActivities
             .Where(x => x.PatientProfileId == request.PatientProfileId);

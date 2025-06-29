@@ -26,7 +26,7 @@ namespace Scheduling.API.Features.Schedule.CreateScheduleFeedback
             var schedule = await _context.Schedules.FindAsync([request.ScheduleId], cancellationToken: cancellationToken);
             if (schedule == null)
             {
-                throw new ScheduleNotFoundException(nameof(Models.Schedule), request.ScheduleId);
+                throw new ScheduleNotFoundException(request.ScheduleId);
             }
 
             var feedback = new ScheduleFeedback

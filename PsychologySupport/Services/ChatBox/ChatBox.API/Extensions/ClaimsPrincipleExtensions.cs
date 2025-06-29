@@ -8,7 +8,7 @@ public static class ClaimsPrincipalExtensions
     public static string GetUserId(this ClaimsPrincipal user)
     {
         var result = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value ??
-                     throw new UnauthorizedAccessException("User ID not found.");
+                     throw new UnauthorizedAccessException("Không tìm thấy Claims userId.");
         return result;
     }
 

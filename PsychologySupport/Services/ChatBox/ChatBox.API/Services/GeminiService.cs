@@ -195,7 +195,7 @@ public class GeminiService(
     private static void ValidatePaginationRequest(int pageIndex, int pageSize)
     {
         if (pageIndex <= 0 || pageSize <= 0)
-            throw new ArgumentException("Invalid pagination parameters.");
+            throw new ArgumentException("Tham số phân trang không hợp lệ.");
     }
 
     public async Task<AIMessage> AddMessageAsync(Guid sessionId, Guid userId, string content, bool senderIsEmo)
@@ -242,7 +242,7 @@ public class GeminiService(
             .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.IsActive == true);
 
         if (session == null)
-            throw new UnauthorizedAccessException("Session not found or not yours.");
+            throw new UnauthorizedAccessException("Không tìm thấy phiên trò chuyện hoặc phiên trò chuyện này không thuộc về người dùng.");
     }
 
     private GeminiRequestDto BuildGeminiMessagePayload(List<GeminiContentDto> contents)

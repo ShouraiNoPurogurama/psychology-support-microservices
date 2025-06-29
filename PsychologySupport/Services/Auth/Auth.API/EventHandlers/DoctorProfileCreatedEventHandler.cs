@@ -63,8 +63,8 @@ public class DoctorProfileCreatedEventHandler : IConsumer<DoctorProfileCreatedRe
 
         await _publishEndpoint.Publish(new SendEmailIntegrationEvent(
             message.Email,
-            "Welcome to Psychology Support",
-            $"Dear {message.FullName},\n\nYour account has been created.\n\nLogin: {message.Email}\nPassword: {password}\n\nPlease change your password after logging in."));
+            "Chào mừng bạn đến với EmoEase",
+            $"Xin chào {message.FullName},\n\nTài khoản của bạn đã được tạo thành công.\n\nTên đăng nhập: {message.Email}\nMật khẩu: {message.Password}\n\nVui lòng đổi mật khẩu sau khi đăng nhập."));
 
     }
 

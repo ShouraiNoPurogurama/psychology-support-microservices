@@ -23,7 +23,7 @@ public class GetPatientEntertainmentActivityHandler(LifeStylesDbContext context)
             .ToListAsync(cancellationToken);
 
         if (!activities.Any())
-            throw new LifeStylesNotFoundException("Patient Entertainment Activity", request.PatientProfileId);
+            throw new LifeStylesNotFoundException("Hoạt động giải trí", request.PatientProfileId);
 
         var activitiesDto = activities.Adapt<IEnumerable<Models.PatientEntertainmentActivity>>();
 

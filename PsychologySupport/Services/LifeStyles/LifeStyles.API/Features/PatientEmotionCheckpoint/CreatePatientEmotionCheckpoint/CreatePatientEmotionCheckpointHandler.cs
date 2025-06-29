@@ -25,11 +25,11 @@ public class CreatePatientEmotionCheckpointValidator
     {
         RuleFor(x => x.Emotions)
             .NotEmpty()
-            .WithMessage("At least one emotion must be provided.");
+            .WithMessage("Phải cung cấp ít nhất một cảm xúc.");
 
         RuleFor(x => x.Emotions)
             .Must(emotions => emotions.GroupBy(e => e.EmotionId).All(g => g.Count() == 1))
-            .WithMessage("Duplicate emotion(s) detected.");
+            .WithMessage("Phát hiện cảm xúc bị trùng lặp.");
 
         RuleFor(x => x.Emotions)
             .Must(emotions =>
@@ -37,11 +37,11 @@ public class CreatePatientEmotionCheckpointValidator
                     .Where(e => e.Rank.HasValue)
                     .GroupBy(e => e.Rank)
                     .All(g => g.Count() == 1))
-            .WithMessage("Duplicate ranks found. Each emotion must have a unique rank.");
+            .WithMessage("Phát hiện thứ hạng trùng lặp. Mỗi cảm xúc phải có một thứ hạng riêng.");
         
         RuleFor(x => x.LogDate)
             .LessThanOrEqualTo(DateTimeOffset.UtcNow)
-            .WithMessage("Log date cannot be in the future.");
+            .WithMessage("Ngày ghi nhận Log không được ở trong tương lai.");
     }
 }
 
@@ -62,7 +62,7 @@ public class CreatePatientEmotionCheckpointHandler(LifeStylesDbContext dbContext
 
         var invalidIds = emotionIds.Except(existingEmotionIds).ToList();
         if (invalidIds.Count != 0)
-            throw new ValidationException($"Invalid EmotionId(s): {string.Join(", ", invalidIds)}");
+            throw new ValidationException($"Emotion Id(s) không hợp lệ: {string.Join(", ", invalidIds)}");
 
         
         var checkpoint = new Models.PatientEmotionCheckpoint

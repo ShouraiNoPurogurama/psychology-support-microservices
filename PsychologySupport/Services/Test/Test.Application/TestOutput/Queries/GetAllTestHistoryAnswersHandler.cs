@@ -28,7 +28,7 @@ public class GetAllTestHistoryAnswersHandler
         var testResult = await _context.TestResults
                              .Include(t => t.SelectedOptions)
                              .FirstOrDefaultAsync(t => t.Id == request.TestResultId, cancellationToken)
-                         ?? throw new NotFoundException("Test result not found");
+                         ?? throw new NotFoundException("Không tìm thấy kết quả bài Test", request.TestResultId);
 
         var testQuestionIds = testResult.SelectedOptions
             .Select(o => o.QuestionId)

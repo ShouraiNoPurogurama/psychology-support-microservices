@@ -22,7 +22,7 @@ public class GetPatientProfileHandler(ProfileDbContext context) : IQueryHandler<
                                  .Include(p => p.MedicalRecords)
                                  .ThenInclude(m => m.SpecificMentalDisorders)
                                  .FirstOrDefaultAsync(p => p.Id.Equals(request.Id), cancellationToken)
-                             ?? throw new ProfileNotFoundException("Patient profile", request.Id);
+                             ?? throw new ProfileNotFoundException( request.Id);
 
         var patientProfileDto = patientProfile.Adapt<GetPatientProfileDto>();
 

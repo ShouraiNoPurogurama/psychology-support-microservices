@@ -42,7 +42,7 @@ namespace Auth.API.Services
             }
             catch (Exception ex)
             {
-                throw new UnauthorizedAccessException("Invalid Firebase token.", ex);
+                throw new UnauthorizedAccessException("Firebase token không hợp lệ: ", ex);
             }
 
             string firebaseUserId = decodedToken.Uid;
@@ -67,7 +67,7 @@ namespace Auth.API.Services
                 if (!result.Succeeded)
                 {
                     var errors = string.Join("; ", result.Errors.Select(e => e.Description));
-                    throw new BadRequestException($"Failed to create user: {errors}");
+                    throw new BadRequestException($"Tạo tài khoản người dùng thất bại: {errors}");
                 }
 
                 await userManager.AddToRoleAsync(user, Roles.UserRole);
