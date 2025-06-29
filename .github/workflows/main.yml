@@ -51,6 +51,10 @@ jobs:
           ${{ secrets.RSA_PUBLIC_KEYS }}
           EOF
 
+          cat <<EOF > Services/Translation/Translation.API/RSAKeys/PublicKey.xml
+          ${{ secrets.RSA_PUBLIC_KEYS }}
+          EOF
+
           # Inject appsettings.json from GitHub secrets safely
           cat <<EOF > Services/Auth/Auth.API/appsettings.json
           ${{ secrets.APPSETTINGS_AUTH }}
@@ -98,6 +102,10 @@ jobs:
 
           cat <<EOF > Services/Subscription/Subscription.API/appsettings.json
           ${{ secrets.APPSETTINGS_SUBSCRIPTION }}
+          EOF
+
+          cat <<EOF > Services/Translation/Translation.API/appsettings.json
+          ${{ secrets.APPSETTINGS_Translation }}
           EOF
 
           cat <<EOF > Services/Test/Test.API/appsettings.json
