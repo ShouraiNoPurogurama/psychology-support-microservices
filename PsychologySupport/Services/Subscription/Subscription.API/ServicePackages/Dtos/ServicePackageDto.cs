@@ -1,4 +1,6 @@
-﻿public record ServicePackageDto(
+﻿namespace Subscription.API.ServicePackages.Dtos;
+
+public record ServicePackageDto(
     Guid Id,
     string Name,
     string Description,

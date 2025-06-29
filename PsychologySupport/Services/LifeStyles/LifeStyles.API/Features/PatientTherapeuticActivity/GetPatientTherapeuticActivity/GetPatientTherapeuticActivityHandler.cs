@@ -20,6 +20,7 @@ public class GetPatientTherapeuticActivityHandler(LifeStylesDbContext context)
         var activities = await context.PatientTherapeuticActivities
             .Where(ppa => ppa.PatientProfileId == request.PatientProfileId)
             .ToListAsync(cancellationToken);
+        
 
         var activitiesDto = activities.Adapt<IEnumerable<Models.PatientTherapeuticActivity>>();
 
