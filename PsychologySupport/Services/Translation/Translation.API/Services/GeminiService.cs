@@ -25,23 +25,38 @@ public class GeminiService
         if (textKeyToEnglish is null || textKeyToEnglish.Count == 0)
             return new();
 
-        var keys = textKeyToEnglish.Keys.ToList();
+        const int batchSize = 20;
+        var allKeys = textKeyToEnglish.Keys.ToList();
+        var result = new Dictionary<string, string>();
 
-        var prompt = BuildTranslationPrompt(textKeyToEnglish);
+        for (int i = 0; i < allKeys.Count; i += batchSize)
+        {
+            var batch = allKeys.Skip(i).Take(batchSize)
+                .ToDictionary(key => key, key => textKeyToEnglish[key]);
 
-        var content = new GeminiContentDto("user", [new GeminiContentPartDto(prompt)]);
+            var prompt = BuildTranslationPrompt(batch);
+            var content = new GeminiContentDto("user", [new GeminiContentPartDto(prompt)]);
 
-        var payload = new GeminiRequestDto(
-            Contents: [content],
-            SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(
-                "Bạn là trình dịch thuật tiếng Anh sang tiếng Việt chuyên nghiệp. Dịch ngắn gọn, dễ hiểu, đúng ngữ cảnh, không thêm chú thích."
-            )),
-            GenerationConfig: new GeminiGenerationConfigDto(ResponseSchema: BuildTranslationSchema(keys))
-        );
+            var payload = new GeminiRequestDto(
+                Contents: [content],
+                SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(
+                    "Bạn là trình dịch thuật tiếng Anh sang tiếng Việt chuyên nghiệp. Dịch ngắn gọn, dễ hiểu, đúng ngữ cảnh, không thêm chú thích."
+                )),
+                GenerationConfig: new GeminiGenerationConfigDto(ResponseSchema: BuildTranslationSchema(batch.Keys))
+            );
 
-        var responseText = await CallGeminiAPIAsync(payload);
-        return JsonConvert.DeserializeObject<Dictionary<string, string>>(responseText)!;
+            var responseText = await CallGeminiAPIAsync(payload);
+            var partialDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseText)!;
+
+            foreach (var kv in partialDict)
+            {
+                result[kv.Key] = kv.Value;
+            }
+        }
+
+        return result;
     }
+
 
     /// <summary>
     /// Tạo prompt từ cặp key-value (TextKey: English)
@@ -50,7 +65,7 @@ public class GeminiService
     {
         var list = string.Join("\n", keyToValue.Select(kv => $"- {kv.Key}: {kv.Value}"));
         return $"""
-            Bạn là trình dịch tiếng Anh sang tiếng Việt chuyên nghiệp cho ứng dụng doanh nghiệp.
+            Bạn là trình dịch tiếng Anh sang tiếng Việt chuyên nghiệp cho ứng dụng doanh nghiệp về chữa lành tâm lý.
 
             Dưới đây là danh sách các cặp khóa và giá trị cần dịch (key là định danh, value là nội dung tiếng Anh). 
             Hãy dịch phần value sang tiếng Việt, giữ nguyên key trong kết quả.
