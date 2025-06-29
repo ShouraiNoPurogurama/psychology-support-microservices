@@ -2,10 +2,11 @@
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Messaging.MassTransit;
-using Microsoft.AspNetCore.SignalR;
+using Carter;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
+using Translation.API.Data;
 using Translation.API.Models;
 using Translation.API.Services;
 
@@ -17,13 +18,13 @@ public static class ApplicationServiceExtensions
     {
         services.AddControllers();
         
-        // services.AddCarter();
+        services.AddCarter();
 
         ConfigureSwagger(services);
 
         ConfigureCors(services);
         
-        // AddDatabase(services, config);
+        AddDatabase(services, config);
 
         AddServiceDependencies(services);
         
@@ -113,18 +114,18 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
     }
 
-    // private static void AddDatabase(IServiceCollection services, IConfiguration config)
-    // {
-    //     var connectionString = config.GetConnectionString("ChatBoxDb");
-    //
-    //     services.AddDbContext<ChatBoxDbContext>((sp, opt) =>
-    //     {
-    //         opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-    //         opt.UseNpgsql(connectionString);
-    //     });
-    //
-    //     services.AddScoped<DbContext, ChatBoxDbContext>();
-    // }
+    private static void AddDatabase(IServiceCollection services, IConfiguration config)
+    {
+        var connectionString = config.GetConnectionString("TranslationDb");
+    
+        services.AddDbContext<TranslationDbContext>((sp, opt) =>
+        {
+            opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+            opt.UseNpgsql(connectionString);
+        });
+    
+        services.AddScoped<DbContext, TranslationDbContext>();
+    }
     
     private static void ConfigureGemini(IServiceCollection services, IConfiguration config)
     {
