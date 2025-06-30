@@ -1,4 +1,6 @@
-﻿using Mapster;
+﻿using BuildingBlocks.Messaging.Events.Translation;
+using Mapster;
+using Profile.API.Extensions;
 using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.GetJobByIndustryId
@@ -9,10 +11,12 @@ namespace Profile.API.PatientProfiles.Features.GetJobByIndustryId
     public class GetJobByIndustryIdHandler : IQueryHandler<GetJobByIndustryIdQuery, GetJobByIndustryIdResult>
     {
         private readonly ProfileDbContext _context;
+        private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
 
-        public GetJobByIndustryIdHandler(ProfileDbContext context)
+        public GetJobByIndustryIdHandler(ProfileDbContext context, IRequestClient<GetTranslatedDataRequest> translationClient)
         {
             _context = context;
+            _translationClient = translationClient;
         }
 
         public async Task<GetJobByIndustryIdResult> Handle(GetJobByIndustryIdQuery request, CancellationToken cancellationToken)
@@ -22,8 +26,16 @@ namespace Profile.API.PatientProfiles.Features.GetJobByIndustryId
                 .ToListAsync(cancellationToken);
 
             var jobDtos = jobs.Adapt<List<JobDto>>();
+            
+            var translatedJobs = await jobDtos.TranslateEntitiesAsync(nameof(Models.Job),
+                _translationClient,
+                j => j.Id.ToString(),
+                cancellationToken,
+                j => j.JobTitle,
+                j => j.EducationLevel
+                );
 
-            return new GetJobByIndustryIdResult(jobDtos);
+            return new GetJobByIndustryIdResult(translatedJobs);
         }
     }
 }

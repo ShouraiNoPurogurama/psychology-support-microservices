@@ -1,8 +1,11 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Messaging.Events.Translation;
 using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
 using LifeStyles.API.Exceptions;
+using LifeStyles.API.Extensions;
 using Mapster;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.Features.PatientImprovementGoal.GetPatientImprovementGoal;
@@ -12,7 +15,7 @@ public record GetPatientImprovementGoalQuery(Guid PatientProfileId, DateOnly Dat
 
 public record GetPatientImprovementGoalResult(List<PatientImprovementGoalDto> Goals);
 
-public class GetPatientImprovementGoalHandler(LifeStylesDbContext context)
+public class GetPatientImprovementGoalHandler(LifeStylesDbContext context, IRequestClient<GetTranslatedDataRequest> translationClient)
     : IQueryHandler<GetPatientImprovementGoalQuery, GetPatientImprovementGoalResult>
 {
     public async Task<GetPatientImprovementGoalResult> Handle(
@@ -34,7 +37,15 @@ public class GetPatientImprovementGoalHandler(LifeStylesDbContext context)
             .ToListAsync(cancellationToken);
         
         var result = goals.Adapt<List<PatientImprovementGoalDto>>();
-
-        return new GetPatientImprovementGoalResult(result);
+        
+        var translatedResult = await result.TranslateEntitiesAsync(
+            nameof(Models.PatientImprovementGoal),
+            translationClient,
+            x => x.GoalId.ToString(),
+            cancellationToken,
+            x => x.GoalName);
+        
+        
+        return new GetPatientImprovementGoalResult(translatedResult);
     }
 }

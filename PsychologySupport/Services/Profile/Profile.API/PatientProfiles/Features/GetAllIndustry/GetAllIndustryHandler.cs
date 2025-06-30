@@ -1,6 +1,8 @@
-﻿using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Messaging.Events.Translation;
+using BuildingBlocks.Pagination;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
+using Profile.API.Extensions;
 using Profile.API.PatientProfiles.Dtos;
 using Profile.API.PatientProfiles.Models;
 
@@ -18,10 +20,12 @@ namespace Profile.API.PatientProfiles.Features.GetAllIndustry
     public class GetAllIndustryHandler : IRequestHandler<GetAllIndustryQuery, GetAllIndustryResult>
     {
         private readonly ProfileDbContext _context;
+        private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
 
-        public GetAllIndustryHandler(ProfileDbContext context)
+        public GetAllIndustryHandler(ProfileDbContext context, IRequestClient<GetTranslatedDataRequest> translationClient)
         {
             _context = context;
+            _translationClient = translationClient;
         }
 
         public async Task<GetAllIndustryResult> Handle(GetAllIndustryQuery request, CancellationToken cancellationToken)
@@ -47,13 +51,20 @@ namespace Profile.API.PatientProfiles.Features.GetAllIndustry
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
 
-            var itemDtos = items.Adapt<IEnumerable<IndustryDto>>();
+            var itemDtos = items.Adapt<List<IndustryDto>>();
 
+            var translatedItems = await itemDtos.TranslateEntitiesAsync(nameof(Industry),
+                _translationClient,
+                i => i.Id.ToString(),
+                cancellationToken,
+                i => i.IndustryName
+            );
+            
             var result = new PaginatedResult<IndustryDto>(
                 request.PageIndex,
                 request.PageSize,
                 total,
-                itemDtos
+                translatedItems
             );
 
             return new GetAllIndustryResult(result);
