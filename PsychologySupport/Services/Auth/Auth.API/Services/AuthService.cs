@@ -39,7 +39,14 @@ public class AuthService(
 
         var user = registerRequest.Adapt<User>();
         user.Email = user.UserName = registerRequest.Email;
-
+        
+        var result = await _userManager.CreateAsync(user, registerRequest.Password);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(ie => ie.Description));
+            throw new InvalidDataException($"Đăng ký thất bại: {errors}");
+        }
+        
         var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         
         var baseUrl = configuration["Mail:ConfirmEmailUrl"]!;
@@ -49,13 +56,6 @@ public class AuthService(
             Uri.EscapeDataString(emailConfirmationToken),
             Uri.EscapeDataString(user.Email)
         );
-        
-        var result = await _userManager.CreateAsync(user, registerRequest.Password);
-        if (!result.Succeeded)
-        {
-            var errors = string.Join("; ", result.Errors.Select(ie => ie.Description));
-            throw new InvalidDataException($"Đăng ký thất bại: {errors}");
-        }
         
         var sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
             user.Email,
