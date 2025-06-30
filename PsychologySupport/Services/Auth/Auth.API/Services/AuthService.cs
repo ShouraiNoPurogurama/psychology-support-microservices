@@ -49,7 +49,7 @@ public class AuthService(
         
         var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         
-        var baseUrl = configuration["Mail:ConfirmEmailUrl"]!;
+        var baseUrl = configuration["Mail:ConfirmationUrl"]!;
 
         var url = string.Format(
             baseUrl,
