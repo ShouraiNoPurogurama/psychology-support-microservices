@@ -54,13 +54,19 @@ public class AuthController(
         return Ok(result);
     }
     
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        var result = await authService.ForgotPasswordAsync(request.Email);
+        return Ok(new { success = result, message = "Vui lòng kiểm tra email để đặt lại mật khẩu." });
+    }
+
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
         var result = await authService.ResetPasswordAsync(request);
-        return Ok(result);
+        return Ok(new { success = result, message = "Đặt lại mật khẩu thành công." });
     }
-
 
     [HttpPost("revoke-token")]
     public async Task<IActionResult> RevokeToken([FromBody] TokenApiRequest request)

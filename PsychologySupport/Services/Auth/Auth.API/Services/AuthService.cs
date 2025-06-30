@@ -211,17 +211,20 @@ public class AuthService(
 
         if (!await _userManager.IsEmailConfirmedAsync(user))
             throw new InvalidOperationException("Email chưa được xác nhận.");
-        
+
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-        var resetUrlTemplate = configuration["Mail:PasswordResetUrl"]!;
-        var callbackUrl = string.Format(resetUrlTemplate,
+
+        var resetUrlTemplate = configuration["Mail:PasswordResetUrl"]; 
+        var callbackUrl = string.Format(
+            resetUrlTemplate!,
             Uri.EscapeDataString(token),
-            Uri.EscapeDataString(email));
+            Uri.EscapeDataString(email)
+        );
 
         var sendEmailEvent = new SendEmailIntegrationEvent(
-            email,
+            user.Email,
             "Khôi phục mật khẩu",
-            $"Vui lòng nhấp vào liên kết để đặt lại mật khẩu: {callbackUrl}"
+            $"<p>Nhấn vào liên kết bên dưới để đặt lại mật khẩu:</p><a href='{callbackUrl}'>{callbackUrl}</a>"
         );
 
         await publishEndpoint.Publish(sendEmailEvent);
@@ -237,13 +240,20 @@ public class AuthService(
         if (!await _userManager.IsEmailConfirmedAsync(user))
             throw new InvalidOperationException("Email chưa được xác nhận.");
 
+        if (request.NewPassword != request.ConfirmPassword)
+            throw new InvalidOperationException("Mật khẩu xác nhận không khớp.");
+
         var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
 
-        if (result.Succeeded) return true;
-        
-        var errors = string.Join("; ", result.Errors.Select(e => e.Description));
-        throw new InvalidOperationException($"Reset mật khẩu thất bại: {errors}");
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($"Đặt lại mật khẩu thất bại: {errors}");
+        }
+
+        return true;
     }
+
 
 
     //public async Task<LoginResponse> RefreshAsync(TokenApiRequest tokenApiRequest)
