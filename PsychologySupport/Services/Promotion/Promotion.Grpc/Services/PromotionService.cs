@@ -399,4 +399,24 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
         };
     }
 
+    public override async Task<GetGiftCodeByPatientPromotionIdResponse> GetGiftCodeByPatientPromotionId(GetGiftCodeByPatientPromotionIdRequest request, ServerCallContext context)
+    {
+        validator.ValidateGuid(request.PatientId, "Patient Id");
+        validator.ValidateGuid(request.PromtotionId, "Promotion Id");
+
+        var giftCode = await dbContext.GiftCodes
+            .Include(g => g.Promotion)
+            .ThenInclude(p => p.PromotionType)
+            .Where(g => g.PatientId.Equals(request.PatientId.Trim())
+                        && g.Promotion.IsActive == true && g.PromotionId.Equals(request.PromtotionId.Trim()))
+            .ToListAsync();
+
+        var giftCodeDtos = giftCode.Adapt<RepeatedField<GiftCodeByCodeDto>>();
+
+        var response = new GetGiftCodeByPatientPromotionIdResponse();
+
+        response.GiftCodes.AddRange(giftCodeDtos);
+
+        return response;
+    }
 }

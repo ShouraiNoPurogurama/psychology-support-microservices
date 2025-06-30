@@ -8,9 +8,14 @@ namespace Subscription.API.UserSubscriptions.EventHandlers
     {
         private readonly PromotionService.PromotionServiceClient _promotionService;
 
-        public CreateGiftCodeEventHandler(PromotionService.PromotionServiceClient promotionService)
+        private readonly ILogger<CreateGiftCodeEventHandler> _logger;
+
+        public CreateGiftCodeEventHandler(
+            PromotionService.PromotionServiceClient promotionService,
+            ILogger<CreateGiftCodeEventHandler> logger)
         {
             _promotionService = promotionService;
+            _logger = logger;
         }
 
         public async Task Consume(ConsumeContext<CreateGiftCodeEvent> context)
@@ -26,8 +31,24 @@ namespace Subscription.API.UserSubscriptions.EventHandlers
 
                 var promotion = promotionResponse.Promotion;
 
-                // check xem patient đã có GiftCode của Promotion này chưa
-                // bổ sung
+                // Check Patient đã có GiftCode của Promotion này chưa
+                var checkGiftCodeResponse = await _promotionService.GetGiftCodeByPatientPromotionIdAsync(
+                    new GetGiftCodeByPatientPromotionIdRequest
+                    {
+                        PatientId = message.PatientId,
+                        PromtotionId = message.PromotionId
+                    }
+                );
+
+                if (checkGiftCodeResponse.GiftCodes.Count > 0)
+                {
+                    _logger.LogInformation(
+                        "Patient {PatientId} already has a gift code for promotion {PromotionId}. Skipping creation.",
+                        message.PatientId, message.PromotionId);
+                    return;
+                }
+
+                // bo sung tra ve message cho FE
 
                 var addGiftCodeRequest = new AddGiftCodesToPromotionRequest
                 {

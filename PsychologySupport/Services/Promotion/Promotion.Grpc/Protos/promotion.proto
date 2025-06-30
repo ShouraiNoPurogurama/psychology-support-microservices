@@ -22,6 +22,7 @@ service PromotionService {
   rpc ReactivateGiftCode(ReactivateGiftCodeRequest) returns (ReactivateGiftCodeResponse);
   rpc GetPromotionById(GetPromotionByIdRequest) returns (GetPromotionByIdResponse);
   rpc GetGiftCodeByCode(GetGiftCodeByCodeRequest) returns  (GetGiftCodeByCodeResponse);
+  rpc GetGiftCodeByPatientPromotionId(GetGiftCodeByPatientPromotionIdRequest) returns (GetGiftCodeByPatientPromotionIdResponse); //Get gift codes by patient id and promotion id
 }
 
 message GetPromotionsByServicePackageIdRequest {
@@ -227,4 +228,13 @@ message GetGiftCodeByCodeRequest {
 
 message GetGiftCodeByCodeResponse {
   GiftCodeByCodeDto giftCode = 1;
+}
+
+message GetGiftCodeByPatientPromotionIdRequest {
+  string patientId = 1;
+  string promtotionId = 2;
+}
+
+message GetGiftCodeByPatientPromotionIdResponse {
+  repeated GiftCodeByCodeDto giftCodes = 1;
 }
