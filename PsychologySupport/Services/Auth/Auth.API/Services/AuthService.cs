@@ -91,7 +91,7 @@ public class AuthService(
         if (!profileResponse.Message.Success)
             throw new InvalidDataException($"Patient profile creation failed: {profileResponse.Message.Message}");
 
-        // await publishEndpoint.Publish(sendEmailIntegrationEvent);
+        await publishEndpoint.Publish(sendEmailIntegrationEvent);
         
         return true;
     }
