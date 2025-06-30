@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.Messaging.Events.Notification;
 using BuildingBlocks.Messaging.Events.Profile;
 using Profile.API.PatientProfiles.Models;
+using System.IO;
 
 namespace Profile.API.EventHandlers
 {
@@ -9,11 +10,13 @@ namespace Profile.API.EventHandlers
     {
         private readonly ProfileDbContext _dbContext;
         private readonly IPublishEndpoint _publishEndpoint;
+        private readonly IWebHostEnvironment _env;
 
-        public CreatePatientProfileHandler(ProfileDbContext dbContext, IPublishEndpoint publishEndpoint)
+        public CreatePatientProfileHandler(ProfileDbContext dbContext, IPublishEndpoint publishEndpoint, IWebHostEnvironment env)
         {
             _dbContext = dbContext;
             _publishEndpoint = publishEndpoint;
+            _env = env;
         }
 
         public async Task Consume(ConsumeContext<CreatePatientProfileRequest> context)
@@ -37,12 +40,25 @@ namespace Profile.API.EventHandlers
                  
                 await _dbContext.SaveChangesAsync();
                 
+                //await _publishEndpoint.Publish(new SendEmailIntegrationEvent(
+                //    request.ContactInfo.Email,
+                //    "Hồ sơ EmoEase của bạn đã được tạo thành công",
+                //    "Chúc mừng! Hồ sơ người dùng của bạn đã được tạo trên hệ thống EmoEase. Hãy đăng nhập để cập nhật thêm thông tin nếu cần."));
+
+                var welcomeTemplatePath = Path.Combine(_env.ContentRootPath, "EmailTemplates", "welcomepatient.html");
+
+                var welcomeBody = RenderTemplate(welcomeTemplatePath, new Dictionary<string, string>
+                {
+                    ["LoginUrl"] = "https://www.emoease.vn/EMO/learnAboutEmo",
+                    ["Year"] = DateTime.UtcNow.Year.ToString()
+                });
+
+                // Gửi email sử dụng template đã render
                 await _publishEndpoint.Publish(new SendEmailIntegrationEvent(
                     request.ContactInfo.Email,
                     "Hồ sơ EmoEase của bạn đã được tạo thành công",
-                    "Chúc mừng! Hồ sơ người dùng của bạn đã được tạo trên hệ thống EmoEase. Hãy đăng nhập để cập nhật thêm thông tin nếu cần."));
+                    welcomeBody));
 
-                
                 await context.RespondAsync(new CreatePatientProfileResponse(
                     newProfile.Id,
                     true,
@@ -57,6 +73,16 @@ namespace Profile.API.EventHandlers
                     $"Không thể tạo hồ sơ người dùng: {ex.Message}"));
                 return;
             }
+        }
+
+        private string RenderTemplate(string templatePath, Dictionary<string, string> values)
+        {
+            var template = File.ReadAllText(templatePath);
+            foreach (var pair in values)
+            {
+                template = template.Replace($"{{{{{pair.Key}}}}}", pair.Value);
+            }
+            return template;
         }
     }
 

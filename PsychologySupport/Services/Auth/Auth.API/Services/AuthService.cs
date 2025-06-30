@@ -16,6 +16,7 @@ using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 
 namespace Auth.API.Services;
 
@@ -25,7 +26,8 @@ public class AuthService(
     ITokenService tokenService,
     IRequestClient<CreatePatientProfileRequest> _profileClient,
     AuthDbContext authDbContext,
-    IPublishEndpoint publishEndpoint
+    IPublishEndpoint publishEndpoint,
+    IWebHostEnvironment env
     ) : IAuthService
 {
     private const int LockoutTimeInMinutes = 15;
@@ -56,13 +58,20 @@ public class AuthService(
             Uri.EscapeDataString(emailConfirmationToken),
             Uri.EscapeDataString(user.Email)
         );
-        
+
+        var confirmTemplatePath = Path.Combine(env.ContentRootPath, "EmailTemplates", "AccountConfirmation.html");
+
+        var confirmBody = RenderTemplate(confirmTemplatePath, new Dictionary<string, string>
+        {
+            ["ConfirmUrl"] = url,
+            ["Year"] = DateTime.UtcNow.Year.ToString()
+        });
         var sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
             user.Email,
             "Xác nhận tài khoản",
-            $"Vui lòng xác nhận tài khoản của bạn bằng cách nhấp vào liên kết sau: {url}"
+            confirmBody
         );
-        
+
         // user.EmailConfirmed = true;
         user.PhoneNumberConfirmed = true;
 
@@ -206,6 +215,7 @@ public class AuthService(
 
     public async Task<bool> ForgotPasswordAsync(string email)
     {
+
         var user = await _userManager.FindByEmailAsync(email)
                    ?? throw new UserNotFoundException(email);
 
@@ -221,10 +231,16 @@ public class AuthService(
             Uri.EscapeDataString(email)
         );
 
+        var resetTemplatePath = Path.Combine(env.ContentRootPath,"EmailTemplates", "PasswordReset.html");
+        var resetBody = RenderTemplate(resetTemplatePath, new Dictionary<string, string>
+        {
+            ["ResetUrl"] = callbackUrl,
+            ["Year"] = DateTime.UtcNow.Year.ToString()
+        });
         var sendEmailEvent = new SendEmailIntegrationEvent(
             user.Email,
             "Khôi phục mật khẩu",
-            $"<p>Nhấn vào liên kết bên dưới để đặt lại mật khẩu:</p><a href='{callbackUrl}'>{callbackUrl}</a>"
+            resetBody
         );
 
         await publishEndpoint.Publish(sendEmailEvent);
@@ -467,6 +483,16 @@ public class AuthService(
 
         await authDbContext.SaveChangesAsync();
         return true;
+    }
+
+    private string RenderTemplate(string templatePath, Dictionary<string, string> values)
+    {
+        var template = File.ReadAllText(templatePath);
+        foreach (var pair in values)
+        {
+            template = template.Replace($"{{{{{pair.Key}}}}}", pair.Value);
+        }
+        return template;
     }
 
 }
