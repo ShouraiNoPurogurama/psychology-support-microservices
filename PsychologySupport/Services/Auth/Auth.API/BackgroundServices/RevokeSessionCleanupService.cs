@@ -29,8 +29,12 @@ namespace Auth.API.BackgroundServices
 
                     var cutoff = DateTimeOffset.UtcNow.AddMonths(-1);
                     var oldSessions = await dbContext.DeviceSessions
-                        .Where(s => s.IsRevoked && (s.RevokedAt < cutoff || s.LastRefeshToken < cutoff))
-                        .ToListAsync(stoppingToken);
+                     .Where(s =>
+                         (s.IsRevoked && s.RevokedAt < cutoff) ||
+                         (!s.IsRevoked && s.LastRefeshToken < cutoff)
+                     )
+                     .ToListAsync(stoppingToken);
+
 
                     if (oldSessions.Any())
                     {
