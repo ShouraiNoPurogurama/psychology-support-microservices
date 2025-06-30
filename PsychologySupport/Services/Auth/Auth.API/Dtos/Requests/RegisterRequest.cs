@@ -8,6 +8,5 @@ public record RegisterRequest(
     string Email,
     string PhoneNumber,
     string Password,
-    string ConfirmPassword,
-    string? promotionId
+    string ConfirmPassword
     );

@@ -26,7 +26,6 @@
   <ItemGroup>
     <PackageReference Include="Carter" />
     <PackageReference Include="FirebaseAdmin" />
-	<PackageReference Include="Grpc.AspNetCore" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>

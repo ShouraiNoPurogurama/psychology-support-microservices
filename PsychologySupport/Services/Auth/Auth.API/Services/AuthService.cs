@@ -8,14 +8,13 @@ using BuildingBlocks.Constants;
 using BuildingBlocks.Data.Common;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
-using BuildingBlocks.Messaging.Events.Notification;
 using BuildingBlocks.Messaging.Events.Profile;
+using BuildingBlocks.Messaging.Events.Subscription;
 using BuildingBlocks.Utils;
 using Mapster;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Promotion.Grpc;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace Auth.API.Services;
@@ -25,9 +24,9 @@ public class AuthService(
     IConfiguration configuration,
     ITokenService tokenService,
     IRequestClient<CreatePatientProfileRequest> _profileClient,
+    IRequestClient<GetPatientProfileRequest> _patientClient,
     AuthDbContext authDbContext,
-    IPublishEndpoint publishEndpoint,
-    PromotionService.PromotionServiceClient _promotionGrpcClient
+    IPublishEndpoint publishEndpoint
     ) : IAuthService
 {
     private const int LockoutTimeInMinutes = 15;
@@ -93,27 +92,7 @@ public class AuthService(
         if (!profileResponse.Message.Success)
             throw new InvalidDataException($"Patient profile creation failed: {profileResponse.Message.Message}");
 
-        // Tạo GiftCode nếu có PromotionId
-        if (!string.IsNullOrWhiteSpace(registerRequest.promotionId))
-        {
-            var addGiftCodeRequest = new AddGiftCodesToPromotionRequest
-            {
-                PromotionId = registerRequest.promotionId!,
-                CreateGiftCodeDto = new CreateGiftCodeDto
-                {
-                    PatientId = user.Id.ToString(),
-                    MoneyValue = 0,
-                    Title = "GiftCode kích hoạt dịch vụ",
-                    Description = "GiftCode này được tạo khi đăng ký tài khoản mới để kích hoạt dịch vụ.",
-                    Code = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()
-                }
-            };
-
-            await _promotionGrpcClient.AddGiftCodesToPromotionAsync(addGiftCodeRequest);
-        }
-
-
-        // await publishEndpoint.Publish(sendEmailIntegrationEvent); // Gửi sự kiện gửi email xác nhận tài khoản và kèm GiftCode nếu có
+        // await publishEndpoint.Publish(sendEmailIntegrationEvent); // Gửi sự kiện gửi email xác nhận tài khoản
 
         return true;
     }
@@ -383,6 +362,21 @@ public class AuthService(
 
         authDbContext.DeviceSessions.Add(session);
         await authDbContext.SaveChangesAsync();
+
+        // Send event CreateGiftCode 
+        if (!string.IsNullOrWhiteSpace(loginRequest.promotionId))
+        {
+            var patientProfile =
+                await _patientClient.GetResponse<GetPatientProfileResponse>(new GetPatientProfileRequest(Guid.Empty, user.Id));
+
+            var createGiftCodeEvent = new CreateGiftCodeEvent
+            {
+                PatientId = patientProfile.Message.Id.ToString(),
+                PromotionId = loginRequest.promotionId
+            };
+
+            await publishEndpoint.Publish(createGiftCodeEvent);
+        }
 
         return new LoginResponse(accessToken.Token, refreshToken);
     }

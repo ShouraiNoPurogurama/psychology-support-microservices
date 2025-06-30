@@ -93,6 +93,7 @@ message PromotionDto {
   PromotionTypeDto promotionType = 5;
   repeated PromoCodeDto promoCodes = 6;
   repeated GiftCodeDto giftCodes = 7;
+  string name = 8;
 }
 
 message PromotionTypeDto {
