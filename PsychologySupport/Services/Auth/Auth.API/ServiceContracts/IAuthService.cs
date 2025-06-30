@@ -6,7 +6,7 @@ namespace Auth.API.ServiceContracts;
 public interface IAuthService
 {
     Task<bool> RegisterAsync(RegisterRequest registerRequest);
-    Task<bool> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest);
+    Task<string> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest);
     Task<LoginResponse> LoginAsync(LoginRequest loginRequest);
     Task<bool> UnlockAccountAsync(string email);
     Task<bool> ForgotPasswordAsync(string email);

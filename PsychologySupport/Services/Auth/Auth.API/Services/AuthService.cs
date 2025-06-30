@@ -173,7 +173,7 @@ public class AuthService(
     //    );
     //}
     
-    public async Task<bool> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest)
+    public async Task<string> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest)
     {
         var token = confirmEmailRequest.Token;
         var email = confirmEmailRequest.Email;
@@ -185,7 +185,12 @@ public class AuthService(
                    ?? throw new UserNotFoundException(email);
 
         var result = await _userManager.ConfirmEmailAsync(user, token);
-        return result.Succeeded;
+        
+        var responseMessage = result.Succeeded
+            ? "Xác nhận email thành công."
+            : $"Xác nhận email thất bại: {string.Join("; ", result.Errors.Select(e => e.Description))}";
+        
+        return responseMessage;
     }
 
     public async Task<bool> UnlockAccountAsync(string email)
@@ -204,11 +209,22 @@ public class AuthService(
         var user = await _userManager.FindByEmailAsync(email)
                    ?? throw new UserNotFoundException(email);
 
+        if (!await _userManager.IsEmailConfirmedAsync(user))
+            throw new InvalidOperationException("Email chưa được xác nhận.");
+        
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
         var resetUrlTemplate = configuration["Mail:PasswordResetUrl"]!;
-        var callbackUrl = string.Format(resetUrlTemplate, token, email);
+        var callbackUrl = string.Format(resetUrlTemplate,
+            Uri.EscapeDataString(token),
+            Uri.EscapeDataString(email));
 
-        // await _sendMail.SendForgotPasswordEmailAsync(email, callbackUrl);
+        var sendEmailEvent = new SendEmailIntegrationEvent(
+            email,
+            "Khôi phục mật khẩu",
+            $"Vui lòng nhấp vào liên kết để đặt lại mật khẩu: {callbackUrl}"
+        );
+
+        await publishEndpoint.Publish(sendEmailEvent);
 
         return true;
     }
@@ -218,9 +234,17 @@ public class AuthService(
         var user = await _userManager.FindByEmailAsync(request.Email)
                    ?? throw new UserNotFoundException(request.Email);
 
+        if (!await _userManager.IsEmailConfirmedAsync(user))
+            throw new InvalidOperationException("Email chưa được xác nhận.");
+
         var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
-        return result.Succeeded;
+
+        if (result.Succeeded) return true;
+        
+        var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+        throw new InvalidOperationException($"Reset mật khẩu thất bại: {errors}");
     }
+
 
     //public async Task<LoginResponse> RefreshAsync(TokenApiRequest tokenApiRequest)
     //{

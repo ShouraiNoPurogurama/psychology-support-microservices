@@ -53,6 +53,14 @@ public class AuthController(
         var result = await authService.ConfirmEmailAsync(confirmEmailRequest);
         return Ok(result);
     }
+    
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        var result = await authService.ResetPasswordAsync(request);
+        return Ok(result);
+    }
+
 
     [HttpPost("revoke-token")]
     public async Task<IActionResult> RevokeToken([FromBody] TokenApiRequest request)
