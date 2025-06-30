@@ -15,6 +15,7 @@ COPY ["Directory.Packages.props", "."]
 COPY ["Services/Profile/Profile.API/Profile.API.csproj", "Services/Profile/Profile.API/"]
 COPY ["BuildingBlocks/BuildingBlocks.Messaging/BuildingBlocks.Messaging.csproj", "BuildingBlocks/BuildingBlocks.Messaging/"]
 COPY ["BuildingBlocks/BuildingBlocks/BuildingBlocks.csproj", "BuildingBlocks/BuildingBlocks/"]
+COPY ["Services/Profile/Profile.API/EmailTemplates", "Services/Profile/Profile.API/EmailTemplates"]
 RUN dotnet restore "./Services/Profile/Profile.API/Profile.API.csproj"
 COPY . .
 WORKDIR "/src/Services/Profile/Profile.API"
