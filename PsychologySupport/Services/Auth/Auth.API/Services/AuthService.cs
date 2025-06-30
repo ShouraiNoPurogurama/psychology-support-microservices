@@ -392,15 +392,15 @@ public class AuthService(
 
         /// Cập nhật lại token
         var newAccessToken = await tokenService.GenerateJWTToken(user);
-        var newRefreshToken = tokenService.GenerateRefreshToken();
+        //var newRefreshToken = tokenService.GenerateRefreshToken();
 
         session.AccessTokenId = newAccessToken.Jti;
-        session.RefreshToken = newRefreshToken;
+        //session.RefreshToken = newRefreshToken;
         session.LastRefeshToken = DateTimeOffset.UtcNow;
 
         await authDbContext.SaveChangesAsync();
 
-        return new LoginResponse(newAccessToken.Token, newRefreshToken);
+        return new LoginResponse(newAccessToken.Token, session.RefreshToken);
     }
 
     public async Task<bool> RevokeAsync(TokenApiRequest request)
