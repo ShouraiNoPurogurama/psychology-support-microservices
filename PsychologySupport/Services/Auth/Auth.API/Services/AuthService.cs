@@ -50,6 +50,13 @@ public class AuthService(
             Uri.EscapeDataString(user.Email)
         );
         
+        var result = await _userManager.CreateAsync(user, registerRequest.Password);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(ie => ie.Description));
+            throw new InvalidDataException($"Đăng ký thất bại: {errors}");
+        }
+        
         var sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
             user.Email,
             "Xác nhận tài khoản",
@@ -58,13 +65,6 @@ public class AuthService(
         
         // user.EmailConfirmed = true;
         user.PhoneNumberConfirmed = true;
-
-        var result = await _userManager.CreateAsync(user, registerRequest.Password);
-        if (!result.Succeeded)
-        {
-            var errors = string.Join("; ", result.Errors.Select(ie => ie.Description));
-            throw new InvalidDataException($"Đăng ký thất bại: {errors}");
-        }
 
         var roleResult = await _userManager.AddToRoleAsync(user, Roles.UserRole);
         if (!roleResult.Succeeded) throw new InvalidDataException("Gán vai trò thất bại");
