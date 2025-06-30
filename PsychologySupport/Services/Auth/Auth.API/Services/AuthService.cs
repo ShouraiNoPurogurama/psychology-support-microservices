@@ -456,8 +456,7 @@ public class AuthService(
             .FirstOrDefaultAsync(s =>
                 s.DeviceId == device.Id &&
                 s.AccessTokenId == jti &&
-                s.RefreshToken == request.RefreshToken &&
-                !s.IsRevoked);
+                s.RefreshToken == request.RefreshToken);
 
         if (session == null)
             throw new NotFoundException("Session không tồn tại hoặc đã bị thu hồi");
