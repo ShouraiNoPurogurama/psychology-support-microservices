@@ -51,7 +51,7 @@ public class AuthController(
     public async Task<IActionResult> ConfirmEmail([FromQuery] ConfirmEmailRequest confirmEmailRequest)
     {
         var result = await authService.ConfirmEmailAsync(confirmEmailRequest);
-        return Ok(result);
+        return Redirect(result);
     }
     
     [HttpPost("forgot-password")]
