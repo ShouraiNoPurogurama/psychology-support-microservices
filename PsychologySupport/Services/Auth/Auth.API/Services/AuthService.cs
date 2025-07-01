@@ -194,12 +194,18 @@ public class AuthService(
                    ?? throw new UserNotFoundException(email);
 
         var result = await _userManager.ConfirmEmailAsync(user, token);
-        
-        var responseMessage = result.Succeeded
+
+        var status = result.Succeeded ? "success" : "failed";
+
+        var message = result.Succeeded
             ? "Xác nhận email thành công."
             : $"Xác nhận email thất bại: {string.Join("; ", result.Errors.Select(e => e.Description))}";
-        
-        return responseMessage;
+
+        var baseRedirectUrl = configuration["Mail:ConfirmationRedirectUrl"];
+
+        var redirectUrl = $"{baseRedirectUrl}?status={status}&message={Uri.EscapeDataString(message)}";
+
+        return redirectUrl;
     }
 
     public async Task<bool> UnlockAccountAsync(string email)
