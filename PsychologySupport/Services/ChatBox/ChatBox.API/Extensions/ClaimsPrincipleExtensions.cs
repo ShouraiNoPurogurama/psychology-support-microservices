@@ -13,6 +13,13 @@ public static class ClaimsPrincipalExtensions
     }
 
 
+    public static string GetProfileId(this ClaimsPrincipal user)
+    {
+        var result = user.Claims.FirstOrDefault(c => c.Type == "profileId")?.Value ??
+                     throw new UnauthorizedAccessException("Không tìm thấy Claims profileId.");
+        return result;
+    }
+    
     public static string GetUserName(this ClaimsPrincipal user)
     {
         return user.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? string.Empty;

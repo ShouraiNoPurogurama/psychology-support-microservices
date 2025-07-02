@@ -40,7 +40,7 @@ public class GeminiClient : IAIClient
     {
         var profileResponse = await _profileClient.GetResponse<AggregatePatientProfileResponse>(
             new AggregatePatientProfileRequest(Guid.Parse(patientProfileId)));
-
+        
         var lifestyleResponse = await _lifestyleClient.GetResponse<AggregatePatientLifestyleResponse>(
             new AggregatePatientLifestyleRequest(Guid.Parse(patientProfileId), DateTime.UtcNow));
 

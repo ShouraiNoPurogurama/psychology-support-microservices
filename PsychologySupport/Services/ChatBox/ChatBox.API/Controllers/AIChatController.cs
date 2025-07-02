@@ -25,8 +25,9 @@ public class AIChatController(GeminiService geminiService, SessionService sessio
     public async Task<IActionResult> CreateSession(string sessionName = "Đoạn chat mới")
     {
         var userId = Guid.Parse(User.GetUserId());
+        var profileId = Guid.Parse(User.GetProfileId());
 
-        var session = await sessionService.CreateSessionAsync(sessionName, userId);
+        var session = await sessionService.CreateSessionAsync(sessionName, userId, profileId);
         return Ok(session);
     }
 

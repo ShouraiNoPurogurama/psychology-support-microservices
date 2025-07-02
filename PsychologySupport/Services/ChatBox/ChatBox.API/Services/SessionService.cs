@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.Profile;
 using BuildingBlocks.Pagination;
 using ChatBox.API.Data;
 using ChatBox.API.Dtos;
@@ -6,21 +7,40 @@ using ChatBox.API.Dtos.Sessions;
 using ChatBox.API.Models;
 using ChatBox.API.Utils;
 using Mapster;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChatBox.API.Services;
 
-public class SessionService(ChatBoxDbContext dbContext)
+public class SessionService(ChatBoxDbContext dbContext, IRequestClient<AggregatePatientProfileRequest> requestClient)
 {
-    public async Task<CreateSessionResponseDto> CreateSessionAsync(string sessionName, Guid userId)
+    public async Task<CreateSessionResponseDto> CreateSessionAsync(string sessionName, Guid userId, Guid profileId)
     {
+        var profileResponse =
+            await requestClient.GetResponse<AggregatePatientProfileResponse>(new AggregatePatientProfileRequest(profileId));
+
+        var profile = profileResponse.Message;
+
+        var persona = new PersonaSnapshot
+        {
+            FullName = profile.FullName,
+            Gender = profile.Gender,
+            BirthDate = profile.BirthDate.ToString("yyyy-MM-dd"),
+            JobTitle = profile.JobTitle,
+            EducationLevel = profile.EducationLevel,
+            IndustryName = profile.IndustryName,
+            PersonalityTraits = profile.PersonalityTraits,
+            Allergies = profile.Allergies ?? "Không rõ"
+        };
+
         var session = new AIChatSession
         {
             Id = Guid.NewGuid(),
             Name = sessionName,
             UserId = userId,
             CreatedDate = DateTime.UtcNow,
-            IsActive = true
+            IsActive = true,
+            PersonaSnapshot = persona
         };
 
         dbContext.AIChatSessions.Add(session);
@@ -28,7 +48,7 @@ public class SessionService(ChatBoxDbContext dbContext)
         var initialGreeting = AddInitialGreeting(session);
 
         await dbContext.SaveChangesAsync();
-        
+
         return new CreateSessionResponseDto(
             session.Id,
             session.Name,
@@ -38,7 +58,7 @@ public class SessionService(ChatBoxDbContext dbContext)
 
     private AIMessageResponseDto AddInitialGreeting(AIChatSession session)
     {
-        var greeting = EmoGreetingsUtil.GetRandomGreeting();
+        var greeting = EmoGreetingsUtil.GetRandomGreeting(session.PersonaSnapshot?.FullName);
 
         var initialMessage = new AIMessage
         {
@@ -50,9 +70,9 @@ public class SessionService(ChatBoxDbContext dbContext)
             CreatedDate = DateTime.UtcNow,
             IsRead = false
         };
-        
+
         dbContext.AIChatMessages.Add(initialMessage);
-        
+
         return initialMessage.Adapt<AIMessageResponseDto>();
     }
 
@@ -61,47 +81,48 @@ public class SessionService(ChatBoxDbContext dbContext)
     {
         var pageSize = paginationRequest.PageSize;
         var pageIndex = paginationRequest.PageIndex;
-        
+
         ValidatePaginationRequest(pageSize, pageIndex);
-        
+
         var query = dbContext.AIChatSessions
             .Where(s => s.UserId == userId && s.IsActive == true)
             .OrderByDescending(s => s.CreatedDate);
-        
+
         var totalCount = await query.LongCountAsync();
-        
+
         var sessions = await query
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ProjectToType<GetSessionDto>()
             .ToListAsync();
-        
+
         return new PaginatedResult<GetSessionDto>(pageIndex, pageSize, totalCount, sessions);
     }
-    
+
     public async Task<AIChatSession> GetSessionAsync(Guid userId, Guid sessionId)
     {
         var session = await dbContext.AIChatSessions
-            .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.IsActive == true)
-            ?? throw new NotFoundException($"Không tìm thấy phiên trò chuyện {sessionId} hoặc phiên không thuộc về người dùng.");
+                          .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.IsActive == true)
+                      ?? throw new NotFoundException(
+                          $"Không tìm thấy phiên trò chuyện {sessionId} hoặc phiên không thuộc về người dùng.");
 
-        
+
         return session;
     }
 
     public async Task<bool> DeleteSessionAsync(Guid sessionId, Guid userId)
     {
         var session = await dbContext.AIChatSessions
-            .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.IsActive == true)
-            
-            ?? throw new NotFoundException($"Không tìm thấy phiên trò chuyện {sessionId} hoặc phiên không thuộc về người dùng.");
+                          .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.IsActive == true)
+                      ?? throw new NotFoundException(
+                          $"Không tìm thấy phiên trò chuyện {sessionId} hoặc phiên không thuộc về người dùng.");
 
 
         session.IsActive = false;
         await dbContext.SaveChangesAsync();
         return true;
     }
-    
+
     private static void ValidatePaginationRequest(int pageSize, int pageIndex)
     {
         if (pageSize <= 0 || pageIndex <= 0)

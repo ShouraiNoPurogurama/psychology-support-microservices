@@ -84,17 +84,51 @@ public class SummarizationService(IOptions<GeminiConfig> config, ChatBoxDbContex
     public async Task<bool> UpdateSessionSummarizationAsync(Guid userId, Guid sessionId, string summary, int newMessageCount)
     {
         var session = await sessionService.GetSessionAsync(userId, sessionId);
+        var persona = session.PersonaSnapshot;
 
-        var sessionSummarizations = session.Summarization ?? "";
+        if (persona is not null)
+        {
+            var personaPrompt = persona.ToPromptText();
+            var sessionSummarizations = session.Summarization ?? "";
+            var lastTwo = sessionSummarizations
+                .Split("\n---\n", StringSplitOptions.RemoveEmptyEntries)
+                .TakeLast(2)
+                .ToList();
 
-        var lastSummarization = sessionSummarizations
-            .Split('\n')
-            .LastOrDefault(line => !string.IsNullOrWhiteSpace(line));
-        
-        session.Summarization = lastSummarization + "\n" + summary;
+            var personaAlreadyIncluded = lastTwo.Any(s => s.Contains(personaPrompt));
+            if (!personaAlreadyIncluded)
+            {
+                summary += "\n" + personaPrompt;
+            }
+
+            //Tạo block mới cho bản tóm tắt hiện tại
+            lastTwo.Add(summary);
+
+            while (lastTwo.Count > 2)
+                lastTwo.RemoveAt(0);
+
+            session.Summarization = string.Join("\n---\n", lastTwo);
+        }
+        else
+        {
+            //Nếu không có persona, chỉ lưu tóm tắt như bình thường
+            var sessionSummarizations = session.Summarization ?? "";
+            var lastTwo = sessionSummarizations
+                .Split("\n---\n", StringSplitOptions.RemoveEmptyEntries)
+                .TakeLast(2)
+                .ToList();
+
+            lastTwo.Add(summary);
+            while (lastTwo.Count > 2)
+                lastTwo.RemoveAt(0);
+
+            session.Summarization = string.Join("\n---\n", lastTwo);
+        }
+
         session.LastSummarizedAt = DateTime.UtcNow;
         session.LastSummarizedIndex += newMessageCount;
 
         return true;
     }
+
 }
