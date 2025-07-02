@@ -86,19 +86,19 @@ public class AuthService(
         );
         
         // Create PatientProfile
-       var createProfileRequest = new CreatePatientProfileRequest(
-           user.Id,
-           registerRequest.FullName,
-           registerRequest.Gender,
-           null,
-           PersonalityTrait.None, 
-           contactInfo
-        );
+       //var createProfileRequest = new CreatePatientProfileRequest(
+       //    user.Id,
+       //    registerRequest.FullName,
+       //    registerRequest.Gender,
+       //    null,
+       //    PersonalityTrait.None, 
+       //    contactInfo
+       // );
 
-        var profileResponse = await _profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
+       // var profileResponse = await _profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
 
-        if (!profileResponse.Message.Success)
-            throw new InvalidDataException($"Patient profile creation failed: {profileResponse.Message.Message}");
+       // if (!profileResponse.Message.Success)
+       //     throw new InvalidDataException($"Patient profile creation failed: {profileResponse.Message.Message}");
 
         await publishEndpoint.Publish(sendEmailIntegrationEvent);
         
@@ -116,7 +116,7 @@ public class AuthService(
 
     //        if (!user.EmailConfirmed)
     //            throw new ForbiddenException("Tài khoản chưa được xác nhận. Vui lòng kiểm tra email để xác nhận tài khoản.");
-            
+
     //    }
     //    else
     //    {
@@ -167,7 +167,7 @@ public class AuthService(
     //        authDbContext.Devices.Add(device);
     //        await authDbContext.SaveChangesAsync();
     //    }
-        
+
     //    user.AccessFailedCount = 0;
     //    user.LockoutEnd = null;
     //    await _userManager.UpdateAsync(user);
@@ -181,12 +181,12 @@ public class AuthService(
     //        refreshToken
     //    );
     //}
-    
+
     public async Task<string> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest)
     {
         var token = confirmEmailRequest.Token;
         var email = confirmEmailRequest.Email;
-        
+
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email))
             throw new BadRequestException("Email hoặc Token bị thiếu.");
 
@@ -195,14 +195,42 @@ public class AuthService(
 
         var result = await _userManager.ConfirmEmailAsync(user, token);
 
-        var status = result.Succeeded ? "success" : "failed";
+        string status = result.Succeeded ? "success" : "failed";
+        string message;
 
-        var message = result.Succeeded
-            ? "Xác nhận email thành công."
-            : $"Xác nhận email thất bại: {string.Join("; ", result.Errors.Select(e => e.Description))}";
+        if (result.Succeeded)
+        {
+            user.EmailConfirmed = true;
+            await _userManager.UpdateAsync(user);
+
+            var contactInfo = ContactInfo.Of("None", user.Email, user.PhoneNumber);
+            var createProfileRequest = new CreatePatientProfileRequest(
+                user.Id,
+                user.FullName,
+                user.Gender,
+                null,
+                PersonalityTrait.None,
+                contactInfo
+            );
+
+            var profileResponse = await _profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
+
+            if (!profileResponse.Message.Success)
+            {
+                status = "partial";
+                message = $"Xác nhận email thành công nhưng tạo hồ sơ thất bại: {profileResponse.Message.Message}";
+            }
+            else
+            {
+                message = "Xác nhận email và tạo hồ sơ thành công.";
+            }
+        }
+        else
+        {
+            message = $"Xác nhận email thất bại: {string.Join("; ", result.Errors.Select(e => e.Description))}";
+        }
 
         var baseRedirectUrl = configuration["Mail:ConfirmationRedirectUrl"];
-
         var redirectUrl = $"{baseRedirectUrl}?status={status}&message={Uri.EscapeDataString(message)}";
 
         return redirectUrl;
