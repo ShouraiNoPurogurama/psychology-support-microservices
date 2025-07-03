@@ -145,6 +145,16 @@ public class GeminiService(
         }
         finally
         {
+            lock (pendingQueue)
+            {
+                if (pendingQueue.Count > 0)
+                    pendingQueue.Dequeue();
+
+                //Nếu đã hết tin chờ thì cleanup queue khỏi dictionary
+                if (pendingQueue.Count == 0)
+                    PendingMessagesBySession.TryRemove(request.SessionId, out _);
+            }
+            
             sessionLock.Release();
         }
     }
