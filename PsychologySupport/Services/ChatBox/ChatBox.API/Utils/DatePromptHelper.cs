@@ -7,7 +7,7 @@ public static class DatePromptHelper
     //Cache patterns để tăng performance
     private static readonly HashSet<string> TimePatterns = new(StringComparer.OrdinalIgnoreCase)
     {
-        "hôm nay", "nay", "today", "giờ là", "bây giờ", "now", "current", "lúc này", "thời điểm này",
+        "hôm nay", "nay", "today", "giờ là", "bây giờ", "mấy giờ", "now", "current", "lúc này", "thời điểm này",
         "hiện tại", "present", "right now", "at the moment"
     };
 
@@ -31,13 +31,13 @@ public static class DatePromptHelper
     // Cache dayOfWeek mapping
     private static readonly Dictionary<DayOfWeek, string> VietnameseDayOfWeek = new()
     {
-        { DayOfWeek.Monday, "thứ hai" },
-        { DayOfWeek.Tuesday, "thứ ba" },
-        { DayOfWeek.Wednesday, "thứ tư" },
-        { DayOfWeek.Thursday, "thứ năm" },
-        { DayOfWeek.Friday, "thứ sáu" },
-        { DayOfWeek.Saturday, "thứ bảy" },
-        { DayOfWeek.Sunday, "chủ nhật" }
+        { DayOfWeek.Monday, "thứ Hai" },
+        { DayOfWeek.Tuesday, "thứ Ba" },
+        { DayOfWeek.Wednesday, "thứ Tư" },
+        { DayOfWeek.Thursday, "thứ Năm" },
+        { DayOfWeek.Friday, "thứ Sáu" },
+        { DayOfWeek.Saturday, "thứ Bảy" },
+        { DayOfWeek.Sunday, "Chủ Nhật" }
     };
 
     public static bool IsDateQuestion(string input)
