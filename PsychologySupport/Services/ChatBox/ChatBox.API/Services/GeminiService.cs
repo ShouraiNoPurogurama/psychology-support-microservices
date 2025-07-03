@@ -30,6 +30,10 @@ public class GeminiService(
 
     //Tracking active sessions để cleanup
     private static readonly ConcurrentDictionary<Guid, DateTime> ActiveSessions = new();
+    
+    
+    private static readonly ConcurrentDictionary<Guid, Queue<string>> PendingMessagesBySession = new();
+
 
     //Cleanup timer
     private static readonly Timer CleanupTimer =
@@ -46,11 +50,50 @@ public class GeminiService(
 
         ActiveSessions.AddOrUpdate(request.SessionId, DateTime.UtcNow, (key, old) => DateTime.UtcNow);
 
+        var inputNormalized = request.UserMessage.Trim().ToLowerInvariant() ?? "";
+        var pendingQueue = PendingMessagesBySession.GetOrAdd(request.SessionId, _ => new Queue<string>());
+        
+        lock (pendingQueue) //Đảm bảo thread-safe cho queue
+        {
+            if (pendingQueue.Count >= 2)
+            {
+                return new List<AIMessageResponseDto>
+                {
+                    new AIMessageResponseDto(
+                        request.SessionId,
+                        true,
+                        "Cậu gửi hơi nhiều tin liên tiếp rồi nè, đợi tớ phản hồi xong hãy gửi tiếp nhé! 🕐",
+                        DateTime.UtcNow)
+                };
+            }
+
+            //Nếu cùng nội dung và đã có 1 message đó trong queue, cũng trả về response mẫu
+            if (pendingQueue.Contains(inputNormalized))
+            {
+                return new List<AIMessageResponseDto>
+                {
+                    new AIMessageResponseDto(
+                        request.SessionId,
+                        true,
+                        "Tớ đang xử lý tin nhắn trước của cậu rồi nè. Đợi một xíu tớ phản hồi xong sẽ trả lời tiếp nhé! 🕐",
+                        DateTime.UtcNow)
+                };
+            }
+
+            pendingQueue.Enqueue(inputNormalized);
+        }
+        
         //Timeout cho lock để tránh deadlock
         var lockAcquired = await sessionLock.WaitAsync(TimeSpan.FromSeconds(15));
         if (!lockAcquired)
         {
             logger.LogWarning("Failed to acquire lock for session {SessionId} within timeout", request.SessionId);
+            //Nhớ dequeue khỏi queue nếu không acquire được lock
+            lock (pendingQueue)
+            {
+                if (pendingQueue.Count > 0)
+                    pendingQueue.Dequeue();
+            }
             throw new TimeoutException("Hệ thống đang xử lý tin nhắn khác. Vui lòng thử lại.");
         }
 
