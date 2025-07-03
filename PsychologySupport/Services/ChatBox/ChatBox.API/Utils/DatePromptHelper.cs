@@ -7,7 +7,7 @@ public static class DatePromptHelper
     //Cache patterns để tăng performance
     private static readonly HashSet<string> TimePatterns = new(StringComparer.OrdinalIgnoreCase)
     {
-        "hôm nay", "nay", "today", "bây giờ", "now", "current", "lúc này", "thời điểm này",
+        "hôm nay", "nay", "today", "giờ là", "bây giờ", "now", "current", "lúc này", "thời điểm này",
         "hiện tại", "present", "right now", "at the moment"
     };
 
