@@ -1,10 +1,12 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Collections.Concurrent;
+using System.Net.Http.Headers;
 using System.Text;
 using BuildingBlocks.Pagination;
 using ChatBox.API.Data;
 using ChatBox.API.Dtos;
 using ChatBox.API.Dtos.Gemini;
 using ChatBox.API.Models;
+using ChatBox.API.Utils;
 using Google.Apis.Auth.OAuth2;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -18,56 +20,73 @@ namespace ChatBox.API.Services;
 public class GeminiService(
     IOptions<GeminiConfig> config,
     ChatBoxDbContext dbContext,
-    SummarizationService summarizationService) 
+    SummarizationService summarizationService,
+    ILogger<GeminiService> logger)
 {
     private readonly GeminiConfig _config = config.Value;
-    private static readonly Dictionary<Guid, SemaphoreSlim> SessionLocks = new();
-    private static readonly Lock LockDict = new();
+
+    //Sử dụng ConcurrentDictionary để thread-safe
+    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> SessionLocks = new();
+
+    //Tracking active sessions để cleanup
+    private static readonly ConcurrentDictionary<Guid, DateTime> ActiveSessions = new();
+
+    //Cleanup timer
+    private static readonly Timer CleanupTimer =
+        new(CleanupInactiveSessions, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+
     const int MaxUserInputLength = 1000;
-    
+    const int SessionTimeoutMinutes = 30; //Timeout cho session không hoạt động
 
     public async Task<List<AIMessageResponseDto>> SendMessageAsync(AIMessageRequestDto request, Guid userId)
     {
         await ValidateSessionOwnershipAsync(request.SessionId, userId);
 
-        SemaphoreSlim sessionLock;
-        lock (LockDict)
+        var sessionLock = SessionLocks.GetOrAdd(request.SessionId, _ => new SemaphoreSlim(1, 1));
+
+        ActiveSessions.AddOrUpdate(request.SessionId, DateTime.UtcNow, (key, old) => DateTime.UtcNow);
+
+        //Timeout cho lock để tránh deadlock
+        var lockAcquired = await sessionLock.WaitAsync(TimeSpan.FromSeconds(15));
+        if (!lockAcquired)
         {
-            if (!SessionLocks.TryGetValue(request.SessionId, out sessionLock))
-            {
-                sessionLock = new SemaphoreSlim(1, 1);
-                SessionLocks[request.SessionId] = sessionLock;
-            }
+            logger.LogWarning("Failed to acquire lock for session {SessionId} within timeout", request.SessionId);
+            throw new TimeoutException("Hệ thống đang xử lý tin nhắn khác. Vui lòng thử lại.");
         }
 
-        await sessionLock.WaitAsync();
         try
         {
+            logger.LogInformation("Processing message for session {SessionId}", request.SessionId);
+
             var session = await dbContext.AIChatSessions
                 .AsNoTracking()
                 .FirstAsync(s => s.Id == request.SessionId);
 
             var contentParts = await LoadSessionHistoryMessages(request, session);
 
-            var finalInput = BuildUserInputWithTruncation(request);
+            var userMessageWithDateTime = DatePromptHelper.PrependDateTimePrompt(request.UserMessage);
+
+            var finalInput = BuildFinalInputWithTruncation(userMessageWithDateTime);
 
             contentParts.Add(new GeminiContentDto(
                 "user", [new GeminiContentPartDto(finalInput)]
             ));
-            
+
             var payload = BuildGeminiMessagePayload(contentParts);
-            
+
             var responseText = await CallGeminiAPIAsync(payload);
 
             if (string.IsNullOrWhiteSpace(responseText))
                 throw new Exception("Failed to get a response from Gemini.");
 
-            var aiMessages = SplitGeminiResponse(request.SessionId, responseText);  
-            
+            var aiMessages = SplitGeminiResponse(request.SessionId, responseText);
+
             await SaveMessagesAsync(request.SessionId, userId, request.UserMessage, request.SentAt, aiMessages);
 
             //Tự động tóm tắt nếu vượt ngưỡng
             await summarizationService.MaybeSummarizeSessionAsync(userId, request.SessionId);
+
+            logger.LogInformation("Successfully processed message for session {SessionId}", request.SessionId);
 
             return aiMessages.Select(m => new AIMessageResponseDto(
                     m.SessionId,
@@ -76,10 +95,80 @@ public class GeminiService(
                     m.CreatedDate))
                 .ToList();
         }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error processing message for session {SessionId}", request.SessionId);
+            throw;
+        }
         finally
         {
             sessionLock.Release();
         }
+    }
+
+    private static string BuildFinalInputWithTruncation(string userMessageWithDateTime)
+    {
+        var trimmedUserMessage = userMessageWithDateTime.Length > MaxUserInputLength
+            ? userMessageWithDateTime[..MaxUserInputLength] + "..."
+            : userMessageWithDateTime;
+
+        var notice = userMessageWithDateTime.Length > MaxUserInputLength
+            ? "Ghi chú: nội dung người dùng đã được rút gọn vì quá dài.\n"
+            : "";
+
+        var finalInput = notice + trimmedUserMessage;
+        return finalInput;
+    }
+
+
+    //Cleanup inactive sessions
+    private static void CleanupInactiveSessions(object? state)
+    {
+        var cutoff = DateTime.UtcNow.AddMinutes(-SessionTimeoutMinutes);
+        var inactiveSessions = ActiveSessions
+            .Where(kvp => kvp.Value < cutoff)
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        foreach (var sessionId in inactiveSessions)
+        {
+            if (ActiveSessions.TryRemove(sessionId, out _) &&
+                SessionLocks.TryRemove(sessionId, out var semaphore))
+            {
+                semaphore.Dispose();
+            }
+        }
+    }
+
+    //Thêm method SaveMessagesAsync
+    private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string userMessage, DateTime userMessageSentAt,
+        List<AIMessage> aiResponse)
+    {
+        var lastSeq = await GetLastMessageSequenceIndex(sessionId);
+
+        var nextSeq = lastSeq + 1;
+
+        dbContext.AIChatMessages.Add(
+            new AIMessage
+            {
+                Id = Guid.NewGuid(),
+                SessionId = sessionId,
+                SenderUserId = userId,
+                SenderIsEmo = false,
+                Content = userMessage,
+                CreatedDate = userMessageSentAt,
+                IsRead = true,
+                BlockNumber = nextSeq
+            });
+
+        foreach (var message in aiResponse)
+        {
+            message.BlockNumber = nextSeq;
+        }
+
+        dbContext.AIChatMessages.AddRange(aiResponse);
+
+        await dbContext.SaveChangesAsync();
     }
 
     private static List<AIMessage> SplitGeminiResponse(Guid sessionId, string responseText)
@@ -97,105 +186,8 @@ public class GeminiService(
                 IsRead = false
             })
             .ToList();
-        
+
         return aiMessages;
-    }
-
-    private static string BuildUserInputWithTruncation(AIMessageRequestDto request)
-    {
-        var trimmedUserMessage = request.UserMessage.Length > MaxUserInputLength
-            ? request.UserMessage[..MaxUserInputLength] + "..."
-            : request.UserMessage;
-            
-        var notice = request.UserMessage.Length > MaxUserInputLength
-            ? "Ghi chú: nội dung người dùng đã được rút gọn vì quá dài.\n"
-            : "";
-
-        var finalInput = notice + trimmedUserMessage;
-        return finalInput;
-    }
-
-    private async Task<List<GeminiContentDto>> LoadSessionHistoryMessages(AIMessageRequestDto request, AIChatSession session)
-    {
-        //Lấy các message mới kể từ lần tóm tắt trước
-        var lastIndex = session.LastSummarizedIndex ?? 0;
-
-        var messages = await dbContext.AIChatMessages
-            .Where(m => m.SessionId == request.SessionId)
-            .OrderBy(m => m.CreatedDate)
-            .Skip(lastIndex)
-            .ToListAsync();
-
-        var contentParts = new List<GeminiContentDto>();
-
-        //Nếu có bản tóm tắt, bắt đầu từ đó
-        if (!string.IsNullOrWhiteSpace(session.Summarization))
-        {
-            contentParts.Add(new GeminiContentDto(
-                "user", [new GeminiContentPartDto($"Tóm tắt trước đó của cuộc hội thoại:\n{session.Summarization}")]
-            ));
-        }
-        
-        if (messages.Count == 0)
-        {
-            var lastSequenceIndex = await GetLastMessageSequenceIndex(request.SessionId);
-            
-            var lastMessageBlock = await dbContext.AIChatMessages
-                .Where(m => m.SessionId == request.SessionId && m.BlockNumber == lastSequenceIndex)
-                .OrderBy(m => m.CreatedDate)
-                .ToListAsync();
-
-            foreach (var message in lastMessageBlock)
-            {
-                contentParts.Add(new GeminiContentDto(
-                    message.SenderIsEmo ? "model" : "user", [new GeminiContentPartDto($"{message.Content}")]
-                ));
-            }
-        }
-
-        //Thêm các message chưa tóm tắt vào
-        foreach (var m in messages)
-        {
-            contentParts.Add(new GeminiContentDto(
-                m.SenderIsEmo ? "model" : "user",
-                [new GeminiContentPartDto(m.Content)]
-            ));
-        }
-
-        return contentParts;
-    }
-
-
-    public async Task<PaginatedResult<AIMessageDto>> GetMessagesAsync(Guid sessionId, Guid userId,
-        PaginationRequest paginationRequest)
-    {
-        await ValidateSessionOwnershipAsync(sessionId, userId);
-
-        var pageIndex = paginationRequest.PageIndex;
-        var pageSize = paginationRequest.PageSize;
-
-        ValidatePaginationRequest(pageIndex, pageSize);
-
-        var query = dbContext.AIChatMessages
-            .Where(m => m.SessionId == sessionId)
-            .OrderByDescending(m => m.CreatedDate);
-
-        var totalCount = await query.LongCountAsync();
-
-        var messages = await query
-            .Skip((pageIndex - 1) * pageSize)
-            .Take(pageSize)
-            .OrderBy(m => m.CreatedDate)
-            .ProjectToType<AIMessageDto>()
-            .ToListAsync();
-
-        return new PaginatedResult<AIMessageDto>(pageIndex, pageSize, totalCount, messages);
-    }
-
-    private static void ValidatePaginationRequest(int pageIndex, int pageSize)
-    {
-        if (pageIndex <= 0 || pageSize <= 0)
-            throw new ArgumentException("Tham số phân trang không hợp lệ.");
     }
 
     public async Task<AIMessage> AddMessageAsync(Guid sessionId, Guid userId, string content, bool senderIsEmo)
@@ -234,7 +226,88 @@ public class GeminiService(
         await dbContext.SaveChangesAsync();
     }
 
-    // ========== PRIVATE HELPERS ==========
+    private async Task<List<GeminiContentDto>> LoadSessionHistoryMessages(AIMessageRequestDto request, AIChatSession session)
+    {
+        //Lấy các message mới kể từ lần tóm tắt trước
+        var lastIndex = session.LastSummarizedIndex ?? 0;
+
+        var messages = await dbContext.AIChatMessages
+            .Where(m => m.SessionId == request.SessionId)
+            .OrderBy(m => m.CreatedDate)
+            .Skip(lastIndex)
+            .ToListAsync();
+
+        var contentParts = new List<GeminiContentDto>();
+
+        //Nếu có bản tóm tắt, bắt đầu từ đó
+        if (!string.IsNullOrWhiteSpace(session.Summarization))
+        {
+            contentParts.Add(new GeminiContentDto(
+                "user", [new GeminiContentPartDto($"Tóm tắt trước đó của cuộc hội thoại:\n{session.Summarization}")]
+            ));
+        }
+
+        if (messages.Count == 0)
+        {
+            var lastSequenceIndex = await GetLastMessageSequenceIndex(request.SessionId);
+
+            var lastMessageBlock = await dbContext.AIChatMessages
+                .Where(m => m.SessionId == request.SessionId && m.BlockNumber == lastSequenceIndex)
+                .OrderBy(m => m.CreatedDate)
+                .ToListAsync();
+
+            foreach (var message in lastMessageBlock)
+            {
+                contentParts.Add(new GeminiContentDto(
+                    message.SenderIsEmo ? "model" : "user", [new GeminiContentPartDto($"{message.Content}")]
+                ));
+            }
+        }
+
+        //Thêm các message chưa tóm tắt vào
+        foreach (var m in messages)
+        {
+            contentParts.Add(new GeminiContentDto(
+                m.SenderIsEmo ? "model" : "user",
+                [new GeminiContentPartDto(m.Content)]
+            ));
+        }
+
+        return contentParts;
+    }
+
+    public async Task<PaginatedResult<AIMessageDto>> GetMessagesAsync(Guid sessionId, Guid userId,
+        PaginationRequest paginationRequest)
+    {
+        await ValidateSessionOwnershipAsync(sessionId, userId);
+
+        var pageIndex = paginationRequest.PageIndex;
+        var pageSize = paginationRequest.PageSize;
+
+        ValidatePaginationRequest(pageIndex, pageSize);
+
+        var query = dbContext.AIChatMessages
+            .Where(m => m.SessionId == sessionId)
+            .OrderByDescending(m => m.CreatedDate);
+
+        var totalCount = await query.LongCountAsync();
+
+        var messages = await query
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .OrderBy(m => m.CreatedDate)
+            .ProjectToType<AIMessageDto>()
+            .ToListAsync();
+
+        return new PaginatedResult<AIMessageDto>(pageIndex, pageSize, totalCount, messages);
+    }
+
+    private static void ValidatePaginationRequest(int pageIndex, int pageSize)
+    {
+        if (pageIndex <= 0 || pageSize <= 0)
+            throw new ArgumentException("Tham số phân trang không hợp lệ.");
+    }
+
 
     private async Task ValidateSessionOwnershipAsync(Guid sessionId, Guid userId)
     {
@@ -242,7 +315,8 @@ public class GeminiService(
             .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.IsActive == true);
 
         if (session == null)
-            throw new UnauthorizedAccessException("Không tìm thấy phiên trò chuyện hoặc phiên trò chuyện này không thuộc về người dùng.");
+            throw new UnauthorizedAccessException(
+                "Không tìm thấy phiên trò chuyện hoặc phiên trò chuyện này không thuộc về người dùng.");
     }
 
     private GeminiRequestDto BuildGeminiMessagePayload(List<GeminiContentDto> contents)
@@ -252,7 +326,7 @@ public class GeminiService(
             SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(_config.SystemInstruction)),
             GenerationConfig: new GeminiGenerationConfigDto(
                 Temperature: 1.0,
-                TopP: 0.96,
+                TopP: 0.95,
                 MaxOutputTokens: 8192
             ),
             SafetySettings:
@@ -265,42 +339,11 @@ public class GeminiService(
         );
     }
 
-
     private async Task<string> GetAccessTokenAsync()
     {
         var credential = await GoogleCredential.GetApplicationDefaultAsync();
         credential = credential.CreateScoped("https://www.googleapis.com/auth/cloud-platform");
         return await credential.UnderlyingCredential.GetAccessTokenForRequestAsync();
-    }
-
-    private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string userMessage, DateTime userMessageSentAt,
-        List<AIMessage> aiResponse)
-    {
-        var lastSeq = await GetLastMessageSequenceIndex(sessionId);
-        
-        var nextSeq = lastSeq + 1;
-        
-        dbContext.AIChatMessages.Add(
-            new AIMessage
-            {
-                Id = Guid.NewGuid(),
-                SessionId = sessionId,
-                SenderUserId = userId,
-                SenderIsEmo = false,
-                Content = userMessage,
-                CreatedDate = userMessageSentAt,
-                IsRead = true,
-                BlockNumber = nextSeq
-            });
-
-        foreach (var message in aiResponse)
-        {
-            message.BlockNumber = nextSeq;
-        }
-
-        dbContext.AIChatMessages.AddRange(aiResponse);
-
-        await dbContext.SaveChangesAsync();
     }
 
     private async Task<int> GetLastMessageSequenceIndex(Guid sessionId)
@@ -310,10 +353,9 @@ public class GeminiService(
             .OrderByDescending(m => m.BlockNumber)
             .Select(m => m.BlockNumber)
             .FirstOrDefaultAsync();
-        
+
         return lastSeq;
     }
-
 
     private async Task<string> CallGeminiAPIAsync(GeminiRequestDto payload)
     {
@@ -331,9 +373,6 @@ public class GeminiService(
             }
         };
         var content = new StringContent(JsonConvert.SerializeObject(payload, settings), Encoding.UTF8, "application/json");
-        //
-        // var jsonPayload = JsonConvert.SerializeObject(payload, settings);
-        // Console.WriteLine(jsonPayload);
 
         var response = await client.PostAsync(url, content);
         var result = await response.Content.ReadAsStringAsync();
