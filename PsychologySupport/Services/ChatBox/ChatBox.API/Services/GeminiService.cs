@@ -64,7 +64,7 @@ public class GeminiService(
 
             var contentParts = await LoadSessionHistoryMessages(request, session);
 
-            var userMessageWithDateTime = DatePromptHelper.PrependDateTimePrompt(request.UserMessage);
+            var userMessageWithDateTime = DatePromptHelper.PrependDateTimePrompt(request.UserMessage, 7);
 
             var finalInput = BuildFinalInputWithTruncation(userMessageWithDateTime);
 

@@ -58,15 +58,14 @@ public static class DatePromptHelper
         return hasTimePattern && hasDatePattern;
     }
 
-    public static string PrependDateTimePrompt(string input)
+    public static string PrependDateTimePrompt(string input, string? userTimezone = null)
     {
         if (!IsDateQuestion(input))
             return input;
 
-        var now = DateTime.Now;
+        var now = GetCurrentTimeByTimezone(userTimezone);
         var promptBuilder = new StringBuilder();
 
-        //Xác định loại thông tin cần thiết dựa vào câu hỏi
         var lowerInput = input.ToLowerInvariant();
         
         //Thêm thông tin ngày tháng
@@ -91,7 +90,7 @@ public static class DatePromptHelper
         //Thêm hướng dẫn ngắn gọn
         promptBuilder.Append("Trả lời dựa trên thông tin thời gian trên. ");
 
-        return promptBuilder.ToString() + input;
+        return promptBuilder + input;
     }
 
     private static bool ContainsDateInfo(string input)
@@ -116,4 +115,57 @@ public static class DatePromptHelper
     {
         return VietnameseDayOfWeek.TryGetValue(dayOfWeek, out var result) ? result : "";
     }
+    
+    // Overload method với timezone offset
+    public static string PrependDateTimePrompt(string input, int timezoneOffsetHours)
+    {
+        var timezone = TimeZoneInfo.CreateCustomTimeZone(
+            $"UTC{(timezoneOffsetHours >= 0 ? "+" : "")}{timezoneOffsetHours}",
+            TimeSpan.FromHours(timezoneOffsetHours),
+            $"UTC{(timezoneOffsetHours >= 0 ? "+" : "")}{timezoneOffsetHours}",
+            $"UTC{(timezoneOffsetHours >= 0 ? "+" : "")}{timezoneOffsetHours}"
+        );
+
+        return PrependDateTimePrompt(input, timezone.Id);
+    }
+
+    private static DateTime GetCurrentTimeByTimezone(string? userTimezone)
+    {
+        if (string.IsNullOrEmpty(userTimezone))
+            return DateTime.Now;
+
+        try
+        {
+            var timeZone = TimeZoneInfo.FindSystemTimeZoneById(userTimezone);
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            if (TryParseTimezoneOffset(userTimezone, out int offsetHours))
+            {
+                return DateTime.UtcNow.AddHours(offsetHours);
+            }
+
+            return DateTime.Now;
+        }
+    }
+    
+    private static bool TryParseTimezoneOffset(string timezone, out int offsetHours)
+    {
+        offsetHours = 0;
+        
+        if (string.IsNullOrEmpty(timezone))
+            return false;
+
+        var offset = timezone.Replace("UTC", "", StringComparison.OrdinalIgnoreCase).Trim();
+        
+        if (double.TryParse(offset, out double hours))
+        {
+            offsetHours = (int)hours;
+            return true;
+        }
+
+        return false;
+    }
+
 }
