@@ -131,10 +131,10 @@ public class PatientProfile : AggregateRoot<Guid>
 
     private bool CheckProfileCompleted()
     {
-        return !string.IsNullOrWhiteSpace(FullName) 
-               && ContactInfo.HasEnoughInfo() 
+        return !string.IsNullOrWhiteSpace(FullName)
+               && ContactInfo.HasEnoughInfo()
                && ContactInfo.PhoneNumber is not null
-               && BirthDate.HasValue
-               && JobId.HasValue;
+               && BirthDate.HasValue;
+        // && JobId.HasValue;
     }
 }
