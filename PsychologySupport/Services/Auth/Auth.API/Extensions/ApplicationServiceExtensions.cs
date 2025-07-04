@@ -1,9 +1,9 @@
 ﻿using Auth.API.BackgroundServices;
 using Auth.API.Data;
-using Auth.API.Filters;
 using Auth.API.ServiceContracts;
 using Auth.API.Services;
 using BuildingBlocks.Behaviors;
+using BuildingBlocks.Filters;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using Microsoft.EntityFrameworkCore;

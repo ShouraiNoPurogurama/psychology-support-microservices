@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
+using BuildingBlocks.Filters;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using ChatBox.API.Data;
@@ -18,7 +19,10 @@ public static class ApplicationServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
-        services.AddControllers();
+        services.AddControllers(options =>
+        {
+            options.Filters.Add<LoggingActionFilter>();
+        });
         
         // services.AddCarter();
 
@@ -123,6 +127,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<SummarizationService>();
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        services.AddScoped<LoggingActionFilter>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)

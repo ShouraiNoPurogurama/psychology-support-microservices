@@ -1,8 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Logging;
 
-namespace Auth.API.Filters;
+namespace BuildingBlocks.Filters;
 
 public class LoggingActionFilter : IAsyncActionFilter
 {
