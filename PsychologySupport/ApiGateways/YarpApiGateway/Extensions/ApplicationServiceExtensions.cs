@@ -37,7 +37,12 @@ public static class ApplicationServiceExtensions
             {
                 opt.Window = TimeSpan.FromSeconds(10);
                 opt.PermitLimit = 20;
-            }); //A maximum of 25 requests per each 10 seconds window are allowed
+            }); //A maximum of 20 requests per each 10 seconds window are allowed
+            options.AddFixedWindowLimiter("post_sessions_fixed_window", opt =>
+            {
+                opt.Window = TimeSpan.FromSeconds(10);
+                opt.PermitLimit = 5;
+            }); //A maximum of 5 requests per each 10 seconds window are allowed
         });
     }
 

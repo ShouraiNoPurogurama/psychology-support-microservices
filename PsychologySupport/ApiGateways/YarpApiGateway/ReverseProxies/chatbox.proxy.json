@@ -25,17 +25,32 @@
         ],
         "RateLimiterPolicy": "fixed"
       },
+      "chatbox_session-route": {
+        "ClusterId": "chatbox-cluster",
+        "Match": {
+          "Path": "/chatbox-service/api/AIChat/sessions/{id}/messages"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/chatbox-service/api/AIChat/sessions/{id}/messages"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "chatbox-route": {
         "ClusterId": "chatbox-cluster",
         "Match": {
-          "Path": "/chatbox-service/{**catch-all}"
+          "Path": "/chatbox-service/{**catch-all}",
+          "Methods": [
+            "POST"
+          ]
         },
         "Transforms": [
           {
             "PathPattern": "{**catch-all}"
           }
         ],
-        "RateLimiterPolicy": "fixed"
+        "RateLimiterPolicy": "post_sessions_fixed_window"
       }
     },
     "Clusters": {
