@@ -25,6 +25,19 @@ namespace Profile.API.EventHandlers
 
             try
             {
+                var existingProfile = await _dbContext.PatientProfiles
+                    .FirstOrDefaultAsync(p => p.UserId == request.UserId ||
+                                              p.ContactInfo.Email == request.ContactInfo.Email);
+
+                if (existingProfile is not null)
+                {
+                    await context.RespondAsync(new CreatePatientProfileResponse(
+                        existingProfile.Id,
+                        false,
+                        "Hồ sơ đã tồn tại."));
+                    return;
+                }
+
                 var newProfile = new PatientProfile
                 {
                     Id = Guid.NewGuid(),
@@ -36,8 +49,7 @@ namespace Profile.API.EventHandlers
                     ContactInfo = request.ContactInfo
                 };
 
-                 _dbContext.PatientProfiles.Add(newProfile);
-                 
+                _dbContext.PatientProfiles.Add(newProfile);
                 await _dbContext.SaveChangesAsync();
 
                 var welcomeTemplatePath = Path.Combine(_env.ContentRootPath, "EmailTemplates", "welcomepatient.html");
@@ -48,7 +60,6 @@ namespace Profile.API.EventHandlers
                     ["Year"] = DateTime.UtcNow.Year.ToString()
                 });
 
-                // Gửi email sử dụng template đã render
                 await _publishEndpoint.Publish(new SendEmailIntegrationEvent(
                     request.ContactInfo.Email,
                     "Hồ sơ EmoEase của bạn đã được tạo thành công",
@@ -66,7 +77,6 @@ namespace Profile.API.EventHandlers
                     Guid.Empty,
                     false,
                     $"Không thể tạo hồ sơ người dùng: {ex.Message}"));
-                return;
             }
         }
 
