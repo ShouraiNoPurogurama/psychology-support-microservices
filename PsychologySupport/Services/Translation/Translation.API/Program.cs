@@ -1,3 +1,4 @@
+using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
 using Translation.API.Extensions;
@@ -5,6 +6,8 @@ using Translation.API.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
+
+builder.Host.UseStandardSerilog(builder.Configuration, "Translation Service");
 
 var services = builder.Services;
 

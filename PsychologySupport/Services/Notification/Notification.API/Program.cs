@@ -1,3 +1,4 @@
+using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
 using Notification.API;
@@ -6,6 +7,8 @@ using Notification.API.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
+
+builder.Host.UseStandardSerilog(builder.Configuration, "Notification Service");
 
 var services = builder.Services;
 

@@ -1,3 +1,4 @@
+using BuildingBlocks.Behaviors;
 using Carter;
 using Payment.API;
 using Payment.Application;
@@ -9,6 +10,8 @@ using Payment.Infrastructure.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
+
+builder.Host.UseStandardSerilog(builder.Configuration, "Payment Service");
 
 // Add services to the container.
 

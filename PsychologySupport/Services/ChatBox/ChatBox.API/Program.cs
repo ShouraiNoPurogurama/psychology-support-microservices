@@ -1,3 +1,4 @@
+using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using ChatBox.API.Extensions;
 using ChatBox.API.Hubs;
@@ -5,6 +6,7 @@ using ChatBox.API.Hubs;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
+builder.Host.UseStandardSerilog(builder.Configuration, "ChatBox Service");
 
 var services = builder.Services;
 

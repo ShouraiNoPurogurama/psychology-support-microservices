@@ -1,3 +1,4 @@
+using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
 using LifeStyles.API.Extensions;
@@ -5,6 +6,8 @@ using LifeStyles.API.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
+
+builder.Host.UseStandardSerilog(builder.Configuration, "LifeStyle Service");
 
 var services = builder.Services;
 

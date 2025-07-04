@@ -1,9 +1,12 @@
+using BuildingBlocks.Behaviors;
 using Carter;
 using Subscription.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
+
+builder.Host.UseStandardSerilog(builder.Configuration, "Subscription Service");
 
 var services = builder.Services;
 
