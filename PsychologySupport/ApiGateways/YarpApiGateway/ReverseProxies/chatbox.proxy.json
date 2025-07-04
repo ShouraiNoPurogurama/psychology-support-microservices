@@ -38,7 +38,7 @@
             "PathPattern": "/api/AIChat/sessions"
           }
         ],
-        "RateLimiterPolicy": "fixed"
+        "RateLimiterPolicy": "post_sessions_fixed_window"
       },
       "chatbox-route": {
         "ClusterId": "chatbox-cluster",
@@ -50,7 +50,7 @@
             "PathPattern": "{**catch-all}"
           }
         ],
-        "RateLimiterPolicy": "post_sessions_fixed_window"
+        "RateLimiterPolicy": "fixed"
       }
     },
     "Clusters": {
