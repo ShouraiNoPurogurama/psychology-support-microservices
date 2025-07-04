@@ -203,26 +203,37 @@ public class AuthService(
             user.EmailConfirmed = true;
             await _userManager.UpdateAsync(user);
 
-            var contactInfo = ContactInfo.Of("None", user.Email, user.PhoneNumber);
-            var createProfileRequest = new CreatePatientProfileRequest(
-                user.Id,
-                user.FullName,
-                user.Gender,
-                null,
-                PersonalityTrait.None,
-                contactInfo
-            );
+            // Kiểm tra profile đã tồn tại theo email chưa
+            var existenceRequest = new PatientProfileExistenceByEmailRequest(user.Email);
+            var existenceResponse = await _profileClient.GetResponse<PatientProfileExistenceByEmailResponse>(existenceRequest);
 
-            var profileResponse = await _profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
-
-            if (!profileResponse.Message.Success)
+            if (!existenceResponse.Message.IsExist)
             {
-                status = "partial";
-                message = $"Xác nhận email thành công nhưng tạo hồ sơ thất bại: {profileResponse.Message.Message}";
+                var contactInfo = ContactInfo.Of("None", user.Email, user.PhoneNumber);
+                var createProfileRequest = new CreatePatientProfileRequest(
+                    user.Id,
+                    user.FullName,
+                    user.Gender,
+                    null,
+                    PersonalityTrait.None,
+                    contactInfo
+                );
+
+                var profileResponse = await _profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
+
+                if (!profileResponse.Message.Success)
+                {
+                    status = "partial";
+                    message = $"Xác nhận email thành công nhưng tạo hồ sơ thất bại: {profileResponse.Message.Message}";
+                }
+                else
+                {
+                    message = "Xác nhận email và tạo hồ sơ thành công.";
+                }
             }
             else
             {
-                message = "Xác nhận email và tạo hồ sơ thành công.";
+                message = "Xác nhận email thành công. Hồ sơ đã tồn tại.";
             }
         }
         else
