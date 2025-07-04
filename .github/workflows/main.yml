@@ -30,6 +30,11 @@ jobs:
           # Pull latest changes
           git pull origin main
 
+          # Inject .env file for Docker Compose (PRODUCTION)
+          cat <<EOF > .env
+          ${{ secrets.ENV_PROD }}
+          EOF
+
           # Inject appsettings.json from GitHub secrets safely
           cat <<EOF > ApiGateways/YarpApiGateway/RSAKeys/PublicKey.xml
           ${{ secrets.RSA_PUBLIC_KEYS }}
