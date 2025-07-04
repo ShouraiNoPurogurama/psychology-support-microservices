@@ -6,161 +6,59 @@ on:
       - main
 
 jobs:
+  #Sync base secrets (appsettings.json, .env, RSA,...)
+  sync-base-secrets:
+    uses: ./.github/workflows/sync-secrets.yml
+    secrets: inherit
+
+  #Sync appsettings.Production.json
+  sync-production-appsettings:
+    uses: ./.github/workflows/sync-production-appsettings.yml
+    secrets: inherit
+
+  #Deploy app (build & up docker)
   deploy:
     runs-on: ubuntu-latest
-
+    needs: [sync-base-secrets, sync-production-appsettings]
+    environment: Production
     steps:
-    - name: SSH and deploy
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USERNAME }}
-        password: ${{ secrets.VPS_PASSWORD }}
-        script: |
-          # If repo folder doesn't exist, clone it
-          if [ ! -d "/home/root/emoease/PsychologySupport" ]; then
-            git clone https://github.com/ShouraiNoPurogurama/psychology-support-microservices.git /home/root/emoease
-          fi
+      - name: Build & deploy updated microservices
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            cd /home/root/emoease/PsychologySupport
 
-          cd /home/root/emoease/PsychologySupport
+            git reset --hard HEAD
+            git pull origin main
 
-          # Discard any local changes (optional, but safe)
-          git reset --hard HEAD
+            CHANGED=$(git diff --name-only HEAD^ HEAD \
+              | grep -E '^PsychologySupport/Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+' \
+              | awk -F/ '{
+                  if ($1 == "PsychologySupport" && $2 == "Services") {
+                    print tolower($3) ".api"
+                  } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
+                    print tolower($3)
+                  }
+                }' \
+              | sort -u)
 
-          # Pull latest changes
-          git pull origin main
+            echo "================= DEBUGGING ================="
+            echo "*** Changed Microservices: $CHANGED"
+            echo "============================================="
 
-          # Inject appsettings.json from GitHub secrets safely
-          cat <<EOF > ApiGateways/YarpApiGateway/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
+            for svc in $CHANGED; do
+              echo "🔧 Building $svc..."
+              docker compose -f docker-compose-apis.yml build "$svc" || { echo "❌ Build failed for $svc"; continue; }
 
-          cat <<EOF > ApiGateways/YarpApiGateway/appsettings.json
-          ${{ secrets.APPSETTINGS_YARP_API_GATEWAY }}
-          EOF
+              echo "🚀 Starting $svc..."
+              docker compose -f docker-compose-apis.yml up -d "$svc" || { echo "❌ Failed to start $svc"; continue; }
 
-          cat <<EOF > Services/ChatBox/ChatBox.API/appsettings.json
-          ${{ secrets.APPSETTINGS_CHATBOX }}
-          EOF
+              echo "✅ $svc is up and running."
+              echo "---------------------------------------------"
+            done
 
-          cat <<EOF > Services/Auth/Auth.API/RSAKeys/PrivateKey.xml
-          ${{ secrets.RSA_PRIVATE_KEYS }}
-          EOF
-
-          cat <<EOF > Services/Auth/Auth.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          cat <<EOF > Services/Translation/Translation.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          # Inject appsettings.json from GitHub secrets safely
-          cat <<EOF > Services/Auth/Auth.API/appsettings.json
-          ${{ secrets.APPSETTINGS_AUTH }}
-          EOF
-
-          cat <<EOF > Services/ChatBox/ChatBox.API/appsettings.json
-          ${{ secrets.APPSETTINGS_CHATBOX }}
-          EOF
-
-          cat <<EOF > Services/ChatBox/ChatBox.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          cat <<EOF > Services/Image/Image.API/appsettings.json
-          ${{ secrets.APPSETTINGS_IMAGE }}
-          EOF
-
-          cat <<EOF > Services/LifeStyles/LifeStyles.API/appsettings.json
-          ${{ secrets.APPSETTINGS_LIFESTYLES }}
-          EOF
-
-          cat <<EOF > Services/Notification/Notification.API/appsettings.json
-          ${{ secrets.APPSETTINGS_NOTIFICATION }}
-          EOF
-
-          cat <<EOF > Services/Notification/Notification.API/firebase_key.json
-          ${{ secrets.NOTIFICATION_FIREBASE_KEY }}
-          EOF
-
-          cat <<EOF > Services/Payment/Payment.API/appsettings.json
-          ${{ secrets.APPSETTINGS_PAYMENT }}
-          EOF
-
-          cat <<EOF > Services/Profile/Profile.API/appsettings.json
-          ${{ secrets.APPSETTINGS_PROFILE }}
-          EOF
-
-          cat <<EOF > Services/Promotion/Promotion.Grpc/appsettings.json
-          ${{ secrets.APPSETTINGS_PROMOTION }}
-          EOF
-
-          cat <<EOF > Services/Scheduling/Scheduling.API/appsettings.json
-          ${{ secrets.APPSETTINGS_SCHEDULING }}
-          EOF
-
-          cat <<EOF > Services/Subscription/Subscription.API/appsettings.json
-          ${{ secrets.APPSETTINGS_SUBSCRIPTION }}
-          EOF
-
-          cat <<EOF > Services/Translation/Translation.API/appsettings.json
-          ${{ secrets.APPSETTINGS_Translation }}
-          EOF
-
-          cat <<EOF > Services/Test/Test.API/appsettings.json
-          ${{ secrets.APPSETTINGS_TEST }}
-          EOF
-
-          cat <<EOF > Services/Test/Test.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          cat <<EOF > Services/LifeStyles/LifeStyles.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          cat <<EOF > Services/Payment/Payment.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          cat <<EOF > Services/Scheduling/Scheduling.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          cat <<EOF > Services/Profile/Profile.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          cat <<EOF > Services/Subscription/Subscription.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          CHANGED=$(git diff --name-only HEAD^ HEAD \
-            | grep -E '^PsychologySupport/Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+' \
-            | awk -F/ '{
-                if ($1 == "PsychologySupport" && $2 == "Services") {
-                  print tolower($3) ".api"
-                } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
-                  print tolower($3)
-                }
-              }' \
-            | sort -u)
-
-          echo "================= DEBUGGING ================="
-          echo "*** Changed Microservices: $CHANGED"
-          echo "============================================="
-
-          for svc in $CHANGED; do
-            echo "🔧 Building $svc..."
-            docker compose -f docker-compose-apis.yml build "$svc" || { echo "❌ Build failed for $svc"; continue; }
-
-            echo "🚀 Starting $svc..."
-            docker compose -f docker-compose-apis.yml up -d "$svc" || { echo "❌ Failed to start $svc"; continue; }
-
-            echo "✅ $svc is up and running."
-            echo "---------------------------------------------"
-          done
-            # echo "🧹 Cleaning up Docker builder cache..."
             # docker builder prune -f
             # echo "✅ Docker cache cleaned."
