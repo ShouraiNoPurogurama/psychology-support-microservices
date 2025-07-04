@@ -406,6 +406,8 @@ FodyWeavers.xsd
 *.sln.iml
 *appsettings.json
 *appsettings.Development.json
+*appsettings.Production.json
+*.env
 
 ServiceDependencies/
 PsychologySupport/Services/Notification/Notification.API/firebase_key.json
