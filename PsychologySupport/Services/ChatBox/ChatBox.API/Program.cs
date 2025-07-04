@@ -6,7 +6,7 @@ using ChatBox.API.Hubs;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
-builder.Host.UseStandardSerilog(builder.Configuration, "ChatBox Service");
+builder.Host.UseStandardSerilog(builder.Configuration, "ChatBox");
 
 var services = builder.Services;
 

@@ -6,7 +6,7 @@ using Image.API.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
-builder.Host.UseStandardSerilog(builder.Configuration, "Image Service");
+builder.Host.UseStandardSerilog(builder.Configuration, "Image");
 
 var services = builder.Services;
 

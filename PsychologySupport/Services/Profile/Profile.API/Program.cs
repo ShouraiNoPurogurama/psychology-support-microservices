@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
 
-builder.Host.UseStandardSerilog(builder.Configuration, "Profile Service");
+builder.Host.UseStandardSerilog(builder.Configuration, "Profile");
 
 var services = builder.Services;
 

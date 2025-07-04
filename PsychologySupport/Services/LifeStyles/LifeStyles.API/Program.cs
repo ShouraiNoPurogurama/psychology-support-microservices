@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
 
-builder.Host.UseStandardSerilog(builder.Configuration, "LifeStyle Service");
+builder.Host.UseStandardSerilog(builder.Configuration, "LifeStyle");
 
 var services = builder.Services;
 

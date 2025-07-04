@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
 
-builder.Host.UseStandardSerilog(builder.Configuration, "Scheduling Service");
+builder.Host.UseStandardSerilog(builder.Configuration, "Scheduling");
 
 var services = builder.Services;
 

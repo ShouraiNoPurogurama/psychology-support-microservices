@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
 
-builder.Host.UseStandardSerilog(builder.Configuration, "Translation Service");
+builder.Host.UseStandardSerilog(builder.Configuration, "Translation");
 
 var services = builder.Services;
 

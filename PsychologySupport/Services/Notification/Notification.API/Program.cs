@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
 
-builder.Host.UseStandardSerilog(builder.Configuration, "Notification Service");
+builder.Host.UseStandardSerilog(builder.Configuration, "Notification");
 
 var services = builder.Services;
 
