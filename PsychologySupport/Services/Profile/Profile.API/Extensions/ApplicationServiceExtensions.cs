@@ -28,6 +28,8 @@ public static class ApplicationServiceExtensions
 
         services.AddAuthorization();
 
+        services.AddHttpContextAccessor();
+        
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
         services.AddValidatorsFromAssemblyContaining<UpdateDoctorProfileValidator>();

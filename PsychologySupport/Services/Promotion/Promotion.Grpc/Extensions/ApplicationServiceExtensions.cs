@@ -16,6 +16,8 @@ public static class ApplicationServiceExtensions
         ConfigureSwagger(services);
         
         AddServiceDependencies(services);
+        
+        services.AddHttpContextAccessor();
 
         return services;
     }

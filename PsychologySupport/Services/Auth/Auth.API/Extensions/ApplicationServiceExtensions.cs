@@ -33,7 +33,8 @@ public static class ApplicationServiceExtensions
 
         services.AddHostedService<RevokeSessionCleanupService>();
 
-
+        services.AddHttpContextAccessor();
+        
         return services;
     }
 

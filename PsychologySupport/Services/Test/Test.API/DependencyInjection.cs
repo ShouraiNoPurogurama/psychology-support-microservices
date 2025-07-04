@@ -16,6 +16,7 @@ public static class DependencyInjection
             .AddSqlServer(configuration.GetConnectionString("Database")!);
 
         services.AddAuthorization();
+        services.AddHttpContextAccessor();
 
         ConfigureSwagger(services);
         ConfigureCors(services);

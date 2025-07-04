@@ -27,6 +27,8 @@ public static class ApplicationServiceExtensions
         services.AddIdentityServices(config);
 
         services.AddAuthorization();
+        
+        services.AddHttpContextAccessor();
 
         ConfigureSwagger(services);
         ConfigureCORS(services);

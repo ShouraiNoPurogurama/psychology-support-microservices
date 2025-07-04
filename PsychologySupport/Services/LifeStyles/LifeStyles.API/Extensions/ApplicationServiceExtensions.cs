@@ -35,6 +35,8 @@ public static class ApplicationServiceExtensions
         services.AddIdentityServices(config);
 
         services.AddAuthorization();
+        
+        services.AddHttpContextAccessor();
 
         return services;
     }

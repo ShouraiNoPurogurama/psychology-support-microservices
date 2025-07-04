@@ -30,6 +30,8 @@ namespace Scheduling.API.Extensions
             AddGrpcServiceDependencies(services, config);
 
             AddValidatorDependencies(services);
+            
+            services.AddHttpContextAccessor();
 
             services.AddIdentityServices(config);
 

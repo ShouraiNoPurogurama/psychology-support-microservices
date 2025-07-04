@@ -12,6 +12,7 @@ public static class DependencyInjection
         services.AddExceptionHandler<CustomExceptionHandler>();
 
         services.AddAuthorization();
+        services.AddHttpContextAccessor();
 
         ConfigureCORS(services);
         ConfigureSwagger(services);

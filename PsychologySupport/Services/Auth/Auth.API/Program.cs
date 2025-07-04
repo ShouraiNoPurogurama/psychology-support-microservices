@@ -10,6 +10,7 @@ var services = builder.Services;
 
 services.AddExceptionHandler<CustomExceptionHandler>();
 
+
 services.AddApplicationServices(builder.Configuration);
 services.AddIdentityServices(builder.Configuration);
 

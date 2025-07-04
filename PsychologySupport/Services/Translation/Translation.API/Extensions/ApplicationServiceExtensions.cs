@@ -32,6 +32,8 @@ public static class ApplicationServiceExtensions
 
         ConfigureMediatR(services);
         
+        services.AddHttpContextAccessor();
+        
         // services.AddIdentityServices(config);
         
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
