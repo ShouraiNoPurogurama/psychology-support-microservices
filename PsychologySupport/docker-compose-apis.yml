@@ -5,7 +5,7 @@ services:
     image: ${DOCKER_REGISTRY-}authapi
     container_name: auth.api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
@@ -24,7 +24,7 @@ services:
     image: ${DOCKER_REGISTRY-}chatboxapi
     container_name: chatbox.api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081 
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
@@ -46,7 +46,7 @@ services:
     image: ${DOCKER_REGISTRY-}imageapi
     container_name: image.api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081 
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
@@ -64,7 +64,7 @@ services:
     image: ${DOCKER_REGISTRY-}lifestylesapi
     container_name: lifestyles.api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081 
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
@@ -84,7 +84,7 @@ services:
     image: ${DOCKER_REGISTRY-}notificationapi
     container_name: notification.api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081 
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
@@ -102,7 +102,7 @@ services:
     image: ${DOCKER_REGISTRY-}paymentapi
     container_name: payment.api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081 
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
@@ -121,7 +121,7 @@ services:
     image: ${DOCKER_REGISTRY-}profileapi
     container_name: profile.api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081 
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
@@ -140,7 +140,7 @@ services:
     image: ${DOCKER_REGISTRY-}promotiongrpc
     container_name: promotion.grpc
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081 
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
@@ -158,7 +158,7 @@ services:
     image: ${DOCKER_REGISTRY-}schedulingapi
     container_name: scheduling.api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081 
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
@@ -177,7 +177,7 @@ services:
     image: ${DOCKER_REGISTRY-}subscriptionapi
     container_name: subscription.api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081 
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
@@ -196,7 +196,7 @@ services:
     image: ${DOCKER_REGISTRY-}testapi
     container_name: test.api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081 
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
@@ -217,7 +217,7 @@ services:
     image: ${DOCKER_REGISTRY-}translation
     container_name: translation.api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
@@ -238,7 +238,7 @@ services:
     image: ${DOCKER_REGISTRY-}yarpapigateway
     container_name: emoease.yarpapigateway
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081 
     ports:

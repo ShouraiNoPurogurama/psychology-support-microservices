@@ -6,7 +6,7 @@ namespace Payment.API;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
     {
         services.AddCarter();
         services.AddExceptionHandler<CustomExceptionHandler>();
@@ -15,7 +15,7 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
 
         ConfigureCORS(services);
-        ConfigureSwagger(services);
+        ConfigureSwagger(services, env); 
         
         return services;
     }
@@ -34,7 +34,7 @@ public static class DependencyInjection
         });
     }
     
-    private static void ConfigureSwagger(IServiceCollection services)
+    private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddSwaggerGen(options =>
         {

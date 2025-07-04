@@ -14,7 +14,7 @@ builder.Configuration.LoadConfiguration(builder.Environment);
 builder.Services
     .AddApplicationServices(builder.Configuration)
     .AddInfrastructureServices(builder.Configuration)
-    .AddApiServices(builder.Configuration)
+    .AddApiServices(builder.Configuration, builder.Environment)
     .RegisterMapsterConfiguration();
 
 var app = builder.Build();

@@ -16,13 +16,13 @@ namespace ChatBox.API.Extensions;
 
 public static class ApplicationServiceExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
         services.AddControllers();
         
         // services.AddCarter();
 
-        ConfigureSwagger(services);
+        ConfigureSwagger(services, env); 
 
         ConfigureCors(services);
         
@@ -55,7 +55,7 @@ public static class ApplicationServiceExtensions
         });
     }
 
-    private static void ConfigureSwagger(IServiceCollection services)
+    private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
         
@@ -66,10 +66,14 @@ public static class ApplicationServiceExtensions
                 Title = "Chatbox API",
                 Version = "v1"
             });
-            options.AddServer(new OpenApiServer
+            //Chỉ add server khi chạy Production
+            if (env.IsProduction())
             {
-                Url = "/chatbox-service/"
-            });
+                options.AddServer(new OpenApiServer
+                {
+                    Url = "/auth-service/"
+                });
+            }
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",

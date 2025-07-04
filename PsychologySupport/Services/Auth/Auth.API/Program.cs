@@ -10,8 +10,7 @@ var services = builder.Services;
 
 services.AddExceptionHandler<CustomExceptionHandler>();
 
-
-services.AddApplicationServices(builder.Configuration);
+services.AddApplicationServices(builder.Configuration, builder.Environment);
 services.AddIdentityServices(builder.Configuration);
 
 // Configure the HTTP request pipeline

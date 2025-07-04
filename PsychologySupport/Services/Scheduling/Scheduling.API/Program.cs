@@ -7,7 +7,7 @@ builder.Configuration.LoadConfiguration(builder.Environment);
 
 var services = builder.Services;
 
-services.AddApplicationServices(builder.Configuration);
+services.AddApplicationServices(builder.Configuration, builder.Environment);
 
 // Configure the HTTP request pipeline
 var app = builder.Build();
