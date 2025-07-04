@@ -86,76 +86,11 @@ public class AuthService(
 
     #region ConfirmEmailAsync
 
-    //public async Task<string> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest)
-    //{
-    //    var token = confirmEmailRequest.Token;
-    //    var email = confirmEmailRequest.Email;
-
-    //    if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email))
-    //        throw new BadRequestException("Email hoặc Token bị thiếu.");
-
-    //    var user = await _userManager.FindByEmailAsync(email)
-    //               ?? throw new UserNotFoundException(email);
-
-    //    var result = await _userManager.ConfirmEmailAsync(user, token);
-
-    //    string status = result.Succeeded ? "success" : "failed";
-    //    string message;
-
-    //    if (result.Succeeded)
-    //    {
-    //        user.EmailConfirmed = true;
-    //        await _userManager.UpdateAsync(user);
-
-    //        // Kiểm tra profile đã tồn tại theo email chưa
-    //        var existenceRequest = new PatientProfileExistenceByEmailRequest(user.Email);
-    //        var existenceResponse = await _profileClient.GetResponse<PatientProfileExistenceByEmailResponse>(existenceRequest);
-
-    //        if (!existenceResponse.Message.IsExist)
-    //        {
-    //            var contactInfo = ContactInfo.Of("None", user.Email, user.PhoneNumber);
-    //            var createProfileRequest = new CreatePatientProfileRequest(
-    //                user.Id,
-    //                user.FullName,
-    //                user.Gender,
-    //                null,
-    //                PersonalityTrait.None,
-    //                contactInfo
-    //            );
-
-    //            var profileResponse = await _profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
-
-    //            if (!profileResponse.Message.Success)
-    //            {
-    //                status = "partial";
-    //                message = $"Xác nhận email thành công nhưng tạo hồ sơ thất bại: {profileResponse.Message.Message}";
-    //            }
-    //            else
-    //            {
-    //                message = "Xác nhận email và tạo hồ sơ thành công.";
-    //            }
-    //        }
-    //        else
-    //        {
-    //            message = "Xác nhận email thành công. Hồ sơ đã tồn tại.";
-    //        }
-    //    }
-    //    else
-    //    {
-    //        message = $"Xác nhận email thất bại: {string.Join("; ", result.Errors.Select(e => e.Description))}";
-    //    }
-
-    //    var baseRedirectUrl = configuration["Mail:ConfirmationRedirectUrl"];
-    //    var redirectUrl = $"{baseRedirectUrl}?status={status}&message={Uri.EscapeDataString(message)}";
-
-    //    return redirectUrl;
-    //}
-
-    #endregion
-
     public async Task<string> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest)
     {
-        var token = confirmEmailRequest.Token; var email = confirmEmailRequest.Email;
+        var token = confirmEmailRequest.Token;
+        var email = confirmEmailRequest.Email;
+
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email))
             throw new BadRequestException("Email hoặc Token bị thiếu.");
 
@@ -172,26 +107,37 @@ public class AuthService(
             user.EmailConfirmed = true;
             await _userManager.UpdateAsync(user);
 
-            var contactInfo = ContactInfo.Of("None", user.Email, user.PhoneNumber);
-            var createProfileRequest = new CreatePatientProfileRequest(
-                user.Id,
-                user.FullName,
-                user.Gender,
-                null,
-                PersonalityTrait.None,
-                contactInfo
-            );
+            // Kiểm tra profile đã tồn tại theo email chưa
+            var existenceRequest = new PatientProfileExistenceByEmailRequest(user.Email);
+            var existenceResponse = await _profileClient.GetResponse<PatientProfileExistenceByEmailResponse>(existenceRequest);
 
-            var profileResponse = await _profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
-
-            if (!profileResponse.Message.Success)
+            if (!existenceResponse.Message.IsExist)
             {
-                status = "partial";
-                message = $"Xác nhận email thành công nhưng tạo hồ sơ thất bại: {profileResponse.Message.Message}";
+                var contactInfo = ContactInfo.Of("None", user.Email, user.PhoneNumber);
+                var createProfileRequest = new CreatePatientProfileRequest(
+                    user.Id,
+                    user.FullName,
+                    user.Gender,
+                    null,
+                    PersonalityTrait.None,
+                    contactInfo
+                );
+
+                var profileResponse = await _profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
+
+                if (!profileResponse.Message.Success)
+                {
+                    status = "partial";
+                    message = $"Xác nhận email thành công nhưng tạo hồ sơ thất bại: {profileResponse.Message.Message}";
+                }
+                else
+                {
+                    message = "Xác nhận email và tạo hồ sơ thành công.";
+                }
             }
             else
             {
-                message = "Xác nhận email và tạo hồ sơ thành công.";
+                message = "Xác nhận email thành công. Hồ sơ đã tồn tại.";
             }
         }
         else
@@ -204,6 +150,60 @@ public class AuthService(
 
         return redirectUrl;
     }
+
+    #endregion
+
+    //public async Task<string> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest)
+    //{
+    //    var token = confirmEmailRequest.Token; var email = confirmEmailRequest.Email;
+    //    if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email))
+    //        throw new BadRequestException("Email hoặc Token bị thiếu.");
+
+    //    var user = await _userManager.FindByEmailAsync(email)
+    //               ?? throw new UserNotFoundException(email);
+
+    //    var result = await _userManager.ConfirmEmailAsync(user, token);
+
+    //    string status = result.Succeeded ? "success" : "failed";
+    //    string message;
+
+    //    if (result.Succeeded)
+    //    {
+    //        user.EmailConfirmed = true;
+    //        await _userManager.UpdateAsync(user);
+
+    //        var contactInfo = ContactInfo.Of("None", user.Email, user.PhoneNumber);
+    //        var createProfileRequest = new CreatePatientProfileRequest(
+    //            user.Id,
+    //            user.FullName,
+    //            user.Gender,
+    //            null,
+    //            PersonalityTrait.None,
+    //            contactInfo
+    //        );
+
+    //        var profileResponse = await _profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
+
+    //        if (!profileResponse.Message.Success)
+    //        {
+    //            status = "partial";
+    //            message = $"Xác nhận email thành công nhưng tạo hồ sơ thất bại: {profileResponse.Message.Message}";
+    //        }
+    //        else
+    //        {
+    //            message = "Xác nhận email và tạo hồ sơ thành công.";
+    //        }
+    //    }
+    //    else
+    //    {
+    //        message = $"Xác nhận email thất bại: {string.Join("; ", result.Errors.Select(e => e.Description))}";
+    //    }
+
+    //    var baseRedirectUrl = configuration["Mail:ConfirmationRedirectUrl"];
+    //    var redirectUrl = $"{baseRedirectUrl}?status={status}&message={Uri.EscapeDataString(message)}";
+
+    //    return redirectUrl;
+    //}
 
 
     public async Task<bool> UnlockAccountAsync(string email)

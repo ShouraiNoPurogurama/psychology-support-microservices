@@ -39,11 +39,6 @@ namespace Profile.API.EventHandlers
                  _dbContext.PatientProfiles.Add(newProfile);
                  
                 await _dbContext.SaveChangesAsync();
-                
-                //await _publishEndpoint.Publish(new SendEmailIntegrationEvent(
-                //    request.ContactInfo.Email,
-                //    "Hồ sơ EmoEase của bạn đã được tạo thành công",
-                //    "Chúc mừng! Hồ sơ người dùng của bạn đã được tạo trên hệ thống EmoEase. Hãy đăng nhập để cập nhật thêm thông tin nếu cần."));
 
                 var welcomeTemplatePath = Path.Combine(_env.ContentRootPath, "EmailTemplates", "welcomepatient.html");
 
