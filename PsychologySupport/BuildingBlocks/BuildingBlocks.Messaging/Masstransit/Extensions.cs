@@ -31,6 +31,25 @@ public static class Extensions
                     host.Password(configuration["MessageBroker:Password"]!);
                 });
                 configurator.ConfigureEndpoints(context);
+                
+                configurator.UseMessageRetry(retryConfig =>
+                {
+                    retryConfig.Exponential(
+                        3,              
+                        TimeSpan.FromSeconds(1),    //thời gian delay tối thiểu
+                        TimeSpan.FromSeconds(30),   //thời gian delay tối đa
+                        TimeSpan.FromSeconds(5));  //hệ số tăng delay (exponential factor)
+                });
+
+                
+                configurator.UseCircuitBreaker(cb =>
+                {
+                    cb.TrackingPeriod = TimeSpan.FromMinutes(1);    
+                    cb.TripThreshold = 40;    
+                    cb.ActiveThreshold = 10;                       //Phải có ít nhất 10 request mới tính TripThreshold
+                    cb.ResetInterval = TimeSpan.FromMinutes(5);    //Sau 5 phút thử đóng mạch lại
+                });
+
             });
         });
         return services;
