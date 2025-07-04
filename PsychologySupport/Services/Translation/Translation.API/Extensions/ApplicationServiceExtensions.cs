@@ -14,13 +14,13 @@ namespace Translation.API.Extensions;
 
 public static class ApplicationServiceExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
         services.AddControllers();
         
         services.AddCarter();
 
-        ConfigureSwagger(services);
+        ConfigureSwagger(services, env);
 
         ConfigureCors(services);
         
@@ -49,7 +49,7 @@ public static class ApplicationServiceExtensions
         });
     }
 
-    private static void ConfigureSwagger(IServiceCollection services)
+    private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
         

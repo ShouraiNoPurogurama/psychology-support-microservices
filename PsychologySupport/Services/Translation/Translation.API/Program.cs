@@ -8,7 +8,7 @@ builder.Configuration.LoadConfiguration(builder.Environment);
 
 var services = builder.Services;
 
-services.AddApplicationServices(builder.Configuration);
+services.AddApplicationServices(builder.Configuration, builder.Environment);
 services.AddExceptionHandler<CustomExceptionHandler>();
 
 

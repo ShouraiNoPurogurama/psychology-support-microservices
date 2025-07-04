@@ -8,7 +8,7 @@ namespace Test.API;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
     {
         services.AddCarter();
         services.AddExceptionHandler<CustomExceptionHandler>();
@@ -17,7 +17,7 @@ public static class DependencyInjection
 
         services.AddAuthorization();
 
-        ConfigureSwagger(services);
+      ConfigureSwagger(services, env);
         ConfigureCors(services);
         
         return services;
@@ -36,7 +36,7 @@ public static class DependencyInjection
         return app;
     }
     
-    private static void ConfigureSwagger(IServiceCollection services)
+    private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
 

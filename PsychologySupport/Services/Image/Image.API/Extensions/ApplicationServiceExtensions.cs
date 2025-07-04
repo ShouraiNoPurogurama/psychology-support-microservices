@@ -14,7 +14,7 @@ namespace Image.API.Extensions
 {
     public static class ApplicationServiceExtensions
     {
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
         {
             services.AddCarter();
             services.AddControllers()
@@ -24,7 +24,7 @@ namespace Image.API.Extensions
            });
             services.AddEndpointsApiExplorer();
 
-            ConfigureSwagger(services);
+            ConfigureSwagger(services, env); 
             ConfigureCORS(services);
             ConfigureMediatR(services);
             AddDatabase(services, config);
@@ -36,7 +36,7 @@ namespace Image.API.Extensions
             return services;
         }
 
-        private static void ConfigureSwagger(IServiceCollection services)
+        private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
         {
             services.AddSwaggerGen(options =>
             {

@@ -9,7 +9,7 @@ namespace Scheduling.API.Extensions
 {
     public static class ApplicationServiceExtensions
     {
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
         {
             services.AddCarter();
 
@@ -17,7 +17,7 @@ namespace Scheduling.API.Extensions
 
             services.AddExceptionHandler<CustomExceptionHandler>();
 
-            ConfigureSwagger(services);
+            ConfigureSwagger(services, env); 
 
             ConfigureCors(services);
 
@@ -93,7 +93,7 @@ namespace Scheduling.API.Extensions
             });
         }
 
-        private static void ConfigureSwagger(IServiceCollection services)
+        private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
         {
             services.AddEndpointsApiExplorer();
 

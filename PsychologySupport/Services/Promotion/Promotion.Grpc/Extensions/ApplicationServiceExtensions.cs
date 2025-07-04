@@ -7,20 +7,20 @@ namespace Promotion.Grpc.Extensions;
 
 public static class ApplicationServiceExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
         ConfigureGrpc(services);
 
         ConfigureDatabase(services, config);
 
-        ConfigureSwagger(services);
+        ConfigureSwagger(services, env); 
         
         AddServiceDependencies(services);
 
         return services;
     }
 
-    private static void ConfigureSwagger(IServiceCollection services)
+    private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
 

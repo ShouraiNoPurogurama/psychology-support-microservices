@@ -13,13 +13,13 @@ namespace Auth.API.Extensions;
 
 public static class ApplicationServiceExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
         services.AddCarter();
         services.AddControllers();
         services.AddEndpointsApiExplorer();
 
-        ConfigureSwagger(services);
+        ConfigureSwagger(services, env);
 
         ConfigureCors(services);
 
@@ -61,7 +61,7 @@ public static class ApplicationServiceExtensions
         });
     }
 
-    private static void ConfigureSwagger(IServiceCollection services)
+    private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddSwaggerGen(options =>
         {
@@ -70,10 +70,15 @@ public static class ApplicationServiceExtensions
                 Title = "Auth API",
                 Version = "v1"
             });
-            options.AddServer(new OpenApiServer
+            
+            //Chỉ add server khi chạy Production
+            if (env.IsProduction())
             {
-                Url = "/auth-service/"
-            });
+                options.AddServer(new OpenApiServer
+                {
+                    Url = "/auth-service/"
+                });
+            }
         });
     }
 
