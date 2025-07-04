@@ -39,6 +39,8 @@ public static class ApplicationServiceExtensions
         services.AddSignalR();
         
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+
+        services.AddHttpContextAccessor();
         
         return services;
     }

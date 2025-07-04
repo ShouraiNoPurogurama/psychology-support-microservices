@@ -31,6 +31,7 @@ namespace Image.API.Extensions
             AddServiceDependencies(services);
             AddBlobStorage(services, config);
 
+            services.AddHttpContextAccessor();
             //services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
             return services;
