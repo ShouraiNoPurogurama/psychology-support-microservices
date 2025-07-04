@@ -135,6 +135,11 @@ public class AuthService(
         return redirectUrl;
     }
 
+    public Task<LoginResponse> GoogleLoginAsync(GoogleLoginRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<bool> UnlockAccountAsync(string email)
     {
         var user = await _userManager.FindByEmailAsync(email)

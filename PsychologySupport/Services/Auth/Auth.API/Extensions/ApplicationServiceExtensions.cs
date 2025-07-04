@@ -1,5 +1,6 @@
 ﻿using Auth.API.BackgroundServices;
 using Auth.API.Data;
+using Auth.API.Filters;
 using Auth.API.ServiceContracts;
 using Auth.API.Services;
 using BuildingBlocks.Behaviors;
@@ -16,14 +17,17 @@ public static class ApplicationServiceExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
         services.AddCarter();
-        services.AddControllers();
+        services.AddControllers(options =>
+        {
+            options.Filters.Add<LoggingActionFilter>();
+        });
         services.AddEndpointsApiExplorer();
 
         ConfigureSwagger(services);
 
         ConfigureCors(services);
 
-        ConfigureMediatR(services);
+        // ConfigureMediatR(services);
 
         AddDatabase(services, config);
 
@@ -83,7 +87,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
-
+        services.AddScoped<LoggingActionFilter>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)

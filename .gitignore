@@ -425,3 +425,4 @@ public_key.xml
 Keys/
 *.xml
 PsychologySupport/Services/Notification/Notification.API/.config/dotnet-tools.json
+PsychologySupport/.env

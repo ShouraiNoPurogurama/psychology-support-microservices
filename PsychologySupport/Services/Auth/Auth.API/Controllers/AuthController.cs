@@ -40,6 +40,13 @@ public class AuthController(
         return Ok(response);
     }
     
+    [HttpPost("google-login")]
+    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+    {
+        var result = await authService.GoogleLoginAsync(request);
+        return Ok(result);
+    }
+    
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken([FromBody] TokenApiRequest refreshTokenRequest)
     {

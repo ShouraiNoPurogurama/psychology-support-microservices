@@ -8,6 +8,7 @@ public interface IAuthService
     Task<bool> RegisterAsync(RegisterRequest registerRequest);
     Task<string> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest);
     Task<LoginResponse> LoginAsync(LoginRequest loginRequest);
+    Task<LoginResponse> GoogleLoginAsync(GoogleLoginRequest request);
     Task<bool> UnlockAccountAsync(string email);
     Task<bool> ForgotPasswordAsync(string email);
     Task<bool> ResetPasswordAsync(ResetPasswordRequest request);

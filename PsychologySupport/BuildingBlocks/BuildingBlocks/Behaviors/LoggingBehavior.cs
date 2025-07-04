@@ -23,7 +23,7 @@ public class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TReque
             ["ResponseType"] = responseName
         });
 
-        logger.LogInformation("🚀 [{CorrelationId}] Starting {RequestType}", correlationId, requestName);
+        logger.LogInformation("🚀 [START] [{CorrelationId}] {RequestType}", correlationId, requestName);
 
         if (logger.IsEnabled(LogLevel.Debug))
         {
@@ -56,7 +56,7 @@ public class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TReque
             //Performance warning
             if (durationSeconds > 3)
             {
-                logger.LogWarning("⚠️  [{CorrelationId}] SLOW REQUEST: {RequestType} took {Duration}ms ({DurationSeconds:F2}s)", 
+                logger.LogWarning("⚠️ [SLOW REQUEST]  [{CorrelationId}] {RequestType} took {Duration}ms ({DurationSeconds:F2}s)", 
                     correlationId, requestName, duration, durationSeconds);
             }
             else if (durationSeconds > 1)
@@ -65,7 +65,7 @@ public class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TReque
                     correlationId, requestName, duration);
             }
 
-            logger.LogInformation("✅ [{CorrelationId}] Completed {RequestType} → {ResponseType} in {Duration}ms", 
+            logger.LogInformation("✅ [COMPLETED] [{CorrelationId}] {RequestType} → {ResponseType} in {Duration}ms", 
                 correlationId, requestName, responseName, duration);
 
             return response;
@@ -73,7 +73,7 @@ public class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TReque
         catch (Exception ex)
         {
             timer.Stop();
-            logger.LogError(ex, "❌ [{CorrelationId}] Failed {RequestType} after {Duration}ms: {ErrorMessage}", 
+            logger.LogError(ex, "❌ *** [FAILED] *** [{CorrelationId}] {RequestType} after {Duration}ms: {ErrorMessage}", 
                 correlationId, requestName, timer.ElapsedMilliseconds, ex.Message);
             throw;
         }
