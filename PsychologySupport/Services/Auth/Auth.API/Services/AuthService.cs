@@ -77,110 +77,14 @@ public class AuthService(
 
         var roleResult = await _userManager.AddToRoleAsync(user, Roles.UserRole);
         if (!roleResult.Succeeded) throw new InvalidDataException("Gán vai trò thất bại");
-
         
-        var contactInfo = ContactInfo.Of(
-            "None",
-            user.Email,
-            user.PhoneNumber
-        );
         
-        // Create PatientProfile
-       //var createProfileRequest = new CreatePatientProfileRequest(
-       //    user.Id,
-       //    registerRequest.FullName,
-       //    registerRequest.Gender,
-       //    null,
-       //    PersonalityTrait.None, 
-       //    contactInfo
-       // );
-
-       // var profileResponse = await _profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
-
-       // if (!profileResponse.Message.Success)
-       //     throw new InvalidDataException($"Patient profile creation failed: {profileResponse.Message.Message}");
-
         await publishEndpoint.Publish(sendEmailIntegrationEvent);
         
         return true;
     }
 
-    //public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
-    //{
-    //    User user;
-    //    if (!string.IsNullOrWhiteSpace(loginRequest.Email))
-    //    {
-    //        user = await _userManager.Users
-    //                   .FirstOrDefaultAsync(u => u.Email == loginRequest.Email && !u.LockoutEnabled)
-    //               ?? throw new UserNotFoundException(loginRequest.Email);
-
-    //        if (!user.EmailConfirmed)
-    //            throw new ForbiddenException("Tài khoản chưa được xác nhận. Vui lòng kiểm tra email để xác nhận tài khoản.");
-
-    //    }
-    //    else
-    //    {
-    //        user = await _userManager.Users.FirstOrDefaultAsync(u =>
-    //                   u.PhoneNumber == loginRequest.PhoneNumber && !u.LockoutEnabled)
-    //               ?? throw new UserNotFoundException(loginRequest.PhoneNumber);
-
-    //        if (!user.PhoneNumberConfirmed)
-    //            throw new ForbiddenException(
-    //                "Tài khoản chưa được xác nhận. Vui lòng kiểm tra tin nhắn SMS để xác nhận tài khoản.");
-    //    }
-
-    //    var currentTime = CoreUtils.SystemTimeNow;
-
-    //    if (user is { LockoutEnabled: true, LockoutEnd: not null } && user.LockoutEnd.Value > currentTime)
-    //    {
-    //        var remainingLockoutTime = user.LockoutEnd.Value - currentTime;
-    //        throw new ForbiddenException(
-    //            $"Tài khoản của bạn đã bị khóa. Vui lòng thử lại sau {remainingLockoutTime.TotalMinutes:N0} phút.");
-    //    }
-
-    //    if (!tokenService.VerifyPassword(loginRequest.Password, user.PasswordHash!, user))
-    //    {
-    //        user.AccessFailedCount++;
-
-    //        if (user.AccessFailedCount >= 3)
-    //        {
-    //            user.LockoutEnd = currentTime.AddMinutes(LockoutTimeInMinutes);
-    //            await _userManager.UpdateAsync(user);
-    //            throw new ForbiddenException(
-    //                $"Bạn đã đăng nhập sai quá số lần quy định. Tài khoản đã bị khóa trong {LockoutTimeInMinutes} phút");
-    //        }
-
-    //        await _userManager.UpdateAsync(user);
-    //        throw new ForbiddenException("Email hoặc mật khẩu không hợp lệ.");
-    //    }
-
-    //    if (!string.IsNullOrWhiteSpace(loginRequest.DeviceToken))
-    //    {
-    //        var device = new Device
-    //        {
-    //            UserId = user.Id,
-    //            DeviceToken = loginRequest.DeviceToken,
-    //            DeviceType = loginRequest.DeviceType!.Value,
-    //            LastUsedAt = DateTime.UtcNow
-    //        };
-
-    //        authDbContext.Devices.Add(device);
-    //        await authDbContext.SaveChangesAsync();
-    //    }
-
-    //    user.AccessFailedCount = 0;
-    //    user.LockoutEnd = null;
-    //    await _userManager.UpdateAsync(user);
-
-    //    var token = await tokenService.GenerateJWTToken(user);
-    //    var refreshToken = tokenService.GenerateRefreshToken();
-    //    await tokenService.SaveRefreshToken(user, refreshToken);
-
-    //    return new LoginResponse(
-    //        token,
-    //        refreshToken
-    //    );
-    //}
+    #region ConfirmEmailAsync
 
     //public async Task<string> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest)
     //{
@@ -246,6 +150,8 @@ public class AuthService(
 
     //    return redirectUrl;
     //}
+
+    #endregion
 
     public async Task<string> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest)
     {
@@ -367,30 +273,6 @@ public class AuthService(
 
         return true;
     }
-
-
-
-    //public async Task<LoginResponse> RefreshAsync(TokenApiRequest tokenApiRequest)
-    //{
-    //    var accessToken = tokenApiRequest.Token;
-    //    var refreshToken = tokenApiRequest.RefreshToken;
-
-    //    var principal = tokenService.GetPrincipalFromExpiredToken(accessToken)
-    //                    ?? throw new BadRequestException("Access token không hợp lệ");
-
-    //    var userId = principal.Claims.First(c => c.Type == "userId").Value;
-
-    //    var user = await _userManager.FindByIdAsync(userId)
-    //               ?? throw new UserNotFoundException(userId);
-
-    //    if (!await tokenService.ValidateRefreshToken(user, refreshToken))
-    //        throw new BadRequestException("Refresh token không hợp lệ");
-
-    //    var newAccessToken = await tokenService.GenerateJWTToken(user);
-    //    var newRefreshToken = tokenService.GenerateRefreshToken();
-
-    //    return new LoginResponse(newAccessToken, newRefreshToken);
-    //}
 
     public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
     {
