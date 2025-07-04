@@ -28,11 +28,14 @@
       "chatbox_session-route": {
         "ClusterId": "chatbox-cluster",
         "Match": {
-          "Path": "/chatbox-service/api/AIChat/sessions/{id}/messages"
+          "Path": "/chatbox-service/api/AIChat/sessions",
+          "Methods": [
+            "POST"
+          ]
         },
         "Transforms": [
           {
-            "PathPattern": "/chatbox-service/api/AIChat/sessions/{id}/messages"
+            "PathPattern": "/api/AIChat/sessions"
           }
         ],
         "RateLimiterPolicy": "fixed"
@@ -40,10 +43,7 @@
       "chatbox-route": {
         "ClusterId": "chatbox-cluster",
         "Match": {
-          "Path": "/chatbox-service/{**catch-all}",
-          "Methods": [
-            "POST"
-          ]
+          "Path": "/chatbox-service/{**catch-all}"
         },
         "Transforms": [
           {

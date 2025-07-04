@@ -66,7 +66,7 @@ public static class ApplicationServiceExtensions
             });
             options.AddServer(new OpenApiServer
             {
-                // Url = "/chatbox-service/"
+                Url = "/chatbox-service/"
             });
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
