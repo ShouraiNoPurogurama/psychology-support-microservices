@@ -1,7 +1,7 @@
 name: Sync Data Protection Key Ring To VPS
 
 on:
-  workflow_dispatch:  # Chỉ chạy khi bạn bấm tay trên GitHub Actions
+  workflow_dispatch:  #Chỉ chạy khi bấm tay trên GitHub Actions
 
 jobs:
   sync-dpkey-prod:
