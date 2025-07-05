@@ -14,30 +14,31 @@ namespace Translation.API.Extensions;
 
 public static class ApplicationServiceExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config,
+        IWebHostEnvironment env)
     {
         services.AddControllers();
-        
+
         services.AddCarter();
 
         ConfigureSwagger(services, env);
 
         ConfigureCors(services);
-        
+
         AddDatabase(services, config);
 
         AddServiceDependencies(services);
-        
+
         ConfigureGemini(services, config);
 
         ConfigureMediatR(services);
-        
+
         services.AddHttpContextAccessor();
-        
+
         // services.AddIdentityServices(config);
-        
+
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
-        
+
         return services;
     }
 
@@ -54,7 +55,7 @@ public static class ApplicationServiceExtensions
     private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
-        
+
         services.AddSwaggerGen(options =>
         {
             options.SwaggerDoc("v1", new OpenApiInfo
@@ -62,10 +63,15 @@ public static class ApplicationServiceExtensions
                 Title = "Translation API",
                 Version = "v1"
             });
-            options.AddServer(new OpenApiServer
+
+            if (env.IsProduction())
             {
-                // Url = "/translation-service/"
-            });
+                options.AddServer(new OpenApiServer
+                {
+                    Url = "/translation-service/"
+                });
+            }
+
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",
@@ -98,7 +104,6 @@ public static class ApplicationServiceExtensions
         {
             options.AddPolicy("CorsPolicy", builder =>
             {
-
                 builder
                     .AllowAnyMethod()
                     .AllowAnyHeader()
@@ -112,23 +117,23 @@ public static class ApplicationServiceExtensions
         services.AddScoped<GeminiService>();
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
-        
+
         services.AddHttpClient();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
     {
         var connectionString = config.GetConnectionString("TranslationDb");
-    
+
         services.AddDbContext<TranslationDbContext>((sp, opt) =>
         {
             opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             opt.UseNpgsql(connectionString);
         });
-    
+
         services.AddScoped<DbContext, TranslationDbContext>();
     }
-    
+
     private static void ConfigureGemini(IServiceCollection services, IConfiguration config)
     {
         services.Configure<GeminiConfig>(config.GetSection("GeminiConfig"));

@@ -78,10 +78,15 @@ public static class ApplicationServiceExtensions
                 Title = "Profile API",
                 Version = "v1"
             });
-            options.AddServer(new OpenApiServer
+            
+            if (env.IsProduction())
             {
-                Url = "/profile-service/"
-            });
+                options.AddServer(new OpenApiServer
+                {
+                    Url = "/profile-service/"
+                });
+            }
+            
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",

@@ -14,17 +14,15 @@ namespace Image.API.Extensions
 {
     public static class ApplicationServiceExtensions
     {
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config,
+            IWebHostEnvironment env)
         {
             services.AddCarter();
             services.AddControllers()
-           .AddJsonOptions(options =>
-           {
-               options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-           });
+                .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
             services.AddEndpointsApiExplorer();
 
-            ConfigureSwagger(services, env); 
+            ConfigureSwagger(services, env);
             ConfigureCORS(services);
             ConfigureMediatR(services);
             AddDatabase(services, config);
@@ -46,10 +44,13 @@ namespace Image.API.Extensions
                     Title = "Image API",
                     Version = "v1"
                 });
-                options.AddServer(new OpenApiServer
+                if (env.IsProduction())
                 {
-                    Url = "/image-service/"
-                });
+                    options.AddServer(new OpenApiServer
+                    {
+                        Url = "/image-service/"
+                    });
+                }
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",
@@ -110,7 +111,7 @@ namespace Image.API.Extensions
         private static void AddDatabase(IServiceCollection services, IConfiguration config)
         {
             var connectionString = config.GetConnectionString("ImageDb");
-            
+
             services.AddDbContext<ImageDbContext>((sp, opt) =>
             {
                 opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
@@ -129,7 +130,5 @@ namespace Image.API.Extensions
 
             services.AddSingleton(new BlobServiceClient(blobConnectionString));
         }
-
-
     }
 }

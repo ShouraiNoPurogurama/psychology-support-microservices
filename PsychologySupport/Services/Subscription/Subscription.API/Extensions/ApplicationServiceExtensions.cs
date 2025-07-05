@@ -70,10 +70,15 @@ public static class ApplicationServiceExtensions
                 Title = "Subscription API",
                 Version = "v1"
             });
-            options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+
+            if (env.IsProduction())
             {
-                Url = "/subscription-service/"
-            });
+                options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+                {
+                    Url = "/subscription-service/"
+                });
+            }
+            
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",

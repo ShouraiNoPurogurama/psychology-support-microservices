@@ -14,11 +14,12 @@ namespace LifeStyles.API.Extensions;
 
 public static class ApplicationServiceExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config,
+        IWebHostEnvironment env)
     {
         services.AddCarter();
 
-        ConfigureSwagger(services, env); 
+        ConfigureSwagger(services, env);
 
         ConfigureCors(services);
 
@@ -27,7 +28,7 @@ public static class ApplicationServiceExtensions
         AddDatabase(services, config);
 
         AddServiceDependencies(services);
-        
+
         // AddRedisCache(services, config);
 
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
@@ -35,7 +36,7 @@ public static class ApplicationServiceExtensions
         services.AddIdentityServices(config);
 
         services.AddAuthorization();
-        
+
         services.AddHttpContextAccessor();
 
         return services;
@@ -45,7 +46,7 @@ public static class ApplicationServiceExtensions
     {
         services.AddSingleton<IConnectionMultiplexer>(x =>
             ConnectionMultiplexer.Connect(config.GetSection("Redis:RedisUrl").Value!));
-        
+
         var redisConnectionString = config.GetConnectionString("Redis");
     }
 
@@ -59,10 +60,13 @@ public static class ApplicationServiceExtensions
                 Title = "LifeStyles API",
                 Version = "v1"
             });
-            options.AddServer(new OpenApiServer
+            if (env.IsProduction())
             {
-                Url = "/lifestyle-service/"
-            });
+                options.AddServer(new OpenApiServer
+                {
+                    Url = "/lifestyle-service/"
+                });
+            }
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",
