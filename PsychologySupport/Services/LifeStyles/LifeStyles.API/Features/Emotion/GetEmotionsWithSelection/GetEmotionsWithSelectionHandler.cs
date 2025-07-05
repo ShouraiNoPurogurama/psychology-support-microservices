@@ -74,7 +74,7 @@ public class GetEmotionsWithSelectionHandler(
             .ToListAsync(cancellationToken: cancellationToken);
 
         var sortedItems = items
-            .OrderBy(e => e.IsSelected)
+            .OrderByDescending(e => e.IsSelected)
             .ThenBy(e => e.Name);
 
         return new GetEmotionsWithSelectionResult(

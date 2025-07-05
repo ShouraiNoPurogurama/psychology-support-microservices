@@ -45,7 +45,7 @@ public class GetImprovementGoalsWithSelectionHandler(
                 i => i.Name);
 
         var orderedGoals = translatedGoals
-            .OrderBy(g => g.IsSelected)
+            .OrderByDescending(e => e.IsSelected)
             .ThenBy(i => i.Name).ToList();
 
         var paginatedGoals = orderedGoals
