@@ -18,14 +18,21 @@ public class CreatePatientImprovementGoalHandler(LifeStylesDbContext context)
     {
         var currentTime = DateTimeOffset.UtcNow;
 
-        var goals = request.GoalIds.Select(goalId => new Models.PatientImprovementGoal
+        //Xóa hết mục tiêu cũ của profile
+        var oldGoals = context.PatientImprovementGoals
+            .Where(x => x.PatientProfileId == request.PatientProfileId);
+        context.PatientImprovementGoals.RemoveRange(oldGoals);
+
+        //Thêm mới danh sách goals từ FE
+        var goals = request.GoalIds
+            .Select(goalId => new Models.PatientImprovementGoal
         {
             PatientProfileId = request.PatientProfileId,
             GoalId = goalId,
             AssignedAt = currentTime
         });
-
-        await context.PatientImprovementGoals.AddRangeAsync(goals, cancellationToken);
+        
+        context.PatientImprovementGoals.AddRange(goals);
         await context.SaveChangesAsync(cancellationToken);
 
         return new CreatePatientImprovementGoalResult(true);
