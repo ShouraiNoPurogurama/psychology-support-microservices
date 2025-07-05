@@ -1,0 +1,25 @@
+name: Sync Data Protection Key Ring To VPS
+
+on:
+  workflow_dispatch:  # Chỉ chạy khi bạn bấm tay trên GitHub Actions
+
+jobs:
+  sync-dpkey-prod:
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+      - name: Sync Data Protection Key Ring for Auth API
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            mkdir -p /mnt/dpkeys
+
+            #Sync file key ring
+            cat <<EOF > /mnt/dpkeys/key-3451113d-40cb-440e-8717-3513dcf08c72.xml
+            ${{ secrets.DPKEY_AUTH }}
+            EOF
+
+            echo "✅ Sync Data Protection key ring done!"
