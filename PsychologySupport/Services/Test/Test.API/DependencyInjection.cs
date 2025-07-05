@@ -43,15 +43,19 @@ public static class DependencyInjection
 
         services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+            options.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "Test API",
                 Version = "v1"
             });
-            options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+            
+            if(env.IsProduction())
             {
-                Url = "/test-service/"
-            });
+                options.AddServer(new OpenApiServer
+                {
+                    Url = "/test-service/"
+                });
+            }
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

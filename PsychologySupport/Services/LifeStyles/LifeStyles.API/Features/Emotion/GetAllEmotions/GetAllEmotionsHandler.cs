@@ -3,25 +3,26 @@ using BuildingBlocks.Messaging.Events.Translation;
 using BuildingBlocks.Pagination;
 using LifeStyles.API.Data;
 using LifeStyles.API.Dtos.Emotions;
-using LifeStyles.API.Extensions;
 using Mapster;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
-namespace LifeStyles.API.Features.Emotion;
+namespace LifeStyles.API.Features.Emotion.GetAllEmotions;
 
-public record GetAllEmotionQuery(
+public record GetAllEmotionsQuery(
     PaginationRequest PaginationRequest,
     string? Search = null,
     string SortBy = "name",
-    string SortOrder = "asc") : IQuery<GetAllEmotionResult>;
+    string SortOrder = "asc") : IQuery<GetAllEmotionsResult>;
 
-public record GetAllEmotionResult(PaginatedResult<EmotionDto> Emotions);
+public record GetAllEmotionsResult(PaginatedResult<EmotionDto> Emotions);
 
-public class GetAllEmotionHandler (LifeStylesDbContext dbContext, IRequestClient<GetTranslatedDataRequest> translationClient) : IQueryHandler<GetAllEmotionQuery, GetAllEmotionResult>
+public class GetAllEmotionsHandler (LifeStylesDbContext dbContext, IRequestClient<GetTranslatedDataRequest> translationClient) : IQueryHandler<GetAllEmotionsQuery, GetAllEmotionsResult>
 {
 
-    // public async Task<GetAllEmotionResult> Handle(GetAllEmotionQuery request, CancellationToken cancellationToken)
+    #region With Translation
+
+    // public async Task<GetAllEmotionsResult> Handle(GetAllEmotionsQuery request, CancellationToken cancellationToken)
     // {
     //     var query = dbContext.Emotions.AsQueryable();
     //     
@@ -58,7 +59,7 @@ public class GetAllEmotionHandler (LifeStylesDbContext dbContext, IRequestClient
     //         e => e.Name
     //     );
     //     
-    //     return new GetAllEmotionResult(
+    //     return new GetAllEmotionsResult(
     //         new PaginatedResult<EmotionDto>(
     //             request.PaginationRequest.PageIndex,
     //             request.PaginationRequest.PageSize,
@@ -67,8 +68,10 @@ public class GetAllEmotionHandler (LifeStylesDbContext dbContext, IRequestClient
     //         )
     //     );
     // }
+
+    #endregion
     
-    public async Task<GetAllEmotionResult> Handle(GetAllEmotionQuery request, CancellationToken cancellationToken)
+    public async Task<GetAllEmotionsResult> Handle(GetAllEmotionsQuery request, CancellationToken cancellationToken)
     {
         var query = dbContext.Emotions.AsQueryable();
         
@@ -98,7 +101,7 @@ public class GetAllEmotionHandler (LifeStylesDbContext dbContext, IRequestClient
             .ProjectToType<EmotionDto>()
             .ToListAsync(cancellationToken: cancellationToken);
         
-        return new GetAllEmotionResult(
+        return new GetAllEmotionsResult(
             new PaginatedResult<EmotionDto>(
                 request.PaginationRequest.PageIndex,
                 request.PaginationRequest.PageSize,
