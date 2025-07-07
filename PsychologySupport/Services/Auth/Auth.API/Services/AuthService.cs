@@ -16,83 +16,56 @@ using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO;
+using Google.Apis.Auth;
 
 namespace Auth.API.Services;
 
 public class AuthService(
-    UserManager<User> _userManager,
+    UserManager<User> userManager,
     IConfiguration configuration,
     ITokenService tokenService,
-    IRequestClient<CreatePatientProfileRequest> _profileClient,
+    IRequestClient<CreatePatientProfileRequest> profileClient,
     AuthDbContext authDbContext,
     IPublishEndpoint publishEndpoint,
     IWebHostEnvironment env
-    ) : IAuthService
+) : IAuthService
 {
     private const int LockoutTimeInMinutes = 15;
 
     public async Task<bool> RegisterAsync(RegisterRequest registerRequest)
     {
-        var existingUser = await _userManager.FindByEmailAsync(registerRequest.Email);
-        existingUser ??= await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == registerRequest.PhoneNumber);
+        var existingUser = await userManager.FindByEmailAsync(registerRequest.Email);
+        existingUser ??= await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == registerRequest.PhoneNumber);
 
         if (existingUser is not null) throw new InvalidDataException("Email hoặc số điện thoại đã tồn tại trong hệ thống");
 
         var user = registerRequest.Adapt<User>();
         user.Email = user.UserName = registerRequest.Email;
-        
-        var result = await _userManager.CreateAsync(user, registerRequest.Password);
+
+        var result = await userManager.CreateAsync(user, registerRequest.Password);
         if (!result.Succeeded)
         {
             var errors = string.Join("; ", result.Errors.Select(ie => ie.Description));
             throw new InvalidDataException($"Đăng ký thất bại: {errors}");
         }
-        
-        var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        
-        var baseUrl = configuration["Mail:ConfirmationUrl"]!;
 
-        var url = string.Format(
-            baseUrl,
-            Uri.EscapeDataString(emailConfirmationToken),
-            Uri.EscapeDataString(user.Email)
-        );
+        await AssignUserRoleAsync(user);
+        await SendEmailConfirmationAsync(user);
 
-        var confirmTemplatePath = Path.Combine(env.ContentRootPath, "EmailTemplates", "AccountConfirmation.html");
-
-        var confirmBody = RenderTemplate(confirmTemplatePath, new Dictionary<string, string>
-        {
-            ["ConfirmUrl"] = url,
-            ["Year"] = DateTime.UtcNow.Year.ToString()
-        });
-        var sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
-            user.Email,
-            "Xác nhận tài khoản",
-            confirmBody
-        );
-
-        // user.EmailConfirmed = true;
-        user.PhoneNumberConfirmed = true;
-
-        var roleResult = await _userManager.AddToRoleAsync(user, Roles.UserRole);
-        if (!roleResult.Succeeded) throw new InvalidDataException("Gán vai trò thất bại");
-        
-        
-        await publishEndpoint.Publish(sendEmailIntegrationEvent);
-        
         return true;
     }
+
     public async Task<string> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest)
     {
-        var token = confirmEmailRequest.Token; var email = confirmEmailRequest.Email;
+        var token = confirmEmailRequest.Token;
+        var email = confirmEmailRequest.Email;
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email))
             throw new BadRequestException("Email hoặc Token bị thiếu.");
 
-        var user = await _userManager.FindByEmailAsync(email)
+        var user = await userManager.FindByEmailAsync(email)
                    ?? throw new UserNotFoundException(email);
 
-        var result = await _userManager.ConfirmEmailAsync(user, token);
+        var result = await userManager.ConfirmEmailAsync(user, token);
 
         string status = result.Succeeded ? "success" : "failed";
         string message;
@@ -100,28 +73,18 @@ public class AuthService(
         if (result.Succeeded)
         {
             user.EmailConfirmed = true;
-            await _userManager.UpdateAsync(user);
+            await userManager.UpdateAsync(user);
 
-            var contactInfo = ContactInfo.Of("None", user.Email, user.PhoneNumber);
-            var createProfileRequest = new CreatePatientProfileRequest(
-                user.Id,
-                user.FullName,
-                user.Gender,
-                null,
-                PersonalityTrait.None,
-                contactInfo
-            );
-
-            var profileResponse = await _profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
-
-            if (!profileResponse.Message.Success)
+            var profileResult = await CreateUserProfileAsync(user);
+            
+            if (profileResult.IsSuccess)
             {
-                status = "partial";
-                message = $"Xác nhận email thành công nhưng tạo hồ sơ thất bại: {profileResponse.Message.Message}";
+                message = "Xác nhận email và tạo hồ sơ thành công.";
             }
             else
             {
-                message = "Xác nhận email và tạo hồ sơ thành công.";
+                status = "partial";
+                message = $"Xác nhận email thành công nhưng tạo hồ sơ thất bại: {profileResult.ErrorMessage}";
             }
         }
         else
@@ -135,69 +98,63 @@ public class AuthService(
         return redirectUrl;
     }
 
-    public Task<LoginResponse> GoogleLoginAsync(GoogleLoginRequest request)
+    public async Task<LoginResponse> GoogleLoginAsync(GoogleLoginRequest request)
     {
-        throw new NotImplementedException();
+        //1. Xác thực Google ID Token
+        var payload = await ValidateGoogleTokenAsync(request.GoogleIdToken);
+
+        //2. Tìm hoặc tạo user
+        var user = await FindOrCreateGoogleUserAsync(payload);
+
+        //3. Kiểm tra lockout
+        await ValidateUserLockoutAsync(user);
+
+        //4. Xử lý device và session
+        var device = await GetOrUpsertDeviceAsync(user.Id, request.ClientDeviceId!, request.DeviceType!.Value, request.DeviceToken);
+        await ManageDeviceSessionsAsync(user.Id, request.DeviceType!.Value, device.Id);
+
+        //5. Tạo token
+        var (accessToken, refreshToken) = await GenerateTokensAsync(user, device.Id);
+
+        return new LoginResponse(accessToken, refreshToken);
     }
 
     public async Task<bool> UnlockAccountAsync(string email)
     {
-        var user = await _userManager.FindByEmailAsync(email)
+        var user = await userManager.FindByEmailAsync(email)
                    ?? throw new UserNotFoundException(email);
 
-        await _userManager.SetLockoutEnabledAsync(user, false);
-        await _userManager.SetLockoutEndDateAsync(user, null);
+        await userManager.SetLockoutEnabledAsync(user, false);
+        await userManager.SetLockoutEndDateAsync(user, null);
 
         return true;
     }
 
     public async Task<bool> ForgotPasswordAsync(string email)
     {
-
-        var user = await _userManager.FindByEmailAsync(email)
+        var user = await userManager.FindByEmailAsync(email)
                    ?? throw new UserNotFoundException(email);
 
-        if (!await _userManager.IsEmailConfirmedAsync(user))
+        if (!await userManager.IsEmailConfirmedAsync(user))
             throw new InvalidOperationException("Email chưa được xác nhận.");
 
-        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-        var resetUrlTemplate = configuration["Mail:PasswordResetUrl"]; 
-        var callbackUrl = string.Format(
-            resetUrlTemplate!,
-            Uri.EscapeDataString(token),
-            Uri.EscapeDataString(email)
-        );
-
-        var resetTemplatePath = Path.Combine(env.ContentRootPath,"EmailTemplates", "PasswordReset.html");
-        var resetBody = RenderTemplate(resetTemplatePath, new Dictionary<string, string>
-        {
-            ["ResetUrl"] = callbackUrl,
-            ["Year"] = DateTime.UtcNow.Year.ToString()
-        });
-        var sendEmailEvent = new SendEmailIntegrationEvent(
-            user.Email,
-            "Khôi phục mật khẩu",
-            resetBody
-        );
-
-        await publishEndpoint.Publish(sendEmailEvent);
+        await SendPasswordResetEmailAsync(user);
 
         return true;
     }
 
     public async Task<bool> ResetPasswordAsync(ResetPasswordRequest request)
     {
-        var user = await _userManager.FindByEmailAsync(request.Email)
+        var user = await userManager.FindByEmailAsync(request.Email)
                    ?? throw new UserNotFoundException(request.Email);
 
-        if (!await _userManager.IsEmailConfirmedAsync(user))
+        if (!await userManager.IsEmailConfirmedAsync(user))
             throw new InvalidOperationException("Email chưa được xác nhận.");
 
         if (request.NewPassword != request.ConfirmPassword)
             throw new InvalidOperationException("Mật khẩu xác nhận không khớp.");
 
-        var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        var result = await userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
 
         if (!result.Succeeded)
         {
@@ -210,123 +167,23 @@ public class AuthService(
 
     public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
     {
-        User user;
-        if (!string.IsNullOrWhiteSpace(loginRequest.Email))
-        {
-            user = await _userManager.Users
-                       .FirstOrDefaultAsync(u => u.Email == loginRequest.Email && !u.LockoutEnabled)
-                   ?? throw new UserNotFoundException(loginRequest.Email);
+        //1. Tìm và validate user
+        var user = await FindAndValidateUserAsync(loginRequest);
 
-            if (!user.EmailConfirmed)
-                throw new ForbiddenException("Tài khoản chưa được xác nhận. Vui lòng kiểm tra email.");
-        }
-        else
-        {
-            user = await _userManager.Users
-                       .FirstOrDefaultAsync(u => u.PhoneNumber == loginRequest.PhoneNumber && !u.LockoutEnabled)
-                   ?? throw new UserNotFoundException(loginRequest.PhoneNumber);
+        //2. Kiểm tra lockout
+        await ValidateUserLockoutAsync(user);
 
-            if (!user.PhoneNumberConfirmed)
-                throw new ForbiddenException("Tài khoản chưa xác nhận bằng số điện thoại.");
-        }
+        //3. Verify password
+        await VerifyPasswordAsync(user, loginRequest.Password);
 
-        var currentTime = CoreUtils.SystemTimeNow;
+        //4. Xử lý device và session
+        var device = await GetOrUpsertDeviceAsync(user.Id, loginRequest.ClientDeviceId!, loginRequest.DeviceType!.Value, loginRequest.DeviceToken);
+        await ManageDeviceSessionsAsync(user.Id, loginRequest.DeviceType!.Value, device.Id);
 
-        if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > currentTime)
-        {
-            var remain = user.LockoutEnd.Value - currentTime;
-            throw new ForbiddenException($"Tài khoản bị khóa. Vui lòng thử lại sau {remain.TotalMinutes:N0} phút.");
-        }
+        //5. Tạo token
+        var (accessToken, refreshToken) = await GenerateTokensAsync(user, device.Id);
 
-        if (!tokenService.VerifyPassword(loginRequest.Password, user.PasswordHash!, user))
-        {
-            user.AccessFailedCount++;
-            if (user.AccessFailedCount >= 3)
-            {
-                user.LockoutEnd = currentTime.AddMinutes(LockoutTimeInMinutes);
-                await _userManager.UpdateAsync(user);
-                throw new ForbiddenException("Sai quá số lần quy định. Tài khoản bị khóa tạm thời.");
-            }
-
-            await _userManager.UpdateAsync(user);
-            throw new ForbiddenException("Email hoặc mật khẩu không hợp lệ.");
-        }
-
-        // Reset lockout counter
-        user.AccessFailedCount = 0;
-        user.LockoutEnd = null;
-        await _userManager.UpdateAsync(user);
-
-        // Create or update Device
-        var device = await authDbContext.Devices.FirstOrDefaultAsync(d =>
-            d.ClientDeviceId == loginRequest.ClientDeviceId && d.UserId == user.Id);
-
-        if (device is null)
-        {
-            device = new Device
-            {
-                UserId = user.Id,
-                ClientDeviceId = loginRequest.ClientDeviceId!,
-                DeviceType = loginRequest.DeviceType!.Value,
-                DeviceToken = loginRequest.DeviceToken,
-                LastUsedAt = DateTime.UtcNow
-            };
-            authDbContext.Devices.Add(device);
-        }
-        else
-        {
-            device.ClientDeviceId = loginRequest.ClientDeviceId!;
-            device.DeviceToken = loginRequest.DeviceToken;
-            device.LastUsedAt = DateTime.UtcNow;
-            device.DeviceType = loginRequest.DeviceType!.Value;
-            authDbContext.Devices.Update(device);
-        }
-
-        await authDbContext.SaveChangesAsync();
-
-        // Limit sessions per device type
-        int allowedLimit = loginRequest.DeviceType switch
-        {
-            DeviceType.Web => 2,
-            DeviceType.IOS => 1,
-            DeviceType.Android => 1,
-            _ => 1
-        };
-
-        var allDeviceIds = await authDbContext.Devices
-            .Where(d => d.UserId == user.Id && d.DeviceType == loginRequest.DeviceType)
-            .Select(d => d.Id)
-            .ToListAsync();
-
-        var activeSessions = await authDbContext.DeviceSessions
-            .Where(s => allDeviceIds.Contains(s.DeviceId) && !s.IsRevoked)
-            .OrderBy(s => s.LastRefeshToken ?? s.CreatedAt)
-            .ToListAsync();
-
-        if (activeSessions.Count >= allowedLimit)
-        {
-            var oldestSession = activeSessions.First();
-            oldestSession.IsRevoked = true;
-            oldestSession.RevokedAt = DateTimeOffset.UtcNow;
-        }
-
-        // create access token and refresh token
-        var accessToken = await tokenService.GenerateJWTToken(user);
-        var refreshToken = tokenService.GenerateRefreshToken();
-
-        var session = new DeviceSession
-        {
-            DeviceId = device.Id,
-            AccessTokenId = accessToken.Jti,
-            RefreshToken = refreshToken,
-            CreatedAt = DateTimeOffset.UtcNow,
-            LastRefeshToken = DateTimeOffset.UtcNow
-        };
-
-        authDbContext.DeviceSessions.Add(session);
-        await authDbContext.SaveChangesAsync();
-
-        return new LoginResponse(accessToken.Token, refreshToken);
+        return new LoginResponse(accessToken, refreshToken);
     }
 
     public async Task<LoginResponse> RefreshAsync(TokenApiRequest request)
@@ -337,12 +194,12 @@ public class AuthService(
         var userId = principal.Claims.First(c => c.Type == "userId").Value;
         var jti = principal.Claims.First(c => c.Type == JwtRegisteredClaimNames.Jti).Value;
 
-        var user = await _userManager.FindByIdAsync(userId)
+        var user = await userManager.FindByIdAsync(userId)
                    ?? throw new UserNotFoundException(userId);
 
         var device = await authDbContext.Devices
-            .FirstOrDefaultAsync(d => d.ClientDeviceId == request.ClientDeviceId && d.UserId == user.Id)
-            ?? throw new NotFoundException("Thiết bị không hợp lệ");
+                         .FirstOrDefaultAsync(d => d.ClientDeviceId == request.ClientDeviceId && d.UserId == user.Id)
+                     ?? throw new NotFoundException("Thiết bị không hợp lệ");
 
         var session = await authDbContext.DeviceSessions
             .FirstOrDefaultAsync(s =>
@@ -356,10 +213,8 @@ public class AuthService(
 
         /// Cập nhật lại token
         var newAccessToken = await tokenService.GenerateJWTToken(user);
-        //var newRefreshToken = tokenService.GenerateRefreshToken();
 
         session.AccessTokenId = newAccessToken.Jti;
-        //session.RefreshToken = newRefreshToken;
         session.LastRefeshToken = DateTimeOffset.UtcNow;
 
         await authDbContext.SaveChangesAsync();
@@ -375,12 +230,12 @@ public class AuthService(
         var userId = principal.Claims.First(c => c.Type == "userId").Value;
         var jti = principal.Claims.First(c => c.Type == JwtRegisteredClaimNames.Jti).Value;
 
-        var user = await _userManager.FindByIdAsync(userId)
+        var user = await userManager.FindByIdAsync(userId)
                    ?? throw new UserNotFoundException(userId);
 
         var device = await authDbContext.Devices
-            .FirstOrDefaultAsync(d => d.ClientDeviceId == request.ClientDeviceId && d.UserId == user.Id)
-            ?? throw new NotFoundException("Thiết bị không hợp lệ");
+                         .FirstOrDefaultAsync(d => d.ClientDeviceId == request.ClientDeviceId && d.UserId == user.Id)
+                     ?? throw new NotFoundException("Thiết bị không hợp lệ");
 
         var session = await authDbContext.DeviceSessions
             .FirstOrDefaultAsync(s =>
@@ -394,9 +249,273 @@ public class AuthService(
         session.IsRevoked = true;
         session.RevokedAt = DateTimeOffset.UtcNow;
 
-
         await authDbContext.SaveChangesAsync();
         return true;
+    }
+
+    #region Private Helper Methods
+
+    private async Task<GoogleJsonWebSignature.Payload> ValidateGoogleTokenAsync(string googleIdToken)
+    {
+        try
+        {
+            return await GoogleJsonWebSignature.ValidateAsync(googleIdToken);
+        }
+        catch
+        {
+            throw new BadRequestException("Google token không hợp lệ");
+        }
+    }
+
+    private async Task<User> FindOrCreateGoogleUserAsync(GoogleJsonWebSignature.Payload payload)
+    {
+        var user = await userManager.FindByEmailAsync(payload.Email);
+
+        if (user is not null) return user;
+
+        //Tạo user mới
+        user = new User
+        {
+            Email = payload.Email,
+            UserName = payload.Email,
+            FullName = payload.Name ?? payload.Email,
+            Gender = UserGender.Else,
+            EmailConfirmed = true,
+            PhoneNumberConfirmed = false
+        };
+
+        var createResult = await userManager.CreateAsync(user);
+        if (!createResult.Succeeded)
+            throw new InvalidDataException(string.Join("; ", createResult.Errors.Select(e => e.Description)));
+
+        await AssignUserRoleAsync(user);
+        
+        //Tạo profile cho user mới (không blocking) => ignore exceptions
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await CreateUserProfileAsync(user);
+            }
+            catch
+            {
+            }
+        });
+
+        return user;
+    }
+
+    private async Task AssignUserRoleAsync(User user)
+    {
+        var roleResult = await userManager.AddToRoleAsync(user, Roles.UserRole);
+        if (!roleResult.Succeeded)
+            throw new InvalidDataException("Gán vai trò thất bại");
+    }
+
+    private async Task<(bool IsSuccess, string? ErrorMessage)> CreateUserProfileAsync(User user)
+    {
+        try
+        {
+            var contactInfo = ContactInfo.Of("None", user.Email, user.PhoneNumber);
+            var createProfileRequest = new CreatePatientProfileRequest(
+                user.Id,
+                user.FullName,
+                user.Gender,
+                null,
+                PersonalityTrait.None,
+                contactInfo
+            );
+
+            var profileResponse = await profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
+            
+            if (profileResponse.Message.Success)
+            {
+                return (true, null);
+            }
+            else
+            {
+                return (false, profileResponse.Message.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
+    }
+
+    private async Task SendEmailConfirmationAsync(User user)
+    {
+        var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        var baseUrl = configuration["Mail:ConfirmationUrl"]!;
+        var url = string.Format(baseUrl, Uri.EscapeDataString(emailConfirmationToken), Uri.EscapeDataString(user.Email));
+
+        var confirmTemplatePath = Path.Combine(env.ContentRootPath, "EmailTemplates", "AccountConfirmation.html");
+        var confirmBody = RenderTemplate(confirmTemplatePath, new Dictionary<string, string>
+        {
+            ["ConfirmUrl"] = url,
+            ["Year"] = DateTime.UtcNow.Year.ToString()
+        });
+
+        var sendEmailIntegrationEvent = new SendEmailIntegrationEvent(user.Email, "Xác nhận tài khoản", confirmBody);
+        
+        user.PhoneNumberConfirmed = true;
+        await publishEndpoint.Publish(sendEmailIntegrationEvent);
+    }
+
+    private async Task SendPasswordResetEmailAsync(User user)
+    {
+        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+        var resetUrlTemplate = configuration["Mail:PasswordResetUrl"];
+        var callbackUrl = string.Format(resetUrlTemplate!, Uri.EscapeDataString(token), Uri.EscapeDataString(user.Email));
+
+        var resetTemplatePath = Path.Combine(env.ContentRootPath, "EmailTemplates", "PasswordReset.html");
+        var resetBody = RenderTemplate(resetTemplatePath, new Dictionary<string, string>
+        {
+            ["ResetUrl"] = callbackUrl,
+            ["Year"] = DateTime.UtcNow.Year.ToString()
+        });
+
+        var sendEmailEvent = new SendEmailIntegrationEvent(user.Email, "Khôi phục mật khẩu", resetBody);
+        await publishEndpoint.Publish(sendEmailEvent);
+    }
+
+    private async Task<User> FindAndValidateUserAsync(LoginRequest loginRequest)
+    {
+        User user;
+        
+        if (!string.IsNullOrWhiteSpace(loginRequest.Email))
+        {
+            user = await userManager.Users
+                       .FirstOrDefaultAsync(u => u.Email == loginRequest.Email && !u.LockoutEnabled)
+                   ?? throw new UserNotFoundException(loginRequest.Email);
+
+            if (!user.EmailConfirmed)
+                throw new ForbiddenException("Tài khoản chưa được xác nhận. Vui lòng kiểm tra email.");
+        }
+        else
+        {
+            user = await userManager.Users
+                       .FirstOrDefaultAsync(u => u.PhoneNumber == loginRequest.PhoneNumber && !u.LockoutEnabled)
+                   ?? throw new UserNotFoundException(loginRequest.PhoneNumber);
+
+            if (user is { PhoneNumberConfirmed: false, PasswordHash: not null })
+                throw new ForbiddenException("Tài khoản chưa xác nhận bằng số điện thoại.");
+        }
+
+        return user;
+    }
+
+    private async Task ValidateUserLockoutAsync(User user)
+    {
+        var currentTime = CoreUtils.SystemTimeNow;
+
+        if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > currentTime)
+        {
+            var remain = user.LockoutEnd.Value - currentTime;
+            throw new ForbiddenException($"Tài khoản bị khóa. Vui lòng thử lại sau {remain.TotalMinutes:N0} phút.");
+        }
+    }
+
+    private async Task VerifyPasswordAsync(User user, string password)
+    {
+        var currentTime = CoreUtils.SystemTimeNow;
+
+        if (!tokenService.VerifyPassword(password, user.PasswordHash!, user))
+        {
+            user.AccessFailedCount++;
+            if (user.AccessFailedCount >= 3)
+            {
+                user.LockoutEnd = currentTime.AddMinutes(LockoutTimeInMinutes);
+                await userManager.UpdateAsync(user);
+                throw new ForbiddenException("Sai quá số lần quy định. Tài khoản bị khóa tạm thời.");
+            }
+
+            await userManager.UpdateAsync(user);
+            throw new ForbiddenException("Email hoặc mật khẩu không hợp lệ.");
+        }
+
+        // Reset lockout counter
+        user.AccessFailedCount = 0;
+        user.LockoutEnd = null;
+        await userManager.UpdateAsync(user);
+    }
+
+    private async Task<Device> GetOrUpsertDeviceAsync(Guid userId, string clientDeviceId, DeviceType deviceType, string? deviceToken)
+    {
+        var device = await authDbContext.Devices.FirstOrDefaultAsync(d =>
+            d.ClientDeviceId == clientDeviceId && d.UserId == userId);
+
+        if (device is null)
+        {
+            device = new Device
+            {
+                UserId = userId,
+                ClientDeviceId = clientDeviceId,
+                DeviceType = deviceType,
+                DeviceToken = deviceToken,
+                LastUsedAt = DateTime.UtcNow
+            };
+            authDbContext.Devices.Add(device);
+        }
+        else
+        {
+            device.ClientDeviceId = clientDeviceId;
+            device.DeviceToken = deviceToken;
+            device.LastUsedAt = DateTime.UtcNow;
+            device.DeviceType = deviceType;
+            authDbContext.Devices.Update(device);
+        }
+
+        await authDbContext.SaveChangesAsync();
+        return device;
+    }
+
+    private async Task ManageDeviceSessionsAsync(Guid userId, DeviceType deviceType, Guid deviceId)
+    {
+        int allowedLimit = deviceType switch
+        {
+            DeviceType.Web => 2,
+            DeviceType.IOS => 1,
+            DeviceType.Android => 1,
+            _ => 1
+        };
+
+        var allDeviceIds = await authDbContext.Devices
+            .Where(d => d.UserId == userId && d.DeviceType == deviceType)
+            .Select(d => d.Id)
+            .ToListAsync();
+
+        var activeSessions = await authDbContext.DeviceSessions
+            .Where(s => allDeviceIds.Contains(s.DeviceId) && !s.IsRevoked)
+            .OrderBy(s => s.LastRefeshToken ?? s.CreatedAt)
+            .ToListAsync();
+
+        if (activeSessions.Count >= allowedLimit)
+        {
+            var oldestSession = activeSessions.First();
+            oldestSession.IsRevoked = true;
+            oldestSession.RevokedAt = DateTimeOffset.UtcNow;
+        }
+    }
+
+    private async Task<(string AccessToken, string RefreshToken)> GenerateTokensAsync(User user, Guid deviceId)
+    {
+        var accessToken = await tokenService.GenerateJWTToken(user);
+        var refreshToken = tokenService.GenerateRefreshToken();
+
+        var session = new DeviceSession
+        {
+            DeviceId = deviceId,
+            AccessTokenId = accessToken.Jti,
+            RefreshToken = refreshToken,
+            CreatedAt = DateTimeOffset.UtcNow,
+            LastRefeshToken = DateTimeOffset.UtcNow
+        };
+
+        authDbContext.DeviceSessions.Add(session);
+        await authDbContext.SaveChangesAsync();
+
+        return (accessToken.Token, refreshToken);
     }
 
     private string RenderTemplate(string templatePath, Dictionary<string, string> values)
@@ -406,7 +525,9 @@ public class AuthService(
         {
             template = template.Replace($"{{{{{pair.Key}}}}}", pair.Value);
         }
+
         return template;
     }
 
+    #endregion
 }

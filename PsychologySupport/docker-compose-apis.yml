@@ -20,6 +20,7 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Auth/Auth.API/RSAKeys:/app/RSAKeys
+      - /mnt/dpkeys:/dpkeys
 
   chatbox.api:
     image: ${DOCKER_REGISTRY-}chatboxapi

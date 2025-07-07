@@ -47,10 +47,10 @@ public static class SerilogExtensions
             loggerConfiguration.MinimumLevel.Is(minimumLevel);
 
             //Override minimum level cho các namespace cụ thể
-            loggerConfiguration
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                .MinimumLevel.Override("System", LogEventLevel.Warning)
-                .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information);
+            // loggerConfiguration
+            //     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+            //     .MinimumLevel.Override("System", LogEventLevel.Warning)
+            //     .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information);
         });
     }
 

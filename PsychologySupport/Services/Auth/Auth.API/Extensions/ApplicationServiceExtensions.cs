@@ -6,6 +6,7 @@ using BuildingBlocks.Behaviors;
 using BuildingBlocks.Filters;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
@@ -39,7 +40,25 @@ public static class ApplicationServiceExtensions
 
         services.AddHttpContextAccessor();
         
+        ConfigureDataProtection(services, config, env);
+
         return services;
+    }
+
+    private static void ConfigureDataProtection(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+    {
+        var keyRingPath = config["DataProtection:KeyRingPath"]!;
+
+        if (env.IsDevelopment())
+        {
+            services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(keyRingPath));
+        }
+        else
+        {
+            services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(keyRingPath));
+        }
     }
 
     private static void ConfigureMediatR(IServiceCollection services)

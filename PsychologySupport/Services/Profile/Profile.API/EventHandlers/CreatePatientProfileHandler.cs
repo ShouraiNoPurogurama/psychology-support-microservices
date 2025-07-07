@@ -50,6 +50,7 @@ namespace Profile.API.EventHandlers
                 };
 
                 _dbContext.PatientProfiles.Add(newProfile);
+                
                 await _dbContext.SaveChangesAsync();
 
                 var welcomeTemplatePath = Path.Combine(_env.ContentRootPath, "EmailTemplates", "welcomepatient.html");
