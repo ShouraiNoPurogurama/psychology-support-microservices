@@ -19,10 +19,7 @@ public class UpdateServicePackageHandler(SubscriptionDbContext context)
                               ?? throw new SubscriptionNotFoundException("Service Package", request.Id);
 
         existingPackage.Update(
-            request.ServicePackage.Name,
-            request.ServicePackage.Description,
-            request.ServicePackage.Price,
-            request.ServicePackage.DurationDays,
+            null, null, null, null,
             request.ServicePackage.IsActive);
 
         var result = await context.SaveChangesAsync(cancellationToken) > 0;
