@@ -37,7 +37,6 @@ else
 {
     app.UseSwaggerUI(c =>
     {
-        c.RoutePrefix = string.Empty;
         c.SwaggerEndpoint("/translation-service/swagger/v1/swagger.json", "Translation API v1");
     });
 }

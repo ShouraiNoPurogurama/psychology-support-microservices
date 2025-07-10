@@ -37,7 +37,6 @@ else
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/profile-service/swagger/v1/swagger.json", "Profile API v1");
-        c.RoutePrefix = string.Empty;
     });
 }
 

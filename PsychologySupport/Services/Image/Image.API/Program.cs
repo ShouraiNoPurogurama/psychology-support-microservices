@@ -37,7 +37,6 @@ else
 {
     app.UseSwaggerUI(c =>
     {
-        c.RoutePrefix = string.Empty;
         c.SwaggerEndpoint("/image-service/swagger/v1/swagger.json", "Image API v1");
     });
 }

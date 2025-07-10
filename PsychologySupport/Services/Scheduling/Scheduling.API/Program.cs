@@ -31,7 +31,6 @@ else
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/scheduling-service/swagger/v1/swagger.json", "Scheduling API v1");
-        c.RoutePrefix = string.Empty;
     });
 }
 
