@@ -47,7 +47,7 @@ namespace Payment.API.Endpoints
             })
             .RequireAuthorization(policy => policy.RequireRole("User","Admin","Manager"))
             .WithName("GetAllPayments")
-            .WithTags("Payments")
+            .WithTags("Dashboard")
             .Produces<GetAllPaymentsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get All Payments")

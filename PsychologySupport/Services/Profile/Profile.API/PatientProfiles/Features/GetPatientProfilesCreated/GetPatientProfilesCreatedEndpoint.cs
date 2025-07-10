@@ -49,7 +49,7 @@ public class GetPatientProfilesCreatedEndpoint : ICarterModule
             })
             .RequireAuthorization(policy => policy.RequireRole("User", "Admin", "Manager"))
             .WithName("GetPatientProfilesCreated")
-            .WithTags("PatientProfiles")
+            .WithTags("Dashboard")
             .Produces<GetPatientProfilesCreatedEndpointResponse>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .WithDescription("Get Created Patient Profiles")

@@ -30,7 +30,7 @@ namespace Payment.API.Endpoints
             })
             .RequireAuthorization(policy => policy.RequireRole("Admin", "Manager", "User"))
             .WithName("GetRevenue")
-            .WithTags("Payments")
+            .WithTags("Dashboard")
             .Produces<GetRevenueResult>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithSummary("Get Revenue")
