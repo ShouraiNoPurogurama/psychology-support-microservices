@@ -37,7 +37,7 @@ else
 {
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "LifeStyles API v1");
+        c.SwaggerEndpoint("/lifestyle-service/swagger/v1/swagger.json", "LifeStyles API v1");
         c.RoutePrefix = string.Empty;
     });
 }
