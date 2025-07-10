@@ -34,7 +34,7 @@ else
 {
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/production-service/swagger/v1/swagger.json", "Subscription API v1");
+        c.SwaggerEndpoint("/subscription-service/swagger/v1/swagger.json", "Subscription API v1");
     });
 }
 
