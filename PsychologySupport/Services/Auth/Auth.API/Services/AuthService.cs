@@ -230,7 +230,7 @@ public class AuthService(
                 throw new ForbiddenException("Tài khoản chưa xác nhận bằng số điện thoại.");
         }
 
-        var currentTime = CoreUtils.SystemTimeNow;
+        var currentTime = CoreUtils.SystemTimeUtcNow;
 
         if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > currentTime)
         {
