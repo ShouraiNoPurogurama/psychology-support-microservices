@@ -28,7 +28,7 @@ namespace Payment.API.Endpoints
                 var result = await sender.Send(query, cancellationToken);
                 return Results.Ok(result);
             })
-            .RequireAuthorization(policy => policy.RequireRole("Admin", "Manager"))
+            .RequireAuthorization(policy => policy.RequireRole("Admin", "Manager", "User"))
             .WithName("GetRevenue")
             .WithTags("Payments")
             .Produces<GetRevenueResult>()
