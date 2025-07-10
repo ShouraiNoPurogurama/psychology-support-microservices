@@ -32,7 +32,7 @@ namespace Payment.API.Endpoints
                 // Authorization check
                 if (request.PatientProfileId is Guid patientId)
                 {
-                    if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User))
+                    if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User) && !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
                         return Results.Problem(
                                 statusCode: StatusCodes.Status403Forbidden,
                                 title: "Forbidden",

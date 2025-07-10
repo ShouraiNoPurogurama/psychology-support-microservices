@@ -17,7 +17,7 @@ namespace Payment.API.Endpoints
                 CancellationToken cancellationToken, HttpContext httpContext) =>
             {
                 // Authorization check
-                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
+                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User) && !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
                     return Results.Problem(
                                statusCode: StatusCodes.Status403Forbidden,
                                title: "Forbidden",
