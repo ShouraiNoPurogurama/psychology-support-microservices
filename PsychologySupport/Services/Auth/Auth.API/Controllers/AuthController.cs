@@ -84,4 +84,11 @@ public class AuthController(
         return result ? Ok(new { message = "Token đã được thu hồi" }) : BadRequest("Thu hồi token thất bại");
     }
 
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var result = await authService.ChangePasswordAsync(request);
+        return Ok(new { success = result, message = "Đổi mật khẩu thành công." });
+    }
+
 }

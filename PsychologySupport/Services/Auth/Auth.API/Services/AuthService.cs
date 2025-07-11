@@ -165,6 +165,28 @@ public class AuthService(
         return true;
     }
 
+    public async Task<bool> ChangePasswordAsync(ChangePasswordRequest request)
+    {
+        var user = await userManager.FindByEmailAsync(request.Email)
+                   ?? throw new UserNotFoundException(request.Email);
+
+        if (!await userManager.IsEmailConfirmedAsync(user))
+            throw new InvalidOperationException("Email chưa được xác nhận.");
+
+        if (request.NewPassword != request.ConfirmPassword)
+            throw new InvalidOperationException("Mật khẩu xác nhận không khớp.");
+
+        var result = await userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($"Đổi mật khẩu thất bại: {errors}");
+        }
+
+        return true;
+    }
+
     public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
     {
         //1. Tìm và validate user
