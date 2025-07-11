@@ -133,7 +133,7 @@ public class PatientProfile : AggregateRoot<Guid>
     {
         return !string.IsNullOrWhiteSpace(FullName)
                && ContactInfo.HasEnoughInfo()
-               && ContactInfo.PhoneNumber is not null
+               //&& ContactInfo.PhoneNumber is not null
                && BirthDate.HasValue;
         // && JobId.HasValue;
     }
