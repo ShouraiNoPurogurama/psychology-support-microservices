@@ -18,7 +18,7 @@ namespace Payment.API.Endpoints
                 CancellationToken cancellationToken, HttpContext httpContext) =>
             {
                 // Authorization check
-                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
+                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User) && !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
                     return Results.Problem(
                                statusCode: StatusCodes.Status403Forbidden,
                                title: "Forbidden",
@@ -29,9 +29,9 @@ namespace Payment.API.Endpoints
                 var result = await sender.Send(query, cancellationToken);
                 return Results.Ok(result);
             })
-            .RequireAuthorization(policy => policy.RequireRole("Manager", "Admin"))
+            .RequireAuthorization(policy => policy.RequireRole("Manager", "Admin", "User"))
             .WithName("GetDailyRevenue")
-            .WithTags("Payments")
+            .WithTags("Dashboard")
             .Produces<GetDailyRevenueResult>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithSummary("Get Daily Revenue")

@@ -32,7 +32,7 @@ namespace Payment.API.Endpoints
                 // Authorization check
                 if (request.PatientProfileId is Guid patientId)
                 {
-                    if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User))
+                    if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User) && !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
                         return Results.Problem(
                                 statusCode: StatusCodes.Status403Forbidden,
                                 title: "Forbidden",
@@ -47,7 +47,7 @@ namespace Payment.API.Endpoints
             })
             .RequireAuthorization(policy => policy.RequireRole("User","Admin","Manager"))
             .WithName("GetAllPayments")
-            .WithTags("Payments")
+            .WithTags("Dashboard")
             .Produces<GetAllPaymentsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get All Payments")

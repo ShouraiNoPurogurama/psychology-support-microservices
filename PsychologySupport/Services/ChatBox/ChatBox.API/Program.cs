@@ -28,8 +28,7 @@ else
 {
     app.UseSwaggerUI(c =>
     {
-        c.RoutePrefix = string.Empty;
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Chatbox API v1");
+        c.SwaggerEndpoint("/chatbox-service/swagger/v1/swagger.json", "Chatbox API v1");
     });
 }
 

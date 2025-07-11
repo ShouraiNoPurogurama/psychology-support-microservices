@@ -34,8 +34,7 @@ else
 {
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Subscription API v1");
-        c.RoutePrefix = string.Empty;
+        c.SwaggerEndpoint("/subscription-service/swagger/v1/swagger.json", "Subscription API v1");
     });
 }
 

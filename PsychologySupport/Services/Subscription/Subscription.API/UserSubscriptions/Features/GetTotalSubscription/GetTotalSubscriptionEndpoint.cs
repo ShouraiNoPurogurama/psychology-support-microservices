@@ -7,11 +7,11 @@ using Subscription.API.Data.Common;
 
 namespace Subscription.API.UserSubscriptions.Features.GetTotalSubscription
 {
-        public class GetTotalSubscriptionEndpoint : ICarterModule
+    public class GetTotalSubscriptionEndpoint : ICarterModule
+    {
+        public void AddRoutes(IEndpointRouteBuilder app)
         {
-            public void AddRoutes(IEndpointRouteBuilder app)
-            {
-                app.MapGet("/user-subscriptions/total", async (
+            app.MapGet("/user-subscriptions/total", async (
                     [FromQuery] DateOnly startDate,
                     [FromQuery] DateOnly endDate,
                     [FromQuery] Guid? patientId,
@@ -19,12 +19,13 @@ namespace Subscription.API.UserSubscriptions.Features.GetTotalSubscription
                     ISender sender, HttpContext httpContext) =>
                 {
                     // Authorization check
-                    if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
+                    if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User) &&
+                        !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
                         return Results.Problem(
-                                   statusCode: StatusCodes.Status403Forbidden,
-                                   title: "Forbidden",
-                                   detail: "You do not have permission to access this resource."
-                               );
+                            statusCode: StatusCodes.Status403Forbidden,
+                            title: "Forbidden",
+                            detail: "You do not have permission to access this resource."
+                        );
 
                     var query = new GetTotalSubscriptionQuery(startDate, endDate, patientId, status);
                     var result = await sender.Send(query);
@@ -32,12 +33,11 @@ namespace Subscription.API.UserSubscriptions.Features.GetTotalSubscription
                     return Results.Ok(result);
                 })
                 .WithName("GetTotalUserSubscriptions")
-                .WithTags("UserSubscriptions")
+                .WithTags("Dashboard")
                 .Produces<GetTotalSubscriptionResult>()
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .WithDescription("Get Total User Subscriptions")
                 .WithSummary("Get Total User Subscriptions");
-            }
         }
-
+    }
 }
