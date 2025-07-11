@@ -418,8 +418,8 @@ public class AuthService(
 
     private async Task VerifyPasswordAsync(User user, string password)
     {
-        var currentTime = CoreUtils.SystemTimeNow;
-
+        var currentTime = CoreUtils.SystemTimeUtcNow;
+        
         if (!tokenService.VerifyPassword(password, user.PasswordHash!, user))
         {
             user.AccessFailedCount++;
