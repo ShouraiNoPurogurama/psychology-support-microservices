@@ -312,17 +312,7 @@ public class AuthService(
 
         await AssignUserRoleAsync(user);
         
-        //Tạo profile cho user mới (không blocking) => ignore exceptions
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await CreateUserProfileAsync(user);
-            }
-            catch
-            {
-            }
-        });
+        await CreateUserProfileAsync(user);
 
         return user;
     }
