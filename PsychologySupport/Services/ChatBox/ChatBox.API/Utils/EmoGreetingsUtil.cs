@@ -15,8 +15,7 @@ public static class EmoGreetingsUtil
         "Tớ là Emo nè! Hôm nay rất vui khi có cơ hội trò chuyện với {0}.",
         "Chào {0}, Emo rất háo hức được nghe {0} chia sẻ hôm nay!",
         "Emo đây 🌟 Luôn sẵn sàng lắng nghe {0} bất kỳ lúc nào.",
-        "Tớ ở đây rồi nè! Emo sẵn sàng cùng {0} bắt đầu một cuộc trò chuyện nhẹ nhàng.",
-        "Hello {0}! Emo rất mong được đồng hành cùng {0} hôm nay 🌈",
+        "Hello {0}. Emo rất mong được đồng hành cùng {0} hôm nay 🌈",
         "Tớ là Emo, một người bạn nhỏ luôn ở đây vì {0} 💬"
     ];
 
@@ -31,7 +30,7 @@ public static class EmoGreetingsUtil
         "Dạo này cuộc sống của cậu thế nào, có điều gì muốn chia sẻ không? 🌻",
         "Hôm nay cậu có khoảnh khắc nhỏ nào đáng yêu muốn kể cho tớ nghe không? 😊",
         "Nếu hôm nay là một màu sắc, cậu nghĩ nó sẽ là màu gì nhỉ? 🎨",
-        "Tâm trạng của cậu hiện giờ giống như bài hát nào nhỉ? 🎶",
+        "Cậu đang làm gì vậy? Cậu có điều gì khiến cậu vui hôm nay không? Nếu muốn chia sẻ, tớ luôn sẵn sàng lắng nghe nha.🎶",
         "Cậu muốn chia sẻ điều gì đầu tiên với tớ hôm nay không? 😊",
     ];
 
