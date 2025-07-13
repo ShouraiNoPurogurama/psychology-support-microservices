@@ -2,10 +2,13 @@
 using Auth.API.Data;
 using Auth.API.ServiceContracts;
 using Auth.API.Services;
+using Auth.API.Validators;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Filters;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -113,6 +116,9 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
         services.AddScoped<LoggingActionFilter>();
+
+        services.AddFluentValidationAutoValidation();
+        services.AddValidatorsFromAssemblyContaining<ChangePasswordRequestValidator>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
