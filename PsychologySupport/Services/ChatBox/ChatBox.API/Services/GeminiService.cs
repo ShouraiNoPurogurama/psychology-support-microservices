@@ -114,8 +114,11 @@ public class GeminiService(
             contentParts.Add(new GeminiContentDto(
                 "user", [new GeminiContentPartDto(finalInput)]
             ));
-            
-            logger.LogInformation("Content parts for Gemini request: {ContentParts}", contentParts);
+
+            foreach (var part in contentParts)
+            {
+                logger.LogInformation($"==== Content parts: {part.Parts.Select(p => p.Text).FirstOrDefault()}");
+            }
 
             var payload = BuildGeminiMessagePayload(contentParts);
 
