@@ -203,15 +203,14 @@ public class GeminiService(
     private static string? ExtractLastQuestion(string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return null;
-        //Tìm tất cả câu kết thúc bằng dấu ?
-        var matches = Regex.Matches(text, @"[^?。？！]*\?");
-        if (matches.Count > 0)
-        {
-            return matches[^1].Value.Trim();
-        }
 
-        return null;
+        //lấy từng câu hỏi riêng biệt
+        var matches = Regex.Matches(text, @"(?:^|[.。!！?？]\s*)([^.。!！?？\n]*\?)");
+        
+        return matches.Count > 0 ?
+            string.Join(" ", matches.Select(m => m.Groups[1].Value.Trim())) : null;
     }
+
 
 
     //Cleanup inactive sessions
