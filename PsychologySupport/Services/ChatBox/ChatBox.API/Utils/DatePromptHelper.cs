@@ -71,7 +71,7 @@ public static class DatePromptHelper
         //Thêm thông tin ngày tháng
         if (ContainsDateInfo(lowerInput))
         {
-            promptBuilder.Append($"Hôm nay là ngày {now.Day} tháng {now.Month} năm {now.Year}, ");
+            promptBuilder.Append($"<System> Hôm nay là ngày {now.Day} tháng {now.Month} năm {now.Year}, ");
             promptBuilder.Append($"{GetVietnameseDayOfWeek(now.DayOfWeek)}. ");
         }
 
@@ -88,7 +88,7 @@ public static class DatePromptHelper
         }
 
         //Thêm hướng dẫn ngắn gọn
-        promptBuilder.Append("Trả lời dựa trên thông tin thời gian trên. ");
+        promptBuilder.Append("Trả lời dựa trên thông tin thời gian trên. </System> \n");
 
         return promptBuilder + input;
     }

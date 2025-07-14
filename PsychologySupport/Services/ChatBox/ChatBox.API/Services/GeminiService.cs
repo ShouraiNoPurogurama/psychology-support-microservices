@@ -40,7 +40,7 @@ public class GeminiService(
         new(CleanupInactiveSessions, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
 
     const int MaxUserInputLength = 1000;
-    const int SessionTimeoutMinutes = 30; //Timeout cho session không hoạt động
+    const int SessionTimeoutMinutes = 30;//Timeout cho session không hoạt động
 
     public async Task<List<AIMessageResponseDto>> SendMessageAsync(AIMessageRequestDto request, Guid userId)
     {
@@ -53,7 +53,7 @@ public class GeminiService(
         var inputNormalized = request.UserMessage.Trim().ToLowerInvariant() ?? "";
         var pendingQueue = PendingMessagesBySession.GetOrAdd(request.SessionId, _ => new Queue<string>());
         
-        lock (pendingQueue) //Đảm bảo thread-safe cho queue
+        lock (pendingQueue)//Đảm bảo thread-safe cho queue
         {
             if (pendingQueue.Count >= 2)
             {
