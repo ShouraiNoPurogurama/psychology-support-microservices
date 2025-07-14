@@ -1,4 +1,6 @@
-﻿namespace ChatBox.API.Utils;
+﻿using System.Text.RegularExpressions;
+
+namespace ChatBox.API.Utils;
 
 public static class EmoGreetingsUtil
 {
@@ -50,13 +52,27 @@ public static class EmoGreetingsUtil
     
     private static string GetDisplayName(string? fullName)
     {
-        //Ưu tiên gọi tên, không gọi cả họ tên
         if (string.IsNullOrWhiteSpace(fullName))
             return "bạn";
 
-        //Lấy chữ cuối cùng (tên)
-        var words = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        return words.Length > 0 ? words[^1] : fullName;
+        var cleaned = Regex.Replace(fullName, @"[\(\[].*?[\)\]]", "");
+
+        var normalized = Regex.Replace(cleaned.Trim(), @"\s+", " ");
+
+        var words = normalized.Split([' ', '-', '_'], StringSplitOptions.RemoveEmptyEntries);
+
+        return words.Length switch
+        {
+            0 => "bạn",
+            1 => Capitalize(words[0]),
+            _ => Capitalize(words[^1])
+        };
+    }
+
+    private static string Capitalize(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return name;
+        return char.ToUpper(name[0]) + name.Substring(1).ToLower();
     }
 
 }
