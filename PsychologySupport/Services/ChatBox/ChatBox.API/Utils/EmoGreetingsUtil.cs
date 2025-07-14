@@ -9,7 +9,7 @@ public static class EmoGreetingsUtil
     private static readonly string[] EmoGreetingOpeners =[
         "Chào {0} nhé, tớ là Emo đây 🌿",
         "Hi {0}, tớ là Emo nè 🌼",
-        "Helooo, tớ là Emo đây",
+        "Helooo, tớ là Emo đây.",
         "Chào {0} nha, Emo đây 👋",
         "Rất vui được gặp {0}, tớ là Emo đây.",
         "Chào {0} nha! Emo rất vui khi thấy {0} ở đây.",
