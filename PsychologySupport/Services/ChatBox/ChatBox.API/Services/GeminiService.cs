@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.RegularExpressions;
 using BuildingBlocks.Pagination;
 using ChatBox.API.Data;
 using ChatBox.API.Dtos;
@@ -30,8 +31,8 @@ public class GeminiService(
 
     //Tracking active sessions để cleanup
     private static readonly ConcurrentDictionary<Guid, DateTime> ActiveSessions = new();
-    
-    
+
+
     private static readonly ConcurrentDictionary<Guid, Queue<string>> PendingMessagesBySession = new();
 
 
@@ -40,7 +41,7 @@ public class GeminiService(
         new(CleanupInactiveSessions, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
 
     const int MaxUserInputLength = 1000;
-    const int SessionTimeoutMinutes = 30;//Timeout cho session không hoạt động
+    const int SessionTimeoutMinutes = 30; //Timeout cho session không hoạt động
 
     public async Task<List<AIMessageResponseDto>> SendMessageAsync(AIMessageRequestDto request, Guid userId)
     {
@@ -52,8 +53,8 @@ public class GeminiService(
 
         var inputNormalized = request.UserMessage.Trim().ToLowerInvariant() ?? "";
         var pendingQueue = PendingMessagesBySession.GetOrAdd(request.SessionId, _ => new Queue<string>());
-        
-        lock (pendingQueue)//Đảm bảo thread-safe cho queue
+
+        lock (pendingQueue) //Đảm bảo thread-safe cho queue
         {
             if (pendingQueue.Count >= 2)
             {
@@ -82,7 +83,7 @@ public class GeminiService(
 
             pendingQueue.Enqueue(inputNormalized);
         }
-        
+
         //Timeout cho lock để tránh deadlock
         var lockAcquired = await sessionLock.WaitAsync(TimeSpan.FromSeconds(15));
         if (!lockAcquired)
@@ -94,6 +95,7 @@ public class GeminiService(
                 if (pendingQueue.Count > 0)
                     pendingQueue.Dequeue();
             }
+
             throw new TimeoutException("Hệ thống đang xử lý tin nhắn khác. Vui lòng thử lại.");
         }
 
@@ -109,8 +111,17 @@ public class GeminiService(
 
             var userMessageWithDateTime = DatePromptHelper.PrependDateTimePrompt(request.UserMessage, 7);
 
-            var finalInput = BuildFinalInputWithTruncation(userMessageWithDateTime, session);
+            var lastModelMsg = contentParts.LastOrDefault(c => c.Role == "model");
+            var lastBotText = lastModelMsg != null
+                ? string.Join("\n", lastModelMsg.Parts.Select(p => p.Text))
+                : "";
 
+            var finalInput = BuildFinalInputWithTruncation(
+                userMessageWithDateTime,
+                lastBotText,
+                session
+            );
+            
             contentParts.Add(new GeminiContentDto(
                 "user", [new GeminiContentPartDto(finalInput)]
             ));
@@ -159,15 +170,22 @@ public class GeminiService(
                 if (pendingQueue.Count == 0)
                     PendingMessagesBySession.TryRemove(request.SessionId, out _);
             }
-            
+
             sessionLock.Release();
         }
     }
 
-    private static string BuildFinalInputWithTruncation(string userMessageWithDateTime, AIChatSession session)
+    private static string BuildFinalInputWithTruncation(string userMessageWithDateTime, string lastBotMessage,
+        AIChatSession session)
     {
         var persona = session.PersonaSnapshot.ToPromptText();
-        
+
+        //Tách câu hỏi gần nhất trong bot reply trước
+        var lastQuestion = ExtractLastQuestion(lastBotMessage);
+        var contextBlock = string.IsNullOrEmpty(lastQuestion)
+            ? ""
+            : $"<QuestionContext>\n{lastQuestion}\n</QuestionContext>\n\n";
+
         var trimmedUserMessage = userMessageWithDateTime.Length > MaxUserInputLength
             ? userMessageWithDateTime[..MaxUserInputLength] + "..."
             : userMessageWithDateTime;
@@ -176,8 +194,23 @@ public class GeminiService(
             ? "Ghi chú: nội dung người dùng đã được rút gọn vì quá dài.\n"
             : "";
 
-        var finalInput = persona + "User:\n\n" + notice + trimmedUserMessage;
+        // Chèn context (nếu có)
+        var finalInput = persona + contextBlock + "User:\n\n" + notice + trimmedUserMessage;
         return finalInput;
+    }
+
+
+    private static string? ExtractLastQuestion(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        //Tìm tất cả câu kết thúc bằng dấu ?
+        var matches = Regex.Matches(text, @"[^?。？！]*\?");
+        if (matches.Count > 0)
+        {
+            return matches[^1].Value.Trim();
+        }
+
+        return null;
     }
 
 
