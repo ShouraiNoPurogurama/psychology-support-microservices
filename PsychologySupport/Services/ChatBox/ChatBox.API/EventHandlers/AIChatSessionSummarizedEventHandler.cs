@@ -19,8 +19,7 @@ public class AIChatSessionSummarizedEventHandler(
         var newMessages = notification.AIMessages;
         var sessionId = notification.SessionId;
         var userId = notification.UserId;
-
-
+        
         var contentDtos = newMessages.Select(m => new GeminiContentDto(
                 m.SenderIsEmo ? "model" : "user",
                 [new GeminiContentPartDto(m.Content)]

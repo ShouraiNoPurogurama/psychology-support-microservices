@@ -123,6 +123,19 @@ public class SessionService(ChatBoxDbContext dbContext, IRequestClient<Aggregate
         return true;
     }
 
+    public async Task<bool> UpdateSessionAsync(AIChatSession newSession)
+    {
+        var currentSession = await dbContext.AIChatSessions
+            .FirstOrDefaultAsync(s => s.Id == newSession.Id)
+            ?? throw new NotFoundException($"Không tìm thấy phiên trò chuyện {newSession.Id} hoặc phiên không thuộc về người dùng.");
+
+        newSession.Adapt(currentSession);
+        
+        var result = await dbContext.SaveChangesAsync();
+        
+        return result > 0;
+    }
+
     private static void ValidatePaginationRequest(int pageSize, int pageIndex)
     {
         if (pageSize <= 0 || pageIndex <= 0)

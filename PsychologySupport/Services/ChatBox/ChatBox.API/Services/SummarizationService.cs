@@ -128,6 +128,8 @@ public class SummarizationService(IOptions<GeminiConfig> config, ChatBoxDbContex
         session.LastSummarizedAt = DateTime.UtcNow;
         session.LastSummarizedIndex += newMessageCount;
 
+        await sessionService.UpdateSessionAsync(session);
+        
         return true;
     }
 
