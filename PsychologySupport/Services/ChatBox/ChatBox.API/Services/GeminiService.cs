@@ -181,10 +181,10 @@ public class GeminiService(
         var persona = session.PersonaSnapshot.ToPromptText();
 
         //Tách câu hỏi gần nhất trong bot reply trước
-        var lastQuestion = ExtractLastQuestion(lastBotMessage);
-        var contextBlock = string.IsNullOrEmpty(lastQuestion)
+        var emoQuestions = ExtractQuestions(lastBotMessage);
+        var contextBlock = string.IsNullOrEmpty(emoQuestions)
             ? ""
-            : $"<QuestionContext>\n{lastQuestion}\n</QuestionContext>\n\n";
+            : $"<QuestionsContext>\n{emoQuestions}\n</QuestionsContext>\n\n";
 
         var trimmedUserMessage = userMessageWithDateTime.Length > MaxUserInputLength
             ? userMessageWithDateTime[..MaxUserInputLength] + "..."
@@ -200,10 +200,14 @@ public class GeminiService(
     }
 
 
-    private static string? ExtractLastQuestion(string text)
+    private static string? ExtractQuestions(string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return null;
 
+        //đảm bảo extract được câu hỏi cuối cùng
+        if (!string.IsNullOrWhiteSpace(text) && !".。!！?？".Contains(text[^1]))
+            text += ".";
+        
         //lấy từng câu hỏi riêng biệt
         var matches = Regex.Matches(text, @"(?:^|[.。!！?？]\s*)([^.。!！?？\n]*\?)");
         
@@ -418,7 +422,7 @@ public class GeminiService(
             SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(_config.SystemInstruction)),
             GenerationConfig: new GeminiGenerationConfigDto(
                 Temperature: 1.0,
-                TopP: 0.95,
+                TopP: 0.96,
                 MaxOutputTokens: 8192
             ),
             SafetySettings:
