@@ -42,7 +42,9 @@ public class GeminiProvider(IOptions<GeminiConfig> config, ILogger<GeminiProvide
         // Add current context
         contents.Add(new GeminiContentDto("user",
             [new GeminiContentPartDto(payload.Context)]));
-
+        
+        logger.LogInformation("  *** Gemini last payload content: {Contents}", payload.Context);
+        
         return new GeminiRequestDto(
             Contents: contents,
             SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(config.Value.SystemInstruction)),
