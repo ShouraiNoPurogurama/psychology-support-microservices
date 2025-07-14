@@ -32,10 +32,11 @@ public static class PersonaSnapshotExtensions
     public static string ToPromptText(this PersonaSnapshot? snapshot)
     {
         if (snapshot == null)
-            return "Chưa có thông tin hồ sơ người dùng.";
+            return "Chưa có thông tin hồ sơ người dùng (Persona).";
 
         return $"""
-                Thông tin người dùng hiện tại:
+                <System>
+                Thông tin người dùng hiện tại (Persona):
                 - Họ tên: {snapshot.FullName}
                 - Giới tính: {snapshot.Gender}
                 - Ngày sinh: {snapshot.BirthDate}
@@ -44,6 +45,8 @@ public static class PersonaSnapshotExtensions
                 - Ngành nghề: {snapshot.IndustryName}
                 - Tính cách nổi bật: {snapshot.PersonalityTraits}
                 - Tiền sử dị ứng: {snapshot.Allergies}
+                </System>
+
                 """;
     }
 }

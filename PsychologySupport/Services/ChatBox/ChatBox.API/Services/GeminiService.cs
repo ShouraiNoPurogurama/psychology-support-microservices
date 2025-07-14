@@ -109,7 +109,7 @@ public class GeminiService(
 
             var userMessageWithDateTime = DatePromptHelper.PrependDateTimePrompt(request.UserMessage, 7);
 
-            var finalInput = BuildFinalInputWithTruncation(userMessageWithDateTime);
+            var finalInput = BuildFinalInputWithTruncation(userMessageWithDateTime, session);
 
             contentParts.Add(new GeminiContentDto(
                 "user", [new GeminiContentPartDto(finalInput)]
@@ -164,8 +164,10 @@ public class GeminiService(
         }
     }
 
-    private static string BuildFinalInputWithTruncation(string userMessageWithDateTime)
+    private static string BuildFinalInputWithTruncation(string userMessageWithDateTime, AIChatSession session)
     {
+        var persona = session.PersonaSnapshot.ToPromptText();
+        
         var trimmedUserMessage = userMessageWithDateTime.Length > MaxUserInputLength
             ? userMessageWithDateTime[..MaxUserInputLength] + "..."
             : userMessageWithDateTime;
@@ -174,7 +176,7 @@ public class GeminiService(
             ? "Ghi chú: nội dung người dùng đã được rút gọn vì quá dài.\n"
             : "";
 
-        var finalInput = notice + trimmedUserMessage;
+        var finalInput = persona + "User:\n\n" + notice + trimmedUserMessage;
         return finalInput;
     }
 

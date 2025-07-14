@@ -88,18 +88,12 @@ public class SummarizationService(IOptions<GeminiConfig> config, ChatBoxDbContex
 
         if (persona is not null)
         {
-            var personaPrompt = persona.ToPromptText();
             var sessionSummarizations = session.Summarization ?? "";
             var lastTwo = sessionSummarizations
                 .Split("\n---\n", StringSplitOptions.RemoveEmptyEntries)
                 .TakeLast(2)
                 .ToList();
-
-            var personaAlreadyIncluded = lastTwo.Any(s => s.Contains(personaPrompt));
-            if (!personaAlreadyIncluded)
-            {
-                summary += "\n" + personaPrompt;
-            }
+            
 
             //Tạo block mới cho bản tóm tắt hiện tại
             lastTwo.Add(summary);
