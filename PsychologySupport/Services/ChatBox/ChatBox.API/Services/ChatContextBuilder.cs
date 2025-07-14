@@ -30,9 +30,9 @@ public class ChatContextBuilder(ChatBoxDbContext dbContext, ILogger<ChatContextB
 
         var contextContent = string.Join("\n", lastMessageBlock
             .OrderBy(m => m.CreatedDate)
-            .Select(m => "[Emo] " + m.Content));
+            .Select(m => m.Content));
 
-        return $"[Previous Context]\n{contextContent}\n\n";
+        return $"[Previous Context Messages By Emo]\n{contextContent}\n\n";
     }
 
     private string ProcessUserMessage(string userMessage)
