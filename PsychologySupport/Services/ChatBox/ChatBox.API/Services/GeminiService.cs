@@ -114,6 +114,8 @@ public class GeminiService(
             contentParts.Add(new GeminiContentDto(
                 "user", [new GeminiContentPartDto(finalInput)]
             ));
+            
+            logger.LogInformation("Content parts for Gemini request: {ContentParts}", contentParts);
 
             var payload = BuildGeminiMessagePayload(contentParts);
 
