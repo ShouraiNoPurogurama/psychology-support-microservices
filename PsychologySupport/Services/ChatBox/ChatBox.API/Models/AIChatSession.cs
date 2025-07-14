@@ -35,7 +35,7 @@ public static class PersonaSnapshotExtensions
             return "Chưa có thông tin hồ sơ người dùng (Persona).";
 
         return $"""
-                <System>
+                [System]
                 Thông tin người dùng hiện tại (Persona):
                 - Họ tên: {snapshot.FullName}
                 - Giới tính: {snapshot.Gender}
@@ -45,7 +45,7 @@ public static class PersonaSnapshotExtensions
                 - Ngành nghề: {snapshot.IndustryName}
                 - Tính cách nổi bật: {snapshot.PersonalityTraits}
                 - Tiền sử dị ứng: {snapshot.Allergies}
-                </System>
+                
 
                 """;
     }

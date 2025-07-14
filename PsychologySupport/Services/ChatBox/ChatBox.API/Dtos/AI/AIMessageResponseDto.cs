@@ -1,4 +1,4 @@
-﻿namespace ChatBox.API.Dtos;
+﻿namespace ChatBox.API.Dtos.AI;
 
 public record AIMessageResponseDto(
     Guid SessionId,

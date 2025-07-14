@@ -3,6 +3,7 @@ using BuildingBlocks.Messaging.Events.Profile;
 using BuildingBlocks.Pagination;
 using ChatBox.API.Data;
 using ChatBox.API.Dtos;
+using ChatBox.API.Dtos.AI;
 using ChatBox.API.Dtos.Sessions;
 using ChatBox.API.Models;
 using ChatBox.API.Utils;

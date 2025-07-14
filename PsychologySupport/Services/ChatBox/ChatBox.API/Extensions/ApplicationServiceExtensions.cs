@@ -4,6 +4,7 @@ using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Filters;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
+using ChatBox.API.Abstractions;
 using ChatBox.API.Data;
 using ChatBox.API.Models;
 using ChatBox.API.Services;
@@ -37,6 +38,8 @@ public static class ApplicationServiceExtensions
         ConfigureGemini(services, config);
 
         ConfigureMediatR(services);
+
+        AddAIServices(services);
         
         services.AddIdentityServices(config);
         
@@ -57,6 +60,16 @@ public static class ApplicationServiceExtensions
             config.AddOpenBehavior(typeof(ValidationBehavior<,>));
             config.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
+    }
+    
+    private static IServiceCollection AddAIServices(this IServiceCollection services)
+    {
+        services.AddScoped<IContextBuilder, ChatContextBuilder>();
+        services.AddScoped<IAIProvider, GeminiProvider>();
+        services.AddSingleton<ISessionConcurrencyManager, SessionConcurrencyManager>();
+        services.AddScoped<IMessageProcessor, MessageProcessor>();
+        
+        return services;
     }
 
     private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)

@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using BuildingBlocks.Pagination;
 using ChatBox.API.Data;
 using ChatBox.API.Dtos;
+using ChatBox.API.Dtos.AI;
 using ChatBox.API.Dtos.Gemini;
 using ChatBox.API.Models;
 using ChatBox.API.Utils;
@@ -111,17 +112,11 @@ public class GeminiService(
 
             var userMessageWithDateTime = DatePromptHelper.PrependDateTimePrompt(request.UserMessage, 7);
 
-            var lastModelMsg = contentParts.LastOrDefault(c => c.Role == "model");
-            var lastBotText = lastModelMsg != null
-                ? string.Join("\n", lastModelMsg.Parts.Select(p => p.Text))
-                : "";
-
-            var finalInput = BuildFinalInputWithTruncation(
+            var finalInput = await BuildFinalInputWithTruncation(
                 userMessageWithDateTime,
-                lastBotText,
                 session
             );
-            
+
             contentParts.Add(new GeminiContentDto(
                 "user", [new GeminiContentPartDto(finalInput)]
             ));
@@ -175,16 +170,23 @@ public class GeminiService(
         }
     }
 
-    private static string BuildFinalInputWithTruncation(string userMessageWithDateTime, string lastBotMessage,
+    private async Task<string> BuildFinalInputWithTruncation(string userMessageWithDateTime,
         AIChatSession session)
     {
         var persona = session.PersonaSnapshot.ToPromptText();
 
         //Tách câu hỏi gần nhất trong bot reply trước
-        var emoQuestions = ExtractQuestions(lastBotMessage);
-        var contextBlock = string.IsNullOrEmpty(emoQuestions)
-            ? ""
-            : $"<QuestionsContext>\n{emoQuestions}\n</QuestionsContext>\n\n";
+        var lastMessageBlock = await GetLastEmoMessageBlock(session.Id);
+        
+        var contextBlock = "";
+        if (lastMessageBlock.Count > 0)
+        {
+            var contextContent = string.Join("\n", lastMessageBlock
+                .OrderBy(m => m.CreatedDate)
+                .Select(m => m.Content));
+        
+            contextBlock = $"[Previous Context]\n{contextContent}\n\n";
+        }
 
         var trimmedUserMessage = userMessageWithDateTime.Length > MaxUserInputLength
             ? userMessageWithDateTime[..MaxUserInputLength] + "..."
@@ -195,26 +197,25 @@ public class GeminiService(
             : "";
 
         // Chèn context (nếu có)
-        var finalInput = persona + contextBlock + "User:\n\n" + notice + trimmedUserMessage;
+        var finalInput = persona + contextBlock + "[User]\n" + notice + trimmedUserMessage + "\n\n[Emo]\n";
         return finalInput;
     }
 
 
-    private static string? ExtractQuestions(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text)) return null;
-
-        //đảm bảo extract được câu hỏi cuối cùng
-        if (!string.IsNullOrWhiteSpace(text) && !".。!！?？".Contains(text[^1]))
-            text += ".";
-        
-        //lấy từng câu hỏi riêng biệt
-        var matches = Regex.Matches(text, @"(?:^|[.。!！?？]\s*)([^.。!！?？\n]*\?)");
-        
-        return matches.Count > 0 ?
-            string.Join(" ", matches.Select(m => m.Groups[1].Value.Trim())) : null;
-    }
-
+    // private static string? ExtractQuestions(string text)
+    // {
+    //     if (string.IsNullOrWhiteSpace(text)) return null;
+    //
+    //     //đảm bảo extract được câu hỏi cuối cùng
+    //     if (!string.IsNullOrWhiteSpace(text) && !".。!！?？".Contains(text[^1]))
+    //         text += ".";
+    //     
+    //     //lấy từng câu hỏi riêng biệt
+    //     var matches = Regex.Matches(text, @"(?:^|[.。!！?？]\s*)([^.。!！?？\n]*\?)");
+    //     
+    //     return matches.Count > 0 ?
+    //         string.Join(" ", matches.Select(m => m.Groups[1].Value.Trim())) : null;
+    // }
 
 
     //Cleanup inactive sessions
@@ -240,7 +241,7 @@ public class GeminiService(
     private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string userMessage, DateTime userMessageSentAt,
         List<AIMessage> aiResponse)
     {
-        var lastSeq = await GetLastMessageSequenceIndex(sessionId);
+        var lastSeq = await GetLastMessageBlockIndex(sessionId);
 
         var nextSeq = lastSeq + 1;
 
@@ -325,13 +326,15 @@ public class GeminiService(
     private async Task<List<GeminiContentDto>> LoadSessionHistoryMessages(AIMessageRequestDto request, AIChatSession session)
     {
         //Lấy các message mới kể từ lần tóm tắt trước
-        var lastIndex = session.LastSummarizedIndex ?? 0;
+        var lastSummarizedIndex = session.LastSummarizedIndex ?? 0;
 
         var messages = await dbContext.AIChatMessages
             .Where(m => m.SessionId == request.SessionId)
             .OrderBy(m => m.CreatedDate)
-            .Skip(lastIndex)
+            .Skip(lastSummarizedIndex)
             .ToListAsync();
+
+        var lastMessageBlockIndex = await GetLastMessageBlockIndex(request.SessionId);
 
         var contentParts = new List<GeminiContentDto>();
 
@@ -343,26 +346,27 @@ public class GeminiService(
             ));
         }
 
-        if (messages.Count == 0)
-        {
-            var lastSequenceIndex = await GetLastMessageSequenceIndex(request.SessionId);
+        // if (messages.Count == 0)
+        // {
+        // var sessionId = request.SessionId;
 
-            var lastMessageBlock = await dbContext.AIChatMessages
-                .Where(m => m.SessionId == request.SessionId && m.BlockNumber == lastSequenceIndex)
-                .OrderBy(m => m.CreatedDate)
-                .ToListAsync();
+        // var lastMessageBlock = await GetLastMessageBlock(sessionId);
 
-            foreach (var message in lastMessageBlock)
-            {
-                contentParts.Add(new GeminiContentDto(
-                    message.SenderIsEmo ? "model" : "user", [new GeminiContentPartDto($"{message.Content}")]
-                ));
-            }
-        }
+        //***Chỗ này đã được đổi sang hướng lấy các message trong block cuối cùng append thẳng vào user prompt thay vì contentParts
+        // foreach (var message in lastMessageBlock)
+        // {
+        //     contentParts.Add(new GeminiContentDto(
+        //         message.SenderIsEmo ? "model" : "user", [new GeminiContentPartDto($"{message.Content}")]
+        //     ));
+        // }
+        // }
 
         //Thêm các message chưa tóm tắt vào
         foreach (var m in messages)
         {
+            if (m.BlockNumber == lastMessageBlockIndex)
+                continue; //Bỏ qua các message trong block cuối cùng, vì sẽ được append riêng vào user prompt
+            
             contentParts.Add(new GeminiContentDto(
                 m.SenderIsEmo ? "model" : "user",
                 [new GeminiContentPartDto(m.Content)]
@@ -371,6 +375,29 @@ public class GeminiService(
 
         return contentParts;
     }
+
+    private async Task<List<AIMessage>> GetLastEmoMessageBlock(Guid sessionId)
+    {
+        var lastBlockIndex = await GetLastMessageBlockIndex(sessionId);
+
+        //Truy ngược để luôn lấy block có message của Emo
+        while (lastBlockIndex >= 0)
+        {
+            var index = lastBlockIndex;
+            
+            var messages = await dbContext.AIChatMessages
+                .Where(m => m.SessionId == sessionId && m.BlockNumber == index)
+                .OrderBy(m => m.CreatedDate)
+                .ToListAsync();
+
+            if (messages.Any(m => m.SenderIsEmo))
+                return messages;
+
+            lastBlockIndex--;
+        }
+        return [];
+    }
+
 
     public async Task<PaginatedResult<AIMessageDto>> GetMessagesAsync(Guid sessionId, Guid userId,
         PaginationRequest paginationRequest)
@@ -442,15 +469,15 @@ public class GeminiService(
         return await credential.UnderlyingCredential.GetAccessTokenForRequestAsync();
     }
 
-    private async Task<int> GetLastMessageSequenceIndex(Guid sessionId)
+    private async Task<int> GetLastMessageBlockIndex(Guid sessionId)
     {
-        var lastSeq = await dbContext.AIChatMessages
+        var lastBlock = await dbContext.AIChatMessages
             .Where(m => m.SessionId == sessionId)
             .OrderByDescending(m => m.BlockNumber)
             .Select(m => m.BlockNumber)
             .FirstOrDefaultAsync();
 
-        return lastSeq;
+        return lastBlock;
     }
 
     private async Task<string> CallGeminiAPIAsync(GeminiRequestDto payload)
