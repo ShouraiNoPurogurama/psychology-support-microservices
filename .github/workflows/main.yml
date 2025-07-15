@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   # Sync base secrets (appsettings.json, .env, RSA,...)
