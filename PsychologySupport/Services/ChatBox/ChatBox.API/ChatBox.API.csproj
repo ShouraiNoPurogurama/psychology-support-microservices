@@ -11,6 +11,9 @@
     <UserSecretsId>38803bda-e1d3-4228-b987-563726689d58</UserSecretsId>
     <DockerfileContext>..\..\..</DockerfileContext>
   </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <NoWarn>$(NoWarn);CS9113;CS8618;CS8602;CS8629</NoWarn>
+    </PropertyGroup>
   <ItemGroup>
     <Content Include="..\..\..\.dockerignore">
       <Link>.dockerignore</Link>

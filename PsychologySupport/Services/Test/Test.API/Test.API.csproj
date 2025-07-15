@@ -7,6 +7,9 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..</DockerfileContext>
   </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <NoWarn>$(NoWarn);CS9113;CS8618;CS8602;CS8629</NoWarn>
+    </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
