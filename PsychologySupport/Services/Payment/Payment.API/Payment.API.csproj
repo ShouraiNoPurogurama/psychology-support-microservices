@@ -6,7 +6,7 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-        <NoWarn>$(NoWarn);CS9113;CS8618;CS8602;CS8629</NoWarn>
+        <NoWarn>$(NoWarn);CS9113;CS8618;CS8602;CS8629;CS8600;CS8601;CS8604;CS8625;CS8603</NoWarn>
     </PropertyGroup>
     <PropertyGroup>
         <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
@@ -35,5 +35,11 @@
         <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj"/>
         <ProjectReference Include="..\Payment.Application\Payment.Application.csproj"/>
         <ProjectReference Include="..\Payment.Infrastructure\Payment.Infrastructure.csproj"/>
+    </ItemGroup>
+    <ItemGroup>
+      <None Update="RSAKeys\PrivateKey.xml">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </None>
     </ItemGroup>
 </Project>

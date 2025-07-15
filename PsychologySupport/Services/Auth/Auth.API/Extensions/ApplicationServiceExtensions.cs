@@ -26,6 +26,10 @@ public static class ApplicationServiceExtensions
             options.Filters.Add<LoggingActionFilter>();
         });
         services.AddEndpointsApiExplorer();
+        
+        var connectionString = GetConnectionString(config)!;
+        services.AddHealthChecks()
+            .AddNpgSql(connectionString);
 
         ConfigureSwagger(services, env);
 
@@ -123,12 +127,18 @@ public static class ApplicationServiceExtensions
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
     {
-        var connectionString = config.GetConnectionString("AuthDb");
+        var connectionString = GetConnectionString(config);
 
         services.AddDbContext<AuthDbContext>((sp, opt) =>
         {
             opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             opt.UseNpgsql(connectionString);
         });
+    }
+
+    private static string? GetConnectionString(IConfiguration config)
+    {
+        var connectionString = config.GetConnectionString("AuthDb");
+        return connectionString;
     }
 }

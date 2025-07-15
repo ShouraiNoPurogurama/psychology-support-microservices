@@ -9,6 +9,11 @@ public static class DependencyInjection
     public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration,
         IWebHostEnvironment env)
     {
+        var connectionString = configuration.GetConnectionString("PaymentDb")!;
+        
+        services.AddHealthChecks()
+            .AddNpgSql(connectionString);
+        
         services.AddCarter();
         services.AddExceptionHandler<CustomExceptionHandler>();
 

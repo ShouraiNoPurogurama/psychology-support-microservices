@@ -16,23 +16,23 @@ namespace Image.API.Controllers
         }
 
         // Upload an image
-        [HttpPost("upload")]
-        public async Task<IActionResult> UploadImage([FromForm] IFormFile file, [FromForm] OwnerType ownerType, [FromForm] Guid ownerId)
+        // [HttpPost("upload")]
+        public async Task<IActionResult> UploadImage([FromForm] IFormFile file,  OwnerType ownerType, Guid ownerId)
         {
             if (file == null || file.Length == 0)
                 return BadRequest("Invalid file");
-
+        
             var imageUrl = await _imageService.UploadImageAsync(file, ownerType, ownerId);
             return Ok(new { Url = imageUrl });
         }
 
         // Update an image
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateImage([FromForm] IFormFile file, [FromForm] OwnerType ownerType, [FromForm] Guid ownerId)
+        public async Task<IActionResult> UpdateImage([FromForm] IFormFile file, OwnerType ownerType,  Guid ownerId)
         {
             if (file == null || file.Length == 0)
                 return BadRequest("Invalid file");
-
+        
             var imageUrl = await _imageService.UpdateImageAsync(file, ownerType, ownerId);
             return Ok(new { Url = imageUrl });
         }

@@ -17,6 +17,11 @@ namespace Image.API.Extensions
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config,
             IWebHostEnvironment env)
         {
+            var connectionString = GetConnectionString(config)!;
+            
+            services.AddHealthChecks()
+                .AddNpgSql(connectionString);
+            
             services.AddCarter();
             services.AddControllers()
                 .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
@@ -110,13 +115,19 @@ namespace Image.API.Extensions
 
         private static void AddDatabase(IServiceCollection services, IConfiguration config)
         {
-            var connectionString = config.GetConnectionString("ImageDb");
+            var connectionString = GetConnectionString(config);
 
             services.AddDbContext<ImageDbContext>((sp, opt) =>
             {
                 opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
                 opt.UseNpgsql(connectionString);
             });
+        }
+
+        private static string? GetConnectionString(IConfiguration config)
+        {
+            var connectionString = config.GetConnectionString("ImageDb");
+            return connectionString;
         }
 
         private static void AddBlobStorage(IServiceCollection services, IConfiguration config)

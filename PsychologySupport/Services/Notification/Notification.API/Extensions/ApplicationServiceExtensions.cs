@@ -18,6 +18,11 @@ public static class ApplicationServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
+        var connectionString = config.GetConnectionString("NotificationDb")!;
+        
+        services.AddHealthChecks()
+            .AddNpgSql(connectionString);
+        
         services.Configure<AppSettings>(config);
         
         services.AddCarter();

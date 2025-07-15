@@ -6,7 +6,7 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-        <NoWarn>$(NoWarn);CS9113;CS8618;CS8602;CS8629</NoWarn>
+        <NoWarn>$(NoWarn);CS9113;CS8618;CS8602;CS8629;CS8600;CS8601;CS8604;CS8625;CS8603</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
