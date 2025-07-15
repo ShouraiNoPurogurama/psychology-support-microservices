@@ -16,7 +16,7 @@ public class ChatContextBuilder(ChatBoxDbContext dbContext, ILogger<ChatContextB
 
         var persona = session.PersonaSnapshot.ToPromptText();
         var contextBlock = await BuildContextBlock(sessionId);
-        var processedUserMessage = ProcessUserMessage(userMessage);
+        var processedUserMessage = TrimUserMessageIfExceedsLength(userMessage);
 
         return $"{persona}{contextBlock}[User]\n{processedUserMessage}\n\n[Emo]\n";
     }
@@ -35,7 +35,7 @@ public class ChatContextBuilder(ChatBoxDbContext dbContext, ILogger<ChatContextB
         return $"[Previous Context Messages By Emo]\n{contextContent}\n\n";
     }
 
-    private string ProcessUserMessage(string userMessage)
+    private string TrimUserMessageIfExceedsLength(string userMessage)
     {
         const int MaxUserInputLength = 1000;
         
