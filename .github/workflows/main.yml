@@ -123,6 +123,14 @@ jobs:
               fi
             }
 
+            # ------------ DUMMY BUILD TO WARM-UP CACHE -------------
+            DUMMY_SERVICE=$(echo "$CHANGED" | awk '{print $1}')
+            if [ -n "$DUMMY_SERVICE" ]; then
+              echo "🔥 Dummy build ($DUMMY_SERVICE) to warm-up Docker cache..."
+              build_service "$DUMMY_SERVICE"
+              echo "🔥 Dummy build for $DUMMY_SERVICE completed. Proceeding to parallel builds..."
+            fi
+
             # ------------ PARALLEL BUILD (max 5 at a time) -------------
             COUNT=0
             MAX_PARALLEL=5
