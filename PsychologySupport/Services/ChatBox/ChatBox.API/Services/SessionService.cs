@@ -34,6 +34,8 @@ public class SessionService(ChatBoxDbContext dbContext, IRequestClient<Aggregate
             Allergies = profile.Allergies ?? "Không rõ"
         };
 
+        sessionName = sessionName.Trim();
+
         var sessions = await dbContext.AIChatSessions
             .Where(s => s.UserId == userId && s.IsActive == true &&
                         (s.Name == sessionName || s.Name.StartsWith(sessionName + " ")))
