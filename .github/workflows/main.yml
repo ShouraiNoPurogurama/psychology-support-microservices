@@ -22,6 +22,7 @@ jobs:
     steps:
       - name: Build & deploy updated microservices with health check & rollback
         uses: appleboy/ssh-action@master
+        timeout-minutes: 30
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
@@ -123,6 +124,21 @@ jobs:
               fi
             }
 
+            # ----------- TAG OLD IMAGE BEFORE BUILDING -------------
+            for svc in $CHANGED; do
+              if docker images "$svc:latest" | grep -q latest; then
+                docker tag "$svc:latest" "$svc:old" || true
+              fi
+            done
+
+            # ------------ DUMMY BUILD TO WARM-UP CACHE -------------
+            DUMMY_SERVICE=$(echo "$CHANGED" | awk '{print $1}')
+            if [ -n "$DUMMY_SERVICE" ]; then
+              echo "🔥 Dummy build ($DUMMY_SERVICE) to warm-up Docker cache..."
+              build_service "$DUMMY_SERVICE"
+              echo "🔥 Dummy build for $DUMMY_SERVICE completed. Proceeding to parallel builds..."
+            fi
+
             # ------------ PARALLEL BUILD (max 5 at a time) -------------
             COUNT=0
             MAX_PARALLEL=5
@@ -141,7 +157,6 @@ jobs:
 
             # ----------- UP, HEALTH CHECK & ROLLBACK -------------
             for svc in $CHANGED; do
-              docker tag "$svc:latest" "$svc:old" || true
               up_service "$svc"
               port=$(get_port "$svc")
               if [ -z "$port" ]; then
