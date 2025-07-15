@@ -111,16 +111,18 @@ jobs:
 
             rollback_service() {
               local svc="$1"
-              echo "🔙 Rolling back $svc to previous image."
+              local repo=$(echo "$svc" | tr -d '.') #Bỏ dấu chấm để khớp với tên image
+              
+              echo "🔙 Rolling back $repo to previous image."
               docker compose -f docker-compose-apis.yml stop "$svc"
-              docker tag "$svc:old" "$svc:latest"
+              docker tag "$repo:old" "$repo:latest"
               docker compose -f docker-compose-apis.yml up -d "$svc"
               local port
               port=$(get_port "$svc")
               if wait_healthy "$svc" "$port"; then
-                echo "♻️ Rollback succeeded for $svc!"
+                echo "♻️ Rollback succeeded for $repo!"
               else
-                echo "🚨 Rollback failed for $svc! Please check manually."
+                echo "🚨 Rollback failed for $repo! Please check manually."
               fi
             }
 
