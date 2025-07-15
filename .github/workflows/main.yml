@@ -181,4 +181,6 @@ jobs:
               fi
             done
 
+            docker image prune -f
+
             echo "=== All selected services have been updated (health checks & auto-rollback included) ==="
