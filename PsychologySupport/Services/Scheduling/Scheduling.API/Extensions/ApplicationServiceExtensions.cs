@@ -11,6 +11,10 @@ namespace Scheduling.API.Extensions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
         {
+            var connectionString = GetConnectionString(config)!;
+            services.AddHealthChecks()
+                .AddNpgSql(connectionString);
+            
             services.AddCarter();
 
             services.RegisterMapsterConfiguration();
@@ -143,13 +147,19 @@ namespace Scheduling.API.Extensions
 
         private static void AddDatabase(IServiceCollection services, IConfiguration config)
         {
-            var connectionString = config.GetConnectionString("SchedulingDb");
+            var connectionString = GetConnectionString(config);
 
             services.AddDbContext<SchedulingDbContext>((sp, opt) =>
             {
                 opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
                 opt.UseNpgsql(connectionString);
             });
+        }
+
+        private static string? GetConnectionString(IConfiguration config)
+        {
+            var connectionString = config.GetConnectionString("SchedulingDb");
+            return connectionString;
         }
     }
 }

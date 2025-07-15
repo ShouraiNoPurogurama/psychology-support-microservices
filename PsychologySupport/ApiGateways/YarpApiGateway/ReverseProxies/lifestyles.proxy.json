@@ -1,6 +1,18 @@
 ﻿{
   "ReverseProxy": {
     "Routes": {
+      "lifestyles-health": {
+        "ClusterId": "lifestyle-cluster",
+        "Match": {
+          "Path": "/lifestyle-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "lifestyles-swagger-index": {
         "ClusterId": "lifestyle-cluster",
         "Match": {

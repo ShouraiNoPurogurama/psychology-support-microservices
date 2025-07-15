@@ -11,6 +11,8 @@
     <DockerfileContext>..\..\..</DockerfileContext>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
     <PackageReference Include="Carter" />
     <PackageReference Include="Grpc.AspNetCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">

@@ -1,6 +1,8 @@
 using Auth.API.Extensions;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +38,13 @@ else
         c.SwaggerEndpoint("/auth-service/swagger/v1/swagger.json", "Auth API v1");
     });
 }
+
+app.UseHealthChecks("/health",
+    new HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }
+);
 
 // Apply CORS policy
 app.UseCors(config =>

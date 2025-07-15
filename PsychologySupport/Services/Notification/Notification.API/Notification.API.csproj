@@ -25,6 +25,8 @@
     <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
     <PackageReference Include="Carter" />
     <PackageReference Include="FirebaseAdmin" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">

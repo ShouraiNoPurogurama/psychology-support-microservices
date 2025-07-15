@@ -19,6 +19,8 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+      <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
       <PackageReference Include="AutoGen.Gemini" />
       <PackageReference Include="Carter" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
@@ -27,10 +29,6 @@
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
       <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Enums\" />
     </ItemGroup>
 
 </Project>

@@ -17,6 +17,11 @@ public static class ApplicationServiceExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config,
         IWebHostEnvironment env)
     {
+        var connectionString = GetConnectionString(config)!;
+        
+        services.AddHealthChecks()
+            .AddNpgSql(connectionString);
+        
         services.AddControllers();
 
         services.AddCarter();
@@ -123,7 +128,7 @@ public static class ApplicationServiceExtensions
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
     {
-        var connectionString = config.GetConnectionString("TranslationDb");
+        var connectionString = GetConnectionString(config);
 
         services.AddDbContext<TranslationDbContext>((sp, opt) =>
         {
@@ -132,6 +137,12 @@ public static class ApplicationServiceExtensions
         });
 
         services.AddScoped<DbContext, TranslationDbContext>();
+    }
+
+    private static string? GetConnectionString(IConfiguration config)
+    {
+        var connectionString = config.GetConnectionString("TranslationDb");
+        return connectionString;
     }
 
     private static void ConfigureGemini(IServiceCollection services, IConfiguration config)

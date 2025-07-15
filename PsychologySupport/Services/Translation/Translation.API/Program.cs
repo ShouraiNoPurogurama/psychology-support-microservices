@@ -1,6 +1,8 @@
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Translation.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +30,7 @@ app.UseStaticFiles();
 app.MapCarter();
 
 app.UseSwagger();
+
 if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();
@@ -40,6 +43,13 @@ else
         c.SwaggerEndpoint("/translation-service/swagger/v1/swagger.json", "Translation API v1");
     });
 }
+
+app.UseHealthChecks("/health",
+    new HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }
+);
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -1,3 +1,5 @@
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Promotion.Grpc.Data;
 using Promotion.Grpc.Extensions;
 using Promotion.Grpc.Services;
@@ -27,6 +29,13 @@ else
 app.MapGrpcService<PromotionService>();
 app.UseMigration();
 app.MapGrpcReflectionService();
+
+app.UseHealthChecks("/health",
+    new HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }
+);
 
 app.MapGet("/",
     () =>

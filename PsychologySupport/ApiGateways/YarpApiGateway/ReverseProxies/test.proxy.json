@@ -10,7 +10,8 @@
           {
             "PathPattern": "/health"
           }
-        ]
+        ],
+        "RateLimiterPolicy": "fixed"
       },
       "test-swagger-index": {
         "ClusterId": "test-cluster",

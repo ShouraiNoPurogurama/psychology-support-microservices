@@ -1,6 +1,18 @@
 ﻿{
   "ReverseProxy": {
     "Routes": {
+      "chatbox-health": {
+        "ClusterId": "chatbox-cluster",
+        "Match": {
+          "Path": "/chatbox-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "chatbox-swagger-index": {
         "ClusterId": "chatbox-cluster",
         "Match": {

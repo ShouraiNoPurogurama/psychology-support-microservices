@@ -1,6 +1,18 @@
 ﻿{
   "ReverseProxy": {
     "Routes": {
+      "translation-health": {
+        "ClusterId": "translation-cluster",
+        "Match": {
+          "Path": "/translation-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "translation-swagger-index": {
         "ClusterId": "translation-cluster",
         "Match": {

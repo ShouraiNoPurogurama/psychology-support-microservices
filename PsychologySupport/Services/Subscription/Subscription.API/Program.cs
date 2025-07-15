@@ -1,5 +1,7 @@
 using BuildingBlocks.Behaviors;
 using Carter;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Subscription.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,6 +39,13 @@ else
         c.SwaggerEndpoint("/subscription-service/swagger/v1/swagger.json", "Subscription API v1");
     });
 }
+
+app.UseHealthChecks("/health",
+    new HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }
+);
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -1,6 +1,18 @@
 ﻿{
   "ReverseProxy": {
     "Routes": {
+      "payment-health": {
+        "ClusterId": "payment-cluster",
+        "Match": {
+          "Path": "/payment-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "payment-swagger-index": {
         "ClusterId": "payment-cluster",
         "Match": {

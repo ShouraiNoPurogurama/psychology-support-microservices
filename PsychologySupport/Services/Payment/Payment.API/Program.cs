@@ -1,5 +1,7 @@
 using BuildingBlocks.Behaviors;
 using Carter;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Payment.API;
 using Payment.Application;
 using Payment.Application.ServiceContracts;
@@ -43,6 +45,13 @@ else
 app.UseCors("CorsPolicy");
 
 app.MapCarter();
+
+app.UseHealthChecks("/health",
+    new HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }
+);
 
 app.UseAuthentication();
 app.UseAuthorization();

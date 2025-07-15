@@ -9,6 +9,11 @@ public static class ApplicationServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
+        var connectionString = GetConnectionString(config)!;
+        
+        services.AddHealthChecks()
+            .AddNpgSql(connectionString);
+        
         ConfigureGrpc(services);
 
         ConfigureDatabase(services, config);
@@ -55,12 +60,18 @@ public static class ApplicationServiceExtensions
 
     private static void ConfigureDatabase(IServiceCollection services, IConfiguration config)
     {
-        var connectionString = config.GetConnectionString("PromotionDb");
+        var connectionString = GetConnectionString(config);
 
         services.AddDbContext<PromotionDbContext>((sp, opt) =>
         {
             opt.UseNpgsql(connectionString);
         });
+    }
+
+    private static string? GetConnectionString(IConfiguration config)
+    {
+        var connectionString = config.GetConnectionString("PromotionDb");
+        return connectionString;
     }
 
     private static void ConfigureGrpc(IServiceCollection services)

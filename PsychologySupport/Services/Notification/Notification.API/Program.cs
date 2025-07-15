@@ -1,6 +1,8 @@
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Notification.API;
 using Notification.API.Extensions;
 
@@ -39,6 +41,13 @@ else
         c.SwaggerEndpoint("/notification-service/swagger/v1/swagger.json", "Scheduling API v1");
     });
 }
+
+app.UseHealthChecks("/health",
+    new HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }
+);
 
 app.UseCors("CorsPolicy");
 

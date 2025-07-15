@@ -1,6 +1,18 @@
 ﻿{
   "ReverseProxy": {
     "Routes": {
+      "scheduling-health": {
+        "ClusterId": "scheduling-cluster",
+        "Match": {
+          "Path": "/scheduling-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "scheduling-swagger-index": {
         "ClusterId": "scheduling-cluster",
         "Match": {

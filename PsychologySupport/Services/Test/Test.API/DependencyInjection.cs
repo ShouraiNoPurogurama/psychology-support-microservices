@@ -8,19 +8,22 @@ namespace Test.API;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
+    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration,
+        IWebHostEnvironment env)
     {
+        var connectionString = configuration.GetConnectionString("TestDb");
+        
         services.AddCarter();
         services.AddExceptionHandler<CustomExceptionHandler>();
         services.AddHealthChecks()
-            .AddSqlServer(configuration.GetConnectionString("Database")!);
+            .AddNpgSql(connectionString);
 
         services.AddAuthorization();
         services.AddHttpContextAccessor();
 
-      ConfigureSwagger(services, env);
+        ConfigureSwagger(services, env);
         ConfigureCors(services);
-        
+
         return services;
     }
 
@@ -36,7 +39,7 @@ public static class DependencyInjection
         );
         return app;
     }
-    
+
     private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
@@ -48,8 +51,8 @@ public static class DependencyInjection
                 Title = "Test API",
                 Version = "v1"
             });
-            
-            if(env.IsProduction())
+
+            if (env.IsProduction())
             {
                 options.AddServer(new OpenApiServer
                 {
@@ -66,7 +69,7 @@ public static class DependencyInjection
                 Scheme = "bearer",
                 BearerFormat = "JWT"
             });
-            
+
             options.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
                 {
@@ -83,7 +86,7 @@ public static class DependencyInjection
             });
         });
     }
-    
+
     private static void ConfigureCors(IServiceCollection services)
     {
         services.AddCors(options =>

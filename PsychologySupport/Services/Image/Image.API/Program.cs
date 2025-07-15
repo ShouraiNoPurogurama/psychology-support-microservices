@@ -1,7 +1,9 @@
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
+using HealthChecks.UI.Client;
 using Image.API.Extensions;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +42,13 @@ else
         c.SwaggerEndpoint("/image-service/swagger/v1/swagger.json", "Image API v1");
     });
 }
+
+app.UseHealthChecks("/health",
+    new HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }
+);
 
 app.MapControllers();
 

@@ -2,6 +2,8 @@ using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using ChatBox.API.Extensions;
 using ChatBox.API.Hubs;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,13 @@ else
         c.SwaggerEndpoint("/chatbox-service/swagger/v1/swagger.json", "Chatbox API v1");
     });
 }
+
+app.UseHealthChecks("/health",
+    new HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }
+);
 
 app.UseAuthentication();
 app.UseAuthorization();

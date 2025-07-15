@@ -12,7 +12,9 @@ using Newtonsoft.Json.Serialization;
 
 namespace ChatBox.API.Services;
 
-public class GeminiProvider(IOptions<GeminiConfig> config, ILogger<GeminiProvider> logger, IContextBuilder contextBuilder)
+public class GeminiProvider(IOptions<GeminiConfig> config, 
+    ILogger<GeminiProvider> logger, 
+    IContextBuilder contextBuilder)
     : IAIProvider
 {
     public async Task<string> GenerateResponseAsync(AIRequestPayload payload, Guid sessionId)

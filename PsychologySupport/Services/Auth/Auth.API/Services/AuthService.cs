@@ -107,7 +107,7 @@ public class AuthService(
         var user = await FindOrCreateGoogleUserAsync(payload);
 
         //3. Kiểm tra lockout
-        await ValidateUserLockoutAsync(user);
+        ValidateUserLockout(user);
 
         //4. Xử lý device và session
         var device = await GetOrUpsertDeviceAsync(user.Id, request.ClientDeviceId!, request.DeviceType!.Value, request.DeviceToken);
@@ -193,7 +193,7 @@ public class AuthService(
         var user = await FindAndValidateUserAsync(loginRequest);
 
         //2. Kiểm tra lockout
-        await ValidateUserLockoutAsync(user);
+        ValidateUserLockout(user);
 
         //3. Verify password
         await VerifyPasswordAsync(user, loginRequest.Password);
@@ -417,7 +417,7 @@ public class AuthService(
         return user;
     }
 
-    private async Task ValidateUserLockoutAsync(User user)
+    private void ValidateUserLockout(User user)
     {
         var currentTime = CoreUtils.SystemTimeNow;
 
