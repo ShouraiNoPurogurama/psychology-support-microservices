@@ -33,7 +33,7 @@ on:
         required: true
       APPSETTINGS_PRODUCTION_TEST:
         required: true
-
+  workflow_dispatch:
 jobs:
   sync-production:
     runs-on: ubuntu-latest
