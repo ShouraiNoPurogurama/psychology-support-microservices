@@ -8,7 +8,7 @@ public static class ClaimsPrincipalExtensions
     public static string GetUserId(this ClaimsPrincipal user)
     {
         var result = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value ??
-                     throw new UnauthorizedAccessException("Không tìm thấy Claims userId.");
+                     throw new UnauthorizedAccessException("Token không hợp lệ: Không tìm thấy Claims userId.");
         return result;
     }
 
@@ -16,7 +16,7 @@ public static class ClaimsPrincipalExtensions
     public static string GetProfileId(this ClaimsPrincipal user)
     {
         var result = user.Claims.FirstOrDefault(c => c.Type == "profileId")?.Value ??
-                     throw new UnauthorizedAccessException("Không tìm thấy Claims profileId.");
+                     throw new UnauthorizedAccessException("Token không hợp lệ: Không tìm thấy Claims profileId.");
         return result;
     }
     

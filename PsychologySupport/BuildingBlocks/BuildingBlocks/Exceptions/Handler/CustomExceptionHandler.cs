@@ -16,7 +16,7 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
         //4. Add traceId to the problemDetails obj extension
         //5. If this is ValidationException, add ValidationErrors to problemDetails obj extension
         //6. Write the problemDetails obj into response as json
-        
+
         logger.LogError("Error Message: {exceptionMessage}, Time of occurrence {time}", exception.Message, DateTime.UtcNow);
         (string detail, string title, int statusCode) details = exception switch
         {
@@ -45,6 +45,11 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
                 exception.Message,
                 exception.GetType().Name,
                 context.Response.StatusCode = StatusCodes.Status403Forbidden
+            ),
+            UnauthorizedAccessException => (
+                exception.Message,
+                exception.GetType().Name,
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized
             ),
             _ => (
                 exception.Message,
