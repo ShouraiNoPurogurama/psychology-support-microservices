@@ -139,7 +139,6 @@ public static class ApplicationServiceExtensions
     private static void AddServiceDependencies(IServiceCollection services)
     {
         services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
-        services.AddScoped<GeminiService>();
         services.AddScoped<SessionService>();
         services.AddScoped<SummarizationService>();
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();

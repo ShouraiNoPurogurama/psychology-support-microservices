@@ -18,7 +18,7 @@ public class ChatContextBuilder(ChatBoxDbContext dbContext, ILogger<ChatContextB
         var contextBlock = await BuildContextBlock(sessionId);
         var processedUserMessage = TrimUserMessageIfExceedsLength(userMessage);
 
-        return $"{persona}{contextBlock}[User]\n{processedUserMessage}\n\n[Emo]\n";
+        return $"{persona}{contextBlock}[User]\n{processedUserMessage}\n\n[Emo phản hồi ngắn gọn trong 1-2 đoạn, không quá sến súa]:\n";
     }
 
     private async Task<string> BuildContextBlock(Guid sessionId)
