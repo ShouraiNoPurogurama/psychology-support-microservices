@@ -34,10 +34,34 @@ public class SessionService(ChatBoxDbContext dbContext, IRequestClient<Aggregate
             Allergies = profile.Allergies ?? "Không rõ"
         };
 
+        var sessions = await dbContext.AIChatSessions
+            .Where(s => s.UserId == userId && s.IsActive == true &&
+                        (s.Name == sessionName || s.Name.StartsWith(sessionName + " ")))
+            .ToListAsync();
+
+        //2. Tìm số lớn nhất ở đuôi
+        var maxSuffix = 1;
+        var finalSessionName = sessionName;
+
+        foreach (var parts in sessions.Select(s => s.Name.Split(' ')))
+        {
+            if (parts.Length > 1 && int.TryParse(parts.Last(), out var suffix))
+            {
+                if (suffix > maxSuffix)
+                    maxSuffix = suffix;
+            }
+        }
+
+        //3. Nếu trùng tên, tăng số đuôi
+        if (sessions.Any(s => s.Name == sessionName))
+        {
+            finalSessionName = $"{sessionName} {maxSuffix + 1}";
+        }
+
         var session = new AIChatSession
         {
             Id = Guid.NewGuid(),
-            Name = sessionName,
+            Name = finalSessionName,
             UserId = userId,
             CreatedDate = DateTime.UtcNow,
             IsActive = true,
@@ -127,13 +151,14 @@ public class SessionService(ChatBoxDbContext dbContext, IRequestClient<Aggregate
     public async Task<bool> UpdateSessionAsync(AIChatSession newSession)
     {
         var currentSession = await dbContext.AIChatSessions
-            .FirstOrDefaultAsync(s => s.Id == newSession.Id)
-            ?? throw new NotFoundException($"Không tìm thấy phiên trò chuyện {newSession.Id} hoặc phiên không thuộc về người dùng.");
+                                 .FirstOrDefaultAsync(s => s.Id == newSession.Id)
+                             ?? throw new NotFoundException(
+                                 $"Không tìm thấy phiên trò chuyện {newSession.Id} hoặc phiên không thuộc về người dùng.");
 
         newSession.Adapt(currentSession);
-        
+
         var result = await dbContext.SaveChangesAsync();
-        
+
         return result > 0;
     }
 
