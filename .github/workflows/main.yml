@@ -126,8 +126,13 @@ jobs:
 
             # ----------- TAG OLD IMAGE BEFORE BUILDING -------------
             for svc in $CHANGED; do
+              echo "[DEBUG] Attempting to tag $svc:latest as $svc:old"
+              docker images $svc
               if docker images "$svc:latest" | grep -q latest; then
                 docker tag "$svc:latest" "$svc:old" || true
+                echo "[DEBUG] Tagged $svc:latest as $svc:old"
+              else
+                echo "[WARN] No $svc:latest image found, skipping tag"
               fi
             done
 
