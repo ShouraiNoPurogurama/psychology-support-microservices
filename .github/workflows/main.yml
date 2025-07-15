@@ -50,15 +50,30 @@ jobs:
             echo "============================================="
 
             for svc in $CHANGED; do
-              echo "🔧 Building $svc..."
-              docker compose -f docker-compose-apis.yml build "$svc" || { echo "❌ Build failed for $svc"; continue; }
-
-              echo "🚀 Starting $svc..."
-              docker compose -f docker-compose-apis.yml up -d "$svc" || { echo "❌ Failed to start $svc"; continue; }
-
-              echo "✅ $svc is up and running."
-              echo "---------------------------------------------"
+              (
+                echo "🔨 [$(date +%T)] Bắt đầu build $svc"
+                if docker compose -f docker-compose-apis.yml build "$svc"; then
+                  echo "✅ [$(date +%T)] Build thành công $svc"
+                else
+                  echo "❌ [$(date +%T)] Build thất bại $svc"
+                fi
+              ) &
             done
+            wait
+            
+            for svc in $CHANGED; do
+              (
+                echo "🚀 [$(date +%T)] Successfully built $svc"
+                if docker compose -f docker-compose-apis.yml up -d "$svc"; then
+                  echo "✅ [$(date +%T)] Successfully Up $svc"
+                else
+                  echo "❌ [$(date +%T)] Up failed $svc"
+                fi
+              ) &
+            done
+            wait
+            
+            echo "=== All services have been updated successfully ==="
 
             # docker builder prune -f
             # echo "✅ Docker cache cleaned."
