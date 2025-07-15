@@ -124,6 +124,13 @@ jobs:
               fi
             }
 
+            # ----------- TAG OLD IMAGE BEFORE BUILDING -------------
+            for svc in $CHANGED; do
+              if docker images "$svc:latest" | grep -q latest; then
+                docker tag "$svc:latest" "$svc:old" || true
+              fi
+            done
+
             # ------------ DUMMY BUILD TO WARM-UP CACHE -------------
             DUMMY_SERVICE=$(echo "$CHANGED" | awk '{print $1}')
             if [ -n "$DUMMY_SERVICE" ]; then
@@ -150,7 +157,6 @@ jobs:
 
             # ----------- UP, HEALTH CHECK & ROLLBACK -------------
             for svc in $CHANGED; do
-              docker tag "$svc:latest" "$svc:old" || true
               up_service "$svc"
               port=$(get_port "$svc")
               if [ -z "$port" ]; then
