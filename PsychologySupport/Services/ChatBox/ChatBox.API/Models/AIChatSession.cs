@@ -45,7 +45,7 @@ public static class PersonaSnapshotExtensions
                 - Ngành nghề: {snapshot.IndustryName}
                 - Tính cách nổi bật: {snapshot.PersonalityTraits}
                 - Tiền sử dị ứng: {snapshot.Allergies}
-                - **Người dùng thích Emo trả lời ngắn gọn, trong 1-2 đoạn.**
+                - **Người dùng thích Emo trả lời ngắn gọn, trong 1-2 đoạn, không sến quá súa.**
                 
                 
                 """;
