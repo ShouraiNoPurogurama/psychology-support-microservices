@@ -7,38 +7,35 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Sync base secrets (appsettings.json, .env, RSA,...)
   sync-base-secrets:
     uses: ./.github/workflows/sync-secrets.yml
     secrets: inherit
 
-  # Sync appsettings.Production.json
   sync-production-appsettings:
     uses: ./.github/workflows/sync-production-appsettings.yml
     secrets: inherit
 
-  # Deploy app (build & up docker)
   deploy:
     runs-on: ubuntu-latest
     needs: [sync-base-secrets, sync-production-appsettings]
     environment: Production
     steps:
-      - name: Build & deploy updated microservices
+      - name: Build & deploy updated microservices with health check & rollback
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
+            set -e
+
             cd /home/root/emoease/PsychologySupport
 
             git reset --hard HEAD
             git pull origin main
 
-            #List all microservices (NO gateway)
             ALL_SERVICES="auth.api chatbox.api image.api lifestyles.api payment.api profile.api promotion.grpc scheduling.api subscription.api test.api translation.api"
 
-            #Detect if BuildingBlocks or BuildingBlocks.Messaging changed
             HAS_BUILDING_BLOCKS_CHANGE=$(git diff --name-only HEAD^ HEAD \
               | grep -E '^PsychologySupport/BuildingBlocks/|^PsychologySupport/BuildingBlocks.Messaging/' || true)
 
@@ -62,17 +59,76 @@ jobs:
             echo "*** Changed Microservices: $CHANGED"
             echo "============================================="
 
-            # ---Build all services in parallel (max 5 at a time) ---
+            # ----------------- BASH FUNCTIONS -----------------
+            build_service() {
+              local svc="$1"
+              echo "🔨 [$(date +%T)] Building $svc..."
+              if docker compose -f docker-compose-apis.yml build "$svc"; then
+                echo "✅ [$(date +%T)] Build succeeded: $svc"
+                return 0
+              else
+                echo "❌ [$(date +%T)] Build failed: $svc"
+                return 1
+              fi
+            }
+
+            up_service() {
+              local svc="$1"
+              echo "🚀 [$(date +%T)] Starting $svc..."
+              if docker compose -f docker-compose-apis.yml up -d "$svc"; then
+                echo "✅ [$(date +%T)] $svc is up and running"
+                return 0
+              else
+                echo "❌ [$(date +%T)] Failed to start: $svc"
+                return 1
+              fi
+            }
+
+            get_port() {
+              local svc="$1"
+              # Get published host port mapped from container port 8080
+              docker compose -f docker-compose-apis.yml port "$svc" 8080 | head -n 1 | cut -d: -f2
+            }
+
+            wait_healthy() {
+              local svc="$1"
+              local port="$2"
+              local max_wait=60
+              local waited=0
+              while ! curl -fsS "http://localhost:$port/health" | grep -q '"status":"Healthy"'; do
+                if [ "$waited" -ge "$max_wait" ]; then
+                  echo "❌ $svc is not healthy after $max_wait seconds."
+                  return 1
+                fi
+                sleep 2
+                waited=$((waited + 2))
+                echo "⏳ Waiting for $svc to become healthy... ($waited/$max_wait)"
+              done
+              echo "✅ $svc is healthy!"
+              return 0
+            }
+
+            rollback_service() {
+              local svc="$1"
+              echo "🔙 Rolling back $svc to previous image."
+              docker compose -f docker-compose-apis.yml stop "$svc"
+              docker tag "$svc:old" "$svc:latest"
+              docker compose -f docker-compose-apis.yml up -d "$svc"
+              local port
+              port=$(get_port "$svc")
+              if wait_healthy "$svc" "$port"; then
+                echo "♻️ Rollback succeeded for $svc!"
+              else
+                echo "🚨 Rollback failed for $svc! Please check manually."
+              fi
+            }
+
+            # ------------ PARALLEL BUILD (max 5 at a time) -------------
             COUNT=0
             MAX_PARALLEL=5
             for svc in $CHANGED; do
               (
-                echo "🔨 [$(date +%T)] Starting to build $svc"
-                if docker compose -f docker-compose-apis.yml build "$svc"; then
-                  echo "✅ [$(date +%T)] Successfully built $svc"
-                else
-                  echo "❌ [$(date +%T)] Failed to build $svc"
-                fi
+                build_service "$svc"
               ) &
               COUNT=$((COUNT + 1))
               if [ "$COUNT" -ge "$MAX_PARALLEL" ]; then
@@ -81,28 +137,24 @@ jobs:
               fi
             done
             wait
-            echo "=== All builds have been completed ==="
+            echo "=== All builds completed ==="
 
-            # --- Up all services in parallel (max 5 at a time) ---
-            COUNT=0
+            # ----------- UP, HEALTH CHECK & ROLLBACK -------------
             for svc in $CHANGED; do
-              (
-                echo "🚀 [$(date +%T)] Starting $svc"
-                if docker compose -f docker-compose-apis.yml up -d "$svc"; then
-                  echo "✅ [$(date +%T)] $svc is up and running"
-                else
-                  echo "❌ [$(date +%T)] Failed to start $svc"
-                fi
-              ) &
-              COUNT=$((COUNT + 1))
-              if [ "$COUNT" -ge "$MAX_PARALLEL" ]; then
-                wait
-                COUNT=0
+              docker tag "$svc:latest" "$svc:old" || true
+              up_service "$svc"
+              port=$(get_port "$svc")
+              if [ -z "$port" ]; then
+                echo "⚠️ Port not found for $svc, skipping health check."
+                continue
+              fi
+
+              if wait_healthy "$svc" "$port"; then
+                echo "✅ $svc is running and healthy!"
+              else
+                echo "❌ $svc health check failed. Rolling back..."
+                rollback_service "$svc"
               fi
             done
-            wait
 
-            echo "=== All selected services have been updated successfully ==="
-
-            # docker builder prune -f
-            # echo "✅ Docker cache cleaned."
+            echo "=== All selected services have been updated (health checks & auto-rollback included) ==="
