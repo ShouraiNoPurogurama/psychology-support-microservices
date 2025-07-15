@@ -34,16 +34,28 @@ jobs:
             git reset --hard HEAD
             git pull origin main
 
-            CHANGED=$(git diff --name-only HEAD^ HEAD \
-              | grep -E '^PsychologySupport/Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+' \
-              | awk -F/ '{
-                  if ($1 == "PsychologySupport" && $2 == "Services") {
-                    print tolower($3) ".api"
-                  } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
-                    print tolower($3)
-                  }
-                }' \
-              | sort -u)
+            #List all microservices (NO gateway)
+            ALL_SERVICES="auth.api chatbox.api image.api lifestyles.api payment.api profile.api promotion.grpc scheduling.api subscription.api test.api translation.api"
+
+            #Detect if BuildingBlocks or BuildingBlocks.Messaging changed
+            HAS_BUILDING_BLOCKS_CHANGE=$(git diff --name-only HEAD^ HEAD \
+              | grep -E '^PsychologySupport/BuildingBlocks/|^PsychologySupport/BuildingBlocks.Messaging/' || true)
+
+            if [ -n "$HAS_BUILDING_BLOCKS_CHANGE" ]; then
+              echo "Detected changes in BuildingBlocks or Messaging. All microservices will be rebuilt."
+              CHANGED="$ALL_SERVICES"
+            else
+              CHANGED=$(git diff --name-only HEAD^ HEAD \
+                | grep -E '^PsychologySupport/Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+' \
+                | awk -F/ '{
+                    if ($1 == "PsychologySupport" && $2 == "Services") {
+                      print tolower($3) ".api"
+                    } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
+                      print tolower($3)
+                    }
+                  }' \
+                | sort -u)
+            fi
 
             echo "================= DEBUGGING ================="
             echo "*** Changed Microservices: $CHANGED"
@@ -74,11 +86,11 @@ jobs:
             COUNT=0
             for svc in $CHANGED; do
               (
-                echo " [$(date +%T)] Starting $svc"
+                echo "🚀 [$(date +%T)] Starting $svc"
                 if docker compose -f docker-compose-apis.yml up -d "$svc"; then
-                  echo " [$(date +%T)] $svc is up and running"
+                  echo "✅ [$(date +%T)] $svc is up and running"
                 else
-                  echo " [$(date +%T)] Failed to start $svc"
+                  echo "❌ [$(date +%T)] Failed to start $svc"
                 fi
               ) &
               COUNT=$((COUNT + 1))
