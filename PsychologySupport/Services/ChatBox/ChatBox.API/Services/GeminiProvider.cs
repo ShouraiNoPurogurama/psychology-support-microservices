@@ -52,7 +52,7 @@ public class GeminiProvider(IOptions<GeminiConfig> config,
             SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(config.Value.SystemInstruction)),
             GenerationConfig: new GeminiGenerationConfigDto(
                 Temperature: 1.0,
-                TopP: 0.90,
+                TopP: 0.95,
                 MaxOutputTokens: 8192
             ),
             SafetySettings:
