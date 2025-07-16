@@ -189,7 +189,7 @@ public class GeminiClient(
                         ---
 
                         ### 💌 Lời chúc
-                        Kết thúc bằng một lời nhắn **tích cực và mạnh mẽ**, nhấn mạnh rằng người đọc **xứng đáng được chữa lành và hạnh phúc**, và **không hề đơn độc**.  
+                        Kết thúc bằng một lời nhắn **tích cực và mạnh mẽ** đến {profile.FullName} (nên gọi bằng tên thay vì cả họ và tên), nhấn mạnh rằng người đọc **xứng đáng được chữa lành và hạnh phúc**, và **không hề đơn độc**.  
 
                         ---
                         """;
