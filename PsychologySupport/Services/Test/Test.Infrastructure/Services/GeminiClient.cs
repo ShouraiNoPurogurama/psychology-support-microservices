@@ -4,6 +4,7 @@ using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Test.Application.Dtos.DASS21Recommendations;
@@ -14,22 +15,14 @@ using Test.Domain.ValueObjects;
 
 namespace Test.Infrastructure.Services;
 
-public class GeminiClient : IAIClient
+public class GeminiClient(
+    ILogger<GeminiClient> logger,
+    IHttpClientFactory httpClientFactory,
+    IConfiguration config,
+    IRequestClient<AggregatePatientProfileRequest> profileClient,
+    IRequestClient<AggregatePatientLifestyleRequest> lifestyleClient)
+    : IAIClient
 {
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IConfiguration _config;
-    private readonly IRequestClient<AggregatePatientProfileRequest> _profileClient;
-    private readonly IRequestClient<AggregatePatientLifestyleRequest> _lifestyleClient;
-
-    public GeminiClient(IHttpClientFactory httpClientFactory, IConfiguration config,
-        IRequestClient<AggregatePatientProfileRequest> profileClient,
-        IRequestClient<AggregatePatientLifestyleRequest> lifestyleClient)
-    {
-        _httpClientFactory = httpClientFactory;
-        _config = config;
-        _profileClient = profileClient;
-        _lifestyleClient = lifestyleClient;
-    }
 
     public async Task<CreateRecommendationResponseDto> GetDASS21RecommendationsAsync(
         string patientProfileId,
@@ -38,10 +31,10 @@ public class GeminiClient : IAIClient
         Score stressScore
     )
     {
-        var profileResponse = await _profileClient.GetResponse<AggregatePatientProfileResponse>(
+        var profileResponse = await profileClient.GetResponse<AggregatePatientProfileResponse>(
             new AggregatePatientProfileRequest(Guid.Parse(patientProfileId)));
 
-        var lifestyleResponse = await _lifestyleClient.GetResponse<AggregatePatientLifestyleResponse>(
+        var lifestyleResponse = await lifestyleClient.GetResponse<AggregatePatientLifestyleResponse>(
             new AggregatePatientLifestyleRequest(Guid.Parse(patientProfileId), DateTime.UtcNow));
 
         var profile = profileResponse.Message;
@@ -60,9 +53,13 @@ public class GeminiClient : IAIClient
         var payload = BuildGeminiMessagePayload(contentParts);
 
         var responseText = await CallGeminiAPIAsync(payload);
+        
+        logger.LogInformation("[Gemini API response]: {ResponseText}", responseText);
 
         var recommendations = JsonConvert.DeserializeObject<RecommendationsDto>(responseText)!;
 
+        logger.LogInformation("\n\n[Parsed recommendations]: {@Recommendations}", recommendations);
+        
         var age = DateOnlyUtils.CalculateAge(profile.BirthDate);
 
         var response = new CreateRecommendationResponseDto(Recommendation: recommendations,
@@ -74,9 +71,9 @@ public class GeminiClient : IAIClient
 
     private async Task<string> CallGeminiAPIAsync(GeminiRequestDto payload)
     {
-        var httpClient = _httpClientFactory.CreateClient();
+        var httpClient = httpClientFactory.CreateClient();
 
-        var apiKey = _config["GeminiConfig:ApiKey"];
+        var apiKey = config["GeminiConfig:ApiKey"];
         var url =
             $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent?key={apiKey}";
 
