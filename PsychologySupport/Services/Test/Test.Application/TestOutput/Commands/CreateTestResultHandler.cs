@@ -28,6 +28,15 @@ public class CreateTestResultHandler(
 {
     public async Task<CreateTestResultResult> Handle(CreateTestResultCommand request, CancellationToken cancellationToken)
     {
+        var isExceedQuotas = await dbContext.TestResults
+            .Where(tr => tr.PatientId == request.PatientId && tr.TestId == request.TestId && tr.TakenAt > DateTime.UtcNow.AddDays(-1))
+            .CountAsync(cancellationToken) >= 5;
+        
+        if (isExceedQuotas)
+        {
+            throw new InvalidOperationException("Bạn đã vượt quá số lần làm bài kiểm tra trong ngày. Vui lòng thử lại sau.");
+        }
+        
         var selectedOptions = await dbContext.QuestionOptions
             .Where(o => request.SelectedOptionIds.Contains(o.Id))
             .ToListAsync(cancellationToken);
