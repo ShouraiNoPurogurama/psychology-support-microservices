@@ -40,7 +40,7 @@ public class GeminiClient : IAIClient
     {
         var profileResponse = await _profileClient.GetResponse<AggregatePatientProfileResponse>(
             new AggregatePatientProfileRequest(Guid.Parse(patientProfileId)));
-        
+
         var lifestyleResponse = await _lifestyleClient.GetResponse<AggregatePatientLifestyleResponse>(
             new AggregatePatientLifestyleRequest(Guid.Parse(patientProfileId), DateTime.UtcNow));
 
@@ -49,7 +49,9 @@ public class GeminiClient : IAIClient
 
         var contentParts = new List<GeminiContentDto>();
 
-        var prompt = BuildGeminiDASS21Prompt(depressionScore, anxietyScore, stressScore, profile, lifestyle);
+        var profileNickname = ProfileClassifier.GetNickname(depressionScore, anxietyScore, stressScore);
+
+        var prompt = BuildGeminiDASS21Prompt(profileNickname, depressionScore, anxietyScore, stressScore, profile, lifestyle);
 
         contentParts.Add(new GeminiContentDto(
             "user", [new GeminiContentPartDto(prompt)]
@@ -62,9 +64,11 @@ public class GeminiClient : IAIClient
         var recommendations = JsonConvert.DeserializeObject<RecommendationsDto>(responseText)!;
 
         var age = DateOnlyUtils.CalculateAge(profile.BirthDate);
-        
-        var response = new CreateRecommendationResponseDto(Recommendation: recommendations, PatientName: profile.FullName, PatientAge: age);
-        
+
+        var response = new CreateRecommendationResponseDto(Recommendation: recommendations,
+            ProfileDescription: recommendations.ProfileDescription, ProfileNickname: profileNickname,
+            PatientName: profile.FullName, PatientAge: age, ProfileHighlights: recommendations.ProfileHighlights);
+
         return response;
     }
 
@@ -73,7 +77,8 @@ public class GeminiClient : IAIClient
         var httpClient = _httpClientFactory.CreateClient();
 
         var apiKey = _config["GeminiConfig:ApiKey"];
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent?key={apiKey}";
+        var url =
+            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent?key={apiKey}";
 
         var settings = new JsonSerializerSettings
         {
@@ -99,12 +104,14 @@ public class GeminiClient : IAIClient
             .ToList();
 
         var responseText = string.Join("", parts ?? []);
-        
+
         return responseText;
     }
 
 
-    private static string BuildGeminiDASS21Prompt(Score depressionScore, Score anxietyScore, Score stressScore,
+    private static string BuildGeminiDASS21Prompt(
+        string profileNickname,
+        Score depressionScore, Score anxietyScore, Score stressScore,
         AggregatePatientProfileResponse profile, AggregatePatientLifestyleResponse lifestyle)
     {
         var improvementGoalsSection = lifestyle.ImprovementGoals.Any()
@@ -122,55 +129,74 @@ public class GeminiClient : IAIClient
             : string.Empty;
 
         var prompt = $"""
-                      ## 🌿 Gợi ý cải thiện tâm lý cho {profile.FullName}
+                        ## 🌿 Gợi ý cải thiện tâm lý cho {profile.FullName}
 
-                      ### 👤 Thông tin người dùng
-                      - **Họ tên**: {profile.FullName}  
-                      - **Giới tính**: {profile.Gender}  
-                      - **Ngày sinh**: {profile.BirthDate:yyyy-MM-dd}  
-                      - **Nghề nghiệp**: {profile.JobTitle}  
-                      - **Trình độ học vấn**: {profile.EducationLevel}  
-                      - **Ngành nghề**: {profile.IndustryName}  
-                      - **Tính cách nổi bật**: {profile.PersonalityTraits}  
-                      - **Tiền sử dị ứng**: {(string.IsNullOrEmpty(profile.Allergies) ? "Không rõ" : profile.Allergies)}
+                        ### 👤 Thông tin người dùng
+                        - **Họ tên**: {profile.FullName}  
+                        - **Giới tính**: {profile.Gender}  
+                        - **Ngày sinh**: {profile.BirthDate:yyyy-MM-dd}  
+                        - **Nghề nghiệp**: {profile.JobTitle}  
+                        - **Trình độ học vấn**: {profile.EducationLevel}  
+                        - **Ngành nghề**: {profile.IndustryName}  
+                        - **Tính cách nổi bật**: {profile.PersonalityTraits}  
+                        - **Tiền sử dị ứng**: {(string.IsNullOrEmpty(profile.Allergies) ? "Không rõ" : profile.Allergies)}
 
-                      ### 📊 Kết quả DASS-21
-                      - **Trầm cảm**: {depressionScore.Value}  
-                      - **Lo âu**: {anxietyScore.Value}  
-                      - **Căng thẳng**: {stressScore.Value}
+                        ### 📊 Kết quả DASS-21 (raw values, chưa nhân 2)
+                        - **Trầm cảm**: {depressionScore.Value}  
+                        - **Lo âu**: {anxietyScore.Value}  
+                        - **Căng thẳng**: {stressScore.Value}
 
-                      ### 📖 Đánh giá nhanh
-                      Viết một đoạn chào hỏi thân thiện, ngắn gọn. Sau đó, diễn giải kết quả DASS-21 một cách đơn giản, tập trung vào việc đây là trạng thái **tạm thời** và có thể cải thiện.  
-                      Giọng văn **nhẹ nhàng, truyền cảm hứng, không phán xét, không chẩn đoán.**
+                        ### 👑 Biệt danh cá nhân hóa
+                        Biệt danh (profileNickname) của người dùng này là: **{profileNickname}**.  
+                        Dựa trên biệt danh này và các chỉ số DASS-21, hãy:
+                        - Sinh ra một mô tả cá tính ngắn gọn (profileDescription) tối đa 2 câu **bằng ngôi thứ 3** (ví dụ: “Những người thuộc nhóm này…”, “Họ thường…”), thể hiện điểm mạnh cảm xúc/tâm lý hoặc cách đối diện áp lực đặc trưng cho nhóm này.
+                        - Lưu ý: Mô tả này phải phù hợp biệt danh đã cho và các chỉ số DASS-21, không dùng các câu sáo rỗng, không phán xét, tránh đề cập tới “bệnh”, “rối loạn”.
 
-                      ---
+                        #### ✨ **3 đặc điểm nổi bật nhất (profileHighlights)**
+                        Sau khi mô tả cá tính, **liệt kê 3 đặc điểm hoặc điểm mạnh nổi bật nhất của profile này dưới dạng danh sách**, mỗi đặc điểm 1 dòng ngắn gọn **dùng ngôi thứ 3** (ví dụ: “Họ luôn giữ được sự bình tĩnh…”, “Những người thuộc nhóm này rất kiên định…”), tập trung vào tố chất/tài năng/thái độ tích cực mà biệt danh này thể hiện.
 
-                      ### 🧠 Cảm xúc của bạn
-                      Mô tả rất ngắn gọn rằng người đọc có thể đang trải qua các cảm xúc gì dựa vào kết quả DASS-21 và persona.
+                        ---
 
-                      {improvementGoalsSection}
-                      {recentEmotionsSection}
+                        ### 🪞 Tổng quan tâm lý
+                        Viết một đoạn phân tích về nhóm tính cách {profileNickname} ở ngôi thứ ba (“Những người thuộc nhóm này…”, “Họ thường…”).
+                        Nhấn mạnh tố chất tâm lý nổi bật, ý nghĩa trong sức khỏe tinh thần.
+                        Kể chi tiết: Họ thường thể hiện ra sao khi làm việc, sống trong tập thể hoặc ở các độ tuổi khác nhau.
+                        Văn phong truyền cảm hứng, khách quan, không chẩn đoán, không lặp lại số liệu.
 
-                      ---
+                        ---
 
-                      ### 🎯 Gợi ý cho bạn
-                      Đưa ra **3 hoạt động nhẹ nhàng, cá nhân hóa theo kết quả DASS-21 và đặc điểm người dùng**, mỗi hoạt động gồm:
-                      - **Tiêu đề gợi cảm xúc tích cực**.
-                      - **Mô tả sâu hơn** (3–4 câu) về lợi ích của hoạt động, lý giải vì sao nó phù hợp với người có mức độ trầm cảm/lo âu/căng thẳng như vậy. Có thể tham chiếu đến nghề nghiệp, tính cách hoặc độ tuổi nếu phù hợp.
-                      - **Danh sách 2 hành động cụ thể, dễ thử** mà người đọc có thể bắt đầu ngay từ hôm nay, liên quan tới profile người dùng.
-                      - **(reference) Một trích dẫn hoặc dẫn chứng khoa học** có thật, trình bày ngắn gọn, gợi sự tin cậy và dễ hiểu. Ví dụ: “Theo nghiên cứu của Đại học ... năm ..., người dành ... phút mỗi ngày để ... có mức độ lo âu thấp hơn ...%”.
+                        ### 🧭 Phân tích trạng thái cảm xúc hiện tại
+                        Dựa trên các chỉ số DASS-21 và đặc điểm cá nhân, mô tả các trạng thái cảm xúc hoặc thách thức nổi bật mà những cá nhân thuộc nhóm này có thể đang trải qua ở thời điểm hiện tại.  
+                        Chú ý liên hệ giữa số liệu (điểm trầm cảm/lo âu/căng thẳng) với biểu hiện thực tiễn trong công việc hoặc cuộc sống.  
+                        Không nhắc thẳng tên người dùng.
+                        Sử dụng ngôi thứ 3 (“Họ có thể cảm thấy…”, “Đối với những người trong nhóm này, cảm giác… là điều thường gặp…”).
+                        Kết thúc bằng một câu gợi mở về cách để xoa dịu hoặc cải thiện cảm xúc hiện tại để gợi mở cho phần gợi ý tiếp theo.
 
-                      Lưu ý:
-                      - Văn phong **ấm áp – gần gũi – mang tính nâng đỡ**, không mang giọng giảng giải.
-                      - **Kết nối gợi ý với kết quả DASS-21 và persona**.
-                      - **Markdown** các thông tin đã được cá nhân hóa cho người dùng như tên, tuổi, nghề nghiệp, tính cách, v.v. để tạo cảm giác thân thiện và gần gũi.
-                      ---
+                        {improvementGoalsSection}
+                        {recentEmotionsSection}
 
-                      ### 💌 Lời chúc
-                      Kết thúc bằng một lời nhắn **tích cực và mạnh mẽ**, nhấn mạnh rằng người đọc **xứng đáng được chữa lành và hạnh phúc**, và **không hề đơn độc**.  
-                      Luôn kết bằng chữ ký:  
-                      **— Emo 🌿**
-                      """;
+
+                        ---
+
+                        ### 🎯 Gợi ý cho bạn
+                        Đưa ra **3 hoạt động nhẹ nhàng, cá nhân hóa theo kết quả DASS-21 và đặc điểm người dùng**, mỗi hoạt động gồm:
+                        - **Tiêu đề gợi cảm xúc tích cực**.
+                        - **Mô tả sâu hơn** (3–4 câu) về lợi ích của hoạt động, lý giải vì sao nó phù hợp với người có mức độ trầm cảm/lo âu/căng thẳng như vậy. Có thể tham chiếu đến nghề nghiệp, tính cách hoặc độ tuổi nếu phù hợp.
+                        - **Danh sách 2 hành động cụ thể, dễ thử** mà người đọc có thể bắt đầu ngay từ hôm nay, liên quan tới profile người dùng.
+                        - **(reference) Một trích dẫn hoặc dẫn chứng khoa học** có thật, trình bày ngắn gọn, gợi sự tin cậy và dễ hiểu. Ví dụ: “Theo nghiên cứu của Đại học ... năm ..., người dành ... phút mỗi ngày để ... có mức độ lo âu thấp hơn ...%”.
+                        - **Gọi người dùng là “bạn” - không nhắc thẳng tên.
+
+                        Lưu ý:
+                        - Văn phong **ấm áp – gần gũi – mang tính nâng đỡ**, không mang giọng giảng giải.
+                        - **Kết nối gợi ý với kết quả DASS-21 và persona**.
+                        - **Markdown** các thông tin đã được cá nhân hóa cho người dùng như tên, tuổi, nghề nghiệp, tính cách, v.v. để tạo cảm giác thân thiện và gần gũi.
+                        ---
+
+                        ### 💌 Lời chúc
+                        Kết thúc bằng một lời nhắn **tích cực và mạnh mẽ**, nhấn mạnh rằng người đọc **xứng đáng được chữa lành và hạnh phúc**, và **không hề đơn độc**.  
+
+                        ---
+                        """;
 
 
         return prompt;
@@ -184,6 +210,14 @@ public class GeminiClient : IAIClient
             type = "object",
             properties = new
             {
+                profileNickname = new { type = "string" }, // Thêm
+                profileDescription = new { type = "string" }, // Thêm
+                profileHighlights = new
+                {
+                    type = "array",
+                    items = new { type = "string" }, // Danh sách 3 đặc điểm nổi bật
+                },
+
                 overview = new { type = "string" }, // "Đánh giá nhanh"
                 emotionAnalysis = new { type = "string" }, // "Cảm xúc của bạn"
                 personalizedSuggestions = new

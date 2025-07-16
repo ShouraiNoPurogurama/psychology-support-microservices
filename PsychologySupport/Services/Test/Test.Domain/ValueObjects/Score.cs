@@ -1,4 +1,6 @@
-﻿namespace Test.Domain.ValueObjects;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Test.Domain.ValueObjects;
 
 public record Score
 {
@@ -10,7 +12,11 @@ public record Score
         Value = value;
     }
 
+    
     public int Value { get; }
+    
+    [NotMapped]
+    public int MultipliedValue => Value * 2;
 
     public static Score Create(int value)
     {

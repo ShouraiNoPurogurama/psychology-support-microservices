@@ -23,6 +23,8 @@ public static class DependencyInjection
         var connectionString = config.GetConnectionString("TestDb");
 
         QuestPDF.Settings.License = LicenseType.Community;
+        QuestPDF.Settings.EnableDebugging = true;
+
         
         services.AddDbContext<TestDbContext>((serviceProvider, options) =>
         {

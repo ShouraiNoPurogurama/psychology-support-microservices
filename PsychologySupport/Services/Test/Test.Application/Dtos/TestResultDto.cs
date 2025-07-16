@@ -14,5 +14,8 @@ public record TestResultDto(
     Score StressScore,
     Recommendation Recommendation,
     string PatientName,
-    int PatientAge
+    int PatientAge,
+    string ProfileNickname,
+    string ProfileDescription,
+    List<string> ProfileHighlights
     );

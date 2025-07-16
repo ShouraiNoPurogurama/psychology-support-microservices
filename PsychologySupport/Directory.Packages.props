@@ -43,7 +43,7 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageVersion Include="OpenAI" Version="2.1.0" />
     <PackageVersion Include="payOS" Version="1.0.9" />
-    <PackageVersion Include="QuestPDF" Version="2025.5.1" />
+    <PackageVersion Include="QuestPDF" Version="2025.7.0" />
     <PackageVersion Include="Scrutor" Version="6.0.1" />
     <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />

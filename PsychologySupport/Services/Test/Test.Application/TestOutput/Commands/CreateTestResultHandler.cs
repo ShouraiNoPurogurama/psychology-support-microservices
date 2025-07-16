@@ -1,12 +1,10 @@
 ﻿using BuildingBlocks.CQRS;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Test.Application.Data;
 using Test.Application.Dtos;
 using Test.Application.ServiceContracts;
 using Test.Domain.Enums;
-using Test.Domain.Events;
 using Test.Domain.Models;
 using Test.Domain.ValueObjects;
 
@@ -74,7 +72,7 @@ public class CreateTestResultHandler(
             DASS21Response.Recommendation.Closing
         );
 
-
+        
         var testResult = TestResult.Create(
             request.PatientId,
             request.TestId,
@@ -83,6 +81,8 @@ public class CreateTestResultHandler(
             stressScore,
             severityLevel,
             recommendationVO,
+            DASS21Response.ProfileNickname,
+            DASS21Response.ProfileDescription,
             selectedOptions
         );
 
@@ -104,7 +104,10 @@ public class CreateTestResultHandler(
             SeverityLevel: severityLevel,
             Recommendation: recommendationVO,
             PatientName: DASS21Response.PatientName,
-            PatientAge: DASS21Response.PatientAge
+            PatientAge: DASS21Response.PatientAge,
+            ProfileNickname: DASS21Response.ProfileNickname,
+            ProfileDescription: DASS21Response.ProfileDescription,
+            ProfileHighlights: DASS21Response.ProfileHighlights
         ));
         return result;
     }

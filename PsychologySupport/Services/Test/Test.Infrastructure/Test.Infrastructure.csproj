@@ -27,4 +27,9 @@
         <ProjectReference Include="..\Test.Application\Test.Application.csproj"/>
         <ProjectReference Include="..\Test.Domain\Test.Domain.csproj"/>
     </ItemGroup>
+    <ItemGroup>
+      <None Update="Assets\emo.webp">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
 </Project>
