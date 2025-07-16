@@ -165,11 +165,10 @@ public class GeminiClient(
                         ### 🧭 Phân tích trạng thái cảm xúc hiện tại
                         Dựa trên các chỉ số DASS-21 và đặc điểm cá nhân, mô tả các trạng thái cảm xúc hoặc thách thức nổi bật mà những cá nhân thuộc nhóm này có thể đang trải qua ở thời điểm hiện tại.  
                         Chú ý liên hệ giữa số liệu (điểm trầm cảm/lo âu/căng thẳng) với biểu hiện thực tiễn trong công việc hoặc cuộc sống.  
-                        Không nhắc thẳng tên người dùng.
-                        Sử dụng ngôi thứ 3 (“Họ có thể cảm thấy…”, “Đối với những người trong nhóm này, cảm giác… là điều thường gặp…”).
+                        Không nhắc thẳng tên người dùng, nhưng có thể gọi họ là "bạn" để tăng cảm giác cá nhân hóa.
                         Kết thúc bằng một câu gợi mở về cách để xoa dịu hoặc cải thiện cảm xúc hiện tại để gợi mở cho phần gợi ý tiếp theo.
 
-                        {improvementGoalsSection}
+                        {improvementGoalsSection}3 (“Họ có thể c
                         {recentEmotionsSection}
 
 
