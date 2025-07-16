@@ -168,7 +168,7 @@ public class GeminiClient(
                         Không nhắc thẳng tên người dùng, nhưng có thể gọi họ là "bạn" để tăng cảm giác cá nhân hóa.
                         Kết thúc bằng một câu gợi mở về cách để xoa dịu hoặc cải thiện cảm xúc hiện tại để gợi mở cho phần gợi ý tiếp theo.
 
-                        {improvementGoalsSection}3 (“Họ có thể c
+                        {improvementGoalsSection}
                         {recentEmotionsSection}
 
 
