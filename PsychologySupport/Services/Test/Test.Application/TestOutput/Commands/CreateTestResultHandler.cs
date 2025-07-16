@@ -114,9 +114,9 @@ public class CreateTestResultHandler(
 
     private SeverityLevel DetermineSeverity(Score depression, Score anxiety, Score stress)
     {
-        var dLevel = Score.GetDepressionLevelRaw(depression.MultipliedValue);
-        var aLevel = Score.GetAnxietyLevelRaw(anxiety.MultipliedValue);
-        var sLevel = Score.GetStressLevelRaw(stress.MultipliedValue);
+        var dLevel = Score.GetDepressionLevelRaw(depression.Value);
+        var aLevel = Score.GetAnxietyLevelRaw(anxiety.Value);
+        var sLevel = Score.GetStressLevelRaw(stress.Value);
 
         return new[] { dLevel, aLevel, sLevel }.Max();
     }
