@@ -44,7 +44,7 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
             ForbiddenException => (
                 exception.Message,
                 exception.GetType().Name,
-                context.Response.StatusCode = StatusCodes.Status403Forbidden
+                context.Response.StatusCode = StatusCodes.Status418ImATeapot //Using 418 as a placeholder for Forbidden
             ),
             UnauthorizedAccessException => (
                 exception.Message,
