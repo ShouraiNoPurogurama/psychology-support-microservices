@@ -58,7 +58,7 @@ public class GetAllTestQuestionsHandler : IQueryHandler<GetAllTestQuestionsQuery
         var translations = translationResponse.Message.Translations;
 
         //CLEAN MAPPING - Dùng batch processing
-        var translatedQuestions = rawQuestions.Select(q =>
+        var translatedQuestions = sortedQuestions.Select(q =>
             {
                 var translatedQuestion =
                     translations.MapTranslatedProperties(q, nameof(TestQuestion), id: q.Id.ToString(), q => q.Content);
