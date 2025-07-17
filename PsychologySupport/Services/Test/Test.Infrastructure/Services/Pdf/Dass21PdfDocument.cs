@@ -196,6 +196,7 @@ public class Dass21PdfDocument(
                                         .PaddingLeft(4)
                                         .PaddingTop(10)
                                         .Text("✨")      // icon mới cho Khởi đầu
+                                        .FontFamily("Noto Color Emoji")
                                         .FontSize(14);
 
                                     row.RelativeItem()
@@ -235,6 +236,7 @@ public class Dass21PdfDocument(
                                         {
                                             iconCol.Item()
                                                 .Text("🛡️") 
+                                                .FontFamily("Noto Color Emoji")
                                                 .FontSize(50)
                                                 .AlignCenter();
                                             // iconCol.Item().PaddingTop(8).Text(profileNickname)
