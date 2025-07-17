@@ -34,7 +34,7 @@ public class CreateTestResultHandler(
         
         if (isExceedQuotas)
         {
-            throw new InvalidOperationException("Bạn đã vượt quá số lần làm bài kiểm tra trong ngày. Vui lòng thử lại sau.");
+            throw new InvalidOperationException("Bạn đã vượt quá số lần làm bài kiểm tra trong ngày (tối đa 5 lần). Vui lòng thử lại vào hôm sau.");
         }
         
         var selectedOptions = await dbContext.QuestionOptions
