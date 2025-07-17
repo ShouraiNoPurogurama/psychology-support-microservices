@@ -283,6 +283,7 @@ public class Dass21PdfDocument(
                                                             {
                                                                 row.ConstantItem(18)
                                                                     .Text("ℹ️")
+                                                                    .FontFamily("Noto Color Emoji")
                                                                     .FontSize(11);
                                                                 row.RelativeItem()
                                                                     .PaddingBottom(5)
