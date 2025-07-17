@@ -43,13 +43,19 @@ public class CustomExceptionHandler(ILogger<CustomExceptionHandler> logger) : IE
             ),
             ForbiddenException => (
                 exception.Message,
-                exception.GetType().Name,
+                // exception.GetType().Name,
+                "ImATeapot",
                 context.Response.StatusCode = StatusCodes.Status418ImATeapot //Using 418 as a placeholder for Forbidden
             ),
             UnauthorizedAccessException => (
                 exception.Message,
                 exception.GetType().Name,
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized
+            ),
+            RateLimitExceededException => (
+                exception.Message,
+                exception.GetType().Name,
+                context.Response.StatusCode = StatusCodes.Status429TooManyRequests
             ),
             _ => (
                 exception.Message,
