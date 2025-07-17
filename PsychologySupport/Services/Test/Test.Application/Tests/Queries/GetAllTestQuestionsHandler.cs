@@ -33,23 +33,22 @@ public class GetAllTestQuestionsHandler : IQueryHandler<GetAllTestQuestionsQuery
             .Where(q => q.TestId == request.TestId)
             .OrderBy(q => q.Order)
             .ProjectToType<TestQuestionDto>();
-        
+
         var totalCount = await query.CountAsync(cancellationToken);
 
         var rawQuestions = await query
             .Skip((request.PaginationRequest.PageIndex - 1) * request.PaginationRequest.PageSize)
             .Take(request.PaginationRequest.PageSize)
-            .Select(q => new TestQuestionDto(
-                q.Id,
-                q.Order,
-                q.Content,
-                q.Options.OrderBy(o => o.OptionValue).ToList() //sort trực tiếp
-            ))
-            .ToListAsync(cancellationToken);
+            .ToListAsync(cancellationToken); // Load data lên memory trước
+
+        var sortedQuestions = rawQuestions
+            .Select(q => q with { Options = q.Options.OrderBy(o => o.OptionValue).ToList() })
+            .ToList();
+
 
         var translationDict = TranslationUtils.CreateBuilder()
-            .AddEntities(rawQuestions, nameof(TestQuestion), q => q.Content)
-            .AddEntities(rawQuestions.SelectMany(q => q.Options), nameof(QuestionOption), o => o.Content)
+            .AddEntities(sortedQuestions, nameof(TestQuestion), q => q.Content)
+            .AddEntities(sortedQuestions.SelectMany(q => q.Options), nameof(QuestionOption), o => o.Content)
             .Build();
 
         //Gọi translation service
