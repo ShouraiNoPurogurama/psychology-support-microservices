@@ -223,6 +223,7 @@ services:
       - ~/gcp/compute-default-sa.json:/app/gcloud/compute-default-sa.json:ro
       - ./Services/Test/Test.API/RSAKeys:/app/RSAKeys
       - ./Services/Test/Test.Infrastructure/Assets:/app/Assets
+      - /usr/share/fonts:/usr/share/fonts:ro
 
   translation.api:
     image: ${DOCKER_REGISTRY-}translation
