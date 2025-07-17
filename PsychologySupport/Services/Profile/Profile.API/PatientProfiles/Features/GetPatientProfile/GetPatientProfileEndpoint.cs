@@ -1,5 +1,6 @@
 ﻿using Carter;
 using Mapster;
+using Profile.API.Common.Helpers;
 using Profile.API.PatientProfiles.Dtos;
 
 namespace Profile.API.PatientProfiles.Features.GetPatientProfile;
@@ -12,8 +13,11 @@ public class GetPatientProfileEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/patients/{id:guid}", async (Guid id, ISender sender) =>
+        app.MapGet("/patients/{id:guid}", async (Guid id, ISender sender, HttpContext httpContext) =>
             {
+                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User) && !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
+                    throw new ForbiddenException();
+                
                 var query = new GetPatientProfileQuery(id);
                 var result = await sender.Send(query);
                 var response = result.Adapt<GetPatientProfileResponse>();

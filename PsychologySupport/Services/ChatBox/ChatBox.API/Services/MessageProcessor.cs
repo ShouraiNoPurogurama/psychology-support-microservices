@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Exceptions;
+using BuildingBlocks.Pagination;
 using ChatBox.API.Abstractions;
 using ChatBox.API.Data;
 using ChatBox.API.Dtos.AI;
@@ -239,7 +240,7 @@ public class MessageProcessor(
             .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.IsActive == true);
 
         if (session == null)
-            throw new UnauthorizedAccessException(
+            throw new ForbiddenException(
                 "Không tìm thấy phiên trò chuyện hoặc phiên trò chuyện này không thuộc về người dùng.");
     }
 

@@ -1,4 +1,5 @@
-﻿using Carter;
+﻿using BuildingBlocks.Exceptions;
+using Carter;
 using LifeStyles.API.Common;
 using Mapster;
 using MediatR;
@@ -19,12 +20,8 @@ public class GetPatientTherapeuticActivityEndpoint : ICarterModule
                 {
                     // Authorization check
                     if (!AuthorizationHelpers.HasAccessToPatientProfile(patientProfileId, httpContext.User))
-                        return Results.Problem(
-                               statusCode: StatusCodes.Status403Forbidden,
-                               title: "Forbidden",
-                               detail: "You do not have permission to access this resource."
-                           );
-
+                        throw new ForbiddenException();
+                    
                     var query = new GetPatientTherapeuticActivityQuery(patientProfileId);
                     var result = await sender.Send(query);
                     var response = result.Adapt<GetPatientTherapeuticActivityResponse>();

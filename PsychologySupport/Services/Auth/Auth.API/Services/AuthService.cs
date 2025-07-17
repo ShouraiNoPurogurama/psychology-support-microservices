@@ -25,6 +25,7 @@ public class AuthService(
     IConfiguration configuration,
     ITokenService tokenService,
     IRequestClient<CreatePatientProfileRequest> profileClient,
+    IRequestClient<HasSentEmailRecentlyRequest> hasSentEmailRecentlyClient,
     AuthDbContext authDbContext,
     IPublishEndpoint publishEndpoint,
     IWebHostEnvironment env
@@ -76,7 +77,7 @@ public class AuthService(
             await userManager.UpdateAsync(user);
 
             var profileResult = await CreateUserProfileAsync(user);
-            
+
             if (profileResult.IsSuccess)
             {
                 message = "Xác nhận email và tạo hồ sơ thành công.";
@@ -110,7 +111,8 @@ public class AuthService(
         ValidateUserLockout(user);
 
         //4. Xử lý device và session
-        var device = await GetOrUpsertDeviceAsync(user.Id, request.ClientDeviceId!, request.DeviceType!.Value, request.DeviceToken);
+        var device = await GetOrUpsertDeviceAsync(user.Id, request.ClientDeviceId!, request.DeviceType!.Value,
+            request.DeviceToken);
         await ManageDeviceSessionsAsync(user.Id, request.DeviceType!.Value, device.Id);
 
         //5. Tạo token
@@ -199,7 +201,8 @@ public class AuthService(
         await VerifyPasswordAsync(user, loginRequest.Password);
 
         //4. Xử lý device và session
-        var device = await GetOrUpsertDeviceAsync(user.Id, loginRequest.ClientDeviceId!, loginRequest.DeviceType!.Value, loginRequest.DeviceToken);
+        var device = await GetOrUpsertDeviceAsync(user.Id, loginRequest.ClientDeviceId!, loginRequest.DeviceType!.Value,
+            loginRequest.DeviceToken);
         await ManageDeviceSessionsAsync(user.Id, loginRequest.DeviceType!.Value, device.Id);
 
         //5. Tạo token
@@ -311,7 +314,7 @@ public class AuthService(
             throw new InvalidDataException(string.Join("; ", createResult.Errors.Select(e => e.Description)));
 
         await AssignUserRoleAsync(user);
-        
+
         await CreateUserProfileAsync(user);
 
         return user;
@@ -339,7 +342,7 @@ public class AuthService(
             );
 
             var profileResponse = await profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
-            
+
             if (profileResponse.Message.Success)
             {
                 return (true, null);
@@ -357,6 +360,12 @@ public class AuthService(
 
     private async Task SendEmailConfirmationAsync(User user)
     {
+        if (await HasSentResetEmailRecentlyAsync(user.Email!))
+        {
+            throw new RateLimitExceededException(
+                "Vui lòng đợi ít nhất 1 phút trước khi gửi lại email xác nhận. Nếu chưa nhận được email, hãy kiểm tra hộp thư rác (spam) hoặc đợi thêm một chút.");
+        }
+
         var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
         var baseUrl = configuration["Mail:ConfirmationUrl"]!;
         var url = string.Format(baseUrl, Uri.EscapeDataString(emailConfirmationToken), Uri.EscapeDataString(user.Email));
@@ -369,7 +378,7 @@ public class AuthService(
         });
 
         var sendEmailIntegrationEvent = new SendEmailIntegrationEvent(user.Email, "Xác nhận tài khoản", confirmBody);
-        
+
         user.PhoneNumberConfirmed = true;
         await publishEndpoint.Publish(sendEmailIntegrationEvent);
     }
@@ -391,10 +400,18 @@ public class AuthService(
         await publishEndpoint.Publish(sendEmailEvent);
     }
 
+    private async Task<bool> HasSentResetEmailRecentlyAsync(string email)
+    {
+        var response = await hasSentEmailRecentlyClient.GetResponse<HasSentEmailRecentlyResponse>(
+            new HasSentEmailRecentlyRequest(email));
+
+        return response.Message.IsRecentlySent;
+    }
+
     private async Task<User> FindAndValidateUserAsync(LoginRequest loginRequest)
     {
         User user;
-        
+
         if (!string.IsNullOrWhiteSpace(loginRequest.Email))
         {
             user = await userManager.Users
@@ -431,7 +448,7 @@ public class AuthService(
     private async Task VerifyPasswordAsync(User user, string password)
     {
         var currentTime = CoreUtils.SystemTimeUtcNow;
-        
+
         if (!tokenService.VerifyPassword(password, user.PasswordHash!, user))
         {
             user.AccessFailedCount++;
@@ -452,7 +469,8 @@ public class AuthService(
         await userManager.UpdateAsync(user);
     }
 
-    private async Task<Device> GetOrUpsertDeviceAsync(Guid userId, string clientDeviceId, DeviceType deviceType, string? deviceToken)
+    private async Task<Device> GetOrUpsertDeviceAsync(Guid userId, string clientDeviceId, DeviceType deviceType,
+        string? deviceToken)
     {
         var device = await authDbContext.Devices.FirstOrDefaultAsync(d =>
             d.ClientDeviceId == clientDeviceId && d.UserId == userId);

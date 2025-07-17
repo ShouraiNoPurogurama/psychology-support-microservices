@@ -15,6 +15,16 @@ public class EmailService(
     private readonly AppSettings _appSettings = appsettingsOptions.Value;
     private readonly EmailConfiguration _emailConfiguration = appsettingsOptions.Value.Features.Email;
     
+    public async Task<bool> HasSentEmailRecentlyAsync(string email, CancellationToken cancellationToken)
+    {
+        var recentEmail = await dbContext.EmailTraces
+            .Where(e => e.To == email && e.CreatedAt > DateTime.UtcNow.AddMinutes(-1))
+            .OrderByDescending(e => e.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return recentEmail is not null;
+    }
+    
     public async Task SendEmailAsync(EmailMessageDto emailMessageDto, CancellationToken cancellationToken)
     {
         var trackId = OnSendEmail(emailMessageDto);

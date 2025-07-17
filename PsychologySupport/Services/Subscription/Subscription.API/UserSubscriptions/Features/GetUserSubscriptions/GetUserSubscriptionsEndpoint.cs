@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Exceptions;
+using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
 using MediatR;
@@ -10,14 +11,14 @@ using Subscription.API.UserSubscriptions.Dtos;
 
 namespace Subscription.API.UserSubscriptions.Features.GetUserSubscriptions;
 
-public record GetUserSubscriptionsRequest( [FromQuery] int PageIndex = 1,
-    [FromQuery] int PageSize = 10,
-    [FromQuery] string? Search = "",
-    [FromQuery] string? SortBy = "StartDate",
-    [FromQuery] string? SortOrder = "asc",
-    [FromQuery] Guid? ServicePackageId = null,
-    [FromQuery] Guid? PatientId = null, 
-    [FromQuery] SubscriptionStatus? Status = null);
+public record GetUserSubscriptionsRequest( int PageIndex = 1,
+    int PageSize = 10,
+    string? Search = "",
+    string? SortBy = "StartDate",
+    string? SortOrder = "asc",
+    Guid? ServicePackageId = null,
+    Guid? PatientId = null, 
+    SubscriptionStatus? Status = null);
 
 public record GetUserSubscriptionsResponse(PaginatedResult<GetUserSubscriptionDto> UserSubscriptions);
 
@@ -31,11 +32,7 @@ public class GetUserSubscriptionsEndpoint : ICarterModule
             {
                 // Authorization check
                 if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
-                    return Results.Problem(
-                               statusCode: StatusCodes.Status403Forbidden,
-                               title: "Forbidden",
-                               detail: "You do not have permission to access this resource."
-                           );
+                    throw new ForbiddenException();
 
                 var query = request.Adapt<GetUserSubscriptionsQuery>();
                 var result = await sender.Send(query);

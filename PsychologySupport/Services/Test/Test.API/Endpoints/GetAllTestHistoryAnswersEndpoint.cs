@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Exceptions;
+using BuildingBlocks.Pagination;
 using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -21,11 +22,7 @@ public class GetAllTestHistoryAnswersEndpoint : ICarterModule
             {
                 // Authorization check
                 if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
-                    return Results.Problem(
-                               statusCode: StatusCodes.Status403Forbidden,
-                               title: "Forbidden",
-                               detail: "You do not have permission to access this resource."
-                           );
+                    throw new ForbiddenException();
 
                 var query = new GetAllTestHistoryAnswersQuery(testResultId);
                 var result = await sender.Send(query);

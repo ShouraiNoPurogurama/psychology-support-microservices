@@ -1,4 +1,5 @@
-﻿using Carter;
+﻿using BuildingBlocks.Exceptions;
+using Carter;
 using LifeStyles.API.Common;
 using LifeStyles.API.Dtos.EmotionSelections;
 using LifeStyles.API.Dtos.PatientEmotionCheckpoints;
@@ -26,11 +27,7 @@ public class CreatePatientEmotionCheckpointEndpoint : ICarterModule
                 {
                     // Authorization check
                     if (!AuthorizationHelpers.HasAccessToPatientProfile(patientProfileId, httpContext.User))
-                        return Results.Problem(
-                               statusCode: StatusCodes.Status403Forbidden,
-                               title: "Forbidden",
-                               detail: "You do not have permission to access this resource."
-                           );
+                        throw new ForbiddenException();
 
                     var command = new CreatePatientEmotionCheckpointCommand(
                         patientProfileId,

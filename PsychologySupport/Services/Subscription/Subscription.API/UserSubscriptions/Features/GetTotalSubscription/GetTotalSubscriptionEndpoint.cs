@@ -1,4 +1,5 @@
-﻿using Carter;
+﻿using BuildingBlocks.Exceptions;
+using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,11 +22,7 @@ namespace Subscription.API.UserSubscriptions.Features.GetTotalSubscription
                     // Authorization check
                     if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User) &&
                         !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
-                        return Results.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Forbidden",
-                            detail: "You do not have permission to access this resource."
-                        );
+                        throw new ForbiddenException();
 
                     var query = new GetTotalSubscriptionQuery(startDate, endDate, patientId, status);
                     var result = await sender.Send(query);

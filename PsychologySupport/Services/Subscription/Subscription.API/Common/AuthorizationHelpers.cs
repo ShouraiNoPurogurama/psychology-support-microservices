@@ -31,6 +31,13 @@ namespace Subscription.API.Common
 
             return patientProfileId == profileId;
         }
+        
+        public static bool CanModifySystemData(ClaimsPrincipal user)
+        {
+            var role = user.FindFirstValue(ClaimTypes.Role);
+
+            return role is "Admin" or "Manager";
+        }
 
         public static bool HasViewAccessToPatientProfile(ClaimsPrincipal user)
         {

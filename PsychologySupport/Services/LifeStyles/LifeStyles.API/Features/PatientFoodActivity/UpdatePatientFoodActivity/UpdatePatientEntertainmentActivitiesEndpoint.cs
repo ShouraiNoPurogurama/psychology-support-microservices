@@ -1,4 +1,5 @@
-﻿using Carter;
+﻿using BuildingBlocks.Exceptions;
+using Carter;
 using LifeStyles.API.Common;
 using LifeStyles.API.Features.PatientFoodActivity.CreatePatientFoodActivity;
 using MediatR;
@@ -19,11 +20,7 @@ public class UpdatePatientFoodActivitiesEndpoint : ICarterModule
                 {
                     // Authorization check
                     if (!AuthorizationHelpers.HasAccessToPatientProfile(request.PatientProfileId, httpContext.User))
-                        return Results.Problem(
-                               statusCode: StatusCodes.Status403Forbidden,
-                               title: "Forbidden",
-                               detail: "You do not have permission to access this resource."
-                           );
+                        throw new ForbiddenException();
 
                     var command = new UpdatePatientFoodActivitiesCommand(
                         request.PatientProfileId,

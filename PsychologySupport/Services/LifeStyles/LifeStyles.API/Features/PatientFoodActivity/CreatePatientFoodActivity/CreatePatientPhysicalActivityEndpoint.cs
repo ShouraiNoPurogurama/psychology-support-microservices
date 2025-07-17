@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Enums;
+using BuildingBlocks.Exceptions;
 using Carter;
 using LifeStyles.API.Common;
 using MediatR;
@@ -27,11 +28,7 @@ public class CreatePatientFoodActivityEndpoint : ICarterModule
             {
                 // Authorization check
                 if (!AuthorizationHelpers.HasAccessToPatientProfile(request.PatientProfileId, httpContext.User))
-                    return Results.Problem(
-                               statusCode: StatusCodes.Status403Forbidden,
-                               title: "Forbidden",
-                               detail: "You do not have permission to access this resource."
-                           );
+                    throw new ForbiddenException();
 
                 var command = new CreatePatientFoodActivityCommand(
                     request.PatientProfileId,

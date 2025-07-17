@@ -28,11 +28,7 @@ public class GetPatientProfilesCreatedEndpoint : ICarterModule
             {
                 // Authorization check
                 if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User) && !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
-                    return Results.Problem(
-                        statusCode: StatusCodes.Status403Forbidden,
-                        title: "Forbidden",
-                        detail: "You do not have permission to access this resource."
-                    );
+                    throw new ForbiddenException();
                 
                 var query = new GetPatientProfilesCreatedQuery(
                     new PaginationRequest(

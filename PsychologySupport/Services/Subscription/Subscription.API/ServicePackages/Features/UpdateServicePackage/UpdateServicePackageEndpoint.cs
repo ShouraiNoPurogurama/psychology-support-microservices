@@ -1,4 +1,5 @@
-﻿using Carter;
+﻿using BuildingBlocks.Exceptions;
+using Carter;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -19,12 +20,8 @@ public class UpdateServicePackageEndpoint : ICarterModule
             [FromBody] UpdateServicePackageDto dto,
             ISender sender, HttpContext httpContext) =>
         {
-            if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User) && !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
-                return Results.Problem(
-                    statusCode: StatusCodes.Status403Forbidden,
-                    title: "Forbidden",
-                    detail: "You do not have permission to access this resource."
-                );
+            if(!AuthorizationHelpers.CanModifySystemData(httpContext.User))
+                throw new ForbiddenException();
             
             var command = new UpdateServicePackageCommand(id, dto);
             var result = await sender.Send(command);

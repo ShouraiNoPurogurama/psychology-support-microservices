@@ -41,7 +41,6 @@ public class OutboxProcessor(IServiceProvider serviceProvider, ILogger<OutboxPro
                     message.ProcessedOn = DateTimeOffset.UtcNow;
 
                     logger.LogInformation("Successfully processed outbox message with ID: {ID}", message.Id);
-
                     await dbContext.SaveChangesAsync(stoppingToken);
                 }
             }
@@ -50,8 +49,8 @@ public class OutboxProcessor(IServiceProvider serviceProvider, ILogger<OutboxPro
                 logger.LogError(e, "Error processing outbox message");
             }
 
-            //Delay: Just check for Outbox table for each 10 seconds
-            await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+            //Delay: Just check for Outbox table for each 3 seconds
+            await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken);
         }
     }
 }

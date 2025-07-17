@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Enums;
+using BuildingBlocks.Exceptions;
 using Carter;
 using LifeStyles.API.Common;
 using MediatR;
@@ -32,8 +33,8 @@ public class CreateLifestyleLogEndpoint : ICarterModule
             {
                 // Authorization check
                 if (!AuthorizationHelpers.HasAccessToPatientProfile(request.PatientProfileId, httpContext.User))
-                    return Results.Forbid();
-
+                    throw new ForbiddenException();
+                
                 // Send command
                 var command = new CreateLifestyleLogCommand(
                     request.PatientProfileId,

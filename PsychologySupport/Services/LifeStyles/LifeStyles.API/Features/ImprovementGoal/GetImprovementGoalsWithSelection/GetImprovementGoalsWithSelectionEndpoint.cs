@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
+using LifeStyles.API.Common;
 using LifeStyles.API.Dtos;
 using LifeStyles.API.Extensions;
 using MediatR;

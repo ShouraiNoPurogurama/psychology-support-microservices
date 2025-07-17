@@ -14,8 +14,11 @@ namespace Profile.API.PatientProfiles.Features.GetMedicalRecord
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/medical-records/{medicalRecordId:guid}", async (Guid medicalRecordId, ISender sender) =>
+            app.MapGet("/medical-records/{medicalRecordId:guid}", async (Guid medicalRecordId,HttpContext httpContext, ISender sender) =>
             {
+                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User) && !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
+                    throw new ForbiddenException();
+                
                 var query = new GetMedicalRecordQuery(medicalRecordId);
                 var result = await sender.Send(query);
                 var response = result.Adapt<GetMedicalRecordResponse>();
