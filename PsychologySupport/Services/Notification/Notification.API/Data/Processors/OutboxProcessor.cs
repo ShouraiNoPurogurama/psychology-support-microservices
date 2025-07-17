@@ -38,7 +38,7 @@ public class OutboxProcessor(IServiceProvider serviceProvider, ILogger<OutboxPro
                         await mediator.Publish(eventMessage, stoppingToken);
                     }
 
-                    message.ProcessedOn = DateTimeOffset.UtcNow;
+                    message.ProcessedOn = DateTimeOffset.UtcNow.AddHours(7);
 
                     logger.LogInformation("Successfully processed outbox message with ID: {ID}", message.Id);
                     await dbContext.SaveChangesAsync(stoppingToken);

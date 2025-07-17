@@ -23,7 +23,7 @@ public class OutboxMessage : Entity<Guid>
             Id = Guid.NewGuid(),
             Type = typeof(TMessage).AssemblyQualifiedName!,
             Content = JsonSerializer.Serialize(eventMessage),
-            OccuredOn = DateTimeOffset.UtcNow
+            OccuredOn = DateTimeOffset.UtcNow.AddHours(7)
         };
     }
 }

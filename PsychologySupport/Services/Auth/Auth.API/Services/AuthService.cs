@@ -385,6 +385,12 @@ public class AuthService(
 
     private async Task SendPasswordResetEmailAsync(User user)
     {
+        if (await HasSentResetEmailRecentlyAsync(user.Email!))
+        {
+            throw new RateLimitExceededException(
+                "Vui lòng đợi ít nhất 1 phút trước khi gửi lại email đổi mật khẩu. Nếu chưa nhận được email, hãy kiểm tra hộp thư rác (spam) hoặc đợi thêm một chút.");
+        }
+        
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
         var resetUrlTemplate = configuration["Mail:PasswordResetUrl"];
         var callbackUrl = string.Format(resetUrlTemplate!, Uri.EscapeDataString(token), Uri.EscapeDataString(user.Email));
