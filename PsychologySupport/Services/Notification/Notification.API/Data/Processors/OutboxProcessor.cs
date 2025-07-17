@@ -39,9 +39,9 @@ public class OutboxProcessor(IServiceProvider serviceProvider, ILogger<OutboxPro
                     }
 
                     message.ProcessedOn = DateTimeOffset.UtcNow.AddHours(7);
+                    await dbContext.SaveChangesAsync(stoppingToken);
 
                     logger.LogInformation("Successfully processed outbox message with ID: {ID}", message.Id);
-                    await dbContext.SaveChangesAsync(stoppingToken);
                 }
             }
             catch (Exception e)

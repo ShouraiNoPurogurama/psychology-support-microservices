@@ -12,7 +12,7 @@ public class OutboxMessage : Entity<Guid>
 
     public void Process()
     {
-        ProcessedOn = DateTimeOffset.UtcNow;
+        ProcessedOn = DateTimeOffset.UtcNow.AddHours(7);
     }
 
     public static OutboxMessage Create<TMessage>(TMessage eventMessage) 
