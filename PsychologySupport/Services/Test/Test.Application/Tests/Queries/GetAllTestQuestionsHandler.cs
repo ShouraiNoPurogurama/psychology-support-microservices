@@ -33,12 +33,18 @@ public class GetAllTestQuestionsHandler : IQueryHandler<GetAllTestQuestionsQuery
             .Where(q => q.TestId == request.TestId)
             .OrderBy(q => q.Order)
             .ProjectToType<TestQuestionDto>();
-
+        
         var totalCount = await query.CountAsync(cancellationToken);
 
         var rawQuestions = await query
             .Skip((request.PaginationRequest.PageIndex - 1) * request.PaginationRequest.PageSize)
             .Take(request.PaginationRequest.PageSize)
+            .Select(q => new TestQuestionDto(
+                q.Id,
+                q.Order,
+                q.Content,
+                q.Options.OrderBy(o => o.OptionValue).ToList() //sort trực tiếp
+            ))
             .ToListAsync(cancellationToken);
 
         var translationDict = TranslationUtils.CreateBuilder()
