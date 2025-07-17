@@ -6,6 +6,7 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using MassTransit;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Notification.API.Data.Processors;
 using Notification.API.Firebase.ServiceContracts;
@@ -18,12 +19,10 @@ public static class ApplicationServiceExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
-        var connectionString = config.GetConnectionString("NotificationDb")!;
-        
-        services.AddHealthChecks()
-            .AddNpgSql(connectionString);
-        
         services.Configure<AppSettings>(config);
+        
+        services.AddHealthChecks().AddNpgSql(sp =>
+            sp.GetRequiredService<IOptions<AppSettings>>().Value.ServiceDbContext.NotificationDb);
         
         services.AddCarter();
         
