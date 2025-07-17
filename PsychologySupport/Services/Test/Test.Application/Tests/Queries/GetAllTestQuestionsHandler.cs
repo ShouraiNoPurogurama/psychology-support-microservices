@@ -42,7 +42,7 @@ public class GetAllTestQuestionsHandler : IQueryHandler<GetAllTestQuestionsQuery
             .ToListAsync(cancellationToken); // Load data lên memory trước
 
         var sortedQuestions = rawQuestions
-            .Select(q => q with { Options = q.Options.OrderBy(o => o.OptionValue).ToList() })
+            .Select(q => q with { Options = q.Options.OrderByDescending(o => o.OptionValue).ToList() })
             .ToList();
 
 
