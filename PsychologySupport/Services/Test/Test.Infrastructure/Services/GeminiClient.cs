@@ -159,6 +159,7 @@ public class GeminiClient(
                         Nhấn mạnh tố chất tâm lý nổi bật, ý nghĩa trong sức khỏe tinh thần.
                         Kể chi tiết: Họ thường thể hiện ra sao khi làm việc, sống trong tập thể hoặc ở các độ tuổi khác nhau.
                         Văn phong truyền cảm hứng, khách quan, không chẩn đoán, không lặp lại số liệu.
+                        Độ dài tầm 110 từ.
 
                         ---
 
@@ -167,7 +168,8 @@ public class GeminiClient(
                         Chú ý liên hệ giữa số liệu (điểm trầm cảm/lo âu/căng thẳng) với biểu hiện thực tiễn trong công việc hoặc cuộc sống.  
                         Không nhắc thẳng tên người dùng, nhưng có thể gọi họ là "bạn" để tăng cảm giác cá nhân hóa.
                         Kết thúc bằng một câu gợi mở về cách để xoa dịu hoặc cải thiện cảm xúc hiện tại để gợi mở cho phần gợi ý tiếp theo.
-
+                        Độ dài tầm 110 từ.
+                        
                         {improvementGoalsSection}
                         {recentEmotionsSection}
 
