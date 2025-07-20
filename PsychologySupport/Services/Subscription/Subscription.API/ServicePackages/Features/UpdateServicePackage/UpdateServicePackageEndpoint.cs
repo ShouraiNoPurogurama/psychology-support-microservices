@@ -20,7 +20,7 @@ public class UpdateServicePackageEndpoint : ICarterModule
             [FromBody] UpdateServicePackageDto dto,
             ISender sender, HttpContext httpContext) =>
         {
-            if(!AuthorizationHelpers.CanModifySystemData(httpContext.User))
+            if(!(AuthorizationHelpers.CanModifySystemData(httpContext.User) || AuthorizationHelpers.IsExclusiveAccess(httpContext.User)))
                 throw new ForbiddenException();
             
             var command = new UpdateServicePackageCommand(id, dto);
