@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.Messaging.Events.Auth;
 using BuildingBlocks.Messaging.Events.Notification;
+using BuildingBlocks.Messaging.Events.Scheduling;
 using BuildingBlocks.Messaging.Events.Subscription;
 using MassTransit;
 using MediatR;
@@ -19,6 +20,9 @@ public class SubscriptionPaymentCompletedEventHandler(
             notification.SubscriptionId);
 
         var activateSubscriptionEvent = new SubscriptionPaymentSuccessIntegrationEvent(notification.SubscriptionId);
+        
+        //TODO PRM
+        var generateScheduleEvent = new SchedulePaymentSuccessIntegrationEvent(notification.PatientId);
 
         var sendEmailEvent = new SendEmailIntegrationEvent(notification.PatientEmail,  "Gói đăng ký đã được kích hoạt",
             "Gói đăng ký của bạn đã được kích hoạt thành công.");
@@ -38,6 +42,7 @@ public class SubscriptionPaymentCompletedEventHandler(
         }
 
         await publishEndpoint.Publish(activateSubscriptionEvent, cancellationToken);
+        await publishEndpoint.Publish(generateScheduleEvent, cancellationToken);
         await publishEndpoint.Publish(sendEmailEvent, cancellationToken);
     }
 }

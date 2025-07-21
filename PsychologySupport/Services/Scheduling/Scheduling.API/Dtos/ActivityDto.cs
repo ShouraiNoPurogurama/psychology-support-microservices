@@ -1,5 +1,4 @@
-﻿using Scheduling.API.Enums;
-using Scheduling.API.Models;
+﻿using Scheduling.API.Models;
 
 namespace Scheduling.API.Dtos;
 

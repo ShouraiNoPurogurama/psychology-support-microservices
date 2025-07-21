@@ -3,6 +3,7 @@ using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using FluentValidation;
 using Promotion.Grpc;
+using Scheduling.API.Services;
 using Scheduling.API.Validators;
 
 namespace Scheduling.API.Extensions
@@ -73,6 +74,7 @@ namespace Scheduling.API.Extensions
         {
             services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
             services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+            services.AddScoped<GeminiClient>();
         }
 
         private static void ConfigureMediatR(IServiceCollection services)
