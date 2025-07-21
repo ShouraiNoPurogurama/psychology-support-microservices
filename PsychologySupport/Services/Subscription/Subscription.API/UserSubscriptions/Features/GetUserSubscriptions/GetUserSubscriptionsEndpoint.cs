@@ -30,8 +30,11 @@ public class GetUserSubscriptionsEndpoint : ICarterModule
                 [AsParameters] GetUserSubscriptionsRequest request,
                 ISender sender, HttpContext httpContext) =>
             {
+                if(request.PatientId.HasValue && !(AuthorizationHelpers.CanViewPatientProfile(request.PatientId.Value ,httpContext.User) && AuthorizationHelpers.IsExclusiveAccess(httpContext.User)))
+                    throw new ForbiddenException();
+                
                 // Authorization check
-                if (!request.PatientId.HasValue || !(AuthorizationHelpers.CanViewPatientProfile(request.PatientId.Value ,httpContext.User) || AuthorizationHelpers.IsExclusiveAccess(httpContext.User)))
+                if (!(AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User) || AuthorizationHelpers.IsExclusiveAccess(httpContext.User)))
                     throw new ForbiddenException();
 
                 var query = request.Adapt<GetUserSubscriptionsQuery>();
