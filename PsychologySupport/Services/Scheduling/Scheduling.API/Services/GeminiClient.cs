@@ -83,7 +83,7 @@ public class GeminiClient(
 
                     Hướng dẫn:
                     - Mỗi activity trong lộ trình đều có trường `Type`, `TimeRange`, `Duration`, `DateNumber`.
-                    - Hãy duyệt từng session, từng activity, và nếu thấy activityId, thời điểm, hoặc thời lượng chưa hợp lý thì **chỉ thay bằng Id, TimeRange, Duration, DateNumber của activity khác cùng loại từ danh sách trên**.
+                    - Hãy duyệt từng session, từng activity, và nếu thấy activityId, thời điểm, hoặc thời lượng chưa hợp lý thì **chỉ thay bằng Id, TimeRange, Duration (mặc định đơn vị là phút, nếu là 1 giờ thì trả về '60' là được), DateNumber của activity khác cùng loại từ danh sách trên**.
                     - Đặc biệt, hãy tối ưu hóa thời điểm thực hiện các activity dựa trên các nguyên lý khoa học về quản lý thời gian như:
                       + **Time-Blocking**: Gom các hoạt động tương tự vào các khung thời gian hợp lý trong ngày.
                       + **Hiệu suất buổi sáng/tối**: Ưu tiên hoạt động thể chất hoặc sáng tạo vào buổi sáng khi năng lượng cao, hoạt động giải trí/thư giãn vào cuối ngày.
@@ -92,7 +92,7 @@ public class GeminiClient(
                     - Không được tạo activityId mới, không đổi Type, không thêm/xóa trường nào trong schema.
                     - Đầu ra phải giữ đúng schema `ShortSchedule`, không thay đổi tên/trường.
 
-                    Chỉ trả về object JSON đúng format như lộ trình mẫu.
+                    Trả về lộ trình phiên bản được tối ưu hóa.
                 """;
     }
 
@@ -124,9 +124,12 @@ public class GeminiClient(
                                     properties = new
                                     {
                                         type = new { type = "string" },
-                                        activityId = new { type = "string" }
+                                        activityId = new { type = "string" },
+                                        timeRange = new { type = "string" }, 
+                                        duration = new { type = "string" }, 
+                                        dateNumber = new { type = "integer" }
                                     },
-                                    required = new[] { "type", "activityId" }
+                                    required = new[] { "type", "activityId", "timeRange", "duration", "dateNumber" }
                                 }
                             }
                         },
@@ -143,6 +146,7 @@ public class GeminiClient(
             GenerationConfig: new GeminiGenerationConfigDto(ResponseSchema: responseSchema)
         );
     }
+
 
     private async Task<string> CallGeminiAPIAsync(GeminiRequestDto payload)
     {

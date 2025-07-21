@@ -115,7 +115,7 @@ public class CreateScheduleHandler(
                 Status = ScheduleActivityStatus.Pending,
                 Description = $"Sample {j}",
                 TimeRange = session.StartDate.AddHours(Random.Shared.Next(6, 22)),
-                Duration = "1h",
+                Duration = "60",
                 DateNumber = session.Order
             };
             activities.Add(activity);
