@@ -1,5 +1,7 @@
 ﻿using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
+using BuildingBlocks.Constants;
 using Microsoft.Extensions.Options;
 using Notification.API.Data;
 using Notification.API.Emails.Configurations;
@@ -36,6 +38,11 @@ public class EmailService(
 
     private string OnSendEmail(EmailMessageDto emailMessageDto)
     {
+        if(!Regex.IsMatch(emailMessageDto.To, MyPatterns.Email))
+        {
+            return "[ERR]" + GenerateUniqueTrackerId();;
+        }
+        
         var smtpClient = CreateSmtpClient();
 
         var trackId = GenerateUniqueTrackerId();
