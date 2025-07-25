@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using FluentValidation;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +34,7 @@ public static class Extensions
                     host.RequestedConnectionTimeout(TimeSpan.FromSeconds(30)); 
                 });
                 
-                
+                configurator.UseInMemoryOutbox(context); //giúp đảm bảo transactional message dispatch
                 
                 configurator.ConfigureEndpoints(context);
                 
@@ -44,8 +45,10 @@ public static class Extensions
                         TimeSpan.FromSeconds(1),    //thời gian delay tối thiểu
                         TimeSpan.FromSeconds(30),   //thời gian delay tối đa
                         TimeSpan.FromSeconds(5));  //hệ số tăng delay (exponential factor)
+                    
+                    retryConfig.Ignore<ValidationException>(); //lỗi không nên retry
+                    retryConfig.Handle<TimeoutException>();     //lỗi nên retry
                 });
-
                 
                 configurator.UseCircuitBreaker(cb =>
                 {
