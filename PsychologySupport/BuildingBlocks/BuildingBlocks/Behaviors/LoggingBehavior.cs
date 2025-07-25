@@ -21,7 +21,10 @@ public class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TReque
     {
         var requestName = typeof(TRequest).Name;
         var responseName = typeof(TResponse).Name;
-        var correlationId = Activity.Current?.Id ?? Guid.NewGuid().ToString("N")[..8];
+        var activityId = Activity.Current?.Id;
+        var correlationId = activityId != null
+            ? activityId.Split('-').ElementAtOrDefault(1)?[..8] ?? Guid.NewGuid().ToString("N")[..8]
+            : Guid.NewGuid().ToString("N")[..8];
 
         using var correlationScope = LogContext.PushProperty("CorrelationId", correlationId);
         using var requestTypeScope = LogContext.PushProperty("RequestType", requestName);
