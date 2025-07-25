@@ -94,7 +94,7 @@ jobs:
             wait_healthy() {
               local svc="$1"
               local port="$2"
-              local max_wait=60
+              local max_wait=30
               local waited=0
               while ! curl -fsS "http://localhost:$port/health" | grep -q '"status":"Healthy"'; do
                 if [ "$waited" -ge "$max_wait" ]; then
@@ -148,9 +148,9 @@ jobs:
               echo "🔥 Dummy build for $DUMMY_SERVICE completed. Proceeding to parallel builds..."
             fi
 
-            # ------------ PARALLEL BUILD (max 5 at a time) -------------
+            # ------------ PARALLEL BUILD (max 3 at a time) -------------
             COUNT=0
-            MAX_PARALLEL=5
+            MAX_PARALLEL=3
             for svc in $CHANGED; do
               (
                 build_service "$svc"
