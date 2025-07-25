@@ -24,6 +24,11 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer"/>
         <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets"/>
+        <PackageReference Include="Serilog.AspNetCore"/>
+        <PackageReference Include="Serilog.Enrichers.Environment"/>
+        <PackageReference Include="Serilog.Enrichers.Process"/>
+        <PackageReference Include="Serilog.Enrichers.Thread"/>
+        <PackageReference Include="Serilog.Sinks.Console"/>
         <PackageReference Include="System.IdentityModel.Tokens.Jwt"/>
         <PackageReference Include="Yarp.ReverseProxy"/>
     </ItemGroup>

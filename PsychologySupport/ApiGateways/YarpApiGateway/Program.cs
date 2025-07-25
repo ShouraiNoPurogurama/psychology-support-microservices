@@ -1,24 +1,28 @@
 using System.Security.Cryptography.X509Certificates;
 using YarpApiGateway.Extensions;
+using YarpApiGateway.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.ConfigureKestrel(serverOptions =>
+if (builder.Environment.IsProduction())
 {
-    serverOptions.ConfigureHttpsDefaults(httpsOptions =>
+    builder.WebHost.ConfigureKestrel(serverOptions =>
     {
-        httpsOptions.ServerCertificate = X509Certificate2.CreateFromPemFile(
-            "/certs/fullchain.pem",
-            "/certs/privkey.pem"
-        );
-    });
+        serverOptions.ConfigureHttpsDefaults(httpsOptions =>
+        {
+            httpsOptions.ServerCertificate = X509Certificate2.CreateFromPemFile(
+                "/certs/fullchain.pem",
+                "/certs/privkey.pem"
+            );
+        });
 
-    serverOptions.ListenAnyIP(80);
-    serverOptions.ListenAnyIP(443, listenOptions =>
-    {
-        listenOptions.UseHttps();
+        serverOptions.ListenAnyIP(80);
+        serverOptions.ListenAnyIP(443, listenOptions =>
+        {
+            listenOptions.UseHttps();
+        });
     });
-});
+}
 
 builder.Services.AddApplicationServices(builder.Configuration);
 
@@ -34,6 +38,7 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseMiddleware<LoggingMiddleware>();
 app.MapReverseProxy();
 
 app.Run();

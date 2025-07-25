@@ -16,7 +16,8 @@ public class MessageProcessor(
     ISessionConcurrencyManager concurrencyManager,
     ChatBoxDbContext dbContext,
     SummarizationService summarizationService,
-    ILogger<MessageProcessor> logger)
+    ILogger<MessageProcessor> logger
+    )
     : IMessageProcessor
 {
 

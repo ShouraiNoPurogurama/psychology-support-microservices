@@ -20,7 +20,7 @@ public class EmailService(
     public async Task<bool> HasSentEmailRecentlyAsync(string email, CancellationToken cancellationToken)
     {
         var recentEmail = await dbContext.EmailTraces
-            .Where(e => e.To == email && e.CreatedAt > DateTimeOffset.UtcNow.AddMinutes(-1))
+            .Where(e => e.To == email && e.CreatedAt > DateTimeOffset.UtcNow.AddHours(7).AddMinutes(-1))
             .OrderByDescending(e => e.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 

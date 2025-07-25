@@ -33,7 +33,7 @@ public static class ApplicationServiceExtensions
 
         AddServiceDependencies(services);
 
-        // AddRedisCache(services, config);
+        AddRedisCache(services, config);
 
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
