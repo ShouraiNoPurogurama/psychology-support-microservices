@@ -47,7 +47,7 @@ public static class Extensions
                         TimeSpan.FromSeconds(5));  //hệ số tăng delay (exponential factor)
                     
                     retryConfig.Ignore<ValidationException>(); //lỗi không nên retry
-                    retryConfig.Handle<TimeoutException>();     //lỗi nên retry
+                    retryConfig.Handle<TimeoutException>();    //lỗi nên retry
                 });
                 
                 configurator.UseCircuitBreaker(cb =>
