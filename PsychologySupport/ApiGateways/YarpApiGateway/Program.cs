@@ -1,4 +1,6 @@
 using System.Security.Cryptography.X509Certificates;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using YarpApiGateway.Extensions;
 using YarpApiGateway.Middlewares;
 
@@ -40,5 +42,12 @@ app.UseAuthorization();
 
 app.UseMiddleware<LoggingMiddleware>();
 app.MapReverseProxy();
+
+app.UseHealthChecks("/health",
+    new HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }
+);
 
 app.Run();
