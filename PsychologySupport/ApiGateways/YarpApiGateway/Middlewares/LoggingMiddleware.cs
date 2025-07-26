@@ -61,7 +61,7 @@ public class LoggingMiddleware
             var errorTime = DateTime.Now.ToString("HH:mm:ss");
 
             _logger.LogError(ex,
-                "[{Time}] ❌ [FAILED] [{CorrelationId}] {Method} {Path} after {Duration:0.####}ms: {ErrorMessage}",
+                "[{Time}] ❌ [FAILED] [{CorrelationId}] {Method} {Path} after {Duration:0.##}ms: {ErrorMessage}",
                 errorTime, correlationId, method, path, duration, ex.Message);
 
             throw;
