@@ -30,8 +30,6 @@ public static class Extensions
                 {
                     host.Username(configuration["MessageBroker:UserName"]!);
                     host.Password(configuration["MessageBroker:Password"]!);
-                    host.Heartbeat(10); // default là 60s → giảm để phát hiện sớm
-                    host.RequestedConnectionTimeout(TimeSpan.FromSeconds(30)); 
                 });
                 
                 configurator.UseInMemoryOutbox(context); //giúp đảm bảo transactional message dispatch
