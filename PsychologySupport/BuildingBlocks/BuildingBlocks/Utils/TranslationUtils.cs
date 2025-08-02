@@ -61,7 +61,7 @@ public static class TranslationUtils
     )
     {
         return objects.ToTranslationDictionary(
-            obj => GetIdValue(obj),
+            obj => GetIdValue(obj), 
             entityName,
             propertiesToTranslate
         );
