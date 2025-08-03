@@ -34,11 +34,14 @@ public class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TReque
 
         //🚀 [START]
         logger.LogInformation("🚀 [START] [{CorrelationId}] {RequestType} → {ResponseType}", correlationId, requestName, responseName);
+        
 
         //📥 [REQUEST]
         if (logger.IsEnabled(LogLevel.Debug))
         {
             LogRequestDetails(request, correlationId);
+
+            LogThreadPoolStatus();
         }
 
         try
@@ -79,6 +82,17 @@ public class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TReque
 
             throw;
         }
+    }
+
+    private void LogThreadPoolStatus()
+    {
+        ThreadPool.GetAvailableThreads(out int workerThreads, out int completionPortThreads);
+        ThreadPool.GetMaxThreads(out int maxWorkerThreads, out int maxCompletionPortThreads);
+        ThreadPool.GetMinThreads(out int minWorkerThreads, out int minCompletionPortThreads);
+
+        logger.LogDebug(
+            "[ThreadPool] Available Worker={AvailableWorker}/{MaxWorker}, MinWorker={MinWorker}, Available IO={AvailableIO}",
+            workerThreads, maxWorkerThreads, minWorkerThreads, completionPortThreads);
     }
 
     private void LogRequestDetails(TRequest request, string correlationId)
