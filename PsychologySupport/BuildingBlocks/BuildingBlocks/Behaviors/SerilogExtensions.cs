@@ -43,14 +43,7 @@ public static class SerilogExtensions
                 outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{ServiceName}] {Message:lj}{NewLine}{Exception}",
                 theme: theme ?? AnsiConsoleTheme.Code
             );
-
-            // loggerConfiguration.MinimumLevel.Is(minimumLevel);
-
-            //Override minimum level cho các namespace cụ thể
-            // loggerConfiguration
-            //     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-            //     .MinimumLevel.Override("System", LogEventLevel.Warning)
-            //     .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information);
+            
         });
     }
 
