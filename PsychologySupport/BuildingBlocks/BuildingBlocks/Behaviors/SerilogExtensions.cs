@@ -44,7 +44,7 @@ public static class SerilogExtensions
                 theme: theme ?? AnsiConsoleTheme.Code
             );
 
-            loggerConfiguration.MinimumLevel.Is(minimumLevel);
+            // loggerConfiguration.MinimumLevel.Is(minimumLevel);
 
             //Override minimum level cho các namespace cụ thể
             // loggerConfiguration

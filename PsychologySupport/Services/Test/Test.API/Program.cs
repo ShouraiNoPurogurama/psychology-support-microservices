@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Load configuration settings
 builder.Configuration.LoadConfiguration(builder.Environment);
 
-builder.Host.UseStandardSerilog(builder.Configuration, "Test Service");
+builder.Host.UseCustomSerilog(builder.Configuration, "Test Service");
 
 //Add services to the container
 builder.Services
