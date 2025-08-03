@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
-builder.Host.UseStandardSerilog(builder.Configuration, "ChatBox");
+builder.Host.UseCustomSerilog(builder.Configuration, "ChatBox");
 
 var services = builder.Services;
 

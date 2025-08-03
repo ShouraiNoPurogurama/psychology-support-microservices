@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
 
-builder.Host.UseStandardSerilog(builder.Configuration, "Notification");
+builder.Host.UseCustomSerilog(builder.Configuration, "Notification");
 
 var services = builder.Services;
 

@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
 
-builder.Host.UseStandardSerilog(builder.Configuration, "Auth");
+builder.Host.UseCustomSerilog(builder.Configuration, "Auth");
 
 // Add services to the container
 var services = builder.Services;

@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
 
-builder.Host.UseStandardSerilog(builder.Configuration, "Subscription");
+builder.Host.UseCustomSerilog(builder.Configuration, "Subscription");
 
 var services = builder.Services;
 

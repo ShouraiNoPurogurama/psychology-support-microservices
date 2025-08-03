@@ -13,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
 
-builder.Host.UseStandardSerilog(builder.Configuration, "Payment");
+builder.Host.UseCustomSerilog(builder.Configuration, "Payment");
 
 // Add services to the container.
 
