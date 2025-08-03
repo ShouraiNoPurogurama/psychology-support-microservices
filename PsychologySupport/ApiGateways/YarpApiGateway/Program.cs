@@ -40,7 +40,7 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseMiddleware<LoggingMiddleware>();
+// app.UseMiddleware<LoggingMiddleware>();
 app.MapReverseProxy();
 
 app.UseHealthChecks("/health",
