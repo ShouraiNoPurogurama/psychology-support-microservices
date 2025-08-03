@@ -12,6 +12,7 @@ public record TranslateDataResult(Dictionary<string, string> Translations);
 
 
 public class TranslateDataHandler(
+    ILogger<TranslateDataHandler> logger,
     TranslationDbContext db,
     GeminiService translationClient
 ) : ICommandHandler<TranslateDataCommand, TranslateDataResult>
@@ -62,6 +63,8 @@ public class TranslateDataHandler(
             .Where(k => missingKeys.Contains(k))
             .ToDictionary(k => k, k => originals[k]);
 
+        logger.LogInformation("[DEBUG] Translating {Count} keys from English to {TargetLanguage}", originalEnglishDict.Count, request.TargetLanguage);
+        
         // 6. Dịch bằng Gemini
         var translatedFromGemini = await translationClient.TranslateKeysAsync(originalEnglishDict);
 
