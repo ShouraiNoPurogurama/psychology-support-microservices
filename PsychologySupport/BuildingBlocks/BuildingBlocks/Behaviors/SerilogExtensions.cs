@@ -60,6 +60,6 @@ public static class SerilogExtensions
             serviceName: serviceName,
             theme: AnsiConsoleTheme.Code,
             minimumLevel: LogEventLevel.Information
-        );
+        ); 
     }
 }
