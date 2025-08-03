@@ -6,16 +6,9 @@ using Translation.API.Dtos.Gemini;
 
 namespace Translation.API.Services;
 
-public class GeminiService
+public class GeminiService(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<GeminiService> logger)
 {
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IConfiguration _config;
-
-    public GeminiService(IHttpClientFactory httpClientFactory, IConfiguration config)
-    {
-        _httpClientFactory = httpClientFactory;
-        _config = config;
-    }
+    private readonly ILogger<GeminiService> _logger = logger;
 
     /// <summary>
     /// Dịch hàng loạt TextKey kèm nội dung tiếng Anh → trả về bản dịch tiếng Việt
@@ -34,6 +27,8 @@ public class GeminiService
             var batch = allKeys.Skip(i).Take(batchSize)
                 .ToDictionary(key => key, key => textKeyToEnglish[key]);
 
+            logger.LogInformation("[DEBUG 2] Translating batch {BatchIndex} with {Count} keys", i / batchSize + 1, batch.Count);
+            
             var prompt = BuildTranslationPrompt(batch);
             var content = new GeminiContentDto("user", [new GeminiContentPartDto(prompt)]);
 
@@ -99,9 +94,9 @@ public class GeminiService
     /// </summary>
     private async Task<string> CallGeminiAPIAsync(GeminiRequestDto payload)
     {
-        var httpClient = _httpClientFactory.CreateClient();
+        var httpClient = httpClientFactory.CreateClient();
 
-        var apiKey = _config["GeminiConfig:ApiKey"];
+        var apiKey = config["GeminiConfig:ApiKey"];
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={apiKey}";
 
         var settings = new JsonSerializerSettings
