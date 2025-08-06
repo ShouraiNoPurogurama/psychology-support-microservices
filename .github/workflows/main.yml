@@ -30,7 +30,7 @@ jobs:
           script: |
             set -e
 
-            cd /home/root/emoease/PsychologySupport
+            cd /home/emoease/PsychologySupport
 
             git reset --hard HEAD
             git pull origin main
