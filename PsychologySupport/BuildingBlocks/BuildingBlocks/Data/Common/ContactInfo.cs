@@ -37,7 +37,7 @@ public record ContactInfo
     }
 
 
-    public static ContactInfo Empty() => new ContactInfo(string.Empty, string.Empty, null);
+    public static ContactInfo Empty() => new ContactInfo(string.Empty, string.Empty, null); 
 
     public bool HasEnoughInfo() => 
         !string.IsNullOrWhiteSpace(Address) &&
