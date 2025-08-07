@@ -277,7 +277,7 @@ public class Dass21PdfDocument(
                                                 .Column(bulletCol =>
                                                 {
                                                     foreach (var highlight in profileHighlights)
-                                                    {
+                                                    { 
                                                         bulletCol.Item()
                                                             .Row(row =>
                                                             {
