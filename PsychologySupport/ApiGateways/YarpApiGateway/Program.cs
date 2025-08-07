@@ -19,10 +19,7 @@ if (builder.Environment.IsProduction())
         });
 
         serverOptions.ListenAnyIP(80);
-        serverOptions.ListenAnyIP(443, listenOptions =>
-        {
-            listenOptions.UseHttps();
-        });
+        serverOptions.ListenAnyIP(443);
     });
 }
 
