@@ -97,7 +97,7 @@ public class Dass21PdfDocument(
                                         .FontColor("#718096");
                                     dateCol.Item()
                                         .PaddingTop(6)
-                                        .Text($"{testDate:dd/MM/yyyy}")
+                                        .Text($"{testDate.AddHours(7):dd/MM/yyyy}")
                                         .FontSize(16)
                                         .Bold()
                                         .FontColor("#1a365d");
@@ -961,7 +961,7 @@ public class Dass21PdfDocument(
                                 .FontSize(10)
                                 .FontColor("#718096");
                             row.RelativeItem()
-                                .Text($"© 2025 | Tạo lúc: {DateTime.Now:HH:mm dd/MM/yyyy}")
+                                .Text($"© 2025 | Tạo lúc: {DateTime.Now.AddHours(7):HH:mm dd/MM/yyyy}")
                                 .FontSize(10)
                                 .FontColor("#718096")
                                 .AlignRight();
