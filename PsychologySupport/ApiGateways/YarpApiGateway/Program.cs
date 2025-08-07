@@ -2,7 +2,6 @@ using System.Security.Cryptography.X509Certificates;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using YarpApiGateway.Extensions;
-using YarpApiGateway.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
