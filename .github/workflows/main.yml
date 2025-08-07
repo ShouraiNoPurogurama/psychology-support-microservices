@@ -64,7 +64,7 @@ jobs:
             build_service() {
               local svc="$1"
               echo "🔨 [$(date +%T)] Building $svc..."
-              if docker compose -f docker-compose-apis.yml build "$svc"; then
+              if docker buildx bake --file docker-compose-apis.yml "$svc"; then
                 echo "✅ [$(date +%T)] Build succeeded: $svc"
                 return 0
               else
