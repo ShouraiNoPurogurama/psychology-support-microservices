@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.DDD;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using BuildingBlocks.DDD;
 using Test.Domain.Enums;
 using Test.Domain.ValueObjects;
 
@@ -7,7 +8,8 @@ namespace Test.Domain.Models;
 public class TestResult : AggregateRoot<Guid>
 {
     public TestResult(Guid id, Guid patientId, Guid testId, Score depressionScore,
-        Score anxietyScore, Score stressScore, SeverityLevel severityLevel, Recommendation recommendation)
+        Score anxietyScore, Score stressScore, SeverityLevel severityLevel, Recommendation recommendation,
+        string profileNickname, string profileDescription) 
     {
         Id = id;
         PatientId = patientId;
@@ -18,6 +20,8 @@ public class TestResult : AggregateRoot<Guid>
         StressScore = stressScore;
         SeverityLevel = severityLevel;
         Recommendation = recommendation;
+        ProfileNickname = profileNickname;
+        ProfileDescription = profileDescription;
     }
 
     private TestResult() { }
@@ -30,6 +34,11 @@ public class TestResult : AggregateRoot<Guid>
     public Score StressScore { get; private set; }
     public SeverityLevel SeverityLevel { get; private set; }
     public Recommendation Recommendation { get; private set; }
+    [NotMapped]
+    public string ProfileNickname { get; private set; } = ""; //<-- THÊM DÒNG NÀY
+    [NotMapped]
+    public string ProfileDescription { get; private set; } = ""; //<-- THÊM DÒNG NÀY
+
     
     public string RecommendationJson
     {
@@ -39,15 +48,14 @@ public class TestResult : AggregateRoot<Guid>
 
     public virtual ICollection<QuestionOption> SelectedOptions { get; private set; } = [];
 
-
     public static TestResult Create(Guid patientId, Guid testId, Score depressionScore,
         Score anxietyScore, Score stressScore, SeverityLevel severityLevel,
-        Recommendation recommendation, List<QuestionOption>? selectedOptions)
+        Recommendation recommendation, string profileNickname, string profileDescription, List<QuestionOption>? selectedOptions)
     {
         var newTestResult = new TestResult(Guid.NewGuid(), patientId, testId, depressionScore, anxietyScore, stressScore,
-            severityLevel, recommendation);
+            severityLevel, recommendation, profileNickname, profileDescription);
 
-        newTestResult.AddSelectedOptions(selectedOptions);
+        newTestResult.AddSelectedOptions(selectedOptions ?? []);
         return newTestResult;
     }
 

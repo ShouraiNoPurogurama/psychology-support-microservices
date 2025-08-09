@@ -38,11 +38,10 @@ public class OutboxProcessor(IServiceProvider serviceProvider, ILogger<OutboxPro
                         await mediator.Publish(eventMessage, stoppingToken);
                     }
 
-                    message.ProcessedOn = DateTimeOffset.UtcNow;
+                    message.ProcessedOn = DateTimeOffset.UtcNow.AddHours(7);
+                    await dbContext.SaveChangesAsync(stoppingToken);
 
                     logger.LogInformation("Successfully processed outbox message with ID: {ID}", message.Id);
-
-                    await dbContext.SaveChangesAsync(stoppingToken);
                 }
             }
             catch (Exception e)
@@ -50,8 +49,8 @@ public class OutboxProcessor(IServiceProvider serviceProvider, ILogger<OutboxPro
                 logger.LogError(e, "Error processing outbox message");
             }
 
-            //Delay: Just check for Outbox table for each 10 seconds
-            await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+            //Delay: Just check for Outbox table for each 3 seconds
+            await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken);
         }
     }
 }

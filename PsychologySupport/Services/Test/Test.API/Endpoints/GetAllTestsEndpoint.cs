@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Exceptions;
+using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
 using MediatR;
@@ -19,11 +20,7 @@ public class GetAllTestsEndpoint : ICarterModule
             {
                 // Authorization check
                 if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
-                    return Results.Problem(
-                               statusCode: StatusCodes.Status403Forbidden,
-                               title: "Forbidden",
-                               detail: "You do not have permission to access this resource."
-                           );
+                    throw new ForbiddenException();
 
                 var query = new GetAllTestsQuery(request);
                 var result = await sender.Send(query);

@@ -4,155 +4,187 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
+  sync-base-secrets:
+    uses: ./.github/workflows/sync-secrets.yml
+    secrets: inherit
+
+  sync-production-appsettings:
+    uses: ./.github/workflows/sync-production-appsettings.yml
+    secrets: inherit
+
   deploy:
     runs-on: ubuntu-latest
-
+    needs: [sync-base-secrets, sync-production-appsettings]
+    environment: Production
     steps:
-    - name: SSH and deploy
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USERNAME }}
-        password: ${{ secrets.VPS_PASSWORD }}
-        script: |
-          # If repo folder doesn't exist, clone it
-          if [ ! -d "/home/root/emoease/PsychologySupport" ]; then
-            git clone https://github.com/ShouraiNoPurogurama/psychology-support-microservices.git /home/root/emoease
-          fi
+      - name: Build & deploy updated microservices with health check & rollback
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          command_timeout: 30m
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            set -e
 
-          cd /home/root/emoease/PsychologySupport
+            cd /home/emoease/PsychologySupport
 
-          # Discard any local changes (optional, but safe)
-          git reset --hard HEAD
+            git reset --hard HEAD
+            git pull origin main
 
-          # Pull latest changes
-          git pull origin main
+            ALL_SERVICES="auth.api chatbox.api image.api lifestyles.api payment.api profile.api promotion.grpc scheduling.api subscription.api test.api translation.api"
 
-          # Inject appsettings.json from GitHub secrets safely
-          cat <<EOF > ApiGateways/YarpApiGateway/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
+            HAS_BUILDING_BLOCKS_CHANGE=$(git diff --name-only HEAD^ HEAD \
+              | grep -E '^PsychologySupport/BuildingBlocks/|^PsychologySupport/BuildingBlocks.Messaging/' || true)
 
-          cat <<EOF > ApiGateways/YarpApiGateway/appsettings.json
-          ${{ secrets.APPSETTINGS_YARP_API_GATEWAY }}
-          EOF
+            if [ -n "$HAS_BUILDING_BLOCKS_CHANGE" ]; then
+              echo "Detected changes in BuildingBlocks or Messaging. All microservices will be rebuilt."
+              CHANGED="$ALL_SERVICES"
+            else
+              CHANGED=$(git diff --name-only HEAD^ HEAD \
+                | grep -E '^PsychologySupport/Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+' \
+                | awk -F/ '{
+                    if ($1 == "PsychologySupport" && $2 == "Services") {
+                      print tolower($3) ".api"
+                    } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
+                      print tolower($3)
+                    }
+                  }' \
+                | sort -u)
+            fi
 
-          cat <<EOF > Services/ChatBox/ChatBox.API/appsettings.json
-          ${{ secrets.APPSETTINGS_CHATBOX }}
-          EOF
+            echo "================= DEBUGGING ================="
+            echo "*** Changed Microservices: $CHANGED"
+            echo "============================================="
 
-          cat <<EOF > Services/Auth/Auth.API/RSAKeys/PrivateKey.xml
-          ${{ secrets.RSA_PRIVATE_KEYS }}
-          EOF
+            # ----------------- BASH FUNCTIONS -----------------
+            build_service() {
+              local svc="$1"
+              echo "🔨 [$(date +%T)] Building $svc..."
+              if docker buildx bake "$svc" --file docker-compose-apis.yml; then
+                echo "✅ [$(date +%T)] Build succeeded: $svc"
+                return 0
+              else
+                echo "❌ [$(date +%T)] Build failed: $svc"
+                return 1
+              fi
+            }
 
-          cat <<EOF > Services/Auth/Auth.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
+            up_service() {
+              local svc="$1"
+              echo "🚀 [$(date +%T)] Starting $svc..."
+              if docker compose -f docker-compose-apis.yml up -d "$svc"; then
+                echo "✅ [$(date +%T)] $svc is up and running"
+                return 0
+              else
+                echo "❌ [$(date +%T)] Failed to start: $svc"
+                return 1
+              fi
+            }
 
-          # Inject appsettings.json from GitHub secrets safely
-          cat <<EOF > Services/Auth/Auth.API/appsettings.json
-          ${{ secrets.APPSETTINGS_AUTH }}
-          EOF
+            get_port() {
+              local svc="$1"
+              # Get published host port mapped from container port 8080
+              if [ "$svc" = "yarpapigateway" ]; then 
+                echo 80
+              else
+                docker compose -f docker-compose-apis.yml port "$svc" 8080 | head -n 1 | cut -d: -f2
+              fi
+            }
 
-          cat <<EOF > Services/ChatBox/ChatBox.API/appsettings.json
-          ${{ secrets.APPSETTINGS_CHATBOX }}
-          EOF
+            wait_healthy() {
+              local svc="$1"
+              local port="$2"
+              local max_wait=30
+              local waited=0
+              while ! curl -fsS "http://localhost:$port/health" | grep -q '"status":"Healthy"'; do
+                if [ "$waited" -ge "$max_wait" ]; then
+                  echo "❌ $svc is not healthy after $max_wait seconds."
+                  return 1
+                fi
+                sleep 2
+                waited=$((waited + 2))
+                echo "⏳ Waiting for $svc to become healthy... ($waited/$max_wait)"
+              done
+              echo "✅ $svc is healthy!"
+              return 0
+            }
 
-          cat <<EOF > Services/ChatBox/ChatBox.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
+            rollback_service() {
+              local svc="$1"
+              local repo=$(echo "$svc" | tr -d '.') #Bỏ dấu chấm để khớp với tên image
+              
+              echo "🔙 Rolling back $repo to previous image."
+              docker compose -f docker-compose-apis.yml stop "$svc"
+              docker tag "$repo:old" "$repo:latest"
+              docker compose -f docker-compose-apis.yml up -d "$svc"
+              local port
+              port=$(get_port "$svc")
+              if wait_healthy "$svc" "$port"; then
+                echo "♻️ Rollback succeeded for $repo!"
+              else
+                echo "🚨 Rollback failed for $repo! Please check manually."
+              fi
+            }
 
-          cat <<EOF > Services/Image/Image.API/appsettings.json
-          ${{ secrets.APPSETTINGS_IMAGE }}
-          EOF
+            # ----------- TAG OLD IMAGE BEFORE BUILDING -------------
+            for svc in $CHANGED; do
+              IMAGE_REPO=$(echo "$svc" | tr -d '.')
+              echo "[DEBUG] Attempting to tag $IMAGE_REPO:latest as $IMAGE_REPO:old"
+              echo "[DEBUG] svc=$svc, IMAGE_REPO=$IMAGE_REPO"
+              docker images "$IMAGE_REPO"
+              if docker images "$IMAGE_REPO:latest" | grep -q latest; then
+                docker tag "$IMAGE_REPO:latest" "$IMAGE_REPO:old" || true
+                echo "[DEBUG] Tagged $IMAGE_REPO:latest as $IMAGE_REPO:old"
+              else
+                echo "[WARN] No $IMAGE_REPO:latest image found, skipping tag"
+              fi
+            done
 
-          cat <<EOF > Services/LifeStyles/LifeStyles.API/appsettings.json
-          ${{ secrets.APPSETTINGS_LIFESTYLES }}
-          EOF
+            # ------------ DUMMY BUILD TO WARM-UP CACHE -------------
+            DUMMY_SERVICE=$(echo "$CHANGED" | awk '{print $1}')
+            if [ -n "$DUMMY_SERVICE" ]; then
+              echo "🔥 Dummy build ($DUMMY_SERVICE) to warm-up Docker cache..."
+              build_service "$DUMMY_SERVICE"
+              echo "🔥 Dummy build for $DUMMY_SERVICE completed. Proceeding to parallel builds..."
+            fi
 
-          cat <<EOF > Services/Notification/Notification.API/appsettings.json
-          ${{ secrets.APPSETTINGS_NOTIFICATION }}
-          EOF
+            # ------------ PARALLEL BUILD (max 3 at a time) -------------
+            COUNT=0
+            MAX_PARALLEL=3
+            for svc in $CHANGED; do
+              (
+                build_service "$svc"
+              ) &
+              COUNT=$((COUNT + 1))
+              if [ "$COUNT" -ge "$MAX_PARALLEL" ]; then
+                wait
+                COUNT=0
+              fi
+            done
+            wait
+            echo "=== All builds completed ==="
 
-          cat <<EOF > Services/Notification/Notification.API/firebase_key.json
-          ${{ secrets.NOTIFICATION_FIREBASE_KEY }}
-          EOF
+            # ----------- UP, HEALTH CHECK & ROLLBACK -------------
+            for svc in $CHANGED; do
+              up_service "$svc"
+              port=$(get_port "$svc")
+              if [ -z "$port" ]; then
+                echo "⚠️ Port not found for $svc, skipping health check."
+                continue
+              fi
 
-          cat <<EOF > Services/Payment/Payment.API/appsettings.json
-          ${{ secrets.APPSETTINGS_PAYMENT }}
-          EOF
+              if wait_healthy "$svc" "$port"; then
+                echo "✅ $svc is running and healthy!"
+              else
+                echo "❌ $svc health check failed. Rolling back..."
+                rollback_service "$svc"
+              fi
+            done
 
-          cat <<EOF > Services/Profile/Profile.API/appsettings.json
-          ${{ secrets.APPSETTINGS_PROFILE }}
-          EOF
+            docker image prune -f
 
-          cat <<EOF > Services/Promotion/Promotion.Grpc/appsettings.json
-          ${{ secrets.APPSETTINGS_PROMOTION }}
-          EOF
-
-          cat <<EOF > Services/Scheduling/Scheduling.API/appsettings.json
-          ${{ secrets.APPSETTINGS_SCHEDULING }}
-          EOF
-
-          cat <<EOF > Services/Subscription/Subscription.API/appsettings.json
-          ${{ secrets.APPSETTINGS_SUBSCRIPTION }}
-          EOF
-
-          cat <<EOF > Services/Test/Test.API/appsettings.json
-          ${{ secrets.APPSETTINGS_TEST }}
-          EOF
-
-          cat <<EOF > Services/Test/Test.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          cat <<EOF > Services/LifeStyles/LifeStyles.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          cat <<EOF > Services/Payment/Payment.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          cat <<EOF > Services/Scheduling/Scheduling.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          cat <<EOF > Services/Profile/Profile.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          cat <<EOF > Services/Subscription/Subscription.API/RSAKeys/PublicKey.xml
-          ${{ secrets.RSA_PUBLIC_KEYS }}
-          EOF
-
-          CHANGED=$(git diff --name-only HEAD^ HEAD \
-            | grep -E '^PsychologySupport/Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+' \
-            | awk -F/ '{
-                if ($1 == "PsychologySupport" && $2 == "Services") {
-                  print tolower($3) ".api"
-                } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
-                  print tolower($3)
-                }
-              }' \
-            | sort -u)
-
-          echo "================= DEBUGGING ================="
-          echo "*** Changed Microservices: $CHANGED"
-          echo "============================================="
-
-          for svc in $CHANGED; do
-            echo "🔧 Building $svc..."
-            docker compose -f docker-compose-apis.yml build "$svc" || { echo "❌ Build failed for $svc"; continue; }
-
-            echo "🚀 Starting $svc..."
-            docker compose -f docker-compose-apis.yml up -d "$svc" || { echo "❌ Failed to start $svc"; continue; }
-
-            echo "✅ $svc is up and running."
-            echo "---------------------------------------------"
-          done
-            # echo "🧹 Cleaning up Docker builder cache..."
-            # docker builder prune -f
-            # echo "✅ Docker cache cleaned."
+            echo "=== All selected services have been updated (health checks & auto-rollback included) ==="

@@ -1,6 +1,18 @@
 ﻿{
   "ReverseProxy": {
     "Routes": {
+      "notification-health": {
+        "ClusterId": "notification-cluster",
+        "Match": {
+          "Path": "/notification-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "notification-swagger-index": {
         "ClusterId": "notification-cluster",
         "Match": {

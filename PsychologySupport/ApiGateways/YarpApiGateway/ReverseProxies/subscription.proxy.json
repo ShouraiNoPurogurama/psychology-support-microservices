@@ -1,6 +1,18 @@
 ﻿{
   "ReverseProxy": {
     "Routes": {
+      "subscription-health": {
+        "ClusterId": "subscription-cluster",
+        "Match": {
+          "Path": "/subscription-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "subscription-swagger-index": {
         "ClusterId": "subscription-cluster",
         "Match": {

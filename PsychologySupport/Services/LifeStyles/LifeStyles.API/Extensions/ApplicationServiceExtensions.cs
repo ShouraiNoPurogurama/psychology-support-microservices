@@ -14,11 +14,16 @@ namespace LifeStyles.API.Extensions;
 
 public static class ApplicationServiceExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config,
+        IWebHostEnvironment env)
     {
+        var connectionString = GetConnectionString(config)!;
+        services.AddHealthChecks()
+            .AddNpgSql(connectionString);
+        
         services.AddCarter();
 
-        ConfigureSwagger(services);
+        ConfigureSwagger(services, env);
 
         ConfigureCors(services);
 
@@ -27,14 +32,16 @@ public static class ApplicationServiceExtensions
         AddDatabase(services, config);
 
         AddServiceDependencies(services);
-        
-        // AddRedisCache(services, config);
+
+        AddRedisCache(services, config);
 
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
         services.AddIdentityServices(config);
 
         services.AddAuthorization();
+
+        services.AddHttpContextAccessor();
 
         return services;
     }
@@ -43,11 +50,11 @@ public static class ApplicationServiceExtensions
     {
         services.AddSingleton<IConnectionMultiplexer>(x =>
             ConnectionMultiplexer.Connect(config.GetSection("Redis:RedisUrl").Value!));
-        
+
         var redisConnectionString = config.GetConnectionString("Redis");
     }
 
-    private static void ConfigureSwagger(IServiceCollection services)
+    private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(options =>
@@ -57,10 +64,13 @@ public static class ApplicationServiceExtensions
                 Title = "LifeStyles API",
                 Version = "v1"
             });
-            options.AddServer(new OpenApiServer
+            if (env.IsProduction())
             {
-                Url = "/lifestyle-service/"
-            });
+                options.AddServer(new OpenApiServer
+                {
+                    Url = "/lifestyle-service/"
+                });
+            }
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",
@@ -120,7 +130,7 @@ public static class ApplicationServiceExtensions
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
     {
-        var connectionString = config.GetConnectionString("LifeStyleDb");
+        var connectionString = GetConnectionString(config);
 
         services.AddDbContext<LifeStylesDbContext>((sp, opt) =>
         {
@@ -129,5 +139,11 @@ public static class ApplicationServiceExtensions
         });
 
         services.AddScoped<DbContext, LifeStylesDbContext>();
+    }
+
+    private static string? GetConnectionString(IConfiguration config)
+    {
+        var connectionString = config.GetConnectionString("LifeStyleDb");
+        return connectionString;
     }
 }

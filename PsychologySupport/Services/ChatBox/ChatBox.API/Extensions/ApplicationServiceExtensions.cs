@@ -1,8 +1,10 @@
 ﻿using System.Reflection;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
+using BuildingBlocks.Filters;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
+using ChatBox.API.Abstractions;
 using ChatBox.API.Data;
 using ChatBox.API.Models;
 using ChatBox.API.Services;
@@ -16,13 +18,20 @@ namespace ChatBox.API.Extensions;
 
 public static class ApplicationServiceExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
-        services.AddControllers();
+        var connectionString = GetConnectionString(config)!;
+        services.AddHealthChecks()
+            .AddNpgSql(connectionString);
+        
+        services.AddControllers(options =>
+        {
+            options.Filters.Add<LoggingActionFilter>();
+        });
         
         // services.AddCarter();
 
-        ConfigureSwagger(services);
+        ConfigureSwagger(services, env); 
 
         ConfigureCors(services);
         
@@ -33,12 +42,16 @@ public static class ApplicationServiceExtensions
         ConfigureGemini(services, config);
 
         ConfigureMediatR(services);
+
+        AddAIServices(services);
         
         services.AddIdentityServices(config);
         
         services.AddSignalR();
         
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+
+        services.AddHttpContextAccessor();
         
         return services;
     }
@@ -52,8 +65,18 @@ public static class ApplicationServiceExtensions
             config.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
     }
+    
+    private static IServiceCollection AddAIServices(this IServiceCollection services)
+    {
+        services.AddScoped<IContextBuilder, ChatContextBuilder>();
+        services.AddScoped<IAIProvider, GeminiProvider>();
+        services.AddSingleton<ISessionConcurrencyManager, SessionConcurrencyManager>();
+        services.AddScoped<IMessageProcessor, MessageProcessor>();
+        
+        return services;
+    }
 
-    private static void ConfigureSwagger(IServiceCollection services)
+    private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
         
@@ -64,10 +87,14 @@ public static class ApplicationServiceExtensions
                 Title = "Chatbox API",
                 Version = "v1"
             });
-            options.AddServer(new OpenApiServer
+            //Chỉ add server khi chạy Production
+            if (env.IsProduction())
             {
-                Url = "/chatbox-service/"
-            });
+                options.AddServer(new OpenApiServer
+                {
+                    Url = "/chatbox-service/"
+                });
+            }
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",
@@ -112,16 +139,16 @@ public static class ApplicationServiceExtensions
     private static void AddServiceDependencies(IServiceCollection services)
     {
         services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
-        services.AddScoped<GeminiService>();
         services.AddScoped<SessionService>();
         services.AddScoped<SummarizationService>();
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        services.AddScoped<LoggingActionFilter>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
     {
-        var connectionString = config.GetConnectionString("ChatBoxDb");
+        var connectionString = GetConnectionString(config);
 
         services.AddDbContext<ChatBoxDbContext>((sp, opt) =>
         {
@@ -131,7 +158,13 @@ public static class ApplicationServiceExtensions
 
         services.AddScoped<DbContext, ChatBoxDbContext>();
     }
-    
+
+    private static string? GetConnectionString(IConfiguration config)
+    {
+        var connectionString = config.GetConnectionString("ChatBoxDb");
+        return connectionString;
+    }
+
     private static void ConfigureGemini(IServiceCollection services, IConfiguration config)
     {
         services.Configure<GeminiConfig>(config.GetSection("GeminiConfig"));

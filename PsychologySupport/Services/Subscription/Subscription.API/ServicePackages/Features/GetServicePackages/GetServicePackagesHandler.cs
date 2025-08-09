@@ -1,11 +1,16 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Enums;
+using BuildingBlocks.Messaging.Events.Translation;
 using BuildingBlocks.Pagination;
+using BuildingBlocks.Utils;
 using Microsoft.EntityFrameworkCore;
 using Subscription.API.Data;
-using Subscription.API.Data.Common;
 using Subscription.API.ServicePackages.Dtos;
 using Subscription.API.ServicePackages.Enums;
 using Subscription.API.UserSubscriptions.Models;
+using MassTransit;
+using Subscription.API.Data.Common;
+using Subscription.API.ServicePackages.Models;
 
 namespace Subscription.API.ServicePackages.Features.GetServicePackages;
 
@@ -22,10 +27,14 @@ public record GetServicePackagesResult(PaginatedResult<ServicePackageDto> Servic
 public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, GetServicePackagesResult>
 {
     private readonly SubscriptionDbContext _dbContext;
+    private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
 
-    public GetServicePackagesHandler(SubscriptionDbContext dbContext)
+    public GetServicePackagesHandler(
+        SubscriptionDbContext dbContext,
+        IRequestClient<GetTranslatedDataRequest> translationClient)
     {
         _dbContext = dbContext;
+        _translationClient = translationClient;
     }
 
     public async Task<GetServicePackagesResult> Handle(GetServicePackagesQuery request, CancellationToken cancellationToken)
@@ -43,12 +52,14 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            query = query.Where(sp => sp.Name.ToLower().Contains(search) || sp.Description.ToLower().Contains(search));
+            query = query.Where(sp =>
+                sp.Name.ToLower().Contains(search) ||
+                sp.Description.ToLower().Contains(search));
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        var servicePackages = await query
+        var rawPackages = await query
             .OrderByDescending(sp => sp.CreatedAt)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
@@ -69,7 +80,6 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
 
         if (request.PatientId is not null)
         {
-            // Get current active subscription
             currentSubscription = await _dbContext.UserSubscriptions
                 .Include(us => us.ServicePackage)
                 .Where(us => us.PatientId == request.PatientId
@@ -93,7 +103,6 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
                 }
             }
 
-            // Get subscriptions with status Active or AwaitPayment
             patientSubscriptions = await _dbContext.UserSubscriptions
                 .Where(u => u.PatientId == request.PatientId
                             && u.EndDate >= DateTime.UtcNow
@@ -106,25 +115,44 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
                     cancellationToken);
         }
 
-        // Update each servicePackage with UpgradePrice and PurchaseStatus
-        foreach (var servicePackage in servicePackages)
-        {
-            if (currentSubscription != null)
-            {
-                var upgradePrice = servicePackage.Price - (currentPriceLeft ?? 0);
+        //1. Dịch Name & Description
+        var translationDict = TranslationUtils.CreateBuilder()
+            .AddEntities(rawPackages, nameof(ServicePackage), x => x.Name, x => x.Description)
+            .Build();
 
-                if (upgradePrice > 0 && servicePackage.Id != currentSubscription.ServicePackageId)
+        var response = await _translationClient.GetResponse<GetTranslatedDataResponse>(
+            new GetTranslatedDataRequest(translationDict, SupportedLang.vi),
+            cancellationToken);
+
+        var translations = response.Message.Translations;
+
+        //2. Update dữ liệu sau dịch + PurchaseStatus & UpgradePrice
+        var finalPackages = rawPackages.Select(sp =>
+        {
+            var translatedName = translations.GetTranslatedValue(sp, x => x.Name, nameof(ServicePackage));
+            var translatedDesc = translations.GetTranslatedValue(sp, x => x.Description, nameof(ServicePackage));
+
+            if (currentSubscription != null && sp.Id != currentSubscription.ServicePackageId)
+            {
+                var upgradePrice = sp.Price - (currentPriceLeft ?? 0);
+                if (upgradePrice > 0)
                 {
-                    servicePackage.UpgradePrice = upgradePrice;
+                    sp.UpgradePrice = upgradePrice;
                 }
             }
 
-            servicePackage.PurchaseStatus = patientSubscriptions.TryGetValue(servicePackage.Id, out var status)
+            sp.PurchaseStatus = patientSubscriptions.TryGetValue(sp.Id, out var status)
                 ? status.ToString()
                 : nameof(ServicePackageBuyStatus.NotPurchased);
-        }
 
-        var result = new PaginatedResult<ServicePackageDto>(pageIndex, pageSize, totalCount, servicePackages);
+            return sp with
+            {
+                Name = translatedName,
+                Description = translatedDesc
+            };
+        }).ToList();
+
+        var result = new PaginatedResult<ServicePackageDto>(pageIndex, pageSize, totalCount, finalPackages);
         return new GetServicePackagesResult(result);
     }
 }

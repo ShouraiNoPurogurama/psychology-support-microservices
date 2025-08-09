@@ -1,3 +1,5 @@
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Promotion.Grpc.Data;
 using Promotion.Grpc.Extensions;
 using Promotion.Grpc.Services;
@@ -5,7 +7,8 @@ using Promotion.Grpc.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
-builder.Services.AddApplicationServices(builder.Configuration);
+
+builder.Services.AddApplicationServices(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 
@@ -19,7 +22,6 @@ else
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Promotion API v1");
-        c.RoutePrefix = string.Empty;
     });
 }
 
@@ -27,6 +29,13 @@ else
 app.MapGrpcService<PromotionService>();
 app.UseMigration();
 app.MapGrpcReflectionService();
+
+app.UseHealthChecks("/health",
+    new HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }
+);
 
 app.MapGet("/",
     () =>

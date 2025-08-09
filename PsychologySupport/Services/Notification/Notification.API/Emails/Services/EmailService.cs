@@ -1,5 +1,7 @@
 ﻿using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
+using BuildingBlocks.Constants;
 using Microsoft.Extensions.Options;
 using Notification.API.Data;
 using Notification.API.Emails.Configurations;
@@ -15,6 +17,16 @@ public class EmailService(
     private readonly AppSettings _appSettings = appsettingsOptions.Value;
     private readonly EmailConfiguration _emailConfiguration = appsettingsOptions.Value.Features.Email;
     
+    public async Task<bool> HasSentEmailRecentlyAsync(string email, CancellationToken cancellationToken)
+    {
+        var recentEmail = await dbContext.EmailTraces
+            .Where(e => e.To == email && e.CreatedAt > DateTimeOffset.UtcNow.AddHours(7).AddMinutes(-1))
+            .OrderByDescending(e => e.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return recentEmail is not null;
+    }
+    
     public async Task SendEmailAsync(EmailMessageDto emailMessageDto, CancellationToken cancellationToken)
     {
         var trackId = OnSendEmail(emailMessageDto);
@@ -26,6 +38,11 @@ public class EmailService(
 
     private string OnSendEmail(EmailMessageDto emailMessageDto)
     {
+        if(!Regex.IsMatch(emailMessageDto.To, MyPatterns.Email))
+        {
+            return "[ERR]" + GenerateUniqueTrackerId();;
+        }
+        
         var smtpClient = CreateSmtpClient();
 
         var trackId = GenerateUniqueTrackerId();

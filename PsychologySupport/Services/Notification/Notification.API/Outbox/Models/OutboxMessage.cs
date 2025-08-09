@@ -12,7 +12,7 @@ public class OutboxMessage : Entity<Guid>
 
     public void Process()
     {
-        ProcessedOn = DateTimeOffset.UtcNow;
+        ProcessedOn = DateTimeOffset.UtcNow.AddHours(7);
     }
 
     public static OutboxMessage Create<TMessage>(TMessage eventMessage) 
@@ -23,7 +23,7 @@ public class OutboxMessage : Entity<Guid>
             Id = Guid.NewGuid(),
             Type = typeof(TMessage).AssemblyQualifiedName!,
             Content = JsonSerializer.Serialize(eventMessage),
-            OccuredOn = DateTimeOffset.UtcNow
+            OccuredOn = DateTimeOffset.UtcNow.AddHours(7)
         };
     }
 }

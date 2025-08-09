@@ -1,31 +1,39 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="FluentValidation" />
-    <PackageReference Include="FluentValidation.AspNetCore" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
-    <PackageReference Include="Mapster" />
-    <PackageReference Include="MediatR" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <PackageReference Include="Swashbuckle.AspNetCore" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <NoWarn>$(NoWarn);CS9113;CS8618;CS8602;CS8629;CS8600;CS8601;CS8604;CS8625;CS8603;CS8765</NoWarn>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="FluentValidation"/>
+        <PackageReference Include="FluentValidation.AspNetCore"/>
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions"/>
+        <PackageReference Include="Mapster"/>
+        <PackageReference Include="MediatR"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer"/>
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.Common"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"/>
+        <PackageReference Include="Microsoft.FeatureManagement.AspNetCore"/>
+        <PackageReference Include="Microsoft.IdentityModel.Tokens"/>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
+        <PackageReference Include="Serilog.AspNetCore"/>
+        <PackageReference Include="Serilog.Enrichers.Environment"/>
+        <PackageReference Include="Serilog.Enrichers.Process"/>
+        <PackageReference Include="Serilog.Enrichers.Thread"/>
+        <PackageReference Include="Serilog.Sinks.Console"/>
+        <PackageReference Include="Swashbuckle.AspNetCore"/>
+    </ItemGroup>
 </Project>

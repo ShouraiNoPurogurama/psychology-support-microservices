@@ -1,6 +1,18 @@
 ﻿{
   "ReverseProxy": {
     "Routes": {
+      "image-health": {
+        "ClusterId": "image-cluster",
+        "Match": {
+          "Path": "/image-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "image-swagger-index": {
         "ClusterId": "image-cluster",
         "Match": {

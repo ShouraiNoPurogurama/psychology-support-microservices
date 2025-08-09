@@ -3,7 +3,7 @@
 public record ContactInfo
 {
     public string Address { get; set; } = "None"!;
-    public string Email { get; set; } = default!;
+    public string Email { get; set; } = null!;
     public string? PhoneNumber { get; set; }
 
     public ContactInfo()

@@ -1,12 +1,10 @@
 ﻿using BuildingBlocks.CQRS;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Test.Application.Data;
 using Test.Application.Dtos;
 using Test.Application.ServiceContracts;
 using Test.Domain.Enums;
-using Test.Domain.Events;
 using Test.Domain.Models;
 using Test.Domain.ValueObjects;
 
@@ -30,6 +28,15 @@ public class CreateTestResultHandler(
 {
     public async Task<CreateTestResultResult> Handle(CreateTestResultCommand request, CancellationToken cancellationToken)
     {
+        var isExceedQuotas = await dbContext.TestResults
+            .Where(tr => tr.PatientId == request.PatientId && tr.TestId == request.TestId && tr.TakenAt > DateTime.UtcNow.AddDays(-1))
+            .CountAsync(cancellationToken) >= 5;
+        
+        if (isExceedQuotas)
+        {
+            throw new InvalidOperationException("Bạn đã vượt quá số lần làm bài kiểm tra trong ngày (tối đa 5 lần). Vui lòng thử lại vào hôm sau.");
+        }
+        
         var selectedOptions = await dbContext.QuestionOptions
             .Where(o => request.SelectedOptionIds.Contains(o.Id))
             .ToListAsync(cancellationToken);
@@ -74,7 +81,7 @@ public class CreateTestResultHandler(
             DASS21Response.Recommendation.Closing
         );
 
-
+        
         var testResult = TestResult.Create(
             request.PatientId,
             request.TestId,
@@ -83,6 +90,8 @@ public class CreateTestResultHandler(
             stressScore,
             severityLevel,
             recommendationVO,
+            DASS21Response.ProfileNickname,
+            DASS21Response.ProfileDescription,
             selectedOptions
         );
 
@@ -104,17 +113,20 @@ public class CreateTestResultHandler(
             SeverityLevel: severityLevel,
             Recommendation: recommendationVO,
             PatientName: DASS21Response.PatientName,
-            PatientAge: DASS21Response.PatientAge
+            PatientAge: DASS21Response.PatientAge,
+            ProfileNickname: DASS21Response.ProfileNickname,
+            ProfileDescription: DASS21Response.ProfileDescription,
+            ProfileHighlights: DASS21Response.ProfileHighlights
         ));
         return result;
     }
 
     private SeverityLevel DetermineSeverity(Score depression, Score anxiety, Score stress)
     {
-        var totalScore = depression.Value + anxiety.Value + stress.Value;
+        var dLevel = Score.GetDepressionLevelRaw(depression.Value);
+        var aLevel = Score.GetAnxietyLevelRaw(anxiety.Value);
+        var sLevel = Score.GetStressLevelRaw(stress.Value);
 
-        if (totalScore >= 30) return SeverityLevel.Severe;
-        if (totalScore >= 15) return SeverityLevel.Moderate;
-        return SeverityLevel.Mild;
+        return new[] { dLevel, aLevel, sLevel }.Max();
     }
 }

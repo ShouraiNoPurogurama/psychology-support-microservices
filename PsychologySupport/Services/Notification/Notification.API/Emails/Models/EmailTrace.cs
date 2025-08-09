@@ -30,7 +30,7 @@ public class EmailTrace
         To = to,
         Body = body,
         Status = EmailTraceStatus.Sent,
-        CreatedAt = DateTimeOffset.UtcNow,
+        CreatedAt = DateTimeOffset.UtcNow.AddHours(7),
         MessageId = messageId,
         Subject = subject,
         TrackerId = trackId

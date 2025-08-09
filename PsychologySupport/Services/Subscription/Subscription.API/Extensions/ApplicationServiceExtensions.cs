@@ -15,20 +15,25 @@ namespace Subscription.API.Extensions;
 
 public static class ApplicationServiceExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
+        var connectionString = GetConnectionString(config)!;
+        services.AddHealthChecks()
+            .AddNpgSql(connectionString);
+        
         services.AddCarter();
         
         services.AddExceptionHandler<CustomExceptionHandler>();
 
         services.RegisterMapsterConfiguration();
 
-
         services.AddIdentityServices(config);
 
         services.AddAuthorization();
+        
+        services.AddHttpContextAccessor();
 
-        ConfigureSwagger(services);
+        ConfigureSwagger(services, env);        
         ConfigureCORS(services);
         ConfigureMediatR(services);
         AddDatabase(services, config);
@@ -57,7 +62,7 @@ public static class ApplicationServiceExtensions
             });
     }
 
-    private static void ConfigureSwagger(IServiceCollection services)
+    private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
 
@@ -68,10 +73,15 @@ public static class ApplicationServiceExtensions
                 Title = "Subscription API",
                 Version = "v1"
             });
-            options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+
+            if (env.IsProduction())
             {
-                Url = "/subscription-service/"
-            });
+                options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+                {
+                    Url = "/subscription-service/"
+                });
+            }
+            
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",
@@ -132,12 +142,18 @@ public static class ApplicationServiceExtensions
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
     {
-        var connectionString = config.GetConnectionString("SubscriptionDb");
+        var connectionString = GetConnectionString(config);
 
         services.AddDbContext<SubscriptionDbContext>((sp, opt) =>
         {
             opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             opt.UseNpgsql(connectionString);
         });
+    }
+
+    private static string? GetConnectionString(IConfiguration config)
+    {
+        var connectionString = config.GetConnectionString("SubscriptionDb");
+        return connectionString;
     }
 }

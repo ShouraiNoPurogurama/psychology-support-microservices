@@ -6,6 +6,7 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using MassTransit;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Notification.API.Data.Processors;
 using Notification.API.Firebase.ServiceContracts;
@@ -16,13 +17,16 @@ namespace Notification.API.Extensions;
 
 public static class ApplicationServiceExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
         services.Configure<AppSettings>(config);
         
+        services.AddHealthChecks().AddNpgSql(sp =>
+            sp.GetRequiredService<IOptions<AppSettings>>().Value.ServiceDbContext.NotificationDb);
+        
         services.AddCarter();
         
-        ConfigureSwagger(services);
+        ConfigureSwagger(services, env); 
 
         ConfigureCORS(services);
         
@@ -31,6 +35,8 @@ public static class ApplicationServiceExtensions
         AddServiceDependencies(services);
 
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+        
+        services.AddHttpContextAccessor();
         
         return services;
     }
@@ -43,7 +49,7 @@ public static class ApplicationServiceExtensions
         });
     }
 
-    private static void ConfigureSwagger(IServiceCollection services)
+    private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
         
@@ -54,10 +60,13 @@ public static class ApplicationServiceExtensions
                 Title = "Notification API",
                 Version = "v1"
             });
-            options.AddServer(new OpenApiServer
+            if (env.IsProduction())
             {
-                Url = "/notification-service/"
-            });
+                options.AddServer(new OpenApiServer
+                {
+                    Url = "/notification-service/"
+                });
+            }
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",

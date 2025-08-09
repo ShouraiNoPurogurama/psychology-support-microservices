@@ -1,7 +1,9 @@
-﻿using Carter;
+﻿using BuildingBlocks.Exceptions;
+using Carter;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Subscription.API.Common;
 using Subscription.API.ServicePackages.Dtos;
 
 namespace Subscription.API.ServicePackages.Features.UpdateServicePackage;
@@ -16,8 +18,11 @@ public class UpdateServicePackageEndpoint : ICarterModule
         app.MapPut("/service-packages/{id}", async (
             [FromRoute] Guid id,
             [FromBody] UpdateServicePackageDto dto,
-            ISender sender) =>
+            ISender sender, HttpContext httpContext) =>
         {
+            if(!(AuthorizationHelpers.CanModifySystemData(httpContext.User) || AuthorizationHelpers.IsExclusiveAccess(httpContext.User)))
+                throw new ForbiddenException();
+            
             var command = new UpdateServicePackageCommand(id, dto);
             var result = await sender.Send(command);
             var response = result.Adapt<UpdateServicePackageResponse>();
@@ -25,6 +30,7 @@ public class UpdateServicePackageEndpoint : ICarterModule
             return Results.Ok(response);
         })
         .WithName("UpdateServicePackage")
+        .WithTags("Dashboard")
         .Produces<UpdateServicePackageResponse>()
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status400BadRequest)

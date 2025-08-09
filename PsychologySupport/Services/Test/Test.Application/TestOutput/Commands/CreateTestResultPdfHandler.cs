@@ -30,12 +30,16 @@ public class CreateTestResultPdfHandler(ISender sender, ITestResultPdfService pd
         var testResult = (await sender.Send(createResultCommand, cancellationToken)).TestResult;
 
         var completeTime = request.CompletedAt - request.TakenAt;
+        
         string formattedCompleteTime = DateTimeUtils.FormatCompletionTime(completeTime);
 
         var pdfBytes = pdfService.GeneratePdf(
             testResult.PatientName,
             request.TakenAt,
             testResult.PatientAge,
+            testResult.ProfileNickname,
+            testResult.ProfileDescription,
+            testResult.ProfileHighlights,
             testResult.DepressionScore,
             testResult.AnxietyScore,
             testResult.StressScore,

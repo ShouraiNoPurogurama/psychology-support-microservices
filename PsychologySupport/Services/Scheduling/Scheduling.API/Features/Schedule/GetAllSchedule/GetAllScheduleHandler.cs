@@ -68,6 +68,10 @@ namespace Scheduling.API.Features.Schedule.GetAllSchedule
                     ? query.OrderBy(schedule => schedule.EndDate)
                     : query.OrderByDescending(schedule => schedule.EndDate);
             }
+            else
+            {
+                query = query.OrderBy(s => s.StartDate);
+            }
 
             // Pagination
             var totalCount = await query.CountAsync(cancellationToken);

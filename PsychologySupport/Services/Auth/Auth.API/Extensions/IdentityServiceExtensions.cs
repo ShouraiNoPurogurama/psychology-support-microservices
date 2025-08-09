@@ -2,7 +2,9 @@
 using System.Text;
 using Auth.API.Data;
 using Auth.API.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 
@@ -13,7 +15,8 @@ public static class IdentityServiceExtensions
     public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config)
     {
         services.AddIdentity<User, Role>()
-            .AddEntityFrameworkStores<AuthDbContext>();
+            .AddEntityFrameworkStores<AuthDbContext>()
+            .AddDefaultTokenProviders();
 
         services.Configure<IdentityOptions>(options =>
         {
@@ -45,7 +48,7 @@ public static class IdentityServiceExtensions
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-// Existing authentication (RSA JWT)
+            // Existing authentication (RSA JWT)
             .AddJwtBearer("LocalAuth", options =>
             {
                 var rsaKey = RSA.Create();

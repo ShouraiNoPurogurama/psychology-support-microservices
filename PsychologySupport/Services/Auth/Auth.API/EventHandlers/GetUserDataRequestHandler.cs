@@ -24,7 +24,9 @@ public class GetUserDataRequestHandler(UserManager<User> userManager) : IConsume
             return;
         }
 
-        await context.RespondAsync(new GetUserDataResponse(user.Id, user.UserName, user.Email,
-            user.Devices.Select(d => d.DeviceToken)));
+        await context.RespondAsync(new GetUserDataResponse(user.Id, user.UserName!, user.Email!,
+            user.Devices
+                .Where(d => !string.IsNullOrEmpty(d.DeviceToken))
+                .Select(d => d.DeviceToken!)));
     }
 }

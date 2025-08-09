@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using FluentValidation;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,31 @@ public static class Extensions
                     host.Username(configuration["MessageBroker:UserName"]!);
                     host.Password(configuration["MessageBroker:Password"]!);
                 });
+                
+                configurator.UseInMemoryOutbox(context); //giúp đảm bảo transactional message dispatch
+                
                 configurator.ConfigureEndpoints(context);
+                
+                // configurator.UseMessageRetry(retryConfig =>
+                // {
+                //     retryConfig.Exponential(
+                //         3,              
+                //         TimeSpan.FromSeconds(1),    //thời gian delay tối thiểu
+                //         TimeSpan.FromSeconds(30),   //thời gian delay tối đa
+                //         TimeSpan.FromSeconds(5));  //hệ số tăng delay (exponential factor)
+                //     
+                //     retryConfig.Ignore<ValidationException>(); //lỗi không nên retry
+                //     retryConfig.Handle<TimeoutException>();    //lỗi nên retry
+                // });
+                //
+                // configurator.UseCircuitBreaker(cb =>
+                // {
+                //     cb.TrackingPeriod = TimeSpan.FromMinutes(1);    
+                //     cb.TripThreshold = 40;    
+                //     cb.ActiveThreshold = 10;                       //Phải có ít nhất 10 request mới tính TripThreshold
+                //     cb.ResetInterval = TimeSpan.FromMinutes(5);    //Sau 5 phút thử đóng mạch lại
+                // });
+
             });
         });
         return services;

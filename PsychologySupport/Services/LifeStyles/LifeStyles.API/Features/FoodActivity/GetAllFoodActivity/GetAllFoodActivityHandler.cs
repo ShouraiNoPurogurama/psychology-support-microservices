@@ -1,9 +1,15 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Enums;
+using BuildingBlocks.Messaging.Events.Translation;
 using BuildingBlocks.Pagination;
+using BuildingBlocks.Utils;
 using LifeStyles.API.Abstractions;
 using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
+using LifeStyles.API.Extensions;
+using LifeStyles.API.Models;
 using Mapster;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,18 +20,22 @@ public record GetAllFoodActivitiesQuery(
     int PageSize,
     string? Search
 ) : IQuery<GetAllFoodActivitiesResult>;
+
 public record GetAllFoodActivitiesResult(PaginatedResult<FoodActivityDto> FoodActivities);
 
 public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery, GetAllFoodActivitiesResult>
 {
     private readonly LifeStylesDbContext _context;
+    private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
+
     // private readonly IRedisCache _redisCache;
 
-    public GetAllFoodActivityHandler(LifeStylesDbContext context
+    public GetAllFoodActivityHandler(LifeStylesDbContext context, IRequestClient<GetTranslatedDataRequest> translationClient
         // , IRedisCache redisCache
-        )
+    )
     {
         _context = context;
+        _translationClient = translationClient;
         // _redisCache = redisCache;
     }
 
@@ -34,46 +44,65 @@ public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery
         var pageSize = request.PageSize;
         var pageIndex = request.PageIndex;
 
-        // var cacheKey = $"foodActivities:{request.Search}:page{pageIndex}:size{pageSize}";
-        //
-        // var cachedData = await _redisCache.GetCacheDataAsync<PaginatedResult<FoodActivityDto>?>(cacheKey);
-        // if (cachedData is not null)
-        // {
-        //     return new GetAllFoodActivitiesResult(cachedData);
-        // }
-
         var query = _context.FoodActivities
             .Include(fa => fa.FoodNutrients)
             .Include(fa => fa.FoodCategories)
-            .AsQueryable();
+            .AsNoTracking();
 
-        
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             query = query.Where(fa =>
                 fa.Name.Contains(request.Search) ||
-                fa.FoodCategories.Any(fc => fc.Name.Contains(request.Search)) ||
-                fa.FoodNutrients.Any(fn => fn.Name.Contains(request.Search))
+                fa.FoodNutrients.Any(n => n.Name.Contains(request.Search)) ||
+                fa.FoodCategories.Any(c => c.Name.Contains(request.Search))
             );
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        var activities = await query
+        var rawActivities = await query
             .OrderBy(fa => fa.Name)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
+            .ProjectToType<FoodActivityDto>()
             .ToListAsync(cancellationToken);
 
-        var result = new PaginatedResult<FoodActivityDto>(
-            pageIndex,
-            pageSize,
-            totalCount,
-            activities.Adapt<IEnumerable<FoodActivityDto>>()
-        );
+        //Tạo dict dịch cho name, nutrient, category
+        var translationDict = TranslationUtils.CreateBuilder()
+            .AddEntities(rawActivities, nameof(Models.FoodActivity), x => x.Name)
+            .AddStrings(rawActivities.SelectMany(x => x.FoodNutrients), nameof(Models.FoodNutrient))
+            .AddStrings(rawActivities.SelectMany(x => x.FoodCategories), nameof(FoodCategory))
+            .Build();
 
-        // await _redisCache.SetCacheDataAsync(cacheKey, result, TimeSpan.FromMinutes(10));
+        var response = await _translationClient.GetResponse<GetTranslatedDataResponse>(
+            new GetTranslatedDataRequest(translationDict, SupportedLang.vi), cancellationToken);
+
+        var translations = response.Message.Translations;
+
+        //Map lại vào DTO
+        var translatedActivities = rawActivities.Select(a =>
+        {
+            var name = translations.GetTranslatedValue(a, x => x.Name, nameof(Models.FoodActivity));
+
+            var nutrients = translations.MapTranslatedStrings(a.FoodNutrients, nameof(Models.FoodNutrient)).ToList();
+            var categories = translations.MapTranslatedStrings(a.FoodCategories, nameof(FoodCategory)).ToList();
+
+            return a with
+            {
+                Name = name,
+                FoodNutrients = nutrients,
+                FoodCategories = categories
+            };
+        }).ToList();
+
+        var result = new PaginatedResult<FoodActivityDto>(
+            pageIndex, pageSize, totalCount, translatedActivities);
 
         return new GetAllFoodActivitiesResult(result);
+    }
+    
+    private record SimpleTextDto(string Id)
+    {
+        public string Name => Id;
     }
 }

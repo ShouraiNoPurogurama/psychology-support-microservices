@@ -14,4 +14,7 @@
     <None Include="docker-compose-databases.yml" />
     <None Include=".dockerignore" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include=".env" />
+  </ItemGroup>
 </Project>

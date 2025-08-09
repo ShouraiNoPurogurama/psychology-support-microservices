@@ -1,14 +1,18 @@
+using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
+using HealthChecks.UI.Client;
 using Image.API.Extensions;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
+builder.Host.UseStandardSerilog(builder.Configuration, "Image");
 
 var services = builder.Services;
 
-services.AddApplicationServices(builder.Configuration);
+services.AddApplicationServices(builder.Configuration, builder.Environment);
 
 services.AddExceptionHandler<CustomExceptionHandler>();
 
@@ -35,10 +39,16 @@ else
 {
     app.UseSwaggerUI(c =>
     {
-        c.RoutePrefix = string.Empty;
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Image API v1");
+        c.SwaggerEndpoint("/image-service/swagger/v1/swagger.json", "Image API v1");
     });
 }
+
+app.UseHealthChecks("/health",
+    new HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }
+);
 
 app.MapControllers();
 

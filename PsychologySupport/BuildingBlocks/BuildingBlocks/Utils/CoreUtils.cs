@@ -4,6 +4,8 @@ public class CoreUtils
 {
     public static DateTimeOffset SystemTimeNow => TimeUtils.ConvertToUtcPlus7(DateTimeOffset.Now);
     
+    public static DateTimeOffset SystemTimeUtcNow => DateTimeOffset.UtcNow;
+    
     public static string GenerateBookingCode(DateOnly date)
     {
         var randomString = GenerateRandomString();

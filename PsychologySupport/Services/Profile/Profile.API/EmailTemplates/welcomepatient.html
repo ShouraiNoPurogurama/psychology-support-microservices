@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <title>Chào mừng đến với EmoEase</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #492580;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #333;
+        }
+
+        .box {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            text-align: center;
+        }
+
+            .box h1 {
+                font-size: 1.8em;
+                color: #492580;
+                margin-bottom: 16px;
+            }
+
+            .box p {
+                font-size: 1.05em;
+                margin-bottom: 24px;
+                color: #555;
+                line-height: 1.6;
+            }
+
+        .button {
+            display: inline-block;
+            background-color: #492580;
+            color: #fff;
+            padding: 12px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+        }
+
+            .button:hover {
+                background-color: #6c3bb8;
+            }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #888;
+            text-align: center;
+        }
+
+        @media only screen and (max-width: 480px) {
+            .box {
+                padding: 20px;
+                border-radius: 12px;
+            }
+
+                .box h1 {
+                    font-size: 1.5em;
+                }
+
+                .box p {
+                    font-size: 1em;
+                }
+
+            .button {
+                padding: 10px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #492580; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="100%" style="max-width: 500px;">
+                    <tr>
+                        <td>
+                            <div class="box">
+                                <h1>Hồ sơ EmoEase của bạn đã được tạo! 💜</h1>
+                                <p>
+                                    Chúc mừng! Hồ sơ người dùng của bạn đã được tạo thành công trên hệ thống EmoEase.<br />
+                                    Hãy đăng nhập để cập nhật thêm thông tin nếu cần.
+                                </p>
+                                <a href="{{LoginUrl}}" class="button">Đăng nhập ngay</a>
+                                <div class="footer">
+                                    Nếu bạn không đăng ký tài khoản, vui lòng bỏ qua email này.<br />
+                                    © {{Year}} SolTech
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

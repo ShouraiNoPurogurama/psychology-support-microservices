@@ -1,4 +1,5 @@
-﻿using Carter;
+﻿using BuildingBlocks.Exceptions;
+using Carter;
 using LifeStyles.API.Common;
 using Mapster;
 using MediatR;
@@ -19,7 +20,7 @@ public class GetPatientImprovementGoalEndpoint : ICarterModule
             {
                 // Authorization check
                 if (!AuthorizationHelpers.HasAccessToPatientProfile(patientProfileId, httpContext.User))
-                    return Results.Forbid();
+                    throw new ForbiddenException();
 
                 var queryObj = new GetPatientImprovementGoalQuery(patientProfileId, query.Date);
                 var result = await sender.Send(queryObj);

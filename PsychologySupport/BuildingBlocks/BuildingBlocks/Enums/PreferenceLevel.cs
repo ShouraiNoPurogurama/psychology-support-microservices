@@ -13,4 +13,5 @@ namespace BuildingBlocks.Enums
         Neutral,
         Dislike
     }
+
 }

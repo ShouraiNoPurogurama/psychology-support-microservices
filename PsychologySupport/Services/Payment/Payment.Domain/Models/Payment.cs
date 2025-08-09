@@ -118,7 +118,7 @@ public class Payment : AggregateRoot<Guid>
             case PaymentType.BuySubscription:
             {
                 var subscriptionPaymentCompletedEvent = new SubscriptionPaymentDetailCompletedEvent(
-                    SubscriptionId!.Value, patientEmail, TotalAmount);
+                    PatientProfileId,SubscriptionId!.Value, patientEmail, TotalAmount);
 
                 AddDomainEvent(subscriptionPaymentCompletedEvent);
                 break;

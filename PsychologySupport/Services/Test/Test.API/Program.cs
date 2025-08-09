@@ -1,3 +1,4 @@
+using BuildingBlocks.Behaviors;
 using Test.API;
 using Test.Application;
 using Test.Application.Extensions;
@@ -10,11 +11,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Load configuration settings
 builder.Configuration.LoadConfiguration(builder.Environment);
 
+builder.Host.UseCustomSerilog(builder.Configuration, "Test Service");
+
 //Add services to the container
 builder.Services
     .AddApplicationServices(builder.Configuration)
     .AddInfrastructureServices(builder.Configuration)
-    .AddApiServices(builder.Configuration)
+    .AddApiServices(builder.Configuration, builder.Environment)
     .RegisterMapsterConfiguration();
 
 var app = builder.Build();
@@ -32,8 +35,7 @@ else
 {
     app.UseSwaggerUI(c =>
     {
-        c.RoutePrefix = string.Empty;
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API v1");
+        c.SwaggerEndpoint("/test-service/swagger/v1/swagger.json", "Test API v1");
     });
 }
 

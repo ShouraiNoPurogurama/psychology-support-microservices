@@ -145,7 +145,6 @@ namespace Profile.API.Data.Migrations
                                 .HasColumnName("Email");
 
                             b1.Property<string>("PhoneNumber")
-                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("PhoneNumber");
                         });
@@ -439,7 +438,6 @@ namespace Profile.API.Data.Migrations
                                 .HasColumnName("Email");
 
                             b1.Property<string>("PhoneNumber")
-                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("PhoneNumber");
                         });

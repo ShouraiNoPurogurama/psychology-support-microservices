@@ -6,19 +6,26 @@ namespace Payment.API;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration,
+        IWebHostEnvironment env)
     {
+        var connectionString = configuration.GetConnectionString("PaymentDb")!;
+        
+        services.AddHealthChecks()
+            .AddNpgSql(connectionString);
+        
         services.AddCarter();
         services.AddExceptionHandler<CustomExceptionHandler>();
 
         services.AddAuthorization();
+        services.AddHttpContextAccessor();
 
         ConfigureCORS(services);
-        ConfigureSwagger(services);
-        
+        ConfigureSwagger(services, env);
+
         return services;
     }
-    
+
     private static void ConfigureCORS(IServiceCollection services)
     {
         services.AddCors(options =>
@@ -32,8 +39,8 @@ public static class DependencyInjection
             });
         });
     }
-    
-    private static void ConfigureSwagger(IServiceCollection services)
+
+    private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddSwaggerGen(options =>
         {
@@ -42,10 +49,15 @@ public static class DependencyInjection
                 Title = "Payment API",
                 Version = "v1"
             });
-            options.AddServer(new OpenApiServer
+            
+            if (env.IsProduction())
             {
-                Url = "/payment-service/"
-            });
+                options.AddServer(new OpenApiServer
+                {
+                    Url = "/payment-service/"
+                });
+            }
+
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",
@@ -71,7 +83,7 @@ public static class DependencyInjection
             });
         });
     }
-    
+
     public static IConfigurationBuilder LoadConfiguration(this IConfigurationBuilder builder, IHostEnvironment env)
     {
         return builder

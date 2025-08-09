@@ -1,6 +1,18 @@
 ﻿{
   "ReverseProxy": {
     "Routes": {
+      "promotion-health": {
+        "ClusterId": "promotion-cluster",
+        "Match": {
+          "Path": "/promotion-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "promotion-swagger-index": {
         "ClusterId": "promotion-cluster",
         "Match": {

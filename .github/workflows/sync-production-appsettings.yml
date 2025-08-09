@@ -1,0 +1,111 @@
+name: Sync Production Appsettings To VPS
+
+on:
+  workflow_call:
+    secrets:
+      VPS_HOST:
+        required: true
+      VPS_USERNAME:
+        required: true
+      VPS_PASSWORD:
+        required: true
+      APPSETTINGS_PRODUCTION_AUTH_API:
+        required: true
+      APPSETTINGS_PRODUCTION_CHATBOX:
+        required: true
+      APPSETTINGS_PRODUCTION_IMAGE:
+        required: true
+      APPSETTINGS_PRODUCTION_LIFESTYLES:
+        required: true
+      APPSETTINGS_PRODUCTION_NOTIFICATION:
+        required: true
+      APPSETTINGS_PRODUCTION_PAYMENT:
+        required: true
+      APPSETTINGS_PRODUCTION_PROFILE:
+        required: true
+      APPSETTINGS_PRODUCTION_PROMOTION:
+        required: true
+      APPSETTINGS_PRODUCTION_SCHEDULING:
+        required: true
+      APPSETTINGS_PRODUCTION_SUBSCRIPTION:
+        required: true
+      APPSETTINGS_PRODUCTION_TRANSLATION:
+        required: true
+      APPSETTINGS_PRODUCTION_TEST:
+        required: true
+  workflow_dispatch:
+jobs:
+  sync-production:
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+      - name: Sync production appsettings for all services
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            cd /home/root/emoease/PsychologySupport
+
+            # Auth
+            cat <<EOF > Services/Auth/Auth.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_AUTH_API }}
+            EOF
+
+            # ChatBox
+            cat <<EOF > Services/ChatBox/ChatBox.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_CHATBOX }}
+            EOF
+
+            # Image
+            cat <<EOF > Services/Image/Image.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_IMAGE }}
+            EOF
+
+            # LifeStyles
+            cat <<EOF > Services/LifeStyles/LifeStyles.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_LIFESTYLES }}
+            EOF
+
+            # Notification
+            cat <<EOF > Services/Notification/Notification.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_NOTIFICATION }}
+            EOF
+
+            # Payment
+            cat <<EOF > Services/Payment/Payment.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_PAYMENT }}
+            EOF
+
+            # Profile
+            cat <<EOF > Services/Profile/Profile.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_PROFILE }}
+            EOF
+
+            # Promotion
+            cat <<EOF > Services/Promotion/Promotion.Grpc/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_PROMOTION }}
+            EOF
+
+            # Scheduling
+            cat <<EOF > Services/Scheduling/Scheduling.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_SCHEDULING }}
+            EOF
+
+            # Subscription
+            cat <<EOF > Services/Subscription/Subscription.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_SUBSCRIPTION }}
+            EOF
+
+            # Test
+            cat <<EOF > Services/Test/Test.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_TEST }}
+            EOF
+
+            # Translation
+            cat <<EOF > Services/Translation/Translation.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_TRANSLATION }}
+            EOF
+
+            echo "✅ Sync production appsettings done!"

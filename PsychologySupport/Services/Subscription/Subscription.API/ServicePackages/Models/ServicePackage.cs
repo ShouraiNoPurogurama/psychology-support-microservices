@@ -43,4 +43,22 @@ public class ServicePackage : AggregateRoot<Guid>
         
         return new ServicePackage(id, name, description, price, durationDays, imageId, isActive);
     }
+    
+    public void Update(string? name, string? description, decimal? price, int? durationDays, bool? isActive)
+    {
+        if (name is not null)
+            Name = name;
+
+        if (description is not null)
+            Description = description;
+
+        if (price.HasValue)
+            Price = price.Value;
+
+        if (durationDays.HasValue)
+            DurationDays = durationDays.Value;
+
+        if (isActive.HasValue)
+            IsActive = isActive.Value;
+    }
 }

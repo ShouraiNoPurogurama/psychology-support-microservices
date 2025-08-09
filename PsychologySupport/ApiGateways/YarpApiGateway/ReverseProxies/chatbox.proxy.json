@@ -1,6 +1,18 @@
 ﻿{
   "ReverseProxy": {
     "Routes": {
+      "chatbox-health": {
+        "ClusterId": "chatbox-cluster",
+        "Match": {
+          "Path": "/chatbox-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "chatbox-swagger-index": {
         "ClusterId": "chatbox-cluster",
         "Match": {
@@ -24,6 +36,21 @@
           }
         ],
         "RateLimiterPolicy": "fixed"
+      },
+      "chatbox_session-route": {
+        "ClusterId": "chatbox-cluster",
+        "Match": {
+          "Path": "/chatbox-service/api/AIChat/sessions",
+          "Methods": [
+            "POST"
+          ]
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/api/AIChat/sessions"
+          }
+        ],
+        "RateLimiterPolicy": "post_sessions_fixed_window"
       },
       "chatbox-route": {
         "ClusterId": "chatbox-cluster",

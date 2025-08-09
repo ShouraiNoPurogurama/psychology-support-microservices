@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace Test.Application.Dtos.Gemini;
+﻿namespace Test.Application.Dtos.Gemini;
 
 public record GeminiGenerationConfigDto(
     // [JsonProperty("temperature")]

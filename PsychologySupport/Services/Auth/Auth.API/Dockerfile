@@ -16,6 +16,7 @@ COPY ["Directory.Packages.props", "."]
 COPY ["Services/Auth/Auth.API/Auth.API.csproj", "Services/Auth/Auth.API/"]
 COPY ["BuildingBlocks/BuildingBlocks.Messaging/BuildingBlocks.Messaging.csproj", "BuildingBlocks/BuildingBlocks.Messaging/"]
 COPY ["BuildingBlocks/BuildingBlocks/BuildingBlocks.csproj", "BuildingBlocks/BuildingBlocks/"]
+COPY ["Services/Auth/Auth.API/EmailTemplates", "/app/EmailTemplates"]
 RUN dotnet restore "./Services/Auth/Auth.API/Auth.API.csproj"
 COPY . .
 WORKDIR "/src/Services/Auth/Auth.API"

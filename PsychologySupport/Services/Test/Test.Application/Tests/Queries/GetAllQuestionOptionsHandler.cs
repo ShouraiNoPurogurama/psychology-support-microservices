@@ -34,6 +34,7 @@ public class GetAllQuestionOptionsHandler
         var questionOptions = await query
             .Skip((request.PaginationRequest.PageIndex - 1) * request.PaginationRequest.PageSize)
             .Take(request.PaginationRequest.PageSize)
+            .OrderBy(q => q.OptionValue)
             .ToListAsync(cancellationToken);
 
         var paginatedResult = new PaginatedResult<QuestionOption>(

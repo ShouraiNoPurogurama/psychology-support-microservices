@@ -1,4 +1,7 @@
-﻿namespace Test.Domain.ValueObjects;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Test.Domain.Enums;
+
+namespace Test.Domain.ValueObjects;
 
 public record Score
 {
@@ -10,7 +13,11 @@ public record Score
         Value = value;
     }
 
+
     public int Value { get; }
+
+    [NotMapped]
+    public int MultipliedValue => Value * 2;
 
     public static Score Create(int value)
     {
@@ -26,7 +33,7 @@ public record Score
     {
         return Value.ToString();
     }
-    
+
     public static string GetDepressionDescriptor(int score)
     {
         return score switch
@@ -38,7 +45,7 @@ public record Score
             _ => "Rất nặng"
         };
     }
-    
+
     public static string GetAnxietyDescriptor(int score)
     {
         return score switch
@@ -50,7 +57,7 @@ public record Score
             _ => "Rất nặng"
         };
     }
-    
+
     public static string GetStressDescriptor(int score)
     {
         return score switch
@@ -60,6 +67,43 @@ public record Score
             <= 12 => "Vừa",
             <= 16 => "Nặng",
             _ => "Rất nặng"
+        };
+    }
+
+
+    public static SeverityLevel GetDepressionLevelRaw(int score)
+    {
+        return score switch
+        {
+            >= 14 => SeverityLevel.Extreme,
+            >= 11 => SeverityLevel.Severe,
+            >= 7 => SeverityLevel.Moderate,
+            >= 5 => SeverityLevel.Mild,
+            _ => SeverityLevel.Normal
+        };
+    }
+
+    public static SeverityLevel GetAnxietyLevelRaw(int score)
+    {
+        return score switch
+        {
+            >= 10 => SeverityLevel.Extreme,
+            >= 8 => SeverityLevel.Severe,
+            >= 6 => SeverityLevel.Moderate,
+            >= 4 => SeverityLevel.Mild,
+            _ => SeverityLevel.Normal
+        };
+    }
+
+    public static SeverityLevel GetStressLevelRaw(int score)
+    {
+        return score switch
+        {
+            >= 17 => SeverityLevel.Extreme,
+            >= 13 => SeverityLevel.Severe,
+            >= 10 => SeverityLevel.Moderate,
+            >= 8 => SeverityLevel.Mild,
+            _ => SeverityLevel.Normal
         };
     }
 }

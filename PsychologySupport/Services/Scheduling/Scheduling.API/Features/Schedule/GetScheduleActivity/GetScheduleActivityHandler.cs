@@ -142,6 +142,10 @@ public class GetScheduleActivityHandler(SchedulingDbContext context, IRequestCli
         });
 
 
-        return new GetScheduleActivityResult(scheduleActivityDtos);
+        var result = scheduleActivityDtos
+            .OrderBy(s => s.TimeRange)
+            .ToList();
+        
+        return new GetScheduleActivityResult(result);
     }
 }

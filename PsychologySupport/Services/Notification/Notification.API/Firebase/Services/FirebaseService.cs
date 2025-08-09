@@ -41,7 +41,7 @@ public class FirebaseService(ILogger<FirebaseService> logger) : IFirebaseService
             });
         }
 
-        var response = await FirebaseMessaging.DefaultInstance.SendEachAsync(messages);
-        logger.LogInformation("Successfully sent message: {Response}", response);
+        // var response = await FirebaseMessaging.DefaultInstance.SendEachAsync(messages);
+        // logger.LogInformation("Successfully sent message: {Response}", response);
     }
 }

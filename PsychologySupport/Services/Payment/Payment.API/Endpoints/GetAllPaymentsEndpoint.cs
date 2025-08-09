@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Enums;
+using BuildingBlocks.Exceptions;
 using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
@@ -30,14 +31,10 @@ namespace Payment.API.Endpoints
                 ISender sender, HttpContext httpContext) =>
             {
                 // Authorization check
-                if (request.PatientProfileId is Guid patientId)
+                if (request.PatientProfileId is { } patientId)
                 {
-                    if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User))
-                        return Results.Problem(
-                                statusCode: StatusCodes.Status403Forbidden,
-                                title: "Forbidden",
-                                detail: "You do not have permission to access this resource."
-                            );
+                    if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User) && !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
+                        throw new ForbiddenException();
                 }
 
                 var query = request.Adapt<GetAllPaymentsQuery>();
@@ -47,7 +44,7 @@ namespace Payment.API.Endpoints
             })
             .RequireAuthorization(policy => policy.RequireRole("User","Admin","Manager"))
             .WithName("GetAllPayments")
-            .WithTags("Payments")
+            .WithTags("Dashboard")
             .Produces<GetAllPaymentsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get All Payments")

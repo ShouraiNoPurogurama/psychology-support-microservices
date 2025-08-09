@@ -6,10 +6,8 @@ using BuildingBlocks.Constants;
 using BuildingBlocks.Exceptions;
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
-using Google.Apis.Auth;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Auth.API.Services

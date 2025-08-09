@@ -31,12 +31,26 @@ namespace Subscription.API.Common
 
             return patientProfileId == profileId;
         }
+        
+        public static bool CanModifySystemData(ClaimsPrincipal user)
+        {
+            var role = user.FindFirstValue(ClaimTypes.Role);
+
+            return role is "Admin" or "Manager";
+        }
 
         public static bool HasViewAccessToPatientProfile(ClaimsPrincipal user)
         {
             var role = user.FindFirstValue(ClaimTypes.Role);
 
             return role is "Manager" or "Admin";
+        }
+        
+        public static bool IsExclusiveAccess(ClaimsPrincipal user)
+        {
+            var id = user.FindFirstValue("userId");
+
+            return id == "0197edba-e8e1-78ef-be6a-83e4110170e6";
         }
     }
 }

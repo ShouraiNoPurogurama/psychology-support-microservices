@@ -8,18 +8,22 @@ namespace Test.API;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration,
+        IWebHostEnvironment env)
     {
+        var connectionString = configuration.GetConnectionString("TestDb");
+        
         services.AddCarter();
         services.AddExceptionHandler<CustomExceptionHandler>();
         services.AddHealthChecks()
-            .AddSqlServer(configuration.GetConnectionString("Database")!);
+            .AddNpgSql(connectionString);
 
         services.AddAuthorization();
+        services.AddHttpContextAccessor();
 
-        ConfigureSwagger(services);
+        ConfigureSwagger(services, env);
         ConfigureCors(services);
-        
+
         return services;
     }
 
@@ -35,22 +39,26 @@ public static class DependencyInjection
         );
         return app;
     }
-    
-    private static void ConfigureSwagger(IServiceCollection services)
+
+    private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
 
         services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+            options.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "Test API",
                 Version = "v1"
             });
-            options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+
+            if (env.IsProduction())
             {
-                Url = "/test-service/"
-            });
+                options.AddServer(new OpenApiServer
+                {
+                    Url = "/test-service/"
+                });
+            }
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
@@ -61,7 +69,7 @@ public static class DependencyInjection
                 Scheme = "bearer",
                 BearerFormat = "JWT"
             });
-            
+
             options.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
                 {
@@ -78,7 +86,7 @@ public static class DependencyInjection
             });
         });
     }
-    
+
     private static void ConfigureCors(IServiceCollection services)
     {
         services.AddCors(options =>

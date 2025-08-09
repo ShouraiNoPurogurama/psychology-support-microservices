@@ -1,6 +1,18 @@
 ﻿{
   "ReverseProxy": {
     "Routes": {
+      "auth-health": {
+        "ClusterId": "auth-cluster",
+        "Match": {
+          "Path": "/auth-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ],
+        "RateLimiterPolicy": "fixed"
+      },
       "auth-swagger-index": {
         "ClusterId": "auth-cluster",
         "Match": {

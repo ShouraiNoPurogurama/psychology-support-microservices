@@ -1,11 +1,12 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
+using BuildingBlocks.Messaging.Events.Translation;
 using BuildingBlocks.Pagination;
-using LifeStyles.API.Abstractions;
 using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
+using LifeStyles.API.Extensions;
 using Mapster;
-using Microsoft.AspNetCore.Mvc;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.Features.PhysicalActivity.GetAllPhysicalActivity;
@@ -23,13 +24,15 @@ public record GetAllPhysicalActivitiesResult(PaginatedResult<PhysicalActivityDto
 public class GetAllPhysicalActivityHandler : IQueryHandler<GetAllPhysicalActivitiesQuery, GetAllPhysicalActivitiesResult>
 {
     private readonly LifeStylesDbContext _context;
+    private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
 
-    public GetAllPhysicalActivityHandler(LifeStylesDbContext context
-        // , IRedisCache redisCache
-        )
+    public GetAllPhysicalActivityHandler(
+        LifeStylesDbContext context,
+        IRequestClient<GetTranslatedDataRequest> translationClient
+    )
     {
         _context = context;
-        // _redisCache = redisCache;
+        _translationClient = translationClient;
     }
 
     public async Task<GetAllPhysicalActivitiesResult> Handle(GetAllPhysicalActivitiesQuery request,
@@ -38,47 +41,46 @@ public class GetAllPhysicalActivityHandler : IQueryHandler<GetAllPhysicalActivit
         var pageSize = request.PageSize;
         var pageIndex = request.PageIndex;
 
-        var cacheKey = $"physicalActivities:{request.Search}:{request.IntensityLevel}:{request.ImpactLevel}:page{pageIndex}:size{pageSize}";
-
-        // var cachedData = await _redisCache.GetCacheDataAsync<PaginatedResult<PhysicalActivityDto>?>(cacheKey);
-        // if (cachedData is not null)
-        // {
-        //     return new GetAllPhysicalActivitiesResult(cachedData);
-        // }
-
         var query = _context.PhysicalActivities.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            query = query.Where(ea => ea.Name.Contains(request.Search));
+            query = query.Where(pa => pa.Name.Contains(request.Search));
         }
 
         if (request.IntensityLevel.HasValue)
         {
-            query = query.Where(ea => ea.IntensityLevel == request.IntensityLevel.Value);
+            query = query.Where(pa => pa.IntensityLevel == request.IntensityLevel.Value);
         }
 
         if (request.ImpactLevel.HasValue)
         {
-            query = query.Where(ea => ea.ImpactLevel == request.ImpactLevel.Value);
+            query = query.Where(pa => pa.ImpactLevel == request.ImpactLevel.Value);
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
 
         var activities = await query
-            .OrderBy(ea => ea.Name)
+            .OrderBy(pa => pa.Name)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
+            .ProjectToType<PhysicalActivityDto>()
             .ToListAsync(cancellationToken);
+
+        var translatedActivities = await activities.TranslateEntitiesAsync(
+            nameof(Models.PhysicalActivity), _translationClient, a => a.Id.ToString(), cancellationToken,
+            a => a.Name,
+            a => a.Description,
+            a => a.IntensityLevel,
+            a => a.ImpactLevel
+        );
 
         var result = new PaginatedResult<PhysicalActivityDto>(
             pageIndex,
             pageSize,
             totalCount,
-            activities.Adapt<IEnumerable<PhysicalActivityDto>>()
+            translatedActivities
         );
-
-        // await _redisCache.SetCacheDataAsync(cacheKey, result, TimeSpan.FromMinutes(10));
 
         return new GetAllPhysicalActivitiesResult(result);
     }

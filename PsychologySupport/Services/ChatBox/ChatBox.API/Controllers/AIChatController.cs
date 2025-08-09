@@ -1,5 +1,7 @@
 ﻿using BuildingBlocks.Pagination;
+using ChatBox.API.Abstractions;
 using ChatBox.API.Dtos;
+using ChatBox.API.Dtos.AI;
 using ChatBox.API.Extensions;
 using ChatBox.API.Models;
 using ChatBox.API.Services;
@@ -9,14 +11,14 @@ namespace ChatBox.API.Controllers;
 
 [Controller]
 [Route("api/[controller]")]
-public class AIChatController(GeminiService geminiService, SessionService sessionService) : ControllerBase
+public class AIChatController(SessionService sessionService, IMessageProcessor messageProcessor) : ControllerBase
 {
     [HttpPost("messages")]
     public async Task<IActionResult> SendMessage([FromBody] AIMessageRequestDto request)
     {
         var userId = Guid.Parse(User.GetUserId());
         
-        var response = await geminiService.SendMessageAsync(request, userId);
+        var response = await messageProcessor.ProcessMessageAsync(request, userId);
 
         return Ok(response);
     }
@@ -25,8 +27,9 @@ public class AIChatController(GeminiService geminiService, SessionService sessio
     public async Task<IActionResult> CreateSession(string sessionName = "Đoạn chat mới")
     {
         var userId = Guid.Parse(User.GetUserId());
+        var profileId = Guid.Parse(User.GetProfileId());
 
-        var session = await sessionService.CreateSessionAsync(sessionName, userId);
+        var session = await sessionService.CreateSessionAsync(sessionName, userId, profileId);
         return Ok(session);
     }
 
@@ -53,25 +56,25 @@ public class AIChatController(GeminiService geminiService, SessionService sessio
     {
         var userId = Guid.Parse(User.GetUserId());
 
-        var messages = await geminiService.GetMessagesAsync(id, userId, paginationRequest);
+        var messages = await messageProcessor.GetMessagesAsync(id, userId, paginationRequest);
         return Ok(messages);
     }
 
-    [HttpPost("sessions/{id}/messages")]
-    public async Task<IActionResult> AddMessage(Guid id, [FromBody] string content)
-    {
-        var userId = Guid.Parse(User.GetUserId());
-        
-        var message = await geminiService.AddMessageAsync(id,userId , content, senderIsEmo: false);
-        return Ok(message);
-    }
+    // [HttpPost("sessions/{id}/messages")]
+    // public async Task<IActionResult> AddMessage(Guid id, [FromBody] string content)
+    // {
+    //     var userId = Guid.Parse(User.GetUserId());
+    //     
+    //     var message = await messageProcessor.AddMessageAsync(id,userId , content, senderIsEmo: false);
+    //     return Ok(message);
+    // }
 
     [HttpPut("sessions/{id}/messages/read")]
     public async Task<IActionResult> MarkAsRead(Guid id)
     {
         var userId = Guid.Parse(User.GetUserId());
         
-        await geminiService.MarkMessagesAsReadAsync(id, userId);
+        await messageProcessor.MarkMessagesAsReadAsync(id, userId);
         return Ok();
     }
 }

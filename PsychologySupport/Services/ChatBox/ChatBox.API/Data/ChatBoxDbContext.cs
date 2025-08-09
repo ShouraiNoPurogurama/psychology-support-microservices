@@ -14,6 +14,7 @@ public class ChatBoxDbContext : DbContext
     {
     }
 
+    
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -21,5 +22,11 @@ public class ChatBoxDbContext : DbContext
         
         builder.Entity<DoctorPatientBooking>()
             .HasKey(d => d.BookingId);
+        
+        builder.Entity<AIChatSession>()
+            .Ignore(e => e.PersonaSnapshot) //Không map object
+            .Property(e => e.PersonaSnapshotJson) //Map field chứa JSON string
+            .HasColumnName("PersonaSnapshot")
+            .HasColumnType("jsonb"); //Nếu là PostgreSQL, còn SQL Server thì nvarchar(max)
     }
 }

@@ -1,14 +1,18 @@
+using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using ChatBox.API.Extensions;
 using ChatBox.API.Hubs;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
+builder.Host.UseCustomSerilog(builder.Configuration, "ChatBox");
 
 var services = builder.Services;
 
-services.AddApplicationServices(builder.Configuration);
+services.AddApplicationServices(builder.Configuration, builder.Environment);
 services.AddExceptionHandler<CustomExceptionHandler>();
 
 var app = builder.Build();
@@ -26,10 +30,16 @@ else
 {
     app.UseSwaggerUI(c =>
     {
-        c.RoutePrefix = string.Empty;
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Chatbox API v1");
+        c.SwaggerEndpoint("/chatbox-service/swagger/v1/swagger.json", "Chatbox API v1");
     });
 }
+
+app.UseHealthChecks("/health",
+    new HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }
+);
 
 app.UseAuthentication();
 app.UseAuthorization();

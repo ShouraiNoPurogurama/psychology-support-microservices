@@ -31,17 +31,12 @@ public static class IdentityServicesExtensions
                     ClockSkew = TimeSpan.Zero,
                     ValidAudience = config["Jwt:Audience"],
                     ValidIssuer = config["Jwt:Issuer"],
-                    // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!))
                     IssuerSigningKey = new RsaSecurityKey(rsaKey)
                 };
             });
 
         services.AddAuthorization(options =>
         {
-            // options.FallbackPolicy = new AuthorizationPolicyBuilder()
-            //     .RequireAuthenticatedUser()
-            //     .Build();
-
             options.AddPolicy("RequireAdmin", policy =>
                 policy.RequireClaim(ClaimTypes.Role, "Admin"));
             options.AddPolicy("RequireUser", policy =>

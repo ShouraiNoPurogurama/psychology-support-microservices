@@ -40,6 +40,13 @@ public class AuthController(
         return Ok(response);
     }
     
+    [HttpPost("google-login")]
+    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+    {
+        var result = await authService.GoogleLoginAsync(request);
+        return Ok(result);
+    }
+    
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken([FromBody] TokenApiRequest refreshTokenRequest)
     {
@@ -47,11 +54,25 @@ public class AuthController(
         return Ok(result);
     }
     
-    [HttpPost("confirm-email")]
-    public async Task<IActionResult> ConfirmEmail([AsParameters] ConfirmEmailRequest confirmEmailRequest)
+    [HttpGet("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail([FromQuery] ConfirmEmailRequest confirmEmailRequest)
     {
         var result = await authService.ConfirmEmailAsync(confirmEmailRequest);
-        return Ok(result);
+        return Redirect(result);
+    }
+    
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        var result = await authService.ForgotPasswordAsync(request.Email);
+        return Ok(new { success = result, message = "Vui lòng kiểm tra email để đặt lại mật khẩu." });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        var result = await authService.ResetPasswordAsync(request);
+        return Ok(new { success = result, message = "Đặt lại mật khẩu thành công." });
     }
 
     [HttpPost("revoke-token")]
@@ -61,6 +82,13 @@ public class AuthController(
 
         var result = await authService.RevokeAsync(request);
         return result ? Ok(new { message = "Token đã được thu hồi" }) : BadRequest("Thu hồi token thất bại");
+    }
+
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var result = await authService.ChangePasswordAsync(request);
+        return Ok(new { success = result, message = "Đổi mật khẩu thành công." });
     }
 
 }

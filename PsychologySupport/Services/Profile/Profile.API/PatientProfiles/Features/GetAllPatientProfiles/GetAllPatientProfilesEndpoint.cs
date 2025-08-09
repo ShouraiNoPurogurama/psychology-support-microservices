@@ -16,12 +16,8 @@ public class GetAllPatientProfilesEndpoint : ICarterModule
         app.MapGet("/patients", async ([AsParameters] GetAllPatientProfilesQuery request, ISender sender, HttpContext httpContext) =>
             {
                 // Authorization check
-                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
-                    return Results.Problem(
-                               statusCode: StatusCodes.Status403Forbidden,
-                               title: "Forbidden",
-                               detail: "You do not have permission to access this resource."
-                           );
+                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User) && !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
+                    throw new ForbiddenException();
 
                 var result = await sender.Send(request);
 
