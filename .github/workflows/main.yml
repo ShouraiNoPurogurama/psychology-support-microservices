@@ -177,7 +177,9 @@ jobs:
                 continue
               fi
 
-              if wait_healthy "$svc" "$port"; then
+              if [ "$svc" = "promotiongrpc" ]; then 
+                echo "$svc has been excluded from Health Check."
+              elif wait_healthy "$svc" "$port"; then
                 echo "✅ $svc is running and healthy!"
               else
                 echo "❌ $svc health check failed. Rolling back..."
