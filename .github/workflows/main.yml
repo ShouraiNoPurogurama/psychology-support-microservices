@@ -53,6 +53,7 @@ jobs:
                       print tolower($3)
                     }
                   }' \
+                | grep -v '^notification\.api$' \
                 | sort -u)
             fi
 
