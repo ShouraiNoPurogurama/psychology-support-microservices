@@ -29,14 +29,14 @@ public class EmailService(
     
     public async Task SendEmailAsync(EmailMessageDto emailMessageDto, CancellationToken cancellationToken)
     {
-        var trackId = OnSendEmail(emailMessageDto);
+        var trackId = await OnSendEmail(emailMessageDto);
 
         var emailTrace = CreateEmailTrace(emailMessageDto, trackId);
 
         await OnSaveEmailTraces(emailTrace, cancellationToken);
     }
 
-    private string OnSendEmail(EmailMessageDto emailMessageDto)
+    private async Task<string> OnSendEmail(EmailMessageDto emailMessageDto)
     {
         if(!Regex.IsMatch(emailMessageDto.To, MyPatterns.Email))
         {
@@ -49,7 +49,7 @@ public class EmailService(
 
         var mailMessage = CreateMailMessage(emailMessageDto, trackId);
         
-        smtpClient.Send(mailMessage);
+        await smtpClient.SendMailAsync(mailMessage);
 
         return trackId;
     }

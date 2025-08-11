@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Enums;
+using BuildingBlocks.Pagination;
 using Carter;
 using LifeStyles.API.Common;
 using LifeStyles.API.Dtos;

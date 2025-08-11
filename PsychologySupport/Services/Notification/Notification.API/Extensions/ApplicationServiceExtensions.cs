@@ -121,9 +121,11 @@ public static class ApplicationServiceExtensions
     {
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
-        services.AddScoped<OutboxProcessor>();
+        // services.AddScoped<OutboxProcessor>();
+        services.AddScoped<OutboxListener>();
         services.AddScoped<OutboxService>();
-        services.AddHostedService<OutboxProcessor>();
+        // services.AddHostedService<OutboxProcessor>();
+        services.AddHostedService<OutboxListener>();
         services.AddSingleton<IFirebaseService, FirebaseService>();
     }
     
