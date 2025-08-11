@@ -30,6 +30,7 @@ public class CreateServicePackageEndpoint : ICarterModule
         })
             
         .WithName("CreateServicePackage")
+        .WithTags("ServicePackages")
         .Produces<CreateServicePackageResponse>()
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithDescription("Create a new service package")

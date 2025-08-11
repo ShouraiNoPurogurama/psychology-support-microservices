@@ -32,7 +32,7 @@ public class GetAllQuestionOptionsEndpoint : ICarterModule
             })
             .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetAllQuestionOptions")
-            .WithTags("Test")
+            .WithTags("Tests")
             .Produces<GetAllQuestionOptionsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get paginated Question Options")

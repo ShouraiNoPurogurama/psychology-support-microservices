@@ -9,7 +9,7 @@ public class VnPayCallbackEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("payments/callback", async ([AsParameters] VnPayCallbackDto vnPayCallbackRequest, ISender sender) =>
+        app.MapGet("payments/vnpay/callback", async ([AsParameters] VnPayCallbackDto vnPayCallbackRequest, ISender sender) =>
         {
             var query = new VnPayCallbackQuery(vnPayCallbackRequest);
 
@@ -18,7 +18,7 @@ public class VnPayCallbackEndpoint : ICarterModule
             return Results.Ok(result);
         })
         .WithName("VnPayCallback")
-            .WithTags("Payments")
+            .WithTags("VnPay Payments")
             .Produces<VnPayCallbackResult>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("VnPay Callback Endpoint")

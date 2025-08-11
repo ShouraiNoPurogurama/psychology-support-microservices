@@ -23,6 +23,7 @@ public class GetServicePackageEndpoint : ICarterModule
                 return Results.Ok(response);
             })
             .WithName("GetServicePackage")
+            .WithTags("ServicePackages")
             .Produces<GetServicePackageResponse>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status400BadRequest)
