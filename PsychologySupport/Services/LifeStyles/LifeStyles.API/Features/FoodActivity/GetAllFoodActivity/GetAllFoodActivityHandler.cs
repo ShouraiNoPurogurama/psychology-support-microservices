@@ -1,6 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
-using BuildingBlocks.Messaging.Events.Translation;
 using BuildingBlocks.Pagination;
 using BuildingBlocks.Utils;
 using LifeStyles.API.Abstractions;
@@ -9,9 +8,9 @@ using LifeStyles.API.Dtos;
 using LifeStyles.API.Extensions;
 using LifeStyles.API.Models;
 using Mapster;
-using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Translation.API.Protos; 
 
 namespace LifeStyles.API.Features.FoodActivity.GetAllFoodActivity;
 
@@ -23,21 +22,13 @@ public record GetAllFoodActivitiesQuery(
 
 public record GetAllFoodActivitiesResult(PaginatedResult<FoodActivityDto> FoodActivities);
 
-public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery, GetAllFoodActivitiesResult>
+public class GetAllFoodActivityHandler(
+    LifeStylesDbContext context,
+    TranslationService.TranslationServiceClient translationClient) 
+    : IQueryHandler<GetAllFoodActivitiesQuery, GetAllFoodActivitiesResult>
 {
-    private readonly LifeStylesDbContext _context;
-    private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
-
-    // private readonly IRedisCache _redisCache;
-
-    public GetAllFoodActivityHandler(LifeStylesDbContext context, IRequestClient<GetTranslatedDataRequest> translationClient
-        // , IRedisCache redisCache
-    )
-    {
-        _context = context;
-        _translationClient = translationClient;
-        // _redisCache = redisCache;
-    }
+    private readonly LifeStylesDbContext _context = context;
+    private readonly TranslationService.TranslationServiceClient _translationClient = translationClient;
 
     public async Task<GetAllFoodActivitiesResult> Handle(GetAllFoodActivitiesQuery request, CancellationToken cancellationToken)
     {
@@ -67,23 +58,29 @@ public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery
             .ProjectToType<FoodActivityDto>()
             .ToListAsync(cancellationToken);
 
-        //Tạo dict dịch cho name, nutrient, category
+        // Tạo dict dịch cho name, nutrient, category
         var translationDict = TranslationUtils.CreateBuilder()
             .AddEntities(rawActivities, nameof(Models.FoodActivity), x => x.Name)
             .AddStrings(rawActivities.SelectMany(x => x.FoodNutrients), nameof(Models.FoodNutrient))
             .AddStrings(rawActivities.SelectMany(x => x.FoodCategories), nameof(FoodCategory))
             .Build();
 
-        var response = await _translationClient.GetResponse<GetTranslatedDataResponse>(
-            new GetTranslatedDataRequest(translationDict, SupportedLang.vi), cancellationToken);
+        // Chuyển đổi translationDict thành TranslateDataRequest
+        var translateRequest = new TranslateDataRequest
+        {
+            Originals = { translationDict },
+            TargetLanguage = SupportedLang.vi.ToString()
+        };
 
-        var translations = response.Message.Translations;
+        // Gọi gRPC TranslateData
+        var response = await _translationClient.TranslateDataAsync(translateRequest, cancellationToken: cancellationToken);
 
-        //Map lại vào DTO
+        var translations = response.Translations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        // Map lại vào DTO
         var translatedActivities = rawActivities.Select(a =>
         {
             var name = translations.GetTranslatedValue(a, x => x.Name, nameof(Models.FoodActivity));
-
             var nutrients = translations.MapTranslatedStrings(a.FoodNutrients, nameof(Models.FoodNutrient)).ToList();
             var categories = translations.MapTranslatedStrings(a.FoodCategories, nameof(FoodCategory)).ToList();
 
@@ -100,7 +97,7 @@ public class GetAllFoodActivityHandler : IQueryHandler<GetAllFoodActivitiesQuery
 
         return new GetAllFoodActivitiesResult(result);
     }
-    
+
     private record SimpleTextDto(string Id)
     {
         public string Name => Id;

@@ -1,6 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
-using BuildingBlocks.Messaging.Events.Translation;
 using BuildingBlocks.Pagination;
 using BuildingBlocks.Utils;
 using LifeStyles.API.Abstractions;
@@ -9,9 +8,9 @@ using LifeStyles.API.Dtos;
 using LifeStyles.API.Extensions;
 using LifeStyles.API.Models;
 using Mapster;
-using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Translation.API.Protos;
 
 namespace LifeStyles.API.Features02.FoodActivity.GetAllFoodActivity;
 
@@ -23,19 +22,13 @@ public record GetAllFoodActivitiesV2Query(
 
 public record GetAllFoodActivitiesV2Result(PaginatedResult<FoodActivityDto> FoodActivities);
 
-public class GetAllFoodActivitiesV2Handler
+public class GetAllFoodActivitiesV2Handler(
+    LifeStylesDbContext context,
+    TranslationService.TranslationServiceClient translationClient) 
     : IQueryHandler<GetAllFoodActivitiesV2Query, GetAllFoodActivitiesV2Result>
 {
-    private readonly LifeStylesDbContext _context;
-    private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
-
-    public GetAllFoodActivitiesV2Handler(
-        LifeStylesDbContext context,
-        IRequestClient<GetTranslatedDataRequest> translationClient)
-    {
-        _context = context;
-        _translationClient = translationClient;
-    }
+    private readonly LifeStylesDbContext _context = context;
+    private readonly TranslationService.TranslationServiceClient _translationClient = translationClient;
 
     public async Task<GetAllFoodActivitiesV2Result> Handle(
         GetAllFoodActivitiesV2Query request,
@@ -70,10 +63,17 @@ public class GetAllFoodActivitiesV2Handler
             .AddStrings(rawActivities.SelectMany(x => x.FoodCategories), nameof(FoodCategory))
             .Build();
 
-        var response = await _translationClient.GetResponse<GetTranslatedDataResponse>(
-            new GetTranslatedDataRequest(translationDict, SupportedLang.vi), cancellationToken);
+        // Chuyển đổi translationDict thành TranslateDataRequest
+        var translateRequest = new TranslateDataRequest
+        {
+            Originals = { translationDict },
+            TargetLanguage = SupportedLang.vi.ToString()
+        };
 
-        var translations = response.Message.Translations;
+        // Gọi gRPC TranslateData
+        var response = await _translationClient.TranslateDataAsync(translateRequest, cancellationToken: cancellationToken);
+
+        var translations = response.Translations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
         var translatedActivities = rawActivities.Select(a =>
         {

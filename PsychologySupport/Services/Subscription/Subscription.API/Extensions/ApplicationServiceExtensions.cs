@@ -10,6 +10,7 @@ using Microsoft.OpenApi.Models;
 using Promotion.Grpc;
 using Subscription.API.Data;
 using Subscription.API.Services;
+using Translation.API.Protos;
 
 namespace Subscription.API.Extensions;
 
@@ -52,6 +53,18 @@ public static class ApplicationServiceExtensions
             {
                 options.Address = new Uri(config["GrpcSettings:PromotionUrl"]!);
             })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                return handler;
+            });
+        services.AddGrpcClient<TranslationService.TranslationServiceClient>(options =>
+        {
+            options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);
+        })
             .ConfigurePrimaryHttpMessageHandler(() =>
             {
                 var handler = new HttpClientHandler

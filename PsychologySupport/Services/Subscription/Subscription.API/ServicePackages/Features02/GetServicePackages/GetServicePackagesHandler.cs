@@ -1,6 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
-using BuildingBlocks.Messaging.Events.Translation;
 using BuildingBlocks.Pagination;
 using BuildingBlocks.Utils;
 using Microsoft.EntityFrameworkCore;
@@ -8,9 +7,9 @@ using Subscription.API.Data;
 using Subscription.API.ServicePackages.Dtos;
 using Subscription.API.ServicePackages.Enums;
 using Subscription.API.UserSubscriptions.Models;
-using MassTransit;
 using Subscription.API.Data.Common;
 using Subscription.API.ServicePackages.Models;
+using Translation.API.Protos;
 
 namespace Subscription.API.ServicePackages.Features02.GetServicePackages;
 
@@ -24,18 +23,13 @@ public record GetServicePackagesQuery(
 
 public record GetServicePackagesResult(PaginatedResult<ServicePackageDto> ServicePackages);
 
-public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, GetServicePackagesResult>
+public class GetServicePackagesHandler(
+    SubscriptionDbContext dbContext,
+    TranslationService.TranslationServiceClient translationClient) 
+    : IQueryHandler<GetServicePackagesQuery, GetServicePackagesResult>
 {
-    private readonly SubscriptionDbContext _dbContext;
-    private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
-
-    public GetServicePackagesHandler(
-        SubscriptionDbContext dbContext,
-        IRequestClient<GetTranslatedDataRequest> translationClient)
-    {
-        _dbContext = dbContext;
-        _translationClient = translationClient;
-    }
+    private readonly SubscriptionDbContext _dbContext = dbContext;
+    private readonly TranslationService.TranslationServiceClient _translationClient = translationClient;
 
     public async Task<GetServicePackagesResult> Handle(GetServicePackagesQuery request, CancellationToken cancellationToken)
     {
@@ -115,18 +109,24 @@ public class GetServicePackagesHandler : IQueryHandler<GetServicePackagesQuery, 
                     cancellationToken);
         }
 
-        //1. Dịch Name & Description
+        // 1. Dịch Name & Description
         var translationDict = TranslationUtils.CreateBuilder()
             .AddEntities(rawPackages, nameof(ServicePackage), x => x.Name, x => x.Description)
             .Build();
 
-        var response = await _translationClient.GetResponse<GetTranslatedDataResponse>(
-            new GetTranslatedDataRequest(translationDict, SupportedLang.vi),
-            cancellationToken);
+        // Chuyển đổi translationDict thành TranslateDataRequest
+        var translateRequest = new TranslateDataRequest
+        {
+            Originals = { translationDict },
+            TargetLanguage = SupportedLang.vi.ToString()
+        };
 
-        var translations = response.Message.Translations;
+        // Gọi gRPC TranslateData
+        var response = await _translationClient.TranslateDataAsync(translateRequest, cancellationToken: cancellationToken);
 
-        //2. Update dữ liệu sau dịch + PurchaseStatus & UpgradePrice
+        var translations = response.Translations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        // 2. Update dữ liệu sau dịch + PurchaseStatus & UpgradePrice
         var finalPackages = rawPackages.Select(sp =>
         {
             var translatedName = translations.GetTranslatedValue(sp, x => x.Name, nameof(ServicePackage));

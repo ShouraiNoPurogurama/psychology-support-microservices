@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
+using System.Configuration;
+using Translation.API.Protos;
 
 namespace LifeStyles.API.Extensions;
 
@@ -42,6 +44,8 @@ public static class ApplicationServiceExtensions
         services.AddAuthorization();
 
         services.AddHttpContextAccessor();
+
+        AddGrpcServiceDependencies(services, config);
 
         return services;
     }
@@ -145,5 +149,21 @@ public static class ApplicationServiceExtensions
     {
         var connectionString = config.GetConnectionString("LifeStyleDb");
         return connectionString;
+    }
+
+    private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
+    {
+        services.AddGrpcClient<TranslationService.TranslationServiceClient>(options =>
+        {
+            options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);
+        })
+        .ConfigurePrimaryHttpMessageHandler(() =>
+        {
+            var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+            return handler;
+        });
     }
 }
