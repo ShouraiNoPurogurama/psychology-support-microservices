@@ -22,7 +22,7 @@ public class GetAllPhysicalActivitiesV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("v2/physicalActivities",
+        app.MapGet("v2/activities/physical",
             async ([AsParameters] GetAllPhysicalActivitiesV2Request request, ISender sender) =>
             {
                 var query = request.Adapt<GetAllPhysicalActivitiesV2Query>();

@@ -19,7 +19,7 @@ public class GetAllFoodActivitiesV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("v2/foodActivities", async (
+        app.MapGet("v2/activities/foods", async (
             [AsParameters] GetAllFoodActivitiesV2Request request,
             ISender sender,
             HttpContext httpContext) =>

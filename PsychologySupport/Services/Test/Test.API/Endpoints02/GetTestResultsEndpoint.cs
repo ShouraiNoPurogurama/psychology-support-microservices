@@ -16,7 +16,7 @@ namespace Test.API.Endpoints02
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/v2/me/test-result/{testResultId:guid}", async (Guid testResultId, ISender sender, HttpContext httpContext) =>
+            app.MapGet("/v2/me/test/result/{testResultId:guid}", async (Guid testResultId, ISender sender, HttpContext httpContext) =>
             {
                 // Authorization check
                 if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))

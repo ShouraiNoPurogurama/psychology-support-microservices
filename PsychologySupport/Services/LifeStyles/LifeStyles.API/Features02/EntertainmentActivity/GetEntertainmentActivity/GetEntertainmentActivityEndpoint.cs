@@ -15,7 +15,7 @@ public class GetEntertainmentActivityV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("v2/entertainmentActivities/{id:guid}", async (
+        app.MapGet("v2/activities/entertainment/{id:guid}", async (
                 Guid id,
                 ISender sender,
                 HttpContext httpContext) =>

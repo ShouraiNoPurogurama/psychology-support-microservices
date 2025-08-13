@@ -20,7 +20,7 @@ public class UpdatePatientPhysicalActivitiesV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPut("/v2/me/physicalActivities",
+        app.MapPut("/v2/me/activities/physical",
                 async (HttpContext httpContext, [FromBody] UpdatePatientPhysicalActivitiesV2Request request, ISender sender) =>
                 {
                     // Authorization check

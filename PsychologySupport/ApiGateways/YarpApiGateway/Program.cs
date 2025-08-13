@@ -2,7 +2,6 @@ using System.Security.Cryptography.X509Certificates;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using YarpApiGateway.Extensions;
-using YarpApiGateway.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,10 +18,7 @@ if (builder.Environment.IsProduction())
         });
 
         serverOptions.ListenAnyIP(80);
-        serverOptions.ListenAnyIP(443, listenOptions =>
-        {
-            listenOptions.UseHttps();
-        });
+        serverOptions.ListenAnyIP(443);
     });
 }
 

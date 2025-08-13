@@ -16,7 +16,7 @@ namespace Payment.API.Endpoints02
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPost("/v2/payments/payos/linkInformation/cancel", async (
+            app.MapPost("/v2/payments/payos/link-information/cancel", async (
                 [FromBody] CancelPaymentLinkV2Request request,
                 ISender sender) =>
             {

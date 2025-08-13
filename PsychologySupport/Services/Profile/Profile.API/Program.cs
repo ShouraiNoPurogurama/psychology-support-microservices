@@ -1,8 +1,9 @@
-using BuildingBlocks.Exceptions.Handler;
+﻿using BuildingBlocks.Exceptions.Handler;
 using Carter;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Profile.API.Extensions;
+using Profile.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,12 +43,21 @@ else
     });
 }
 
+//Map gRPC services
+app.MapGrpcService<PatientProfileService>();
+app.MapGrpcReflectionService(); // Tùy chọn, để hỗ trợ phản xạ gRPC
+
 app.UseHealthChecks("/health",
     new HealthCheckOptions
     {
         ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
     }
 );
+
+// Default route for non-gRPC clients
+app.MapGet("/", () =>
+    "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+
 
 app.UseCors("CorsPolicy");
 

@@ -12,7 +12,7 @@ public class GetServicePackageV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/v2/servicePackage/{id}", async ([FromRoute]Guid id, ISender sender) =>
+        app.MapGet("/v2/service-package/{id}", async ([FromRoute]Guid id, ISender sender) =>
             {
                 var query = new GetServicePackageQuery(id);
 

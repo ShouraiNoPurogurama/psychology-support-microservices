@@ -13,7 +13,7 @@ public class AuthController(
     UserManager<User> userManager,
     RoleManager<Role> roleManager,
     IConfiguration configuration,
-    IAuthService authService,
+    IAuthService02 authService,
     IFirebaseAuthService firebaseAuthService) : ControllerBase
 {
     // [Authorize(AuthenticationSchemes = "LocalAuth")]
@@ -94,7 +94,7 @@ public class AuthController(
     // Refactor  API
 
     [HttpPost("v2/login")]
-    public async Task<IActionResult> Login1([FromBody] LoginRequest loginRequest)
+    public async Task<IActionResult> Login2([FromBody] LoginRequest loginRequest)
     {
         if (!ModelState.IsValid) return BadRequest();
         var result = await authService.LoginAsync(loginRequest);
@@ -102,7 +102,7 @@ public class AuthController(
     }
 
     [HttpPost("v2/register")]
-    public async Task<IActionResult> Register1([FromBody] RegisterRequest registerRequest)
+    public async Task<IActionResult> Register2([FromBody] RegisterRequest registerRequest)
     {
         var result = await authService.RegisterAsync(registerRequest);
         return Ok(result);
@@ -110,49 +110,49 @@ public class AuthController(
 
     // [Authorize(AuthenticationSchemes = "FirebaseAuth")]
     [HttpPost("v2/firebase/login")]
-    public async Task<IActionResult> FirebaseLogin1([FromBody] FirebaseLoginRequest request)
+    public async Task<IActionResult> FirebaseLogin2([FromBody] FirebaseLoginRequest request)
     {
         var response = await firebaseAuthService.FirebaseLoginAsync(request);
         return Ok(response);
     }
 
     [HttpPost("v2/google/login")]
-    public async Task<IActionResult> GoogleLogin1([FromBody] GoogleLoginRequest request)
+    public async Task<IActionResult> GoogleLogin2([FromBody] GoogleLoginRequest request)
     {
         var result = await authService.GoogleLoginAsync(request);
         return Ok(result);
     }
 
     [HttpPost("v2/token/refresh")]
-    public async Task<IActionResult> RefreshToken1([FromBody] TokenApiRequest refreshTokenRequest)
+    public async Task<IActionResult> RefreshToken2([FromBody] TokenApiRequest refreshTokenRequest)
     {
         var result = await authService.RefreshAsync(refreshTokenRequest);
         return Ok(result);
     }
 
     [HttpGet("v2/email/confirm")]
-    public async Task<IActionResult> ConfirmEmail1([FromQuery] ConfirmEmailRequest confirmEmailRequest)
+    public async Task<IActionResult> ConfirmEmail2([FromQuery] ConfirmEmailRequest confirmEmailRequest)
     {
         var result = await authService.ConfirmEmailAsync(confirmEmailRequest);
         return Redirect(result);
     }
 
     [HttpPost("v2/password/forgot")]
-    public async Task<IActionResult> ForgotPassword1([FromBody] ForgotPasswordRequest request)
+    public async Task<IActionResult> ForgotPassword2([FromBody] ForgotPasswordRequest request)
     {
         var result = await authService.ForgotPasswordAsync(request.Email);
         return Ok(new { success = result, message = "Vui lòng kiểm tra email để đặt lại mật khẩu." });
     }
 
     [HttpPost("v2/password/reset")]
-    public async Task<IActionResult> ResetPassword1([FromBody] ResetPasswordRequest request)
+    public async Task<IActionResult> ResetPassword2([FromBody] ResetPasswordRequest request)
     {
         var result = await authService.ResetPasswordAsync(request);
         return Ok(new { success = result, message = "Đặt lại mật khẩu thành công." });
     }
 
     [HttpPost("v2/token/revoke")]
-    public async Task<IActionResult> RevokeToken1([FromBody] TokenApiRequest request)
+    public async Task<IActionResult> RevokeToken2([FromBody] TokenApiRequest request)
     {
         if (!ModelState.IsValid) return BadRequest();
 
@@ -161,7 +161,7 @@ public class AuthController(
     }
 
     [HttpPost("v2/password/change")]
-    public async Task<IActionResult> ChangePassword1([FromBody] ChangePasswordRequest request)
+    public async Task<IActionResult> ChangePassword2([FromBody] ChangePasswordRequest request)
     {
         var result = await authService.ChangePasswordAsync(request);
         return Ok(new { success = result, message = "Đổi mật khẩu thành công." });

@@ -39,5 +39,4 @@
 	<ItemGroup>
 		<Protobuf Include="Protos\translation.proto" GrpcServices="Server" />
 	</ItemGroup>
-
 </Project>

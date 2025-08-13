@@ -3,6 +3,7 @@ using Carter;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
+using Translation.API.Protos; 
 
 namespace Test.API;
 
@@ -12,7 +13,7 @@ public static class DependencyInjection
         IWebHostEnvironment env)
     {
         var connectionString = configuration.GetConnectionString("TestDb");
-        
+
         services.AddCarter();
         services.AddExceptionHandler<CustomExceptionHandler>();
         services.AddHealthChecks()
@@ -100,4 +101,5 @@ public static class DependencyInjection
             });
         });
     }
+
 }

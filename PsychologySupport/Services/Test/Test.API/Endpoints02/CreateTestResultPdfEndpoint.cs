@@ -21,7 +21,7 @@ public class CreateTestResultPdfV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/v2/me/testResult/pdf", async (
+        app.MapPost("/v2/me/test/result/pdf", async (
                 [FromBody] CreateTestResultPdfV2Request request,
                 ISender sender, HttpContext httpContext) =>
             {

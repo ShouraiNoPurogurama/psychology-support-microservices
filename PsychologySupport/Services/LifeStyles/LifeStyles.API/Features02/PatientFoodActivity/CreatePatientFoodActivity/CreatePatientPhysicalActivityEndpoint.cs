@@ -24,7 +24,7 @@ public class CreatePatientFoodActivityV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/v2/me/foodActivities", async (HttpContext httpContext,[FromBody] CreatePatientFoodActivityV2Request request, ISender sender) =>
+        app.MapPost("/v2/me/activities/food", async (HttpContext httpContext,[FromBody] CreatePatientFoodActivityV2Request request, ISender sender) =>
             {
                 // Authorization check
                 if (!AuthorizationHelpers.HasAccessToPatientProfile(request.PatientProfileId, httpContext.User))

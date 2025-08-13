@@ -32,11 +32,14 @@
     <ItemGroup>
         <Folder Include="ServicePackages\Features\" />
     </ItemGroup>
-    <ItemGroup>
-        <Protobuf Include="..\..\Promotion\Promotion.Grpc\Protos\promotion.proto" GrpcServices="Client">
-            <Link>Protos\promotion.proto</Link>
-        </Protobuf>
-    </ItemGroup>
+	<ItemGroup>
+		<Protobuf Include="..\..\Promotion\Promotion.Grpc\Protos\promotion.proto" GrpcServices="Client">
+			<Link>Protos\promotion.proto</Link>
+		</Protobuf>
+		<Protobuf Include="..\..\Translation\Translation.API\Protos\translation.proto" GrpcServices="Client">
+			<Link>Protos\translation.proto</Link>
+		</Protobuf>
+	</ItemGroup>
     <ItemGroup>
         <Compile Remove="UserSubscriptions\Dtos\ValidateSubscriptionResultDto.cs" />
     </ItemGroup>

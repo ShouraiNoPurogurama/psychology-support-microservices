@@ -1,14 +1,13 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
-using BuildingBlocks.Messaging.Events.Translation;
 using BuildingBlocks.Utils;
 using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
 using LifeStyles.API.Extensions;
 using LifeStyles.API.Models;
-using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Translation.API.Protos; 
 
 namespace LifeStyles.API.Features02.FoodActivity.GetFoodActivity;
 
@@ -18,7 +17,7 @@ public record GetFoodActivityV2Result(FoodActivityDto FoodActivity);
 
 public class GetFoodActivityV2Handler(
     LifeStylesDbContext context,
-    IRequestClient<GetTranslatedDataRequest> translationClient)
+    TranslationService.TranslationServiceClient translationClient)
     : IQueryHandler<GetFoodActivityV2Query, GetFoodActivityV2Result>
 {
     public async Task<GetFoodActivityV2Result> Handle(GetFoodActivityV2Query request, CancellationToken cancellationToken)
@@ -46,12 +45,17 @@ public class GetFoodActivityV2Handler(
             .AddStrings(activityDto.FoodCategories, nameof(FoodCategory))
             .Build();
 
-        var response = await translationClient.GetResponse<GetTranslatedDataResponse>(
-            new GetTranslatedDataRequest(translationDict, SupportedLang.vi),
-            cancellationToken
-        );
+        // Chuyển đổi translationDict thành TranslateDataRequest
+        var translateRequest = new TranslateDataRequest
+        {
+            Originals = { translationDict },
+            TargetLanguage = SupportedLang.vi.ToString()
+        };
 
-        var translations = response.Message.Translations;
+        // Gọi gRPC TranslateData
+        var response = await translationClient.TranslateDataAsync(translateRequest, cancellationToken: cancellationToken);
+
+        var translations = response.Translations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
         var translatedDto = activityDto with
         {

@@ -17,7 +17,7 @@ namespace Subscription.API.UserSubscriptions.Features02.GetTotalServicePackage
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/v2/servicePackages/total", async (
+            app.MapGet("/v2/service-packages/total", async (
                     [FromBody] GetTotalServicePackageV2Request request,
                     ISender sender,
                     HttpContext httpContext) =>

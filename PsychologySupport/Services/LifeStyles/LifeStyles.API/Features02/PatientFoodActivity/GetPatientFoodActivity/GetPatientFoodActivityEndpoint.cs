@@ -15,7 +15,7 @@ public class GetPatientFoodActivityV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/v2/me/{patientProfileId:guid}/foodActivities",
+        app.MapGet("/v2/me/activities/foods",
                 async (HttpContext httpContext,Guid patientProfileId, ISender sender) =>
                 {
                     // Authorization check

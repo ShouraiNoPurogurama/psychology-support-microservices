@@ -16,7 +16,7 @@ public class LoggingActionFilter : IAsyncActionFilter
         _logger = logger;
         _jsonOptions = new JsonSerializerOptions
         {
-            WriteIndented = false, // Compact cho production
+            WriteIndented = false, //Compact cho production
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
         };

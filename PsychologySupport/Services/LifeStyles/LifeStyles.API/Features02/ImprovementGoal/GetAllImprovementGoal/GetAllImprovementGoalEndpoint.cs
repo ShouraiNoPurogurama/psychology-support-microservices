@@ -10,7 +10,7 @@ public class GetAllImprovementGoalV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/v2/improvementGoals", async (ISender sender) =>
+        app.MapGet("/v2/improvement-goals", async (ISender sender) =>
         {
             var result = await sender.Send(new GetAllImprovementGoalQuery());
 

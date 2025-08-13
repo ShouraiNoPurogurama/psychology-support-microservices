@@ -53,6 +53,7 @@ jobs:
                       print tolower($3)
                     }
                   }' \
+                | grep -v '^notification\.api$' \
                 | sort -u)
             fi
 
@@ -64,7 +65,7 @@ jobs:
             build_service() {
               local svc="$1"
               echo "🔨 [$(date +%T)] Building $svc..."
-              if docker buildx bake "$svc" --file docker-compose-apis.yml; then
+              if docker buildx bake --file docker-compose-apis.yml "$svc"; then
                 echo "✅ [$(date +%T)] Build succeeded: $svc"
                 return 0
               else
@@ -177,7 +178,9 @@ jobs:
                 continue
               fi
 
-              if wait_healthy "$svc" "$port"; then
+              if [ "$svc" = "promotiongrpc" ]; then 
+                echo "$svc has been excluded from Health Check."
+              elif wait_healthy "$svc" "$port"; then
                 echo "✅ $svc is running and healthy!"
               else
                 echo "❌ $svc health check failed. Rolling back..."

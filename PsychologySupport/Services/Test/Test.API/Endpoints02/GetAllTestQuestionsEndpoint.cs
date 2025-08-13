@@ -15,7 +15,7 @@ public class GetAllTestQuestionsV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("v2/testQuestions/{testId:guid}",
+        app.MapGet("v2/test/questions/{testId:guid}",
                 async (Guid testId, [AsParameters] PaginationRequest request, ISender sender, HttpContext httpContext) =>
                 {
                     // Authorization check

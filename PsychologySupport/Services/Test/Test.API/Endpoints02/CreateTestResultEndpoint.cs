@@ -21,7 +21,7 @@ public class CreateTestResultV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/v2/me/testResult", async ([FromBody] CreateTestResultV2Request request, ISender sender, HttpContext httpContext) =>
+        app.MapPost("/v2/me/test/result", async ([FromBody] CreateTestResultV2Request request, ISender sender, HttpContext httpContext) =>
             {
                 // Authorization check
                 if (!AuthorizationHelpers.CanModifyPatientProfile(request.PatientId, httpContext.User))

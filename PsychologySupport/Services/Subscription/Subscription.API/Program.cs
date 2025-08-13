@@ -19,7 +19,6 @@ var app = builder.Build();
 
 app.UseExceptionHandler(options => { });
 
-// Apply CORS policy
 app.UseCors("CorsPolicy");
 
 app.UseStaticFiles();

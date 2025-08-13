@@ -15,7 +15,7 @@ public class GetAllQuestionOptionsV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("v2/questionOptions/{questionId:guid}", async (
+        app.MapGet("v2/test/question-options/{questionId:guid}", async (
                 Guid questionId,
                 [AsParameters] PaginationRequest request,
                 ISender sender, HttpContext httpContext) =>

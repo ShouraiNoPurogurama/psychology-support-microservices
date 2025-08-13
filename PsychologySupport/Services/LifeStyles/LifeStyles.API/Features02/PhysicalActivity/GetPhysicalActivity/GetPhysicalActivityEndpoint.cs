@@ -13,7 +13,7 @@ public class GetPhysicalActivityV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("v2/physicalActivities/{id:guid}", async (Guid id, ISender sender) =>
+        app.MapGet("v2/activities/physical/{id:guid}", async (Guid id, ISender sender) =>
         {
             var query = new GetPhysicalActivityV2Query(id);
             var result = await sender.Send(query);

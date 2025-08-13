@@ -25,7 +25,7 @@ public class GetAllTherapeuticActivityV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/v2/therapeuticActivities", async ([AsParameters] GetAllTherapeuticActivitiesV2Request request, ISender sender) =>
+        app.MapGet("/v2/activities/therapeutic", async ([AsParameters] GetAllTherapeuticActivitiesV2Request request, ISender sender) =>
         {
             var query = new GetAllTherapeuticActivitiesV2Query(
                 request.PageIndex,

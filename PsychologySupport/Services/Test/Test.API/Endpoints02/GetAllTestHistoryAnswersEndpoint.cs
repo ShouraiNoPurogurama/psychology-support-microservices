@@ -16,7 +16,7 @@ public class GetAllTestHistoryAnswersV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("v2/me/testHistoryAnswers/{testResultId:guid}", async (
+        app.MapGet("v2/me/test/history-answers/{testResultId:guid}", async (
                 Guid testResultId,
                 ISender sender, HttpContext httpContext) =>
             {

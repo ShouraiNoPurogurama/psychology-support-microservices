@@ -14,7 +14,7 @@ namespace Subscription.API.UserSubscriptions.Features02.ActivateSubscription
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPost("/v2/userSubscriptions/activateByGiftcode", async (
+            app.MapPost("/v2/user-subscriptions/activate-by-giftcode", async (
                     [FromBody] ActivateSubscriptionByGiftCodeV2Request request,
                     ISender sender,
                     HttpContext httpContext) =>

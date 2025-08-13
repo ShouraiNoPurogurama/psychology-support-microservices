@@ -10,7 +10,7 @@ namespace Scheduling.API.Features02.Schedule.GetTotalSession
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/v2/me/schedule/totalSessions", async ([AsParameters] GetTotalSessionQuery request, ISender sender) =>
+            app.MapGet("/v2/me/schedule/session/total", async ([AsParameters] GetTotalSessionQuery request, ISender sender) =>
             {
                 var result = await sender.Send(request);
                 var response = new GetTotalSessionV2Response(result);

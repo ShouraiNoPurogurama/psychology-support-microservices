@@ -20,7 +20,7 @@ namespace Scheduling.API.Features02.Schedule.CreateScheduleFeedback
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPost("/v2/me/scheduleFeedback",
+            app.MapPost("/v2/me/schedule/feedback",
                 async ([FromBody] CreateScheduleFeedbackV2Request request, ISender sender, HttpContext httpContext) =>
                 {
                     // Authorization check

@@ -17,7 +17,7 @@ public class CreateUserSubscriptionV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/v2/userSubscription", async ([FromBody] CreateUserSubscriptionV2Request request, ISender sender, HttpContext httpContext) =>
+        app.MapPost("/v2/user-subscription", async ([FromBody] CreateUserSubscriptionV2Request request, ISender sender, HttpContext httpContext) =>
                 {
                     // Authorization check
                     if (!AuthorizationHelpers.CanModifyPatientProfile(request.UserSubscription.PatientId, httpContext.User))
@@ -29,7 +29,7 @@ public class CreateUserSubscriptionV2Endpoint : ICarterModule
 
                     var response = result.Adapt<CreateUserSubscriptionV2Response>();
 
-                    return Results.Created($"/v2/{response.Id}/userSubscriptions", response);
+                    return Results.Created($"/v2/{response.Id}/users-subscription", response);
                 }
             )
             .WithName("CreateUserSubscription v2")

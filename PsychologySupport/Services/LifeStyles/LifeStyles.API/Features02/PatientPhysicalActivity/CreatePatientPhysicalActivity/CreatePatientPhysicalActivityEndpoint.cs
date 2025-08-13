@@ -25,7 +25,7 @@ public class CreatePatientPhysicalActivityV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("v2/me/physicalActivities",
+        app.MapPost("v2/me/activities/physical",
             async (HttpContext httpContext,
                    [FromBody] CreatePatientPhysicalActivityV2Request request,
                    ISender sender) =>

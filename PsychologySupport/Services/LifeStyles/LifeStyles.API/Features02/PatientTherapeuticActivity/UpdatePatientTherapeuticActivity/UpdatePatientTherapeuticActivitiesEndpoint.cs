@@ -16,7 +16,7 @@ public class UpdatePatientTherapeuticActivitiesV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPut("/v2/me/therapeuticActivities",
+        app.MapPut("/v2/me/activities/therapeutic",
                 async (HttpContext httpContext, [FromBody] UpdatePatientTherapeuticActivitiesV2Request request, ISender sender) =>
                 {
                     // Authorization check

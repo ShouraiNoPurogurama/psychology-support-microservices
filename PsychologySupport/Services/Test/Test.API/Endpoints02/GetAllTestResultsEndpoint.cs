@@ -26,7 +26,7 @@ public class GetAllTestResultsV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("v2/me/testResults/{patientId:guid}", async (
+        app.MapGet("v2/me/test/results/{patientId:guid}", async (
                 [AsParameters] GetAllTestResultsV2Request request, [FromRoute] Guid patientId,
                 ISender sender, HttpContext httpContext) =>
             {

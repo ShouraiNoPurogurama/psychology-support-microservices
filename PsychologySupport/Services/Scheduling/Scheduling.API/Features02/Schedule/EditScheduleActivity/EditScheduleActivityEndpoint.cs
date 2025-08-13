@@ -14,7 +14,7 @@ namespace Scheduling.API.Features02.Schedule.EditScheduleActivity
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPut("/v2/scheduleActivities/{id}/session/{sessionId}",
+            app.MapPut("/v2/schedule/activities/{id}/session/{sessionId}",
                     async ([FromRoute] Guid id, [FromRoute] Guid sessionId, [FromBody] EditScheduleActivityV2Request request, ISender sender) =>
                     {
                         var command = new EditScheduleActivityCommand(id, sessionId, request.ActivityDto);

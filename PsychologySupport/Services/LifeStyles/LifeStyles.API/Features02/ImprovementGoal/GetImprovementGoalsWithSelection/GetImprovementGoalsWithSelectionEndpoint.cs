@@ -14,7 +14,7 @@ public class GetImprovementGoalsWithSelectionV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/v2/me/improvementGoals", 
+        app.MapGet("/v2/me/improvement-goals", 
             async ([AsParameters] PaginationRequest paginationRequest, HttpContext httpContext, ISender sender) =>
             {
                 var profileId = httpContext.User.GetProfileId();
@@ -29,7 +29,7 @@ public class GetImprovementGoalsWithSelectionV2Endpoint : ICarterModule
             })
             .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetImprovementGoalsWithSelection v2")
-            .WithTags("ImprovementGoals Version2")
+            .WithTags("ImprovementGoals Version 2")
             .WithSummary("Get all improvement goals with selection for a profile")
             .WithDescription("Returns a paginated list of all improvement goals with selection status for a specific profile")
             .Produces<GetImprovementGoalsWithSelectionV2Response>(StatusCodes.Status200OK)

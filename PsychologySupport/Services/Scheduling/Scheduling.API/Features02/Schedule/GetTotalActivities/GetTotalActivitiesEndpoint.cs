@@ -12,7 +12,7 @@ namespace Scheduling.API.Features02.Schedule.GetTotalActivities
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/v2/me/scheduleActivities/totalActivities", async ([AsParameters] GetTotalActivitiesQuery request, ISender sender) =>
+            app.MapGet("/v2/me/schedule/activities/total", async ([AsParameters] GetTotalActivitiesQuery request, ISender sender) =>
             {
                 var result = await sender.Send(request);
                 var response = new GetTotalActivitiesV2Response(result);
