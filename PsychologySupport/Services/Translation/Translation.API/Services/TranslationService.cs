@@ -30,9 +30,6 @@ public class TranslationService : Protos.TranslationService.TranslationServiceBa
         var requestedKeys = originals.Keys.Distinct().ToList();
 
         // 1. Lấy các bản dịch đã có
-        var existing = await _db.Translations
-            .Where(t => requestedKeys.Contains(t.TextKey) && t.Lang == targetLanguage)
-            .ToListAsync(context.CancellationToken);
 
         var existingDict = existing.ToDictionary(t => t.TextKey, t => t.TranslatedValue);
 
@@ -40,10 +37,7 @@ public class TranslationService : Protos.TranslationService.TranslationServiceBa
         var missingKeys = requestedKeys.Except(existingDict.Keys).ToList();
 
         // 3. Kiểm tra bản gốc "en" đã có chưa
-        var enExistingKeys = await _db.Translations
             .Where(t => missingKeys.Contains(t.TextKey) && t.Lang == SupportedLang.en)
-            .Select(t => t.TextKey)
-            .ToListAsync(context.CancellationToken);
 
         var enMissingKeys = missingKeys.Except(enExistingKeys).ToList();
 
@@ -60,7 +54,6 @@ public class TranslationService : Protos.TranslationService.TranslationServiceBa
                 IsStable = true
             });
 
-            await _db.Translations.AddRangeAsync(enEntries, context.CancellationToken);
             await _db.SaveChangesAsync(context.CancellationToken);
         }
 
@@ -74,19 +67,21 @@ public class TranslationService : Protos.TranslationService.TranslationServiceBa
         // 6. Dịch bằng Gemini
         var translatedFromGemini = await _translationClient.TranslateKeysAsync(originalEnglishDict);
 
-        // Replace the problematic line with the following:
-        var viEntries = translatedFromGemini.Select(kv => new Models.Translation
+        if (translatedFromGemini.Count > 0)
         {
-            Id = Guid.NewGuid(),
-            TextKey = kv.Key,
-            Lang = targetLanguage,
-            TranslatedValue = kv.Value,
-            CreatedAt = DateTimeOffset.UtcNow,
-            IsStable = false
-        });
+            // Replace the problematic line with the following:
+            var viEntries = translatedFromGemini.Select(kv => new Models.Translation
+            {
+                Id = Guid.NewGuid(),
+                TextKey = kv.Key,
+                Lang = targetLanguage,
+                TranslatedValue = kv.Value,
+                CreatedAt = DateTimeOffset.UtcNow,
+                IsStable = false
+            });
 
-        await _db.Translations.AddRangeAsync(viEntries, context.CancellationToken);
-        await _db.SaveChangesAsync(context.CancellationToken);
+            await _db.SaveChangesAsync(context.CancellationToken);
+        }
 
         // 8. Gộp bản dịch cũ + mới
         var result = existingDict
