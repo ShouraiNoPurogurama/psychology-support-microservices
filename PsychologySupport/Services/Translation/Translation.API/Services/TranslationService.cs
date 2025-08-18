@@ -30,6 +30,8 @@ public class TranslationService : Protos.TranslationService.TranslationServiceBa
         var requestedKeys = originals.Keys.Distinct().ToList();
 
         // 1. Lấy các bản dịch đã có
+        var existing =  _db.Translations
+            .Where(t => requestedKeys.Contains(t.TextKey) && t.Lang == targetLanguage);
 
         var existingDict = existing.ToDictionary(t => t.TextKey, t => t.TranslatedValue);
 
@@ -37,7 +39,9 @@ public class TranslationService : Protos.TranslationService.TranslationServiceBa
         var missingKeys = requestedKeys.Except(existingDict.Keys).ToList();
 
         // 3. Kiểm tra bản gốc "en" đã có chưa
+        var enExistingKeys =  _db.Translations
             .Where(t => missingKeys.Contains(t.TextKey) && t.Lang == SupportedLang.en)
+            .Select(t => t.TextKey);
 
         var enMissingKeys = missingKeys.Except(enExistingKeys).ToList();
 
@@ -54,6 +58,7 @@ public class TranslationService : Protos.TranslationService.TranslationServiceBa
                 IsStable = true
             });
 
+            _db.Translations.AddRange(enEntries);
             await _db.SaveChangesAsync(context.CancellationToken);
         }
 
@@ -69,7 +74,6 @@ public class TranslationService : Protos.TranslationService.TranslationServiceBa
 
         if (translatedFromGemini.Count > 0)
         {
-            // Replace the problematic line with the following:
             var viEntries = translatedFromGemini.Select(kv => new Models.Translation
             {
                 Id = Guid.NewGuid(),
@@ -80,6 +84,7 @@ public class TranslationService : Protos.TranslationService.TranslationServiceBa
                 IsStable = false
             });
 
+            _db.Translations.AddRange(viEntries);
             await _db.SaveChangesAsync(context.CancellationToken);
         }
 
