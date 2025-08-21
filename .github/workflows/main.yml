@@ -48,7 +48,10 @@ jobs:
                 | grep -E '^PsychologySupport/Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+' \
                 | awk -F/ '{
                     if ($1 == "PsychologySupport" && $2 == "Services") {
-                      print tolower($3) ".api"
+                      svc = tolower($3);
+                      ext = ".api";
+                      if (svc == "promotion") ext = ".grpc";
+                      print svc ext;
                     } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
                       print tolower($3)
                     }
