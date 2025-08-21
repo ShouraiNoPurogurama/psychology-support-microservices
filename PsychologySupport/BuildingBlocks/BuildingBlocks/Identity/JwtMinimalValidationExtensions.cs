@@ -15,7 +15,6 @@ public static class JwtMinimalValidationExtensions
         string xmlKey = File.ReadAllText(config.GetSection("Jwt:PublicKeyPath").Value!);
         rsaKey.FromXmlString(xmlKey);
 
-
         return services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
