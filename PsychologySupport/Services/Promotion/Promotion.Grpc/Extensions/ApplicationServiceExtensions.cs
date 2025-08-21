@@ -24,7 +24,7 @@ public static class ApplicationServiceExtensions
         
         services.AddHttpContextAccessor();
 
-        return services;
+        return services; 
     }
 
     private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
