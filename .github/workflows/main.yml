@@ -64,6 +64,7 @@ jobs:
             # ----------------- BASH FUNCTIONS -----------------
             build_service() {
               local svc="$1"
+              local bake_target="${svc//./_}"
               echo "🔨 [$(date +%T)] Building $svc..."
               if docker buildx bake --file docker-compose-apis.yml "$svc"; then
                 echo "✅ [$(date +%T)] Build succeeded: $svc"
