@@ -27,6 +27,7 @@
         <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
         <PackageReference Include="AutoGen.Gemini" />
         <PackageReference Include="Carter" />
+        <PackageReference Include="EFCore.NamingConventions" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
             <PrivateAssets>all</PrivateAssets>

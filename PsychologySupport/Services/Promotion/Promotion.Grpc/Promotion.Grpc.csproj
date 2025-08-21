@@ -28,6 +28,7 @@
     <ItemGroup>
         <PackageReference Include="AspNetCore.HealthChecks.NpgSql"/>
         <PackageReference Include="AspNetCore.HealthChecks.UI.Client"/>
+        <PackageReference Include="EFCore.NamingConventions" />
         <PackageReference Include="FluentValidation"/>
         <PackageReference Include="Grpc.AspNetCore"/>
         <PackageReference Include="Grpc.AspNetCore.Server.Reflection"/>

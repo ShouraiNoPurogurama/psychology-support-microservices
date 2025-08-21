@@ -121,6 +121,7 @@ namespace Image.API.Extensions
             {
                 opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
                 opt.UseNpgsql(connectionString);
+                opt.UseSnakeCaseNamingConvention();
             });
         }
 

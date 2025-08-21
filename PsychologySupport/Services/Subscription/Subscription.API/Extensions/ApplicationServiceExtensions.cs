@@ -161,6 +161,7 @@ public static class ApplicationServiceExtensions
         {
             opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             opt.UseNpgsql(connectionString);
+            opt.UseSnakeCaseNamingConvention();
         });
     }
 

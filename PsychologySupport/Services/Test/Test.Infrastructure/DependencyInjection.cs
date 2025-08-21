@@ -29,6 +29,7 @@ public static class DependencyInjection
         services.AddDbContext<TestDbContext>((serviceProvider, options) =>
         {
             options.UseNpgsql(connectionString);
+            options.UseSnakeCaseNamingConvention();
             options.AddInterceptors(serviceProvider.GetServices<ISaveChangesInterceptor>());
         });
 

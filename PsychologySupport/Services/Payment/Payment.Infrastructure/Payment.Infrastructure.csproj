@@ -20,4 +20,8 @@
         <Folder Include="Repositories\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="EFCore.NamingConventions" />
+    </ItemGroup>
+
 </Project>

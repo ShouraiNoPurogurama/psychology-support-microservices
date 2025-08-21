@@ -65,6 +65,7 @@ public static class ApplicationServiceExtensions
         services.AddDbContext<PromotionDbContext>((sp, opt) =>
         {
             opt.UseNpgsql(connectionString);
+            opt.UseSnakeCaseNamingConvention();
         });
     }
 

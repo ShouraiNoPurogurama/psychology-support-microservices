@@ -32,6 +32,7 @@ public static class DependencyInjection
         {
             options.AddInterceptors(serviceProvider.GetServices<ISaveChangesInterceptor>());
             options.UseNpgsql(connectionString);
+            options.UseSnakeCaseNamingConvention();
         });
 
         services.AddScoped<IVnPayService, VNPayService>();

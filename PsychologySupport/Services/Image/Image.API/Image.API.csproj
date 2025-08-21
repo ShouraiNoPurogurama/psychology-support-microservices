@@ -15,6 +15,7 @@
         <PackageReference Include="AspNetCore.HealthChecks.UI.Client"/>
         <PackageReference Include="Azure.Storage.Blobs"/>
         <PackageReference Include="Carter"/>
+        <PackageReference Include="EFCore.NamingConventions" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
