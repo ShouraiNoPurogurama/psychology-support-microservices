@@ -38,6 +38,8 @@ public static class ApplicationServiceExtensions
 
         ConfigureMediatR(services);
 
+        ConfigureGrpc(services);
+
         services.AddHttpContextAccessor();
 
         // services.AddIdentityServices(config);
@@ -148,5 +150,11 @@ public static class ApplicationServiceExtensions
     private static void ConfigureGemini(IServiceCollection services, IConfiguration config)
     {
         services.Configure<GeminiConfig>(config.GetSection("GeminiConfig"));
+    }
+
+    private static void ConfigureGrpc(IServiceCollection services)
+    {
+        services.AddGrpc();
+        services.AddGrpcReflection(); // Tùy chọn, để hỗ trợ phản xạ gRPC
     }
 }

@@ -14,17 +14,17 @@
         <DockerfileContext>..\..\..</DockerfileContext>
     </PropertyGroup>
     <ItemGroup>
-        <_ContentIncludedByDefault Remove="appsettings.json"/>
+        <_ContentIncludedByDefault Remove="appsettings.json" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="AspNetCore.HealthChecks.NpgSql"/>
-        <PackageReference Include="AspNetCore.HealthChecks.UI.Client"/>
-        <PackageReference Include="Carter"/>
+        <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+        <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
+        <PackageReference Include="Carter" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets"/>
+        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
     </ItemGroup>
     <ItemGroup>
         <Content Include="..\..\..\.dockerignore">
@@ -32,9 +32,9 @@
         </Content>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj"/>
-        <ProjectReference Include="..\Payment.Application\Payment.Application.csproj"/>
-        <ProjectReference Include="..\Payment.Infrastructure\Payment.Infrastructure.csproj"/>
+        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
+        <ProjectReference Include="..\Payment.Application\Payment.Application.csproj" />
+        <ProjectReference Include="..\Payment.Infrastructure\Payment.Infrastructure.csproj" />
     </ItemGroup>
     <ItemGroup>
       <None Update="RSAKeys\PrivateKey.xml">

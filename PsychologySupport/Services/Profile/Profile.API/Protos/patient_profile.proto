@@ -1,0 +1,66 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Profile.API.Protos";
+
+
+// Định nghĩa service cho Patient Profile
+service PatientProfileService {
+  rpc CreatePatientProfile (CreatePatientProfileRequest) returns (CreatePatientProfileResponse);
+}
+
+// Định nghĩa service cho Email
+service EmailService {
+  rpc SendEmail (SendEmailRequest) returns (SendEmailResponse);
+}
+
+// Định nghĩa messages
+message CreatePatientProfileRequest {
+  string user_id = 1;
+  string full_name = 2;
+  UserGender gender = 3;
+  string allergies = 4;
+  PersonalityTrait personality_trait = 5;
+  ContactInfo contact_info = 6;
+  string job_id = 7;
+  google.protobuf.Timestamp birth_date = 8;
+}
+
+message ContactInfo {
+  string email = 1;
+  string phone_number = 2;
+  string address = 3;
+}
+
+message CreatePatientProfileResponse {
+  string id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message SendEmailRequest {
+  string eventId = 1; 
+  string to = 2;
+  string subject = 3;
+  string body = 4;
+}
+
+message SendEmailResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+enum UserGender {
+  NONE = 0;
+  MALE = 1;
+  FEMALE = 2;
+  ELSE = 3;
+}
+
+enum PersonalityTrait {
+  NONE1 = 0;
+  INTROVERSION = 1;
+  EXTROVERSION = 2;
+  ADAPTABILITY = 3;
+}

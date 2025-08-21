@@ -224,6 +224,7 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
         }
 
         var giftCode = request.CreateGiftCodeDto.Adapt<GiftCode>();
+        giftCode.IsActive = true;
 
         promotion.GiftCodes.Add(giftCode);
 
@@ -360,4 +361,62 @@ public class PromotionService(PromotionDbContext dbContext, ValidatorService val
         };
     }
 
+    public override async Task<GetGiftCodeByCodeResponse> GetGiftCodeByCode(GetGiftCodeByCodeRequest request, ServerCallContext context)
+    {
+        if (string.IsNullOrWhiteSpace(request.Code))
+        {
+            return new GetGiftCodeByCodeResponse
+            {
+                GiftCode = null
+            };
+        }
+
+        var giftCode = await dbContext.GiftCodes
+            .Include(g => g.Promotion)
+            .ThenInclude(p => p.PromotionType)
+            .FirstOrDefaultAsync(g => g.Code == request.Code.Trim() && g.IsActive && g.Promotion.IsActive);
+
+        if (giftCode == null)
+        {
+            return new GetGiftCodeByCodeResponse
+            {
+                GiftCode = null
+            };
+        }
+
+        var servicePackageId = await dbContext.PromotionServicePackages
+            .Where(x => x.PromotionId == giftCode.PromotionId)
+            .Select(x => x.ServicePackageId)
+            .FirstOrDefaultAsync();
+
+        var dto = giftCode.Adapt<GiftCodeByCodeDto>();
+
+        dto.ServicePackageId = servicePackageId;
+
+        return new GetGiftCodeByCodeResponse
+        {
+            GiftCode = dto
+        };
+    }
+
+    public override async Task<GetGiftCodeByPatientPromotionIdResponse> GetGiftCodeByPatientPromotionId(GetGiftCodeByPatientPromotionIdRequest request, ServerCallContext context)
+    {
+        validator.ValidateGuid(request.PatientId, "Patient Id");
+        validator.ValidateGuid(request.PromtotionId, "Promotion Id");
+
+        var giftCode = await dbContext.GiftCodes
+            .Include(g => g.Promotion)
+            .ThenInclude(p => p.PromotionType)
+            .Where(g => g.PatientId.Equals(request.PatientId.Trim())
+                        && g.Promotion.IsActive == true && g.PromotionId.Equals(request.PromtotionId.Trim()))
+            .ToListAsync();
+
+        var giftCodeDtos = giftCode.Adapt<RepeatedField<GiftCodeByCodeDto>>();
+
+        var response = new GetGiftCodeByPatientPromotionIdResponse();
+
+        response.GiftCodes.AddRange(giftCodeDtos);
+
+        return response;
+    }
 }

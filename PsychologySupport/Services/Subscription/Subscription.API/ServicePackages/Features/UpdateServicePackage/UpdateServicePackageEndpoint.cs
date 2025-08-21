@@ -30,7 +30,7 @@ public class UpdateServicePackageEndpoint : ICarterModule
             return Results.Ok(response);
         })
         .WithName("UpdateServicePackage")
-        .WithTags("Dashboard")
+        .WithTags("ServicePackages")
         .Produces<UpdateServicePackageResponse>()
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status400BadRequest)

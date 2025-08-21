@@ -3,6 +3,7 @@ using Carter;
 using FluentValidation;
 using Profile.API.DoctorProfiles.Validators;
 using Profile.API.PatientProfiles.Validators;
+using Notification.API.Protos;
 
 namespace Profile.API.Extensions;
 
@@ -39,6 +40,10 @@ public static class ApplicationServiceExtensions
         services.AddValidatorsFromAssemblyContaining<UpdateDoctorProfileValidator>();
         
         services.AddValidatorsFromAssemblyContaining<UpdatePatientProfileValidator>();
+
+        ConfigureGrpc(services);
+
+        AddGrpcServiceDependencies(services, config);
 
         return services;
     }
@@ -132,5 +137,27 @@ public static class ApplicationServiceExtensions
     {
         var connectionString = config.GetConnectionString("ProfileDb");
         return connectionString;
+    }
+
+    private static void ConfigureGrpc(IServiceCollection services)
+    {
+        services.AddGrpc();
+        services.AddGrpcReflection();
+    }
+
+    private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
+    {
+        services.AddGrpcClient<NotificationService.NotificationServiceClient>(options =>
+        {
+            options.Address = new Uri(config["GrpcSettings:NotificationUrl"]!);
+        })
+        .ConfigurePrimaryHttpMessageHandler(() =>
+        {
+            var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+            return handler;
+        });
     }
 }

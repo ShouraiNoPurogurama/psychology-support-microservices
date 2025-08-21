@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
+using Notification.API.Protos;
+using Profile.API.Protos;
 
 namespace Auth.API.Extensions;
 
@@ -48,6 +50,9 @@ public static class ApplicationServiceExtensions
         services.AddHttpContextAccessor();
         
         ConfigureDataProtection(services, config, env);
+
+        AddGrpcServiceDependencies(services, config);
+
 
         return services;
     }
@@ -120,6 +125,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
         services.AddScoped<LoggingActionFilter>();
+        services.AddScoped<IAuthService02, AuthService02>();
 
         services.AddFluentValidationAutoValidation();
         services.AddValidatorsFromAssemblyContaining<ChangePasswordRequestValidator>();
@@ -140,5 +146,33 @@ public static class ApplicationServiceExtensions
     {
         var connectionString = config.GetConnectionString("AuthDb");
         return connectionString;
+    }
+
+    private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
+    {
+        services.AddGrpcClient<NotificationService.NotificationServiceClient>(options =>
+        {
+            options.Address = new Uri(config["GrpcSettings:NotificationUrl"]!);
+        })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                return handler;
+            });
+        services.AddGrpcClient<PatientProfileService.PatientProfileServiceClient>(options =>
+        {
+            options.Address = new Uri(config["GrpcSettings:PatientProfileUrl"]!);
+        })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                return handler;
+            });
     }
 }

@@ -14,7 +14,7 @@ using Subscription.API.ServicePackages.Models;
 using Subscription.API.UserSubscriptions.Dtos;
 using Subscription.API.UserSubscriptions.Models;
 
-namespace Subscription.API.UserSubscriptions.Features.CreateUserSubscription;
+namespace Subscription.API.UserSubscriptions.Features02.CreateUserSubscription;
 
 public record CreateUserSubscriptionCommand(CreateUserSubscriptionDto UserSubscription) : ICommand<CreateUserSubscriptionResult>;
 

@@ -4,7 +4,9 @@ namespace Promotion.Grpc.Models;
 public class Promotion
 {
     public string Id { get; set; }
-    
+
+    public string Name { get; set; } 
+
     public string PromotionTypeId { get; set; }
     
     public string ImageId { get; set; }
@@ -20,4 +22,6 @@ public class Promotion
     public virtual ICollection<PromoCode> PromoCodes { get; set; } = [];
     
     public virtual ICollection<GiftCode> GiftCodes { get; set; } = [];
+
+    public virtual ICollection<PromotionServicePackage> PromotionServicePackages { get; set; } = default!;
 }

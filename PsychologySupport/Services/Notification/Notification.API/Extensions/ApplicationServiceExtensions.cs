@@ -37,7 +37,9 @@ public static class ApplicationServiceExtensions
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
         
         services.AddHttpContextAccessor();
-        
+
+        ConfigureGrpc(services);
+
         return services;
     }
 
@@ -128,5 +130,11 @@ public static class ApplicationServiceExtensions
         services.AddHostedService<OutboxListener>();
         services.AddSingleton<IFirebaseService, FirebaseService>();
     }
-    
+
+    private static void ConfigureGrpc(IServiceCollection services)
+    {
+        services.AddGrpc();
+        services.AddGrpcReflection();
+    }
+
 }

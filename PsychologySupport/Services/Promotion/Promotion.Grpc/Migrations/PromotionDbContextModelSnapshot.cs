@@ -17,7 +17,7 @@ namespace Promotion.Grpc.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.11")
+                .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -25,6 +25,10 @@ namespace Promotion.Grpc.Migrations
             modelBuilder.Entity("Promotion.Grpc.Models.GiftCode", b =>
                 {
                     b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Description")
@@ -106,6 +110,10 @@ namespace Promotion.Grpc.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("PromotionTypeId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -115,6 +123,19 @@ namespace Promotion.Grpc.Migrations
                     b.HasIndex("PromotionTypeId");
 
                     b.ToTable("Promotions");
+                });
+
+            modelBuilder.Entity("Promotion.Grpc.Models.PromotionServicePackage", b =>
+                {
+                    b.Property<string>("PromotionId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ServicePackageId")
+                        .HasColumnType("text");
+
+                    b.HasKey("PromotionId", "ServicePackageId");
+
+                    b.ToTable("PromotionServicePackages");
                 });
 
             modelBuilder.Entity("Promotion.Grpc.Models.PromotionType", b =>
@@ -180,6 +201,17 @@ namespace Promotion.Grpc.Migrations
                     b.Navigation("PromotionType");
                 });
 
+            modelBuilder.Entity("Promotion.Grpc.Models.PromotionServicePackage", b =>
+                {
+                    b.HasOne("Promotion.Grpc.Models.Promotion", "Promotion")
+                        .WithMany("PromotionServicePackages")
+                        .HasForeignKey("PromotionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Promotion");
+                });
+
             modelBuilder.Entity("Promotion.Grpc.Models.PromotionTypeServicePackage", b =>
                 {
                     b.HasOne("Promotion.Grpc.Models.PromotionType", "PromotionType")
@@ -196,6 +228,8 @@ namespace Promotion.Grpc.Migrations
                     b.Navigation("GiftCodes");
 
                     b.Navigation("PromoCodes");
+
+                    b.Navigation("PromotionServicePackages");
                 });
 
             modelBuilder.Entity("Promotion.Grpc.Models.PromotionType", b =>
