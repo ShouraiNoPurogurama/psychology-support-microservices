@@ -31,6 +31,7 @@
         <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
         <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
         <PackageReference Include="Carter" />
+        <PackageReference Include="EFCore.NamingConventions" />
         <PackageReference Include="FirebaseAdmin" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
             <PrivateAssets>all</PrivateAssets>

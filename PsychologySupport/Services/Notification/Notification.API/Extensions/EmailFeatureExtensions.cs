@@ -23,6 +23,7 @@ public static class EmailFeatureExtensions
             var dbContextConfig = appSettings.ServiceDbContext;
             opts.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());            
             opts.UseNpgsql(dbContextConfig.NotificationDb);
+            opts.UseSnakeCaseNamingConvention();
         });
         return services;
     }
