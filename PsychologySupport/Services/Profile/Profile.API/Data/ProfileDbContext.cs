@@ -32,13 +32,11 @@ public class ProfileDbContext : DbContext
         {
             typeBuilder.Property(d => d.Gender)
                 .HasConversion(t => t.ToString(),
-                    dbStatus => (UserGender)Enum.Parse(typeof(UserGender), dbStatus))
-                .HasColumnName("Gender");
+                    dbStatus => (UserGender)Enum.Parse(typeof(UserGender), dbStatus));
 
             typeBuilder.Property(d => d.PersonalityTraits)
                 .HasConversion(t => t.ToString(),
-                    dbStatus => (PersonalityTrait)Enum.Parse(typeof(PersonalityTrait), dbStatus))
-                .HasColumnName("PersonalityTraits");
+                    dbStatus => (PersonalityTrait)Enum.Parse(typeof(PersonalityTrait), dbStatus));
 
             typeBuilder.HasOne(p => p.MedicalHistory)
                 .WithOne()
@@ -46,12 +44,9 @@ public class ProfileDbContext : DbContext
 
             typeBuilder.ComplexProperty(p => p.ContactInfo, contactInfoBuilder =>
             {
-                contactInfoBuilder.Property(c => c.Address)
-                    .HasColumnName("Address");
-                contactInfoBuilder.Property(c => c.Email)
-                    .HasColumnName("Email");
-                contactInfoBuilder.Property(c => c.PhoneNumber)
-                    .HasColumnName("PhoneNumber");
+                contactInfoBuilder.Property(c => c.Address);
+                contactInfoBuilder.Property(c => c.Email);
+                contactInfoBuilder.Property(c => c.PhoneNumber);
             });
         });
 
