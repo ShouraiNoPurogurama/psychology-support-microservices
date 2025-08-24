@@ -28,20 +28,30 @@ public class AuditableEntityInterceptor(IHttpContextAccessor httpContextAccessor
     {
         if (context is null) return;
 
+        var now = DateTimeOffset.UtcNow; 
         var currentUser = GetCurrentUser();
 
         foreach (EntityEntry<IEntity> entry in context.ChangeTracker.Entries<IEntity>())
         {
-            if (entry.State == EntityState.Added)
+            if (entry.State == EntityState.Added && entry.Entity is IHasCreationAudit c)
             {
-                entry.Entity.CreatedBy = currentUser;
-                entry.Entity.CreatedAt = DateTimeOffset.UtcNow.AddHours(7);
+                c.CreatedAt = now;
+                c.CreatedBy ??= currentUser;
             }
 
-            if (entry.State == EntityState.Added || entry.State == EntityState.Modified || entry.HasChangedOwnedEntities())
+            if ((entry.State == EntityState.Added || entry.State == EntityState.Modified || entry.HasChangedOwnedEntities())
+                && entry.Entity is IHasModificationAudit m)
             {
-                entry.Entity.LastModifiedBy = currentUser;
-                entry.Entity.LastModified = DateTimeOffset.UtcNow.AddHours(7);
+                m.LastModified = now;
+                m.LastModifiedBy = currentUser;
+            }
+
+            if (entry.State == EntityState.Deleted && entry.Entity is ISoftDelete d)
+            {
+                entry.State = EntityState.Modified;
+                d.IsDeleted = true;
+                d.DeletedAt = now;
+                d.DeletedBy = currentUser;
             }
         }
     }

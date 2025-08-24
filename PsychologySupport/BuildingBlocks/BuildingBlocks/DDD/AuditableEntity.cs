@@ -2,14 +2,22 @@
 
 namespace BuildingBlocks.DDD;
 
-public abstract class Entity<T> : IEntity<T>
+public abstract class AuditableEntity<T> : IEntity<T>, IHasCreationAudit, IHasModificationAudit
 {
     [Key]
     public T Id { get; set; }
-
+    
+    public DateTimeOffset? CreatedAt { get; set; }
+    
+    public string? CreatedBy { get; set; }
+    
+    public DateTimeOffset? LastModified { get; set; }
+    
+    public string? LastModifiedBy { get; set; }
+    
     public override bool Equals(object? obj)
     {
-        if (obj is not Entity<T> other) return false;
+        if (obj is not AuditableEntity<T> other) return false;
         
         if(ReferenceEquals(this, other)) return true;
         
@@ -19,10 +27,5 @@ public abstract class Entity<T> : IEntity<T>
     }
     
     public override int GetHashCode() => Id?.GetHashCode() ?? 0;
-
-    public static bool operator ==(Entity<T>? a, Entity<T>? b) =>
-        a is null && b is null || a is not null && a.Equals(b);
-
-    public static bool operator !=(Entity<T>? a, Entity<T>? b) => !(a == b);
-
+    
 }
