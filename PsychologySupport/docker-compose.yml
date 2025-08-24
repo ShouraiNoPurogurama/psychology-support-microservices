@@ -1,0 +1,25 @@
+services:
+  alias.api:
+    image: alias.api
+    build:
+      context: .
+      dockerfile: Services/Alias/Alias.API/Dockerfile
+
+  alias.api-1:
+    image: alias.api-1
+    build:
+      context: .
+      dockerfile: Services/Alias/Alias.API/Dockerfile
+
+  post.api:
+    image: post.api
+    build:
+      context: .
+      dockerfile: Services/Post/Post.API/Dockerfile
+
+  feed.api:
+    image: feed.api
+    build:
+      context: .
+      dockerfile: Services/Feed/Feed.API/Dockerfile
+
