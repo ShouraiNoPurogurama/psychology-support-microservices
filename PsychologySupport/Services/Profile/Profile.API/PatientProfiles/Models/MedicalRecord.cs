@@ -5,7 +5,7 @@ using Profile.API.PatientProfiles.Enum;
 
 namespace Profile.API.PatientProfiles.Models;
 
-public class MedicalRecord : Entity<Guid>
+public class MedicalRecord : AuditableEntity<Guid>
 {
     private readonly List<SpecificMentalDisorder> _specificMentalDisorders = [];
 

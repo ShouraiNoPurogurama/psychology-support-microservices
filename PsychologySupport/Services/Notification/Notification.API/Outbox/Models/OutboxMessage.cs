@@ -3,7 +3,7 @@ using BuildingBlocks.Messaging.Events;
 
 namespace Notification.API.Outbox.Models;
 
-public class OutboxMessage : Entity<Guid>
+public class OutboxMessage : AuditableEntity<Guid>
 {
     public string Type { get; set; } = default!;
     public string Content { get; set; } = default!;

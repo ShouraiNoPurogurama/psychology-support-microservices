@@ -2,7 +2,7 @@
 
 namespace Test.Domain.Models;
 
-public class Category : Entity<Guid>
+public class Category : AuditableEntity<Guid>
 {
     private Category()
     {

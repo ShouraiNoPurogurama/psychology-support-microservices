@@ -2,7 +2,7 @@
 
 namespace Test.Domain.Models;
 
-public class TestQuestion : Entity<Guid>
+public class TestQuestion : AuditableEntity<Guid>
 {
     public int Order { get; private set; }
     public string Content { get; private set; }

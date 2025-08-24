@@ -3,7 +3,7 @@ using BuildingBlocks.Enums;
 
 namespace Profile.API.PatientProfiles.Models
 {
-    public class Job : Entity<Guid>
+    public class Job : AuditableEntity<Guid>
     {
         public Guid IndustryId { get; set; }
         public string JobTitle { get; set; }

@@ -3,7 +3,7 @@ using Test.Domain.Enums;
 
 namespace Test.Domain.Models;
 
-public class QuestionOption : Entity<Guid>
+public class QuestionOption : AuditableEntity<Guid>
 {
     private QuestionOption()
     {

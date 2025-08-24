@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace Profile.API.PatientProfiles.Models
 {
-    public class Industry : Entity<Guid>
+    public class Industry : AuditableEntity<Guid>
     {
         public string IndustryName { get; set; }
         public string Description { get; set; }

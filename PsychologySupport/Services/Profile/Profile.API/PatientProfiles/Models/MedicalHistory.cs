@@ -3,7 +3,7 @@ using Profile.API.MentalDisorders.Models;
 
 namespace Profile.API.PatientProfiles.Models;
 
-public class MedicalHistory : Entity<Guid>
+public class MedicalHistory : AuditableEntity<Guid>
 {
     private readonly List<PhysicalSymptom> _physicalSymptoms = [];
 
