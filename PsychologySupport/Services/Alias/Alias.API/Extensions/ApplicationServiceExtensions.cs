@@ -1,4 +1,7 @@
-﻿using Alias.API.Data;
+﻿// using Alias.API.Data;
+
+using Alias.API.Data.Pii;
+using Alias.API.Data.Public;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Exceptions.Handler;
@@ -31,7 +34,7 @@ public static class ApplicationServiceExtensions
 
         ConfigureMediatR(services);
 
-        AddDatabase(services, config);
+        AddDatabases(services, config);
 
         AddServiceDependencies(services);
 
@@ -123,11 +126,18 @@ public static class ApplicationServiceExtensions
         });
     }
 
-    private static void AddDatabase(IServiceCollection services, IConfiguration config)
+    private static void AddDatabases(IServiceCollection services, IConfiguration config)
     {
         var connectionString = GetConnectionString(config);
 
-        services.AddDbContext<AliasdbContext>((sp, opt) =>
+        services.AddDbContext<PublicDbContext>((sp, opt) =>
+        {
+            opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+            opt.UseNpgsql(connectionString);
+            opt.UseSnakeCaseNamingConvention();
+        });
+        
+        services.AddDbContext<PiiDbContext>((sp, opt) =>
         {
             opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             opt.UseNpgsql(connectionString);

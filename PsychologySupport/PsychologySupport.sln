@@ -80,6 +80,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Translation.API", "Services\Translation\Translation.API\Translation.API.csproj", "{0B615DF2-5C75-4C11-AC70-2C09C81B4F37}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Alias", "Alias", "{BBD0DE6E-3061-4C3D-8614-B8CAD161DA7F}"
+	ProjectSection(SolutionItems) = preProject
+		Services\Alias\scaffold.sh = Services\Alias\scaffold.sh
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Post", "Post", "{D772DAC6-EF8A-45C1-A6B1-C27F8EFF8DCD}"
 EndProject

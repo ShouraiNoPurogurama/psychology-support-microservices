@@ -26,12 +26,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Data\Migrations\" />
       <Folder Include="Data\Pii\" />
       <Folder Include="Data\Public\" />
       <Folder Include="Events\" />
       <Folder Include="Exceptions\" />
-      <Folder Include="Models\" />
       <Folder Include="Validators\" />
     </ItemGroup>
 

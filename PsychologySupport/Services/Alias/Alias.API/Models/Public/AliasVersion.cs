@@ -1,11 +1,12 @@
-﻿using Alias.API.Enums;
+﻿using System;
+using System.Collections.Generic;
+using Alias.API.Enums;
+using BuildingBlocks.DDD;
 
-namespace Alias.API.Models;
+namespace Alias.API.Models.Public;
 
-public partial class AliasVersion
+public partial class AliasVersion : Entity<Guid>, IHasCreationAudit
 {
-    public Guid Id { get; set; }
-
     public Guid AliasId { get; set; }
 
     public string AliasLabel { get; set; } = null!;
@@ -13,18 +14,14 @@ public partial class AliasVersion
     public string AliasKey { get; set; } = null!;
 
     public NicknameSource NicknameSource { get; set; }
-
+    
     public DateTime ValidFrom { get; set; }
 
     public DateTime? ValidTo { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public Guid? CreatedBy { get; set; }
-
-    public DateTime LastModified { get; set; }
-
-    public Guid? LastModifiedBy { get; set; }
-
     public virtual Alias Alias { get; set; } = null!;
+    
+    public DateTimeOffset? CreatedAt { get; set; }
+    
+    public string? CreatedBy { get; set; }
 }
