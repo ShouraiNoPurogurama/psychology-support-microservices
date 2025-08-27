@@ -4,6 +4,7 @@ using FluentValidation;
 using Profile.API.DoctorProfiles.Validators;
 using Profile.API.PatientProfiles.Validators;
 using Notification.API.Protos;
+using Profile.API.Data.Pii;
 
 namespace Profile.API.Extensions;
 
@@ -127,6 +128,13 @@ public static class ApplicationServiceExtensions
         var connectionString = GetConnectionString(config);
 
         services.AddDbContext<ProfileDbContext>((sp, opt) =>
+        {
+            opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+            opt.UseNpgsql(connectionString);
+            opt.UseSnakeCaseNamingConvention();
+        });
+        
+        services.AddDbContext<PiiDbContext>((sp, opt) =>
         {
             opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             opt.UseNpgsql(connectionString);

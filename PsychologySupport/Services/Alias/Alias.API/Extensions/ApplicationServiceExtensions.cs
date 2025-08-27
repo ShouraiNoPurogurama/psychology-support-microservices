@@ -2,7 +2,6 @@
 
 using Alias.API.Common.Reservations;
 using Alias.API.Common.Security;
-using Alias.API.Data.Pii;
 using Alias.API.Data.Public;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
@@ -149,13 +148,6 @@ public static class ApplicationServiceExtensions
         var connectionString = GetConnectionString(config);
 
         services.AddDbContext<PublicDbContext>((sp, opt) =>
-        {
-            opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-            opt.UseNpgsql(connectionString);
-            opt.UseSnakeCaseNamingConvention();
-        });
-        
-        services.AddDbContext<PiiDbContext>((sp, opt) =>
         {
             opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             opt.UseNpgsql(connectionString);

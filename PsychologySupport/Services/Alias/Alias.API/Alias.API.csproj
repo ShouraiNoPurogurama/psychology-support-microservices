@@ -27,7 +27,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Data\Pii\" />
       <Folder Include="Data\Public\" />
       <Folder Include="Events\" />
       <Folder Include="Exceptions\" />
