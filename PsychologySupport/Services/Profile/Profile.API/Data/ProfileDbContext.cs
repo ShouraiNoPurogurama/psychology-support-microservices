@@ -32,7 +32,8 @@ public class ProfileDbContext : DbContext
         {
             typeBuilder.Property(d => d.Gender)
                 .HasConversion(t => t.ToString(),
-                    dbStatus => (UserGender)Enum.Parse(typeof(UserGender), dbStatus));
+                    dbStatus => (UserGender)Enum.Parse(typeof(UserGender), dbStatus))
+                .HasColumnName("gender");
 
             typeBuilder.Property(d => d.PersonalityTraits)
                 .HasConversion(t => t.ToString(),
@@ -44,9 +45,12 @@ public class ProfileDbContext : DbContext
 
             typeBuilder.ComplexProperty(p => p.ContactInfo, contactInfoBuilder =>
             {
-                contactInfoBuilder.Property(c => c.Address);
-                contactInfoBuilder.Property(c => c.Email);
-                contactInfoBuilder.Property(c => c.PhoneNumber);
+                contactInfoBuilder.Property(c => c.Address)
+                    .HasColumnName("address");
+                contactInfoBuilder.Property(c => c.Email)
+                    .HasColumnName("email");
+                contactInfoBuilder.Property(c => c.PhoneNumber)
+                    .HasColumnName("phone_number");
             });
         });
 
@@ -54,18 +58,18 @@ public class ProfileDbContext : DbContext
         builder.Entity<DoctorProfile>(typeBuilder =>
         {
             typeBuilder.Property(d => d.Gender)
-                .HasConversion<string>()
-                .HasMaxLength(10)
-                .HasColumnName("Gender");
+                .HasConversion(t => t.ToString(),
+                    dbStatus => (UserGender)Enum.Parse(typeof(UserGender), dbStatus))
+                .HasColumnName("gender");
 
             typeBuilder.ComplexProperty(d => d.ContactInfo, contactInfoBuilder =>
             {
                 contactInfoBuilder.Property(c => c.Address)
-                    .HasColumnName("Address");
+                    .HasColumnName("address");
                 contactInfoBuilder.Property(c => c.Email)
-                    .HasColumnName("Email");
+                    .HasColumnName("email");
                 contactInfoBuilder.Property(c => c.PhoneNumber)
-                    .HasColumnName("PhoneNumber");
+                    .HasColumnName("phone_number");
             });
         });
 
