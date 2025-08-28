@@ -1,4 +1,5 @@
-﻿using Alias.API.Common.Security;
+﻿using System.Text.Json;
+using Alias.API.Common.Security;
 using Alias.API.Data.Public;
 using Alias.API.Enums;
 using Alias.API.Models.Public;
@@ -23,16 +24,20 @@ public sealed class UpsertAliasCommandValidator : AbstractValidator<UpsertAliasC
     public UpsertAliasCommandValidator()
     {
         RuleFor(x => x.AliasId)
-            .NotEmpty().WithMessage("AliasId không được để trống.");
+            .NotEmpty()
+            .WithMessage("AliasId không được để trống.");
 
         RuleFor(x => x.AliasLabel)
-            .NotEmpty().WithMessage("Label không được để trống.")
-            .MaximumLength(20).WithMessage("Label tối đa 20 kí tự.");
+            .NotEmpty()
+            .WithMessage("Label không được để trống.")
+            .MaximumLength(20)
+            .WithMessage("Label tối đa 20 kí tự.");
 
         When(x => x.NicknameSource == NicknameSource.Gacha, () =>
         {
             RuleFor(x => x.Token)
-                .NotEmpty().WithMessage("Token không được để trống cho gacha mode.");
+                .NotEmpty()
+                .WithMessage("Token không được để trống cho gacha mode.");
         });
     }
 }
@@ -59,7 +64,7 @@ public class UpsertAliasHandler : ICommandHandler<UpsertAliasCommand, UpsertAlia
             .FirstOrDefaultAsync(a => a.Id == command.AliasId, cancellationToken);
 
         var aliasKey = AliasNormalizer.ToKey(command.AliasLabel);
-        
+
         if (command.NicknameSource == NicknameSource.Gacha)
         {
             if (!_aliasTokenService.TryValidate(command.Token, out var tokenAliasKey, out var expiresAt))
@@ -71,10 +76,18 @@ public class UpsertAliasHandler : ICommandHandler<UpsertAliasCommand, UpsertAlia
             if (expiresAt < DateTimeOffset.UtcNow)
                 throw new InvalidOperationException("Alias token đã hết hạn.");
         }
-        
+
         if (alias is null)
         {
-            //Tạo mới alias nếu chưa có
+            alias = new Models.Public.Alias
+            {
+                Id = command.AliasId,
+            };
+        
+            _db.Aliases.Add(alias);
+        
+            await _db.SaveChangesAsync(cancellationToken);
+        
             var newVersion = new AliasVersion
             {
                 Id = Guid.NewGuid(),
@@ -86,15 +99,10 @@ public class UpsertAliasHandler : ICommandHandler<UpsertAliasCommand, UpsertAlia
                 CreatedAt = DateTimeOffset.UtcNow,
                 CreatedBy = command.AliasId.ToString()
             };
-
-            alias = new Models.Public.Alias
-            {
-                Id = command.AliasId,
-                CurrentVersionId = newVersion.Id,
-                AliasVersions = new List<AliasVersion> { newVersion }
-            };
-
-            await _db.Aliases.AddAsync(alias, cancellationToken);
+        
+            _db.AliasVersions.Add(newVersion);
+        
+            alias.CurrentVersionId = newVersion.Id;
         }
 
         else
@@ -127,20 +135,24 @@ public class UpsertAliasHandler : ICommandHandler<UpsertAliasCommand, UpsertAlia
             Id = Guid.NewGuid(),
             AliasId = command.AliasId,
             Action = "UPD",
-            Details = $"Label: {command.AliasLabel}, Source: {command.NicknameSource}",
+            Details = JsonSerializer.Serialize(new
+            {
+                label = command.AliasLabel,
+                source = command.NicknameSource.ToString()
+            }),
             CreatedAt = DateTimeOffset.UtcNow,
             CreatedBy = command.AliasId.ToString()
         });
 
         await _db.SaveChangesAsync(cancellationToken);
-        
+
         //TODO publish 1 event để moderation service kiểm tra tính hợp lệ của tên nếu nickname_source = custom.
-        
+
         // if (command.NicknameSource == NicknameSource.Custom)
         // {
         //     
         // }
-        
+
         return new UpsertAliasResult(alias.Id);
     }
 }

@@ -13,7 +13,7 @@ public record UpsertAliasRequest(
     NicknameSource NicknameSource
     );
 
-public class UpsertAliasResponse();
+public record UpsertAliasResponse(Guid AliasId);
 
 public class UpsertAliasEndpoint : ICarterModule
 {

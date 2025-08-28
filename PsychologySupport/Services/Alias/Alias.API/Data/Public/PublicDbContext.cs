@@ -19,10 +19,10 @@ public partial class PublicDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder
-            .HasDefaultSchema("public")
-            .HasPostgresEnum<NicknameSource>("public", "nickname_source")
-            .HasPostgresExtension("citext");
+        // modelBuilder
+        //     .HasDefaultSchema("public")
+        //     .HasPostgresEnum<NicknameSource>("public", "nickname_source")
+        //     .HasPostgresExtension("citext");
 
         modelBuilder.Entity<Models.Public.Alias>(entity =>
         {
@@ -91,7 +91,6 @@ public partial class PublicDbContext : DbContext
             
             entity.Property(e => e.NicknameSource)
                 .HasColumnName("nickname_source")
-                .HasColumnType("public.nickname_source")
                 .HasConversion(s => s.ToString(),
                     dbStatus => (NicknameSource)Enum.Parse(typeof(NicknameSource), dbStatus));
             //
