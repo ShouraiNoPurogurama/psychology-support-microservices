@@ -35,6 +35,7 @@ public class AuthDbContext : IdentityDbContext<User, Role, Guid>
             e.Property(u => u.Gender)
                 .HasConversion(u => u.ToString(),
                     dbStatus => (UserGender)Enum.Parse(typeof(UserGender), dbStatus));
+            
         });
     }
 }

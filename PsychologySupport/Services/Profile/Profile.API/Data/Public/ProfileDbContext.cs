@@ -30,11 +30,6 @@ public class ProfileDbContext : DbContext
 
         builder.Entity<PatientProfile>(typeBuilder =>
         {
-            typeBuilder.Property(d => d.Gender)
-                .HasConversion(t => t.ToString(),
-                    dbStatus => (UserGender)Enum.Parse(typeof(UserGender), dbStatus))
-                .HasColumnName("gender");
-
             typeBuilder.Property(d => d.PersonalityTraits)
                 .HasConversion(t => t.ToString(),
                     dbStatus => (PersonalityTrait)Enum.Parse(typeof(PersonalityTrait), dbStatus));
@@ -43,15 +38,10 @@ public class ProfileDbContext : DbContext
                 .WithOne()
                 .HasForeignKey<MedicalHistory>(m => m.PatientId);
 
-            typeBuilder.ComplexProperty(p => p.ContactInfo, contactInfoBuilder =>
-            {
-                contactInfoBuilder.Property(c => c.Address)
-                    .HasColumnName("address");
-                contactInfoBuilder.Property(c => c.Email)
-                    .HasColumnName("email");
-                contactInfoBuilder.Property(c => c.PhoneNumber)
-                    .HasColumnName("phone_number");
-            });
+            typeBuilder.Property(p => p.CreatedAt);
+            typeBuilder.Property(p => p.CreatedBy);
+            typeBuilder.Property(p => p.LastModified);
+            typeBuilder.Property(p => p.LastModifiedBy);
         });
 
 
@@ -71,6 +61,11 @@ public class ProfileDbContext : DbContext
                 contactInfoBuilder.Property(c => c.PhoneNumber)
                     .HasColumnName("phone_number");
             });
+            
+            typeBuilder.Property(p => p.CreatedAt);
+            typeBuilder.Property(p => p.CreatedBy);
+            typeBuilder.Property(p => p.LastModified);
+            typeBuilder.Property(p => p.LastModifiedBy);
         });
 
         builder.Entity<MedicalRecord>()

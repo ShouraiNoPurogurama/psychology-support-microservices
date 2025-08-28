@@ -29,6 +29,12 @@ public partial class PiiDbContext : DbContext
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever();
+
+            entity.HasOne(e => e.PersonProfile)
+                .WithOne(e => e.AliasOwnerMap)
+                .HasForeignKey<AliasOwnerMap>(e => e.UserId)
+                .IsRequired()
+                ;
         });
 
         builder.Entity<PersonProfile>(entity =>

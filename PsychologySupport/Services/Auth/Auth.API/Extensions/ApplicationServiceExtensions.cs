@@ -163,6 +163,7 @@ public static class ApplicationServiceExtensions
                 };
                 return handler;
             });
+        
         services.AddGrpcClient<PatientProfileService.PatientProfileServiceClient>(options =>
         {
             options.Address = new Uri(config["GrpcSettings:PatientProfileUrl"]!);

@@ -48,11 +48,16 @@
     </ItemGroup>
 	<ItemGroup>
 		<Protobuf Include="Protos\patient_profile.proto" GrpcServices="Server" />
+		<None Remove="Protos\pii.proto" />
+		<Protobuf Include="Protos\pii.proto" GrpcServices="Server"/>
 	</ItemGroup>
 	<ItemGroup>
 		<Protobuf Include="..\..\Notification\Notification.API\Protos\notification.proto" GrpcServices="Client">
 			<Link>Protos\notification.proto</Link>
 		</Protobuf>
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Pii\Features\" />
 	</ItemGroup>
 
 </Project>

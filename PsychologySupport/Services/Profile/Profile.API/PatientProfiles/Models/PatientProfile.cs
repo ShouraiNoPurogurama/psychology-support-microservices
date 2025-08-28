@@ -16,32 +16,23 @@ public class PatientProfile : AggregateRoot<Guid>
     {
     }
 
-    public PatientProfile(Guid userId, string fullName, UserGender gender, string? allergies,
-       PersonalityTrait personalityTraits, ContactInfo contactInfo, Guid? jobId, DateOnly? birthDate)
+    public PatientProfile(Guid userId, string? allergies,
+       PersonalityTrait personalityTraits, Guid? jobId)
     {
         UserId = userId;
-        FullName = fullName;
-        Gender = gender;
         Allergies = allergies;
         PersonalityTraits = personalityTraits;
-        ContactInfo = contactInfo;
         JobId = jobId;
-        BirthDate = birthDate;
-
         IsProfileCompleted = CheckProfileCompleted();
     }
 
     public Guid UserId { get; set; }
-    public string FullName { get; set; }
-    public UserGender Gender { get; set; }
     public string? Allergies { get; set; }
     public PersonalityTrait PersonalityTraits { get; set; }
-    public ContactInfo ContactInfo { get; set; } = default!;
     public Guid? MedicalHistoryId { get; set; }
     public MedicalHistory? MedicalHistory { get; set; }
     public Guid? JobId { get; set; }
     public Job? Job { get; set; }
-    public DateOnly? BirthDate { get; set; }
     public bool IsProfileCompleted { get; set; }
 
     public IReadOnlyList<MedicalRecord> MedicalRecords => _medicalRecords.AsReadOnly();
@@ -92,21 +83,17 @@ public class PatientProfile : AggregateRoot<Guid>
         if (userId == Guid.Empty)
             throw new ArgumentException("ID người dùng không được để trống.", nameof(userId));
 
-        var profile = new PatientProfile(userId, fullName, gender, allergies, personalityTraits, contactInfo, jobId, birthDate);
+        var profile = new PatientProfile(userId, allergies, personalityTraits, jobId);
+        
         profile.IsProfileCompleted = profile.CheckProfileCompleted();
         return profile;
     }
 
-    public void Update(string fullName, UserGender gender, string? allergies, PersonalityTrait personalityTraits,
-        ContactInfo contactInfo, Guid? jobId, DateOnly? birthDate)
+    public void Update( string? allergies, PersonalityTrait personalityTraits, Guid? jobId)
     {
-        FullName = fullName;
-        Gender = gender;
         Allergies = allergies;
         PersonalityTraits = personalityTraits;
-        ContactInfo = contactInfo;
         JobId = jobId;
-        BirthDate = birthDate;
         IsProfileCompleted = CheckProfileCompleted();
     }
 
@@ -131,10 +118,12 @@ public class PatientProfile : AggregateRoot<Guid>
 
     private bool CheckProfileCompleted()
     {
-        return !string.IsNullOrWhiteSpace(FullName)
-               && ContactInfo.HasEnoughInfo()
-               //&& ContactInfo.PhoneNumber is not null
-               && BirthDate.HasValue;
-        // && JobId.HasValue;
+        // return !string.IsNullOrWhiteSpace(FullName)
+        //        && ContactInfo.HasEnoughInfo()
+        //        //&& ContactInfo.PhoneNumber is not null
+        //        && BirthDate.HasValue;
+        // // && JobId.HasValue;
+        //TODO sửa lại logic này sau khi hoàn thiện phần Pii
+        return true;
     }
 }

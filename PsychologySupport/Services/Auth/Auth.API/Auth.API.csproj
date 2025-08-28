@@ -72,5 +72,8 @@
 			<Link>Protos\patient_profile.proto</Link>
 		</Protobuf>
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Data\Migrations\" />
+	</ItemGroup>
 
 </Project>

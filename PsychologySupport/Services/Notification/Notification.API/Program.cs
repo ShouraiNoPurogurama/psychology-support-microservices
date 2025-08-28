@@ -3,13 +3,23 @@ using BuildingBlocks.Exceptions.Handler;
 using Carter;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Notification.API;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Notification.API.Extensions;
 using Notification.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    //Chỉ set protocols, còn port sẽ lấy từ cấu hình (launchSettings, env vars, appsettings.json)
+    options.ConfigureEndpointDefaults(lo =>
+    {
+        lo.Protocols = HttpProtocols.Http1AndHttp2;
+    });
+});
+
 
 builder.Host.UseCustomSerilog(builder.Configuration, "Notification");
 
