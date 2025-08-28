@@ -38,12 +38,5 @@ namespace Profile.API.Common.Helpers
 
             return role is "Manager" or "Admin";
         }
-        
-        public static bool IsExclusiveAccess(ClaimsPrincipal user)
-        {
-            var id = user.FindFirstValue("userId");
-
-            return id == "0197edba-e8e1-78ef-be6a-83e4110170e6";
-        }
     }
 }

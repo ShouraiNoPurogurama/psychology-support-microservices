@@ -15,7 +15,7 @@ public class GetPatientProfileEndpoint : ICarterModule
     {
         app.MapGet("/patients/{id:guid}", async (Guid id, ISender sender, HttpContext httpContext) =>
             {
-                if (!AuthorizationHelpers.CanViewPatientProfile(id, httpContext.User) && !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
+                if (!AuthorizationHelpers.CanViewPatientProfile(id, httpContext.User))
                     throw new ForbiddenException();
                 
                 var query = new GetPatientProfileQuery(id);

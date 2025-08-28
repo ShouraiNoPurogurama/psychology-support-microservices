@@ -16,7 +16,7 @@ namespace Profile.API.PatientProfiles.Features.GetMedicalRecord
         {
             app.MapGet("/medical-records/{medicalRecordId:guid}", async (Guid medicalRecordId,HttpContext httpContext, ISender sender) =>
             {
-                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User) && !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
+                if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
                     throw new ForbiddenException();
                 
                 var query = new GetMedicalRecordQuery(medicalRecordId);

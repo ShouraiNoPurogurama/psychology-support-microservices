@@ -1,7 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace ChatBox.API.Extensions;
+namespace Alias.API.Extensions;
 
 public static class ClaimsPrincipalExtensions
 {
@@ -12,12 +12,12 @@ public static class ClaimsPrincipalExtensions
         return result;
     }
 
-    public static string GetAliasId(this ClaimsPrincipal user)
+    public static Guid GetAliasId(this ClaimsPrincipal user)
     {
         var result = user.Claims.FirstOrDefault(c => c.Type == "aliasId")?.Value ??
                      throw new UnauthorizedAccessException("Token không hợp lệ: Không tìm thấy Claims Alias Id.");
         
-        return result;
+        return Guid.Parse(result);
     }
 
     public static string GetProfileId(this ClaimsPrincipal user)

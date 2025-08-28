@@ -49,7 +49,7 @@
 	<ItemGroup>
 		<Protobuf Include="Protos\patient_profile.proto" GrpcServices="Server" />
 		<None Remove="Protos\pii.proto" />
-		<Protobuf Include="Protos\pii.proto" GrpcServices="Server"/>
+		<Protobuf Include="Protos\pii.proto" GrpcServices="Server" />
 	</ItemGroup>
 	<ItemGroup>
 		<Protobuf Include="..\..\Notification\Notification.API\Protos\notification.proto" GrpcServices="Client">

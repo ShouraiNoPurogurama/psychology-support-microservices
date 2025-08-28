@@ -39,8 +39,10 @@ public class AliasTokenService(IConfiguration config) : IAliasTokenService
         
         var payload = $"{aliasKey}|{expiresAt.UtcDateTime:O}";
         var expect = ComputeHmac(payload);
-        if (!CryptographicOperations.FixedTimeEquals(Convert.FromHexString(signature), Convert.FromHexString(expect)))
-            return false;
+
+        var sigBytes = Convert.FromBase64String(signature);
+        var expBytes = Convert.FromBase64String(expect);
+        if (!CryptographicOperations.FixedTimeEquals(sigBytes, expBytes)) return false;
         
         return expiresAt > DateTimeOffset.UtcNow;
     }

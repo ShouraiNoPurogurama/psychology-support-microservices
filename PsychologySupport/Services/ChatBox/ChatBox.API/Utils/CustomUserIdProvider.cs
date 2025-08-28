@@ -9,4 +9,9 @@ public class CustomUserIdProvider : IUserIdProvider
     {
         return connection.User.FindFirst("userId")?.Value;
     }
+
+    public string? GetAliasId(HubConnectionContext connection)
+    {
+        return connection.User.FindFirst("aliasId")?.Value;
+    }
 }

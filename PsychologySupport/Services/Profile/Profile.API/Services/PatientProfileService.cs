@@ -1,12 +1,9 @@
-﻿using System.Transactions;
-using Grpc.Core;
-using Microsoft.EntityFrameworkCore.Storage;
+﻿using Grpc.Core;
 using Notification.API.Protos;
 using Profile.API.Data.Pii;
 using Profile.API.PatientProfiles.Models;
 using Profile.API.Pii.Models;
 using Profile.API.Protos;
-
 
 namespace Profile.API.Services
 {

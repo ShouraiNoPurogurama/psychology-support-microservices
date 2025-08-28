@@ -1,6 +1,4 @@
-﻿// using Alias.API.Data;
-
-using Alias.API.Common.Reservations;
+﻿using Alias.API.Common.Reservations;
 using Alias.API.Common.Security;
 using Alias.API.Data.Public;
 using BuildingBlocks.Behaviors;

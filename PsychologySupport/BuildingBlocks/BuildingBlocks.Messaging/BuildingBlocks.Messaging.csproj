@@ -14,4 +14,7 @@
     <ItemGroup>
         <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.csproj"/>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Events\Moderation\" />
+    </ItemGroup>
 </Project>
