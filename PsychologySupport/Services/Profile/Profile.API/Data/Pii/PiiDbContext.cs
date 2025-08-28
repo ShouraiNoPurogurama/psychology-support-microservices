@@ -1,4 +1,5 @@
-﻿using Profile.API.Pii.Models;
+﻿using BuildingBlocks.Enums;
+using Profile.API.Pii.Models;
 
 namespace Profile.API.Data.Pii;
 
@@ -26,7 +27,7 @@ public partial class PiiDbContext : DbContext
             entity.HasIndex(e => e.AliasId, "ix_alias_owner_map_alias_id").IsUnique();
 
             entity.HasIndex(e => e.UserId, "ix_alias_owner_map_user_id").IsUnique();
-
+            
             entity.Property(e => e.Id)
                 .ValueGeneratedNever();
 
@@ -59,6 +60,11 @@ public partial class PiiDbContext : DbContext
                 contactInfoBuilder.Property(c => c.PhoneNumber)
                     .HasColumnName("phone_number");
             });
+            
+            entity.Property(e => e.Gender)
+                .HasDefaultValue(UserGender.Else)
+                .HasConversion(s => s.ToString(),
+                    dbStatus => (UserGender)Enum.Parse(typeof(UserGender), dbStatus));
         });
         
 

@@ -85,7 +85,10 @@ namespace Profile.API.Data.Pii.Migrations
                         .HasColumnName("full_name");
 
                     b.Property<string>("Gender")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("text")
+                        .HasDefaultValue("Else")
                         .HasColumnName("gender");
 
                     b.Property<DateTimeOffset?>("LastModified")
@@ -119,6 +122,23 @@ namespace Profile.API.Data.Pii.Migrations
                         .HasName("person_profiles_pkey");
 
                     b.ToTable("person_profiles", "pii");
+                });
+
+            modelBuilder.Entity("Profile.API.Pii.Models.AliasOwnerMap", b =>
+                {
+                    b.HasOne("Profile.API.Pii.Models.PersonProfile", "PersonProfile")
+                        .WithOne("AliasOwnerMap")
+                        .HasForeignKey("Profile.API.Pii.Models.AliasOwnerMap", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_alias_owner_map_person_profiles_user_id");
+
+                    b.Navigation("PersonProfile");
+                });
+
+            modelBuilder.Entity("Profile.API.Pii.Models.PersonProfile", b =>
+                {
+                    b.Navigation("AliasOwnerMap");
                 });
 #pragma warning restore 612, 618
         }

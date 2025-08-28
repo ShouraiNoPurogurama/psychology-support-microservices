@@ -37,11 +37,6 @@ public class ProfileDbContext : DbContext
             typeBuilder.HasOne(p => p.MedicalHistory)
                 .WithOne()
                 .HasForeignKey<MedicalHistory>(m => m.PatientId);
-
-            typeBuilder.Property(p => p.CreatedAt);
-            typeBuilder.Property(p => p.CreatedBy);
-            typeBuilder.Property(p => p.LastModified);
-            typeBuilder.Property(p => p.LastModifiedBy);
         });
 
 
@@ -61,11 +56,6 @@ public class ProfileDbContext : DbContext
                 contactInfoBuilder.Property(c => c.PhoneNumber)
                     .HasColumnName("phone_number");
             });
-            
-            typeBuilder.Property(p => p.CreatedAt);
-            typeBuilder.Property(p => p.CreatedBy);
-            typeBuilder.Property(p => p.LastModified);
-            typeBuilder.Property(p => p.LastModifiedBy);
         });
 
         builder.Entity<MedicalRecord>()
