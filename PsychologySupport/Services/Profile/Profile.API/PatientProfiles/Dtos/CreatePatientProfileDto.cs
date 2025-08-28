@@ -5,7 +5,7 @@ using Profile.API.PatientProfiles.Enum;
 namespace Profile.API.PatientProfiles.Dtos;
 
 public record CreatePatientProfileDto(
-    Guid UserId,
+    Guid AliasId,
     string FullName,
     UserGender Gender,
     string? Allergies,

@@ -10,5 +10,5 @@ global using MediatR;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.EntityFrameworkCore.Diagnostics;
 global using Microsoft.OpenApi.Models;
-global using Profile.API.Common.ValueObjects;
+// global using Profile.API.Common.ValueObjects;
 global using Profile.API.Data;

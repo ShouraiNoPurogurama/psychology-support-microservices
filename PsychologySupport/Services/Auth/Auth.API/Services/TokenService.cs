@@ -31,8 +31,8 @@ public class TokenService(
         var roles = await userManager.GetRolesAsync(user);
 
         var profileId = Guid.Empty;
-        var IsProfileCompleted = false;
-        var HasEmotionLoggedToday = false;
+        var isProfileCompleted = false;
+        var hasEmotionLoggedToday = false;
 
         if (roles.Contains("Doctor"))
         {
@@ -46,12 +46,12 @@ public class TokenService(
                 await patientClient.GetResponse<GetPatientProfileResponse>(new GetPatientProfileRequest(Guid.Empty, user.Id));
             profileId = patientProfile.Message.Id;
 
-            IsProfileCompleted = patientProfile.Message.IsProfileCompleted;
+            isProfileCompleted = patientProfile.Message.IsProfileCompleted;
 
             var PatietnEmotion = (await lifestyleClient.GetResponse<CheckPatientEmotionTodayResponse>(
                 new CheckPatientEmotionTodayRequest(profileId)));
 
-            HasEmotionLoggedToday = PatietnEmotion.Message.HasLoggedToday;
+            hasEmotionLoggedToday = PatietnEmotion.Message.HasLoggedToday;
 
         }
 
@@ -63,15 +63,12 @@ public class TokenService(
         var jti = Guid.NewGuid().ToString(); // JWT ID (JTI) for unique identification of the token
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Email!),
             new Claim(JwtRegisteredClaimNames.Jti, jti),
-            new Claim("userId", user.Id.ToString()),
-            new Claim("profileId", profileId.ToString()),
+            new Claim("aliasId", user.Id.ToString()),
             new Claim("subscription", subscriptionPlan),
-            new Claim("IsProfileCompleted", IsProfileCompleted.ToString()),
-            new Claim("HasEmotionLoggedToday", HasEmotionLoggedToday.ToString()),
-            new Claim(ClaimTypes.Role, string.Join(",", roles)),
-            new Claim(ClaimTypes.Name, user.FullName!)
+            new Claim("IsProfileCompleted", isProfileCompleted.ToString()),
+            new Claim("HasEmotionLoggedToday", hasEmotionLoggedToday.ToString()),
+            new Claim(ClaimTypes.Role, string.Join(",", roles))
         };
 
         var rsaSecurityKey = GetRsaSecurityKey();
@@ -101,7 +98,7 @@ public class TokenService(
     }
 
 
-    public Guid GetUserIdFromHttpContext(HttpContext httpContext)
+    public Guid GetAliasIdFromHttpContext(HttpContext httpContext)
     {
         if (!httpContext.Request.Headers.ContainsKey("Authorization"))
             throw new ForbiddenException("Thiếu header Authorization.");
@@ -119,10 +116,10 @@ public class TokenService(
         try
         {
             var token = tokenHandler.ReadJwtToken(jwtToken);
-            var userIdClaim = token.Claims.FirstOrDefault(claim => claim.Type == "userId");
+            var userIdClaim = token.Claims.FirstOrDefault(claim => claim.Type == "aliasId");
 
             if (userIdClaim is null || string.IsNullOrWhiteSpace(userIdClaim.Value))
-                throw new ForbiddenException("Thiếu thông tin User Id trong token.");
+                throw new ForbiddenException("Thiếu thông tin Alias Id trong token.");
 
             return Guid.Parse(userIdClaim.Value);
         }

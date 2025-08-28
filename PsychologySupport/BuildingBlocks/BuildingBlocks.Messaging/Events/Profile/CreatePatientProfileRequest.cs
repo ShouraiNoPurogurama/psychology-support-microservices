@@ -11,6 +11,7 @@ namespace BuildingBlocks.Messaging.Events.Profile
        UserGender Gender,
        string? Allergies,
        PersonalityTrait PersonalityTraits,
-       ContactInfo ContactInfo
+       ContactInfo ContactInfo,
+       DateOnly? BirthDate
    );
 }

@@ -1,53 +1,66 @@
-﻿using BuildingBlocks.Enums;
+﻿using BuildingBlocks.Data.Common;
+using BuildingBlocks.Enums;
 using BuildingBlocks.Messaging.Events.Profile;
 using Mapster;
+using Profile.API.Data.Pii;
 using Profile.API.PatientProfiles.Models;
+
 namespace Profile.API.EventHandlers;
 
-public class GetPatientProfileHandler(ProfileDbContext dbContext) : IConsumer<GetPatientProfileRequest>
+public class GetPatientProfileHandler(ProfileDbContext dbContext, PiiDbContext piiDbContext)
+    : IConsumer<GetPatientProfileRequest>
 {
     public async Task Consume(ConsumeContext<GetPatientProfileRequest> context)
     {
+        var message = context.Message;
         PatientProfile? patientProfile = null;
-        if (context.Message.UserId is not null)
+
+        if (message.UserId is not null)
         {
-            patientProfile = await dbContext.PatientProfiles.FirstOrDefaultAsync(x => x.UserId == context.Message.UserId);
-
-            if (patientProfile is null)
-            {
-                await context.RespondAsync(new GetPatientProfileResponse(false, Guid.Empty, string.Empty, UserGender.Else,
-                    string.Empty, string.Empty, string.Empty, string.Empty, String.Empty, Guid.Empty,false));
-                return;
-            }
-
-            await context.RespondAsync(patientProfile.Adapt<GetPatientProfileResponse>() with
-            {
-                Email = patientProfile.ContactInfo.Email,
-                Address = patientProfile.ContactInfo.Address,
-                PhoneNumber = patientProfile.ContactInfo.PhoneNumber,
-                PatientExists = true,
-                UserId = patientProfile.UserId
-            });
-            return;
+            patientProfile = await dbContext.PatientProfiles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.UserId == message.UserId, context.CancellationToken);
         }
-
-        patientProfile = await dbContext.PatientProfiles.AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == context.Message.PatientId);
+        else if (message.PatientId != Guid.Empty)
+        {
+            patientProfile = await dbContext.PatientProfiles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == message.PatientId, context.CancellationToken);
+        }
 
         if (patientProfile is null)
         {
-            await context.RespondAsync(new GetPatientProfileResponse(false, Guid.Empty, string.Empty, UserGender.Else,
-                string.Empty, string.Empty, string.Empty, string.Empty, String.Empty, Guid.Empty,false));
+            await context.RespondAsync(BuildNotFoundResponse());
             return;
         }
 
-        await context.RespondAsync(patientProfile.Adapt<GetPatientProfileResponse>() with
+        var contactInfo = await GetContactInfo(patientProfile.UserId, context.CancellationToken);
+
+        var response = patientProfile.Adapt<GetPatientProfileResponse>() with
         {
-            Email = patientProfile.ContactInfo.Email,
-            Address = patientProfile.ContactInfo.Address,
-            PhoneNumber = patientProfile.ContactInfo.PhoneNumber,
+            Email = contactInfo.Email,
+            Address = contactInfo.Address,
+            PhoneNumber = contactInfo.PhoneNumber,
             PatientExists = true,
             UserId = patientProfile.UserId
-        });
+        };
+
+        await context.RespondAsync(response);
+    }
+
+    private static GetPatientProfileResponse BuildNotFoundResponse() =>
+        new(false, Guid.Empty, string.Empty, UserGender.Else,
+            string.Empty, string.Empty, string.Empty, string.Empty,
+            string.Empty, Guid.Empty, false);
+
+    private async Task<ContactInfo> GetContactInfo(Guid userId, CancellationToken ct)
+    {
+        var person = await piiDbContext.AliasOwnerMaps
+            .AsNoTracking()
+            .Include(p => p.PersonProfile)
+            .Select(a => a.PersonProfile)
+            .FirstOrDefaultAsync(p => p.UserId == userId, ct);
+
+        return person?.ContactInfo ?? new ContactInfo();
     }
 }

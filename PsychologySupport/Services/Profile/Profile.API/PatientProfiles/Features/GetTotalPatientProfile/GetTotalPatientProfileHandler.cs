@@ -23,10 +23,12 @@ namespace Profile.API.PatientProfiles.Features.GetTotalPatientProfile
                 DateOnly.FromDateTime(p.CreatedAt.Value.UtcDateTime) <= request.EndDate);
 
       
-            if (request.Gender.HasValue)
-            {
-                query = query.Where(p => p.Gender == request.Gender.Value);
-            }
+            //TODO quay lại sửa sau
+            
+            // if (request.Gender.HasValue)
+            // {
+            //     query = query.Where(p => p.Gender == request.Gender.Value);
+            // }
 
             return await query.CountAsync(cancellationToken);
         }

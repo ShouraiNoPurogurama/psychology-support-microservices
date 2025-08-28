@@ -1,6 +1,10 @@
-﻿using Grpc.Core;
+﻿using System.Transactions;
+using Grpc.Core;
+using Microsoft.EntityFrameworkCore.Storage;
 using Notification.API.Protos;
+using Profile.API.Data.Pii;
 using Profile.API.PatientProfiles.Models;
+using Profile.API.Pii.Models;
 using Profile.API.Protos;
 
 
@@ -9,19 +13,21 @@ namespace Profile.API.Services
     public class PatientProfileService : Protos.PatientProfileService.PatientProfileServiceBase
     {
         private readonly ProfileDbContext _dbContext;
+        private readonly PiiDbContext _piiDbContext;
         private readonly IWebHostEnvironment _env;
         private readonly NotificationService.NotificationServiceClient _notiClient;
 
         public PatientProfileService(ProfileDbContext dbContext, IWebHostEnvironment env,
-                NotificationService.NotificationServiceClient notiClient
-            )
+            NotificationService.NotificationServiceClient notiClient, PiiDbContext piiDbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _env = env ?? throw new ArgumentNullException(nameof(env));
             _notiClient = notiClient ?? throw new ArgumentNullException(nameof(notiClient));
+            _piiDbContext = piiDbContext;
         }
 
-        public override async Task<CreatePatientProfileResponse> CreatePatientProfile(CreatePatientProfileRequest request, ServerCallContext context)
+        public override async Task<CreatePatientProfileResponse> CreatePatientProfile(CreatePatientProfileRequest request,
+            ServerCallContext context)
         {
             try
             {
@@ -91,18 +97,30 @@ namespace Profile.API.Services
                         };
                 }
 
-                // Check if profile already exists
-                var existingProfile = await _dbContext.PatientProfiles
-                    .FirstOrDefaultAsync(p => p.UserId == userId || p.ContactInfo.Email == contactInfo.Email);
+                //TODO quay lại sửa sau
 
-                if (existingProfile != null)
+                // Check if profile already exists
+                //Bước 1: kiểm tra userId đã tồn tại ở PII chưa
+                var piiProfile = await _piiDbContext.PersonProfiles
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.UserId == userId);
+
+                if (piiProfile != null)
                 {
-                    return new CreatePatientProfileResponse
+                    //Bước 2: kiểm tra userId đã tồn tại ở PatientProfiles chưa
+                    var patientProfile = await _dbContext.PatientProfiles
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(p => p.UserId == userId);
+
+                    if (patientProfile != null)
                     {
-                        Id = existingProfile.Id.ToString(),
-                        Success = false,
-                        Message = "Profile already exists."
-                    };
+                        return new CreatePatientProfileResponse
+                        {
+                            Id = patientProfile.Id.ToString(),
+                            Success = false,
+                            Message = "Hồ sơ người dùng đã tồn tại."
+                        };
+                    }
                 }
 
                 // Create new profile
@@ -110,12 +128,32 @@ namespace Profile.API.Services
                 {
                     Id = Guid.NewGuid(),
                     UserId = userId,
-                    FullName = request.FullName,
-                    Gender = gender,
                     Allergies = request.Allergies,
                     PersonalityTraits = personalityTrait,
-                    ContactInfo = contactInfo
                 };
+
+                var newPiiProfile = PersonProfile.Create(
+                    userId: userId,
+                    fullName: request.FullName,
+                    gender: gender,
+                    contactInfo: contactInfo,
+                    birthDate: request.BirthDate != null
+                        ? DateOnly.FromDateTime(request.BirthDate.ToDateTime())
+                        : null
+                );
+
+                var newAliasId = Guid.NewGuid();
+                var newAliasOwner = new AliasOwnerMap
+                {
+                    Id = Guid.NewGuid(),
+                    AliasId = newAliasId,
+                    UserId = newProfile.UserId
+                };
+
+
+                _piiDbContext.AliasOwnerMaps.Add(newAliasOwner);
+                _piiDbContext.PersonProfiles.Add(newPiiProfile);
+                await _piiDbContext.SaveChangesAsync();
 
                 _dbContext.PatientProfiles.Add(newProfile);
                 await _dbContext.SaveChangesAsync();
@@ -150,7 +188,7 @@ namespace Profile.API.Services
                 ["Year"] = DateTime.UtcNow.Year.ToString()
             });
 
-   
+
             var emailRequest = new Notification.API.Protos.SendEmailRequest
             {
                 EventId = Guid.NewGuid().ToString(),
@@ -169,6 +207,7 @@ namespace Profile.API.Services
             {
                 template = template.Replace($"{{{{{pair.Key}}}}}", pair.Value ?? string.Empty);
             }
+
             return template;
         }
     }

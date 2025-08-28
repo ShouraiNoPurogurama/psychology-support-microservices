@@ -42,7 +42,7 @@ public class AuthService(
 
         var user = registerRequest.Adapt<User>();
         user.Email = user.UserName = registerRequest.Email;
-
+        
         var result = await userManager.CreateAsync(user, registerRequest.Password);
         if (!result.Succeeded)
         {
@@ -338,7 +338,8 @@ public class AuthService(
                 user.Gender,
                 null,
                 PersonalityTrait.None,
-                contactInfo
+                contactInfo,
+                user.BirthDate.Value
             );
 
             var profileResponse = await profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);

@@ -1,0 +1,56 @@
+﻿syntax = "proto3";
+
+package aliasresolver.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AliasResolver.Contracts.v1";
+
+// ===== REQUEST MESSAGES =====
+
+message ResolveUserIdRequest {
+  string alias_id = 1; //UUID string
+}
+
+message ResolvePatientIdRequest {
+  string alias_id = 1; //UUID string
+}
+
+message ResolvePersonInfoRequest {
+  string alias_id = 1; //UUID string
+}
+
+// ===== RESPONSE MESSAGES =====
+
+message ResolveUserIdResponse {
+  string user_id = 1; //UUID string
+}
+
+message ResolvePatientIdResponse {
+  string patient_id = 1; //UUID string
+}
+
+message ResolvePersonInfoResponse {
+  string user_id = 1;
+  string full_name = 2;
+  UserGender gender = 3;
+  google.protobuf.Timestamp birth_date = 4;
+  ContactInfo contact_info = 5;
+}
+
+// ===== ENUMS =====
+
+enum UserGender {
+  USER_GENDER_UNSPECIFIED = 0;
+  MALE = 1;
+  FEMALE = 2;
+  OTHER = 3;
+}
+
+// ===== CONTACT INFO NESTED TYPE =====
+
+message ContactInfo {
+  string email = 1;
+  string phone_number = 2;
+  string address = 3;
+}

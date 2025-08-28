@@ -8,7 +8,7 @@ public interface ITokenService
     // ReSharper disable once InconsistentNaming
     Task<(string Token, string Jti)> GenerateJWTToken(User user);
 
-    Guid GetUserIdFromHttpContext(HttpContext httpContext);
+    Guid GetAliasIdFromHttpContext(HttpContext httpContext);
 
     bool VerifyPassword(string providedPassword, string hashedPassword, User user);
 

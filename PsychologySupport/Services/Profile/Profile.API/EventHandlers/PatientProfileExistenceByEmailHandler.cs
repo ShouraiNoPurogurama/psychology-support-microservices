@@ -1,12 +1,13 @@
 ﻿using BuildingBlocks.Messaging.Events.Profile;
+using Profile.API.Data.Pii;
 
 namespace Profile.API.EventHandlers;
 
 public class PatientProfileExistenceByEmailHandler : IConsumer<PatientProfileExistenceByEmailRequest>
 {
-    private readonly ProfileDbContext _context;
+    private readonly PiiDbContext _context;
 
-    public PatientProfileExistenceByEmailHandler(ProfileDbContext context)
+    public PatientProfileExistenceByEmailHandler(PiiDbContext context)
     {
         _context = context;
     }
@@ -15,7 +16,7 @@ public class PatientProfileExistenceByEmailHandler : IConsumer<PatientProfileExi
     {
         var email = context.Message.email;
 
-        var isExist = await _context.PatientProfiles
+        var isExist = await _context.PersonProfiles
             .AnyAsync(x => x.ContactInfo.Email == email);
 
         await context.RespondAsync(new PatientProfileExistenceByEmailResponse(isExist));
