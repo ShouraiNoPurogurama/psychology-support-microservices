@@ -17,11 +17,9 @@ namespace Alias.API.Data.Public.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("public")
                 .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "public", "nickname_source", new[] { "gacha", "custom" });
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "citext");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
@@ -57,7 +55,7 @@ namespace Alias.API.Data.Public.Migrations
                     b.HasIndex("CurrentVersionId")
                         .HasDatabaseName("ix_aliases_current_version_id");
 
-                    b.ToTable("aliases", "public");
+                    b.ToTable("aliases", (string)null);
                 });
 
             modelBuilder.Entity("Alias.API.Models.Public.AliasAudit", b =>
@@ -93,7 +91,7 @@ namespace Alias.API.Data.Public.Migrations
                     b.HasIndex(new[] { "AliasId" }, "ix_alias_audits_alias")
                         .HasDatabaseName("ix_alias_audits_alias_id");
 
-                    b.ToTable("alias_audits", "public");
+                    b.ToTable("alias_audits", (string)null);
                 });
 
             modelBuilder.Entity("Alias.API.Models.Public.AliasVersion", b =>
@@ -126,7 +124,7 @@ namespace Alias.API.Data.Public.Migrations
 
                     b.Property<string>("NicknameSource")
                         .IsRequired()
-                        .HasColumnType("public.nickname_source")
+                        .HasColumnType("text")
                         .HasColumnName("nickname_source");
 
                     b.Property<DateTime>("ValidFrom")
@@ -148,7 +146,7 @@ namespace Alias.API.Data.Public.Migrations
                         .HasDatabaseName("ix_alias_versions_alias_key")
                         .HasFilter("(valid_to IS NULL)");
 
-                    b.ToTable("alias_versions", "public");
+                    b.ToTable("alias_versions", (string)null);
                 });
 
             modelBuilder.Entity("Alias.API.Models.Public.Alias", b =>

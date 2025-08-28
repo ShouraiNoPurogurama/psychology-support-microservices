@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Alias.API.Data.Public.Migrations
 {
     [DbContext(typeof(PublicDbContext))]
-    [Migration("20250825080933_UpdateAudiableEntities")]
-    partial class UpdateAudiableEntities
+    [Migration("20250828152402_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -129,7 +129,7 @@ namespace Alias.API.Data.Public.Migrations
 
                     b.Property<string>("NicknameSource")
                         .IsRequired()
-                        .HasColumnType("public.nickname_source")
+                        .HasColumnType("nickname_source")
                         .HasColumnName("nickname_source");
 
                     b.Property<DateTime>("ValidFrom")

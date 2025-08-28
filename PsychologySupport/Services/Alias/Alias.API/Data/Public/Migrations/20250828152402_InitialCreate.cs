@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Alias.API.Data.Public.Migrations
 {
     /// <inheritdoc />
-    public partial class BaselineMigration : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -44,7 +44,7 @@ namespace Alias.API.Data.Public.Migrations
                     alias_id = table.Column<Guid>(type: "uuid", nullable: false),
                     alias_label = table.Column<string>(type: "text", nullable: false),
                     alias_key = table.Column<string>(type: "citext", nullable: false),
-                    nickname_source = table.Column<string>(type: "public.nickname_source", nullable: false),
+                    nickname_source = table.Column<string>(type: "nickname_source", nullable: false),
                     valid_from = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     valid_to = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
