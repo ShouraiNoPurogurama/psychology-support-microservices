@@ -23,3 +23,9 @@ services:
       context: .
       dockerfile: Services/Feed/Feed.API/Dockerfile
 
+  aimoderation.api:
+    image: aimoderation.api
+    build:
+      context: .
+      dockerfile: Services/AIModeration/AIModeration.API/Dockerfile
+

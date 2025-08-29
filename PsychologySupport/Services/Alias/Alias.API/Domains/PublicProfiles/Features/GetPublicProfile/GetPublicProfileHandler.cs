@@ -1,10 +1,10 @@
 ﻿using Alias.API.Data.Public;
-using Alias.API.Dtos;
+using Alias.API.Domains.PublicProfiles.Dtos;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace Alias.API.Features.GetPublicProfile;
+namespace Alias.API.Domains.PublicProfiles.Features.GetPublicProfile;
 
 public record GetPublicProfileQuery(Guid AliasId) : IQuery<GetPublicProfileResult>;
 

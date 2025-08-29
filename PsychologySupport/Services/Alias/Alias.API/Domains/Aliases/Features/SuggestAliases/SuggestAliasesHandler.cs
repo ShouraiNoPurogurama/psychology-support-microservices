@@ -1,13 +1,13 @@
 ﻿using Alias.API.Common.Reservations;
 using Alias.API.Common.Security;
 using Alias.API.Data.Public;
-using Alias.API.Dtos;
-using Alias.API.Utils;
+using Alias.API.Domains.Aliases.Dtos;
+using Alias.API.Domains.Aliases.Utils;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
 
-namespace Alias.API.Features.SuggestAliases;
+namespace Alias.API.Domains.Aliases.Features.SuggestAliases;
 
 public record SuggestAliasesQuery(PaginationRequest PaginationRequest, TimeSpan Ttl) : IQuery<SuggestAliasesResult>;
 

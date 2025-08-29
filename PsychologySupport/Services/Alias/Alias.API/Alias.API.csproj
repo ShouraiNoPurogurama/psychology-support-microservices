@@ -32,9 +32,8 @@
 
     <ItemGroup>
       <Folder Include="Data\Public\" />
-      <Folder Include="Events\" />
+      <Folder Include="Domains\" />
       <Folder Include="Exceptions\" />
-      <Folder Include="Validators\" />
     </ItemGroup>
 
     <ItemGroup>

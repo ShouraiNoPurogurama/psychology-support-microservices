@@ -1,4 +1,4 @@
-﻿using Alias.API.Enums;
+﻿using Alias.API.Domains.Aliases.Enums;
 using Alias.API.Models.Public;
 using Microsoft.EntityFrameworkCore;
 

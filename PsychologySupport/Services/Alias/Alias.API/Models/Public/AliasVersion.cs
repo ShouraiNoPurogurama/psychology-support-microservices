@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Alias.API.Enums;
+using Alias.API.Domains.Aliases.Enums;
 using BuildingBlocks.DDD;
 
 namespace Alias.API.Models.Public;

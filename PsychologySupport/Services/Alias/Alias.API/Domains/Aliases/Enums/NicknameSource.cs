@@ -1,4 +1,4 @@
-﻿namespace Alias.API.Enums;
+﻿namespace Alias.API.Domains.Aliases.Enums;
 
 public enum NicknameSource
 {

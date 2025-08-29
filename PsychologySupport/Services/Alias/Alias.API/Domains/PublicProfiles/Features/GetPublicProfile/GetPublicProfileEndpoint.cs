@@ -4,7 +4,7 @@ using Carter;
 using Mapster;
 using MediatR;
 
-namespace Alias.API.Features.GetPublicProfile;
+namespace Alias.API.Domains.PublicProfiles.Features.GetPublicProfile;
 
 
 public record GetPublicProfileResponse();

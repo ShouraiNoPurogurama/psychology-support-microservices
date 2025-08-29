@@ -2,7 +2,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Alias.API.Utils;
+namespace Alias.API.Domains.Aliases.Utils;
 
 /// <summary>
 /// Class này giúp chống mạo danh bằng homoglyph/confusable:

@@ -1,15 +1,15 @@
 ﻿using System.Text.Json;
 using Alias.API.Common.Security;
 using Alias.API.Data.Public;
-using Alias.API.Enums;
+using Alias.API.Domains.Aliases.Enums;
+using Alias.API.Domains.Aliases.Utils;
 using Alias.API.Models.Public;
-using Alias.API.Utils;
 using BuildingBlocks.CQRS;
 using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
-namespace Alias.API.Features.UpsertAlias;
+namespace Alias.API.Domains.Aliases.Features.UpsertAlias;
 
 public record UpsertAliasCommand(
     Guid AliasId,

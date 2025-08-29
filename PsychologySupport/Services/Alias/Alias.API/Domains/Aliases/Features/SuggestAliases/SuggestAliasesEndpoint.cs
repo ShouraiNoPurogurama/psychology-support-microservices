@@ -1,11 +1,10 @@
-﻿using Alias.API.Dtos;
+﻿using Alias.API.Domains.Aliases.Dtos;
 using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 
-namespace Alias.API.Features.SuggestAliases;
+namespace Alias.API.Domains.Aliases.Features.SuggestAliases;
 
 public record SuggestAliasesRequest(TimeSpan Ttl, int PageIndex = 1, int PageSize = 10);
 

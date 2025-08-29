@@ -1,11 +1,11 @@
 ﻿using System.Security.Claims;
-using Alias.API.Enums;
+using Alias.API.Domains.Aliases.Enums;
 using Alias.API.Extensions;
 using Carter;
 using Mapster;
 using MediatR;
 
-namespace Alias.API.Features.UpsertAlias;
+namespace Alias.API.Domains.Aliases.Features.UpsertAlias;
 
 public record UpsertAliasRequest(
     string AliasLabel,
