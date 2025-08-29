@@ -19,7 +19,7 @@ public class UpsertAliasEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPut("me/alias", async (UpsertAliasRequest request, ClaimsPrincipal user, ISender sender) =>
+        app.MapPut("/v1/me/alias", async (UpsertAliasRequest request, ClaimsPrincipal user, ISender sender) =>
         {
             var aliasId = user.GetAliasId();
             

@@ -1,0 +1,47 @@
+﻿using Alias.API.Data.Public;
+using Alias.API.Dtos;
+using BuildingBlocks.CQRS;
+using BuildingBlocks.Exceptions;
+using Microsoft.EntityFrameworkCore;
+
+namespace Alias.API.Features.GetPublicProfile;
+
+public record GetPublicProfileQuery(Guid AliasId) : IQuery<GetPublicProfileResult>;
+
+public record GetPublicProfileResult(PublicProfileDto Profile);
+
+public class GetPublicProfileHandler : IQueryHandler<GetPublicProfileQuery, GetPublicProfileResult>
+{
+    private readonly PublicDbContext _dbContext;
+
+    public GetPublicProfileHandler(PublicDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    public async Task<GetPublicProfileResult> Handle(GetPublicProfileQuery request, CancellationToken cancellationToken)
+    {
+        var alias = await _dbContext.Aliases
+                        .Include(a => a.AliasVersions)
+                        .FirstOrDefaultAsync(a => a.Id == request.AliasId, cancellationToken: cancellationToken)
+                    ?? throw new NotFoundException("Không tìm thấy hồ sơ.");
+
+        var lastVersion = alias.AliasVersions
+            .OrderByDescending(av => av.ValidFrom)
+            .First();
+
+        //TODO publish event aggregate follower, following, posts, avatar url sau khi triển khai xong các microservices đấy
+        
+        var dto = new PublicProfileDto(
+            AliasId: alias.Id,
+            Label: lastVersion.AliasLabel,
+            Followers: 0,
+            Followings: 0,
+            Posts: 0,
+            AvatarUrl: null,
+            CreatedAt: alias.CreatedAt!.Value
+            );
+
+        return new GetPublicProfileResult(dto);
+    }
+}

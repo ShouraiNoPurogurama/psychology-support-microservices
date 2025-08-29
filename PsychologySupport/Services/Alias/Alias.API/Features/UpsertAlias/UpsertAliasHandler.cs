@@ -30,8 +30,8 @@ public sealed class UpsertAliasCommandValidator : AbstractValidator<UpsertAliasC
         RuleFor(x => x.AliasLabel)
             .NotEmpty()
             .WithMessage("Label không được để trống.")
-            .MaximumLength(20)
-            .WithMessage("Label tối đa 20 kí tự.");
+            .MaximumLength(30)
+            .WithMessage("Label tối đa 30 kí tự.");
 
         When(x => x.NicknameSource == NicknameSource.Gacha, () =>
         {

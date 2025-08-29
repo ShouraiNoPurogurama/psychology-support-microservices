@@ -64,7 +64,7 @@ public class AuditableEntityInterceptor(IHttpContextAccessor httpContextAccessor
 
         var userName = httpContext.User.FindFirst(ClaimTypes.Name)?.Value;
         
-        var userId = httpContext.User.FindFirst("userId")?.Value
+        var userId = httpContext.User.FindFirst("aliasId")?.Value
                      ?? httpContext.User.FindFirst("sub")?.Value;
         
         return userName ?? userId ?? "Unknown";

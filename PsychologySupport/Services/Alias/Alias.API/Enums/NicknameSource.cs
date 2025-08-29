@@ -1,6 +1,4 @@
-﻿using NpgsqlTypes;
-
-namespace Alias.API.Enums;
+﻿namespace Alias.API.Enums;
 
 public enum NicknameSource
 {
