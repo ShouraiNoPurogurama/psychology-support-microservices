@@ -9,9 +9,9 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Notification.API.Data.Processors;
-using Notification.API.Firebase.ServiceContracts;
-using Notification.API.Firebase.Services;
-using Notification.API.Outbox.Services;
+using Notification.API.Domains.Firebase.ServiceContracts;
+using Notification.API.Domains.Firebase.Services;
+using Notification.API.Domains.Outbox.Services;
 
 namespace Notification.API.Extensions;
 

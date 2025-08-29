@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.Messaging.Events.Notification;
 using MassTransit;
-using Notification.API.Outbox.Models;
-using Notification.API.Outbox.Services;
+using Notification.API.Domains.Outbox.Models;
+using Notification.API.Domains.Outbox.Services;
 
 namespace Notification.API.Base.EventHandlers;
 

@@ -57,7 +57,7 @@
 		</Protobuf>
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="Pii\Features\" />
+	  <Folder Include="Domains\" />
 	</ItemGroup>
 
 </Project>

@@ -1,11 +1,11 @@
 ﻿using BuildingBlocks.Enums;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Profile.API.DoctorProfiles.Models;
-using Profile.API.MentalDisorders.Models;
-using Profile.API.PatientProfiles.Enum;
-using Profile.API.PatientProfiles.Models;
+using Profile.API.Domains.DoctorProfiles.Models;
+using Profile.API.Domains.MentalDisorders.Models;
+using Profile.API.Domains.PatientProfiles.Enum;
+using Profile.API.Domains.PatientProfiles.Models;
 
-namespace Profile.API.Data;
+namespace Profile.API.Data.Public;
 
 public class ProfileDbContext : DbContext
 {

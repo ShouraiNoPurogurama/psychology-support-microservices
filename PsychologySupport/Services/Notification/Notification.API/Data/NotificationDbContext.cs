@@ -1,4 +1,5 @@
-﻿using Notification.API.Outbox.Models;
+﻿using Notification.API.Domains.Emails.Models;
+using Notification.API.Domains.Outbox.Models;
 
 namespace Notification.API.Data;
 

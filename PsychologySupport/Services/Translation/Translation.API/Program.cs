@@ -3,8 +3,8 @@ using BuildingBlocks.Exceptions.Handler;
 using Carter;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Translation.API.Domains.Translations.Services;
 using Translation.API.Extensions;
-using Translation.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

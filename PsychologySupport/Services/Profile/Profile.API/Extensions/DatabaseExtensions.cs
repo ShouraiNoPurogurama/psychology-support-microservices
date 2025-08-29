@@ -1,4 +1,6 @@
-﻿namespace Profile.API.Extensions;
+﻿using Profile.API.Data.Public;
+
+namespace Profile.API.Extensions;
 
 public static class DatabaseExtensions
 {

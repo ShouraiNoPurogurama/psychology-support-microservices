@@ -21,7 +21,7 @@
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Base\" />
-        <Folder Include="Firebase\Features\" />
+        <Folder Include="Domains\" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks.Messaging\BuildingBlocks.Messaging.csproj" />

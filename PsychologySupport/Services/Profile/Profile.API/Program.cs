@@ -3,8 +3,8 @@ using Carter;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Profile.API.Domains.PatientProfiles.Services;
 using Profile.API.Extensions;
-using Profile.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

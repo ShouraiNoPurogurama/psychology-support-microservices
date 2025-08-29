@@ -4,8 +4,8 @@ using Carter;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Notification.API.Domains.Emails.Services;
 using Notification.API.Extensions;
-using Notification.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

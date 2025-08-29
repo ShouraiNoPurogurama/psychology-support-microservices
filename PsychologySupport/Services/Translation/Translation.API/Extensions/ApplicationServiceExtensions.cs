@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using Translation.API.Data;
+using Translation.API.Domains.Translations.Services;
 using Translation.API.Models;
-using Translation.API.Services;
 
 namespace Translation.API.Extensions;
 

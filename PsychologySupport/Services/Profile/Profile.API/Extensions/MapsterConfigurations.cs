@@ -1,11 +1,11 @@
 ﻿using System.Reflection;
 using Mapster;
-using Profile.API.DoctorProfiles.Dtos;
-using Profile.API.DoctorProfiles.Models;
-using Profile.API.MentalDisorders.Dtos;
-using Profile.API.MentalDisorders.Models;
-using Profile.API.PatientProfiles.Dtos;
-using Profile.API.PatientProfiles.Models;
+using Profile.API.Domains.DoctorProfiles.Dtos;
+using Profile.API.Domains.DoctorProfiles.Models;
+using Profile.API.Domains.MentalDisorders.Dtos;
+using Profile.API.Domains.MentalDisorders.Models;
+using Profile.API.Domains.PatientProfiles.Dtos;
+using Profile.API.Domains.PatientProfiles.Models;
 
 namespace Profile.API.Extensions;
 

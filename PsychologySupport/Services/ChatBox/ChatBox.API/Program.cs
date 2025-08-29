@@ -1,7 +1,7 @@
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
+using ChatBox.API.Domains.Chatboxes.Hubs;
 using ChatBox.API.Extensions;
-using ChatBox.API.Hubs;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 

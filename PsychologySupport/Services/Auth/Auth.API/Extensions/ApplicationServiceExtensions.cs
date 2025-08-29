@@ -1,8 +1,8 @@
-﻿using Auth.API.BackgroundServices;
-using Auth.API.Data;
-using Auth.API.ServiceContracts;
-using Auth.API.Services;
-using Auth.API.Validators;
+﻿using Auth.API.Data;
+using Auth.API.Domains.Authentication.BackgroundServices;
+using Auth.API.Domains.Authentication.ServiceContracts;
+using Auth.API.Domains.Authentication.Services;
+using Auth.API.Domains.Authentication.Validators;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Filters;
 using BuildingBlocks.Messaging.MassTransit;
