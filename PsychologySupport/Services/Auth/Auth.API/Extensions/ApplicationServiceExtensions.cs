@@ -2,6 +2,7 @@
 using Auth.API.Domains.Authentication.BackgroundServices;
 using Auth.API.Domains.Authentication.ServiceContracts;
 using Auth.API.Domains.Authentication.Services;
+using Auth.API.Domains.Authentication.Services.v2;
 using Auth.API.Domains.Authentication.Validators;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Filters;
@@ -15,6 +16,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using Notification.API.Protos;
 using Profile.API.Protos;
+using AuthService = Auth.API.Domains.Authentication.Services.v2.AuthService;
 
 namespace Auth.API.Extensions;
 
@@ -121,11 +123,11 @@ public static class ApplicationServiceExtensions
 
     private static void AddServiceDependencies(IServiceCollection services)
     {
-        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAuthService, Domains.Authentication.Services.AuthService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
         services.AddScoped<LoggingActionFilter>();
-        services.AddScoped<IAuthService02, AuthService02>();
+        services.AddScoped<IAuthService02, AuthService>();
 
         services.AddFluentValidationAutoValidation();
         services.AddValidatorsFromAssemblyContaining<ChangePasswordRequestValidator>();
