@@ -3,6 +3,7 @@ using System;
 using Auth.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Auth.API.Data.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
-    partial class AuthDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250901131159_RemovePiiDataAndAddPendingVerificationUserMechanism")]
+    partial class RemovePiiDataAndAddPendingVerificationUserMechanism
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -131,9 +134,9 @@ namespace Auth.API.Data.Migrations
                         .HasColumnName("processed_at");
 
                     b.HasKey("Id")
-                        .HasName("pk_pending_verification_users");
+                        .HasName("pk_pending_verification_user");
 
-                    b.ToTable("pending_verification_users", (string)null);
+                    b.ToTable("pending_verification_user", (string)null);
                 });
 
             modelBuilder.Entity("Auth.API.Models.Role", b =>

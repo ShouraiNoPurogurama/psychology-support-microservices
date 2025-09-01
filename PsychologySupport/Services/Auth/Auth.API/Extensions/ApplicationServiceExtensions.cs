@@ -1,10 +1,14 @@
 ﻿using Auth.API.Data;
 using Auth.API.Domains.Authentication.BackgroundServices;
 using Auth.API.Domains.Authentication.ServiceContracts;
+using Auth.API.Domains.Authentication.ServiceContracts.v2;
 using Auth.API.Domains.Authentication.Services;
 using Auth.API.Domains.Authentication.Services.v2;
 using Auth.API.Domains.Authentication.Validators;
+using Auth.API.Domains.Encryption.ServiceContracts;
+using Auth.API.Domains.Encryption.Services;
 using BuildingBlocks.Behaviors;
+using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Filters;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
@@ -17,6 +21,7 @@ using Microsoft.OpenApi.Models;
 using Notification.API.Protos;
 using Profile.API.Protos;
 using AuthService = Auth.API.Domains.Authentication.Services.v2.AuthService;
+using IAuthService = Auth.API.Domains.Authentication.ServiceContracts.v2.IAuthService;
 
 namespace Auth.API.Extensions;
 
@@ -39,7 +44,7 @@ public static class ApplicationServiceExtensions
 
         ConfigureCors(services);
 
-        // ConfigureMediatR(services);
+        ConfigureMediatR(services);
 
         AddDatabase(services, config);
 
@@ -123,12 +128,18 @@ public static class ApplicationServiceExtensions
 
     private static void AddServiceDependencies(IServiceCollection services)
     {
-        services.AddScoped<IAuthService, Domains.Authentication.Services.AuthService>();
+        services.AddScoped<Domains.Authentication.ServiceContracts.IAuthService, Domains.Authentication.Services.AuthService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
         services.AddScoped<LoggingActionFilter>();
-        services.AddScoped<IAuthService02, AuthService>();
-
+        services.AddScoped<IAuthService, AuthService>();
+        services
+            .AddScoped<Domains.Authentication.ServiceContracts.v3.IAuthService, Domains.Authentication.Services.v3.AuthService>();
+        services.AddScoped<IPayloadProtector, PayloadProtector>();
+        
+        services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+        services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        
         services.AddFluentValidationAutoValidation();
         services.AddValidatorsFromAssemblyContaining<ChangePasswordRequestValidator>();
     }

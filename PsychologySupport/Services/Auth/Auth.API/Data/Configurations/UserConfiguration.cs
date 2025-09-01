@@ -9,9 +9,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.Property(u => u.Gender)
-            .HasDefaultValue(UserGender.Else)
-            .HasConversion(ug => ug.ToString(),
-                dbStatus => (UserGender)Enum.Parse(typeof(UserGender), dbStatus));
+
     }
 }

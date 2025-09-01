@@ -24,8 +24,6 @@ public class DoctorProfileUpdatedEventHandler : IConsumer<DoctorProfileUpdatedIn
         var user = await _context.Users.FindAsync(message.UserId);
         if (user != null)
         {
-            user.FullName = message.FullName;
-            user.Gender = message.Gender;
             await _userManager.SetEmailAsync(user, message.Email);
             await _userManager.SetPhoneNumberAsync(user, message.PhoneNumber);
             user.EmailConfirmed = true;

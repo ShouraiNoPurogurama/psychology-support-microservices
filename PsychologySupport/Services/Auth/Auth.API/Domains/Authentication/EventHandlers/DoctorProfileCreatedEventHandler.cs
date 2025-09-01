@@ -37,8 +37,6 @@ public class DoctorProfileCreatedEventHandler : IConsumer<DoctorProfileCreatedRe
         var user = new User
         {
             Id = Guid.NewGuid(),
-            FullName = message.FullName,
-            Gender = message.Gender,
             Email = message.Email,
             UserName = message.Email,
             PhoneNumber = message.PhoneNumber,

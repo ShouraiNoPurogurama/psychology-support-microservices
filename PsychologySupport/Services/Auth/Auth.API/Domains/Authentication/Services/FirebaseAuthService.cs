@@ -54,7 +54,6 @@ namespace Auth.API.Domains.Authentication.Services
             {
                 user = new User
                 {
-                    FullName = fullName,
                     Email = email,
                     FirebaseUserId = firebaseUserId,
                     EmailConfirmed = true,
