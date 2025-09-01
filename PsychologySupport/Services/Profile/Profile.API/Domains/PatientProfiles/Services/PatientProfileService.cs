@@ -103,29 +103,30 @@ namespace Profile.API.Domains.PatientProfiles.Services
                     .AsNoTracking()
                     .FirstOrDefaultAsync(p => p.UserId == userId);
 
+                //TODO tí quay lại sửa
                 if (piiProfile != null)
                 {
                     //Bước 2: kiểm tra userId đã tồn tại ở PatientProfiles chưa
-                    var patientProfile = await _dbContext.PatientProfiles
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(p => p.UserId == userId);
-
-                    if (patientProfile != null)
-                    {
-                        return new CreatePatientProfileResponse
-                        {
-                            Id = patientProfile.Id.ToString(),
-                            Success = false,
-                            Message = "Hồ sơ người dùng đã tồn tại."
-                        };
-                    }
+                    // var patientProfile = await _dbContext.PatientProfiles
+                    //     .AsNoTracking()
+                    //     .FirstOrDefaultAsync(p => p.UserId == userId);
+                    //
+                    // if (patientProfile != null)
+                    // {
+                    //     return new CreatePatientProfileResponse
+                    //     {
+                    //         Id = patientProfile.Id.ToString(),
+                    //         Success = false,
+                    //         Message = "Hồ sơ người dùng đã tồn tại."
+                    //     };
+                    // }
                 }
 
                 // Create new profile
                 var newProfile = new PatientProfile
                 {
                     Id = Guid.NewGuid(),
-                    UserId = userId,
+                    // UserId = userId,
                     Allergies = request.Allergies,
                     PersonalityTraits = personalityTrait,
                 };
@@ -140,12 +141,13 @@ namespace Profile.API.Domains.PatientProfiles.Services
                         : null
                 );
 
+                //TODO tí quay lại sửa
                 var newAliasId = Guid.NewGuid();
                 var newAliasOwner = new AliasOwnerMap
                 {
                     Id = Guid.NewGuid(),
                     AliasId = newAliasId,
-                    UserId = newProfile.UserId
+                    // UserId = newProfile.UserId
                 };
 
 

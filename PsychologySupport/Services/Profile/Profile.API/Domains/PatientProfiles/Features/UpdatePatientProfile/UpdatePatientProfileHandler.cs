@@ -57,7 +57,7 @@ public class UpdatePatientProfileHandler : ICommandHandler<UpdatePatientProfileC
         await _context.SaveChangesAsync(cancellationToken);
 
         var patientProfileUpdatedEvent = new PatientProfileUpdatedIntegrationEvent(
-            patientProfile.UserId,
+            // patientProfile.UserId,
             piiProfile.FullName!,
             piiProfile.Gender,
             piiProfile.ContactInfo.Email,
