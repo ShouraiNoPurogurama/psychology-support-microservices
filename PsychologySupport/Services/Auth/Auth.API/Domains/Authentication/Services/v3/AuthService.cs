@@ -4,32 +4,34 @@ using Auth.API.Domains.Authentication.Dtos.Requests;
 using Auth.API.Domains.Authentication.Dtos.Responses;
 using Auth.API.Domains.Authentication.Exceptions;
 using Auth.API.Domains.Authentication.ServiceContracts;
+using Auth.API.Domains.Encryption.Dtos;
+using Auth.API.Domains.Encryption.ServiceContracts;
 using Auth.API.Models;
 using BuildingBlocks.Constants;
-using BuildingBlocks.Data.Common;
-using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Notification;
-using BuildingBlocks.Messaging.Events.Profile;
 using BuildingBlocks.Utils;
 using Google.Apis.Auth;
 using Mapster;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Notification.API.Protos;
+using Profile.API.Protos;
 
-namespace Auth.API.Domains.Authentication.Services;
+namespace Auth.API.Domains.Authentication.Services.v3;
 
 public class AuthService(
     UserManager<User> userManager,
     IConfiguration configuration,
     ITokenService tokenService,
-    IRequestClient<CreatePatientProfileRequest> profileClient,
-    IRequestClient<HasSentEmailRecentlyRequest> hasSentEmailRecentlyClient,
+    IPayloadProtector payloadProtector,
+    PatientProfileService.PatientProfileServiceClient patientProfileClient, // gRPC client
+    NotificationService.NotificationServiceClient notificationClient, // gRPC client
     AuthDbContext authDbContext,
     IPublishEndpoint publishEndpoint,
     IWebHostEnvironment env
-) : IAuthService
+) : ServiceContracts.v3.IAuthService
 {
     private const int LockoutTimeInMinutes = 15;
 
@@ -42,7 +44,7 @@ public class AuthService(
 
         var user = registerRequest.Adapt<User>();
         user.Email = user.UserName = registerRequest.Email;
-        
+
         var result = await userManager.CreateAsync(user, registerRequest.Password);
         if (!result.Succeeded)
         {
@@ -50,8 +52,25 @@ public class AuthService(
             throw new InvalidDataException($"Đăng ký thất bại: {errors}");
         }
 
+        //Tạo pending verification
+        var pendingVerificationUser = new PendingVerificationUser();
+        
+        var dto = new PendingSeedDto(registerRequest.FullName, registerRequest.Gender, registerRequest.BirthDate,
+            new BuildingBlocks.Data.Common.ContactInfo
+            {
+                Address = "None",
+                Email = registerRequest.Email,
+                PhoneNumber = registerRequest.PhoneNumber,
+            });
+
+        pendingVerificationUser.PayloadProtected = payloadProtector.Protect(dto);
+
+        authDbContext.PendingVerificationUsers.Add(pendingVerificationUser);
+
+        await authDbContext.SaveChangesAsync();
+        
         await AssignUserRoleAsync(user);
-        await SendEmailConfirmationAsync(user);
+        // await SendEmailConfirmationAsync(user);
 
         return true;
     }
@@ -329,24 +348,28 @@ public class AuthService(
     {
         try
         {
-            var contactInfo = ContactInfo.Of("None", user.Email, user.PhoneNumber);
-            var createProfileRequest = new CreatePatientProfileRequest(
-                user.Id,
-                null,
-                PersonalityTrait.None,
-                contactInfo
-            );
+            var contactInfo = new ContactInfo
+            {
+                Address = "None",
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber ?? ""
+            };
 
-            var profileResponse = await profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
+            var createProfileRequest = new CreatePatientProfileRequest
+            {
+                UserId = user.Id.ToString(),
+                PersonalityTrait = PersonalityTrait.None1,
+                ContactInfo = contactInfo
+            };
 
-            if (profileResponse.Message.Success)
+            var profileResponse = await patientProfileClient.CreatePatientProfileAsync(createProfileRequest);
+
+            if (profileResponse.Success)
             {
                 return (true, null);
             }
-            else
-            {
-                return (false, profileResponse.Message.Message);
-            }
+
+            return (false, profileResponse.Message);
         }
         catch (Exception ex)
         {
@@ -386,7 +409,7 @@ public class AuthService(
             throw new RateLimitExceededException(
                 "Vui lòng đợi ít nhất 1 phút trước khi gửi lại email đổi mật khẩu. Nếu chưa nhận được email, hãy kiểm tra hộp thư rác (spam) hoặc đợi thêm một chút.");
         }
-        
+
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
         var resetUrlTemplate = configuration["Mail:PasswordResetUrl"];
         var callbackUrl = string.Format(resetUrlTemplate!, Uri.EscapeDataString(token), Uri.EscapeDataString(user.Email));
@@ -404,10 +427,9 @@ public class AuthService(
 
     private async Task<bool> HasSentResetEmailRecentlyAsync(string email)
     {
-        var response = await hasSentEmailRecentlyClient.GetResponse<HasSentEmailRecentlyResponse>(
-            new HasSentEmailRecentlyRequest(email));
-
-        return response.Message.IsRecentlySent;
+        var grpcRequest = new Notification.API.Protos.HasSentEmailRecentlyRequest { Email = email };
+        var response = await notificationClient.HasSentEmailRecentlyAsync(grpcRequest);
+        return response.IsRecentlySent;
     }
 
     private async Task<User> FindAndValidateUserAsync(LoginRequest loginRequest)

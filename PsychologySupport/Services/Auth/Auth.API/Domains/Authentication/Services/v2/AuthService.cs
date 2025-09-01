@@ -4,6 +4,7 @@ using Auth.API.Domains.Authentication.Dtos.Requests;
 using Auth.API.Domains.Authentication.Dtos.Responses;
 using Auth.API.Domains.Authentication.Exceptions;
 using Auth.API.Domains.Authentication.ServiceContracts;
+using Auth.API.Domains.Authentication.ServiceContracts.v2;
 using Auth.API.Models;
 using BuildingBlocks.Constants;
 using BuildingBlocks.Exceptions;
@@ -16,6 +17,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Notification.API.Protos;
 using Profile.API.Protos;
+using IAuthService = Auth.API.Domains.Authentication.ServiceContracts.v2.IAuthService;
+
 namespace Auth.API.Domains.Authentication.Services.v2;
 
 public class AuthService(
@@ -27,7 +30,7 @@ public class AuthService(
     AuthDbContext authDbContext,
     IPublishEndpoint publishEndpoint,
     IWebHostEnvironment env
-) : IAuthService02
+) : IAuthService
 {
     private const int LockoutTimeInMinutes = 15;
 
@@ -301,8 +304,6 @@ public class AuthService(
         {
             Email = payload.Email,
             UserName = payload.Email,
-            FullName = payload.Name ?? payload.Email,
-            Gender = BuildingBlocks.Enums.UserGender.Else,
             EmailConfirmed = true,
             PhoneNumberConfirmed = false
         };
@@ -339,9 +340,7 @@ public class AuthService(
             var createProfileRequest = new Profile.API.Protos.CreatePatientProfileRequest
             {
                 UserId = user.Id.ToString(),
-                FullName = user.FullName,
-                Gender = (Profile.API.Protos.UserGender)user.Gender,
-                PersonalityTrait = Profile.API.Protos.PersonalityTrait.None1,
+                PersonalityTrait = PersonalityTrait.None1,
                 ContactInfo = contactInfo
             };
 

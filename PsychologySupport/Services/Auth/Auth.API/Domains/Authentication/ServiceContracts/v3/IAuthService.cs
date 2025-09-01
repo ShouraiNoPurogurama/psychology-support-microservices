@@ -1,9 +1,9 @@
 ﻿using Auth.API.Domains.Authentication.Dtos.Requests;
 using Auth.API.Domains.Authentication.Dtos.Responses;
 
-namespace Auth.API.Domains.Authentication.ServiceContracts;
+namespace Auth.API.Domains.Authentication.ServiceContracts.v3;
 
-public interface IAuthService02
+public interface IAuthService
 {
     Task<bool> RegisterAsync(RegisterRequest registerRequest);
     Task<string> ConfirmEmailAsync(ConfirmEmailRequest confirmEmailRequest);

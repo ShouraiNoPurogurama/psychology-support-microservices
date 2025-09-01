@@ -3,6 +3,7 @@ using Auth.API.Domains.Authentication.ServiceContracts;
 using Auth.API.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using IAuthService = Auth.API.Domains.Authentication.ServiceContracts.v3.IAuthService;
 
 namespace Auth.API.Domains.Authentication.Controllers.v2;
 
@@ -12,7 +13,7 @@ public class AuthController(
     UserManager<User> userManager,
     RoleManager<Role> roleManager,
     IConfiguration configuration,
-    IAuthService02 authService,
+    IAuthService authService,
     IFirebaseAuthService firebaseAuthService) : ControllerBase
 {
     // Refactor  API

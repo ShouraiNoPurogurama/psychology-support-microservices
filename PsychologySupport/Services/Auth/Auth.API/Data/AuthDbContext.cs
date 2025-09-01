@@ -16,6 +16,7 @@ public class AuthDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<Role> Roles { get; set; }
     public DbSet<Device> Devices { get; set; }
     public DbSet<DeviceSession> DeviceSessions { get; set; }
+    public DbSet<PendingVerificationUser> PendingVerificationUsers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -29,13 +30,14 @@ public class AuthDbContext : IdentityDbContext<User, Role, Guid>
                 .HasConversion(d => d.ToString(),
                     dbStatus => (DeviceType)Enum.Parse(typeof(DeviceType), dbStatus));
         });
-
-        builder.Entity<User>(e =>
+        
+        builder.Entity<PendingVerificationUser>(e =>
         {
-            e.Property(u => u.Gender)
-                .HasConversion(u => u.ToString(),
-                    dbStatus => (UserGender)Enum.Parse(typeof(UserGender), dbStatus));
-            
+            e.Property(x => x.PayloadProtected).IsRequired(); // bytea
+            e.Ignore(x => x.FullName);
+            e.Ignore(x => x.Gender);
+            e.Ignore(x => x.BirthDate);
+            e.Ignore(x => x.ContactInfo);
         });
     }
 }

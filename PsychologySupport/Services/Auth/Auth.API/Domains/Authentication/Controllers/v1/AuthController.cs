@@ -1,8 +1,10 @@
 ﻿using Auth.API.Domains.Authentication.Dtos.Requests;
 using Auth.API.Domains.Authentication.ServiceContracts;
+using Auth.API.Domains.Authentication.ServiceContracts.v2;
 using Auth.API.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using IAuthService = Auth.API.Domains.Authentication.ServiceContracts.v2.IAuthService;
 
 namespace Auth.API.Domains.Authentication.Controllers.v1;
 
@@ -12,7 +14,7 @@ public class AuthController(
     UserManager<User> userManager,
     RoleManager<Role> roleManager,
     IConfiguration configuration,
-    IAuthService02 authService,
+    IAuthService authService,
     IFirebaseAuthService firebaseAuthService) : ControllerBase
 {
     // [Authorize(AuthenticationSchemes = "LocalAuth")]
