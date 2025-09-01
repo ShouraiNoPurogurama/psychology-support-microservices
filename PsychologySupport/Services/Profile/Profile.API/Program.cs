@@ -43,7 +43,6 @@ app.MapCarter();
 app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
-    app.InitializeDatabaseAsync();
     app.UseSwaggerUI();
 }
 else

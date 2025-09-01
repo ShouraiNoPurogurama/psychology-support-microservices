@@ -25,28 +25,25 @@ public partial class PiiDbContext : DbContext
             entity.ToTable("alias_owner_map", "pii");
 
             entity.HasIndex(e => e.AliasId, "ix_alias_owner_map_alias_id").IsUnique();
-
-            entity.HasIndex(e => e.UserId, "ix_alias_owner_map_user_id").IsUnique();
             
             entity.Property(e => e.Id)
                 .ValueGeneratedNever();
-
+            
             entity.HasOne(e => e.PersonProfile)
                 .WithOne(e => e.AliasOwnerMap)
-                .HasForeignKey<AliasOwnerMap>(e => e.UserId)
-                .IsRequired()
-                ;
+                .HasForeignKey<AliasOwnerMap>(e => e.SubjectRef)
+                .IsRequired();
         });
 
         builder.Entity<PersonProfile>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("person_profiles_pkey");
-
+            entity.HasKey(e => e.SubjectRef);
+            
             entity.ToTable("person_profiles", "pii");
 
             entity.Property(e => e.UserId)
                 .ValueGeneratedNever();
-            entity.Property(e => e.FullName).HasColumnName("full_name");
+            entity.Property(e => e.FullName);
             entity.Property(e => e.BirthDate);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()");
