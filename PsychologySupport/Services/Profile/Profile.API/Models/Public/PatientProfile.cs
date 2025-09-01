@@ -1,11 +1,10 @@
 ﻿using BuildingBlocks.Data.Common;
 using BuildingBlocks.DDD;
 using BuildingBlocks.Enums;
-using Profile.API.Domains.MentalDisorders.Models;
 using Profile.API.Domains.PatientProfiles.Enum;
 using Profile.API.Domains.PatientProfiles.Events;
 
-namespace Profile.API.Domains.PatientProfiles.Models;
+namespace Profile.API.Models.Public;
 
 public class PatientProfile : AggregateRoot<Guid>
 {

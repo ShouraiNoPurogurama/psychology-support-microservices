@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.DDD;
 
-namespace Profile.API.Domains.MentalDisorders.Models;
+namespace Profile.API.Models.Public;
 
 public class MentalDisorder : AggregateRoot<Guid>
 {

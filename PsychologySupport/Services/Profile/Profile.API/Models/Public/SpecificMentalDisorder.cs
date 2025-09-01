@@ -1,6 +1,4 @@
-﻿using Profile.API.Domains.PatientProfiles.Models;
-
-namespace Profile.API.Domains.MentalDisorders.Models;
+﻿namespace Profile.API.Models.Public;
 
 public class SpecificMentalDisorder
 {

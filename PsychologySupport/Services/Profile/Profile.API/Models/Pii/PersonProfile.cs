@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.Data.Common;
 using BuildingBlocks.Enums;
 
-namespace Profile.API.Domains.Pii.Models;
+namespace Profile.API.Models.Pii;
 
 public partial class PersonProfile
 {

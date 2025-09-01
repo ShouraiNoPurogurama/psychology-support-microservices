@@ -1,6 +1,6 @@
 ﻿using Profile.API.Data.Public;
 using Profile.API.Domains.PatientProfiles.Exceptions;
-using Profile.API.Domains.PatientProfiles.Models;
+using Profile.API.Models.Public;
 
 namespace Profile.API.Domains.DoctorProfiles.Features;
 

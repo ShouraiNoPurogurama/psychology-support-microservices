@@ -31,6 +31,9 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Domains\ModerateAliases\Dtos\" />
+      <Folder Include="Domains\ModerateAliases\EventHandlers\" />
+      <Folder Include="Domains\ModerateAliases\Features\" />
       <Folder Include="Services\" />
     </ItemGroup>
 

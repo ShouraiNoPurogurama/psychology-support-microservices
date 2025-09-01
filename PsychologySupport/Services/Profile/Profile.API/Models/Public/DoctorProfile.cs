@@ -1,9 +1,8 @@
 ﻿using BuildingBlocks.Data.Common;
 using BuildingBlocks.DDD;
 using BuildingBlocks.Enums;
-using Profile.API.Domains.PatientProfiles.Models;
 
-namespace Profile.API.Domains.DoctorProfiles.Models;
+namespace Profile.API.Models.Public;
 
 public class DoctorProfile : AggregateRoot<Guid>
 {

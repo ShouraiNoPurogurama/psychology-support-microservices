@@ -1,9 +1,7 @@
 ﻿using BuildingBlocks.DDD;
-using Profile.API.Domains.DoctorProfiles.Models;
-using Profile.API.Domains.MentalDisorders.Models;
 using Profile.API.Domains.PatientProfiles.Enum;
 
-namespace Profile.API.Domains.PatientProfiles.Models;
+namespace Profile.API.Models.Public;
 
 public class MedicalRecord : AuditableEntity<Guid>
 {

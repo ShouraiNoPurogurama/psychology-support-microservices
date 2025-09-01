@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.DDD;
 using Newtonsoft.Json;
 
-namespace Profile.API.Domains.PatientProfiles.Models
+namespace Profile.API.Models.Public
 {
     public class Industry : AuditableEntity<Guid>
     {

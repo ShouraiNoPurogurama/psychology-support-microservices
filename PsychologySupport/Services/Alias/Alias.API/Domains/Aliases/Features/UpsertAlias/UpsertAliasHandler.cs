@@ -104,7 +104,6 @@ public class UpsertAliasHandler : ICommandHandler<UpsertAliasCommand, UpsertAlia
         
             alias.CurrentVersionId = newVersion.Id;
         }
-
         else
         {
             //Nếu alias đã tồn tại → tạo bản mới

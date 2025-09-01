@@ -2,8 +2,8 @@
 using Notification.API.Protos;
 using Profile.API.Data.Pii;
 using Profile.API.Data.Public;
-using Profile.API.Domains.PatientProfiles.Models;
-using Profile.API.Domains.Pii.Models;
+using Profile.API.Models.Pii;
+using Profile.API.Models.Public;
 using Profile.API.Protos;
 
 namespace Profile.API.Domains.PatientProfiles.Services

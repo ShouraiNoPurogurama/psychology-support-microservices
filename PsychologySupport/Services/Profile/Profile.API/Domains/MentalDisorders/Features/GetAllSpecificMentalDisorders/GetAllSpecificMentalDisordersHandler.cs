@@ -3,8 +3,8 @@ using BuildingBlocks.Pagination;
 using Mapster;
 using Profile.API.Data.Public;
 using Profile.API.Domains.MentalDisorders.Dtos;
-using Profile.API.Domains.MentalDisorders.Models;
 using Profile.API.Extensions;
+using Profile.API.Models.Public;
 
 namespace Profile.API.Domains.MentalDisorders.Features.GetAllSpecificMentalDisorders
 {

@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.DDD;
 using BuildingBlocks.Enums;
 
-namespace Profile.API.Domains.PatientProfiles.Models
+namespace Profile.API.Models.Public
 {
     public class Job : AuditableEntity<Guid>
     {

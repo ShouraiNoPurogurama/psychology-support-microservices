@@ -1,5 +1,5 @@
 ﻿using BuildingBlocks.Enums;
-using Profile.API.Domains.Pii.Models;
+using Profile.API.Models.Pii;
 
 namespace Profile.API.Data.Pii;
 

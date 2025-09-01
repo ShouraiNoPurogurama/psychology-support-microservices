@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.DDD;
 
-namespace Profile.API.Domains.Pii.Models;
+namespace Profile.API.Models.Pii;
 
 public partial class AliasOwnerMap : Entity<Guid>, IHasCreationAudit
 {

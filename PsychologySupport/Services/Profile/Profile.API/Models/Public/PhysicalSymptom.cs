@@ -1,4 +1,4 @@
-﻿namespace Profile.API.Domains.PatientProfiles.Models;
+﻿namespace Profile.API.Models.Public;
 
 public class PhysicalSymptom
 {
