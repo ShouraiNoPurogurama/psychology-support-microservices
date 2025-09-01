@@ -3,8 +3,9 @@ using BuildingBlocks.Messaging.Events.Notification;
 
 namespace BuildingBlocks.Messaging.Events.Auth
 {
+    //TODO tí quay lại sửa
     public record PatientProfileCreatedIntegrationEvent(
-        Guid UserId,
+        // Guid UserId,
         string FullName,
         UserGender Gender,
         string PhoneNumber,
