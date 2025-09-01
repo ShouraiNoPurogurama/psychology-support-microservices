@@ -24,8 +24,9 @@ public abstract class DesignTimeDbContextFactoryBase<TContext> : IDesignTimeDbCo
             .Build();
 
         var envOverride = Environment.GetEnvironmentVariable(MigrationConnKey.Replace(':', '_').ToUpperInvariant());
-
-        var connStr = envOverride ?? config.GetConnectionString(MigrationConnKey);
+        
+        var connStr = envOverride ?? config[MigrationConnKey];
+        
         if (string.IsNullOrWhiteSpace(connStr))
         {
             throw new InvalidOperationException("Could not find a connection string in the application settings.");
@@ -33,6 +34,7 @@ public abstract class DesignTimeDbContextFactoryBase<TContext> : IDesignTimeDbCo
 
         var options = new DbContextOptionsBuilder<TContext>()
             .UseNpgsql(connStr)
+            .UseSnakeCaseNamingConvention()
             .Options;
 
         return CreateNewInstance(options);

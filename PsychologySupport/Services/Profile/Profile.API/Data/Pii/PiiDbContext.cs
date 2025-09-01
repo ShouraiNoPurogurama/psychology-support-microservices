@@ -16,6 +16,7 @@ public partial class PiiDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        builder.HasDefaultSchema("pii");
         builder.HasPostgresExtension("pii", "citext");
 
         builder.Entity<AliasOwnerMap>(entity =>
@@ -25,10 +26,10 @@ public partial class PiiDbContext : DbContext
             entity.ToTable("alias_owner_map", "pii");
 
             entity.HasIndex(e => e.AliasId, "ix_alias_owner_map_alias_id").IsUnique();
-            
+
             entity.Property(e => e.Id)
                 .ValueGeneratedNever();
-            
+
             entity.HasOne(e => e.PersonProfile)
                 .WithOne(e => e.AliasOwnerMap)
                 .HasForeignKey<AliasOwnerMap>(e => e.SubjectRef)
@@ -38,16 +39,18 @@ public partial class PiiDbContext : DbContext
         builder.Entity<PersonProfile>(entity =>
         {
             entity.HasKey(e => e.SubjectRef);
-            
-            entity.ToTable("person_profiles", "pii");
 
+            entity.ToTable("person_profiles", "pii");
+            
             entity.Property(e => e.UserId)
                 .ValueGeneratedNever();
+            entity.HasIndex(e => e.UserId).IsUnique();
+            
             entity.Property(e => e.FullName);
             entity.Property(e => e.BirthDate);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()");
-            
+
             entity.ComplexProperty(d => d.ContactInfo, contactInfoBuilder =>
             {
                 contactInfoBuilder.Property(c => c.Address)
@@ -57,13 +60,13 @@ public partial class PiiDbContext : DbContext
                 contactInfoBuilder.Property(c => c.PhoneNumber)
                     .HasColumnName("phone_number");
             });
-            
+
             entity.Property(e => e.Gender)
                 .HasDefaultValue(UserGender.Else)
                 .HasConversion(s => s.ToString(),
                     dbStatus => (UserGender)Enum.Parse(typeof(UserGender), dbStatus));
         });
-        
+
 
         OnModelCreatingPartial(builder);
     }

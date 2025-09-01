@@ -1,10 +1,13 @@
 ﻿using BuildingBlocks.Data.Common;
+using BuildingBlocks.DDD;
 using BuildingBlocks.Enums;
 
 namespace Profile.API.Models.Pii;
 
-public partial class PersonProfile
+public partial class PersonProfile : IHasCreationAudit, IHasModificationAudit
 {
+    public Guid SubjectRef { get; set; }
+    
     public Guid UserId { get; set; }
 
     public string? FullName { get; set; }
@@ -65,7 +68,7 @@ public partial class PersonProfile
         //TODO Public 1 event để validate tên mới xem có vi phạm gì ko
     }
 
-    public void Rename(string? fullName, string actor)
+    public void Rename(string? fullName)
     {
         FullName = fullName;
     }

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Profile.API.Data;
+using Profile.API.Data.Public;
 
 #nullable disable
 
@@ -100,7 +100,7 @@ namespace Profile.API.Data.Public.Migrations
                     b.ToTable("medical_record_specific_mental_disorder", "public");
                 });
 
-            modelBuilder.Entity("Profile.API.DoctorProfiles.Models.DoctorProfile", b =>
+            modelBuilder.Entity("Profile.API.Models.Public.DoctorProfile", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -157,7 +157,7 @@ namespace Profile.API.Data.Public.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("years_of_experience");
 
-                    b.ComplexProperty<Dictionary<string, object>>("ContactInfo", "Profile.API.DoctorProfiles.Models.DoctorProfile.ContactInfo#ContactInfo", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("ContactInfo", "Profile.API.Models.Public.DoctorProfile.ContactInfo#ContactInfo", b1 =>
                         {
                             b1.IsRequired();
 
@@ -182,94 +182,7 @@ namespace Profile.API.Data.Public.Migrations
                     b.ToTable("doctor_profiles", "public");
                 });
 
-            modelBuilder.Entity("Profile.API.DoctorProfiles.Models.Specialty", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id")
-                        .HasName("pk_specialties");
-
-                    b.ToTable("specialties", "public");
-                });
-
-            modelBuilder.Entity("Profile.API.MentalDisorders.Models.MentalDisorder", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset?>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("created_by");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<DateTimeOffset?>("LastModified")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_modified");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("last_modified_by");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id")
-                        .HasName("pk_mental_disorders");
-
-                    b.ToTable("mental_disorders", "public");
-                });
-
-            modelBuilder.Entity("Profile.API.MentalDisorders.Models.SpecificMentalDisorder", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<Guid>("MentalDisorderId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("mental_disorder_id");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id")
-                        .HasName("pk_specific_mental_disorders");
-
-                    b.HasIndex("MentalDisorderId")
-                        .HasDatabaseName("ix_specific_mental_disorders_mental_disorder_id");
-
-                    b.ToTable("specific_mental_disorders", "public");
-                });
-
-            modelBuilder.Entity("Profile.API.PatientProfiles.Models.Industry", b =>
+            modelBuilder.Entity("Profile.API.Models.Public.Industry", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -308,7 +221,7 @@ namespace Profile.API.Data.Public.Migrations
                     b.ToTable("industries", "public");
                 });
 
-            modelBuilder.Entity("Profile.API.PatientProfiles.Models.Job", b =>
+            modelBuilder.Entity("Profile.API.Models.Public.Job", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -354,7 +267,7 @@ namespace Profile.API.Data.Public.Migrations
                     b.ToTable("jobs", "public");
                 });
 
-            modelBuilder.Entity("Profile.API.PatientProfiles.Models.MedicalHistory", b =>
+            modelBuilder.Entity("Profile.API.Models.Public.MedicalHistory", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -400,7 +313,7 @@ namespace Profile.API.Data.Public.Migrations
                     b.ToTable("medical_histories", "public");
                 });
 
-            modelBuilder.Entity("Profile.API.PatientProfiles.Models.MedicalRecord", b =>
+            modelBuilder.Entity("Profile.API.Models.Public.MedicalRecord", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -460,7 +373,46 @@ namespace Profile.API.Data.Public.Migrations
                     b.ToTable("medical_records", "public");
                 });
 
-            modelBuilder.Entity("Profile.API.PatientProfiles.Models.PatientProfile", b =>
+            modelBuilder.Entity("Profile.API.Models.Public.MentalDisorder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<DateTimeOffset?>("LastModified")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("last_modified_by");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_mental_disorders");
+
+                    b.ToTable("mental_disorders", "public");
+                });
+
+            modelBuilder.Entity("Profile.API.Models.Public.PatientProfile", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -517,7 +469,7 @@ namespace Profile.API.Data.Public.Migrations
                     b.ToTable("patient_profiles", "public");
                 });
 
-            modelBuilder.Entity("Profile.API.PatientProfiles.Models.PhysicalSymptom", b =>
+            modelBuilder.Entity("Profile.API.Models.Public.PhysicalSymptom", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -540,16 +492,64 @@ namespace Profile.API.Data.Public.Migrations
                     b.ToTable("physical_symptoms", "public");
                 });
 
+            modelBuilder.Entity("Profile.API.Models.Public.Specialty", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_specialties");
+
+                    b.ToTable("specialties", "public");
+                });
+
+            modelBuilder.Entity("Profile.API.Models.Public.SpecificMentalDisorder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<Guid>("MentalDisorderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("mental_disorder_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_specific_mental_disorders");
+
+                    b.HasIndex("MentalDisorderId")
+                        .HasDatabaseName("ix_specific_mental_disorders_mental_disorder_id");
+
+                    b.ToTable("specific_mental_disorders", "public");
+                });
+
             modelBuilder.Entity("DoctorProfileSpecialty", b =>
                 {
-                    b.HasOne("Profile.API.DoctorProfiles.Models.DoctorProfile", null)
+                    b.HasOne("Profile.API.Models.Public.DoctorProfile", null)
                         .WithMany()
                         .HasForeignKey("DoctorProfilesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_doctor_profile_specialty_doctor_profiles_doctor_profiles_id");
 
-                    b.HasOne("Profile.API.DoctorProfiles.Models.Specialty", null)
+                    b.HasOne("Profile.API.Models.Public.Specialty", null)
                         .WithMany()
                         .HasForeignKey("SpecialtiesId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -559,14 +559,14 @@ namespace Profile.API.Data.Public.Migrations
 
             modelBuilder.Entity("MedicalHistoryPhysicalSymptom", b =>
                 {
-                    b.HasOne("Profile.API.PatientProfiles.Models.MedicalHistory", null)
+                    b.HasOne("Profile.API.Models.Public.MedicalHistory", null)
                         .WithMany()
                         .HasForeignKey("MedicalHistoriesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_medical_history_physical_symptom_medical_histories_medical_");
 
-                    b.HasOne("Profile.API.PatientProfiles.Models.PhysicalSymptom", null)
+                    b.HasOne("Profile.API.Models.Public.PhysicalSymptom", null)
                         .WithMany()
                         .HasForeignKey("PhysicalSymptomsId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -576,14 +576,14 @@ namespace Profile.API.Data.Public.Migrations
 
             modelBuilder.Entity("MedicalHistorySpecificMentalDisorder", b =>
                 {
-                    b.HasOne("Profile.API.PatientProfiles.Models.MedicalHistory", null)
+                    b.HasOne("Profile.API.Models.Public.MedicalHistory", null)
                         .WithMany()
                         .HasForeignKey("MedicalHistoriesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_medical_history_specific_mental_disorder_medical_histories_");
 
-                    b.HasOne("Profile.API.MentalDisorders.Models.SpecificMentalDisorder", null)
+                    b.HasOne("Profile.API.Models.Public.SpecificMentalDisorder", null)
                         .WithMany()
                         .HasForeignKey("SpecificMentalDisordersId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -593,14 +593,14 @@ namespace Profile.API.Data.Public.Migrations
 
             modelBuilder.Entity("MedicalRecordSpecificMentalDisorder", b =>
                 {
-                    b.HasOne("Profile.API.PatientProfiles.Models.MedicalRecord", null)
+                    b.HasOne("Profile.API.Models.Public.MedicalRecord", null)
                         .WithMany()
                         .HasForeignKey("MedicalRecordsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_medical_record_specific_mental_disorder_medical_records_med");
 
-                    b.HasOne("Profile.API.MentalDisorders.Models.SpecificMentalDisorder", null)
+                    b.HasOne("Profile.API.Models.Public.SpecificMentalDisorder", null)
                         .WithMany()
                         .HasForeignKey("SpecificMentalDisordersId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -608,21 +608,9 @@ namespace Profile.API.Data.Public.Migrations
                         .HasConstraintName("fk_medical_record_specific_mental_disorder_specific_mental_dis");
                 });
 
-            modelBuilder.Entity("Profile.API.MentalDisorders.Models.SpecificMentalDisorder", b =>
+            modelBuilder.Entity("Profile.API.Models.Public.Job", b =>
                 {
-                    b.HasOne("Profile.API.MentalDisorders.Models.MentalDisorder", "MentalDisorder")
-                        .WithMany("SpecificMentalDisorders")
-                        .HasForeignKey("MentalDisorderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_specific_mental_disorders_mental_disorders_mental_disorder_");
-
-                    b.Navigation("MentalDisorder");
-                });
-
-            modelBuilder.Entity("Profile.API.PatientProfiles.Models.Job", b =>
-                {
-                    b.HasOne("Profile.API.PatientProfiles.Models.Industry", "Industry")
+                    b.HasOne("Profile.API.Models.Public.Industry", "Industry")
                         .WithMany("Jobs")
                         .HasForeignKey("IndustryId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -632,31 +620,31 @@ namespace Profile.API.Data.Public.Migrations
                     b.Navigation("Industry");
                 });
 
-            modelBuilder.Entity("Profile.API.PatientProfiles.Models.MedicalHistory", b =>
+            modelBuilder.Entity("Profile.API.Models.Public.MedicalHistory", b =>
                 {
-                    b.HasOne("Profile.API.PatientProfiles.Models.PatientProfile", null)
+                    b.HasOne("Profile.API.Models.Public.PatientProfile", null)
                         .WithOne("MedicalHistory")
-                        .HasForeignKey("Profile.API.PatientProfiles.Models.MedicalHistory", "PatientId")
+                        .HasForeignKey("Profile.API.Models.Public.MedicalHistory", "PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_medical_histories_patient_profiles_patient_id");
                 });
 
-            modelBuilder.Entity("Profile.API.PatientProfiles.Models.MedicalRecord", b =>
+            modelBuilder.Entity("Profile.API.Models.Public.MedicalRecord", b =>
                 {
-                    b.HasOne("Profile.API.DoctorProfiles.Models.DoctorProfile", "DoctorProfile")
+                    b.HasOne("Profile.API.Models.Public.DoctorProfile", "DoctorProfile")
                         .WithMany("MedicalRecords")
                         .HasForeignKey("DoctorProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_medical_records_doctor_profiles_doctor_profile_id");
 
-                    b.HasOne("Profile.API.PatientProfiles.Models.MedicalHistory", "MedicalHistory")
+                    b.HasOne("Profile.API.Models.Public.MedicalHistory", "MedicalHistory")
                         .WithMany()
                         .HasForeignKey("MedicalHistoryId")
                         .HasConstraintName("fk_medical_records_medical_histories_medical_history_id");
 
-                    b.HasOne("Profile.API.PatientProfiles.Models.PatientProfile", "PatientProfile")
+                    b.HasOne("Profile.API.Models.Public.PatientProfile", "PatientProfile")
                         .WithMany("MedicalRecords")
                         .HasForeignKey("PatientProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -670,9 +658,9 @@ namespace Profile.API.Data.Public.Migrations
                     b.Navigation("PatientProfile");
                 });
 
-            modelBuilder.Entity("Profile.API.PatientProfiles.Models.PatientProfile", b =>
+            modelBuilder.Entity("Profile.API.Models.Public.PatientProfile", b =>
                 {
-                    b.HasOne("Profile.API.PatientProfiles.Models.Job", "Job")
+                    b.HasOne("Profile.API.Models.Public.Job", "Job")
                         .WithMany()
                         .HasForeignKey("JobId")
                         .HasConstraintName("fk_patient_profiles_jobs_job_id");
@@ -680,22 +668,34 @@ namespace Profile.API.Data.Public.Migrations
                     b.Navigation("Job");
                 });
 
-            modelBuilder.Entity("Profile.API.DoctorProfiles.Models.DoctorProfile", b =>
+            modelBuilder.Entity("Profile.API.Models.Public.SpecificMentalDisorder", b =>
+                {
+                    b.HasOne("Profile.API.Models.Public.MentalDisorder", "MentalDisorder")
+                        .WithMany("SpecificMentalDisorders")
+                        .HasForeignKey("MentalDisorderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_specific_mental_disorders_mental_disorders_mental_disorder_");
+
+                    b.Navigation("MentalDisorder");
+                });
+
+            modelBuilder.Entity("Profile.API.Models.Public.DoctorProfile", b =>
                 {
                     b.Navigation("MedicalRecords");
                 });
 
-            modelBuilder.Entity("Profile.API.MentalDisorders.Models.MentalDisorder", b =>
-                {
-                    b.Navigation("SpecificMentalDisorders");
-                });
-
-            modelBuilder.Entity("Profile.API.PatientProfiles.Models.Industry", b =>
+            modelBuilder.Entity("Profile.API.Models.Public.Industry", b =>
                 {
                     b.Navigation("Jobs");
                 });
 
-            modelBuilder.Entity("Profile.API.PatientProfiles.Models.PatientProfile", b =>
+            modelBuilder.Entity("Profile.API.Models.Public.MentalDisorder", b =>
+                {
+                    b.Navigation("SpecificMentalDisorders");
+                });
+
+            modelBuilder.Entity("Profile.API.Models.Public.PatientProfile", b =>
                 {
                     b.Navigation("MedicalHistory");
 

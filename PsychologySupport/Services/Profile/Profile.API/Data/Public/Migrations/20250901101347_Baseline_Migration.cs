@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Profile.API.Data.Public.Migrations
 {
     /// <inheritdoc />
-    public partial class BaselineMigrations : Migration
+    public partial class Baseline_Migration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // migrationBuilder.EnsureSchema(
-            //     name: "public");
+            migrationBuilder.EnsureSchema(
+                name: "public");
             //
             // migrationBuilder.CreateTable(
             //     name: "doctor_profiles",
@@ -186,7 +186,6 @@ namespace Profile.API.Data.Public.Migrations
             //     {
             //         id = table.Column<Guid>(type: "uuid", nullable: false),
             //         user_id = table.Column<Guid>(type: "uuid", nullable: false),
-            //         gender = table.Column<string>(type: "text", nullable: false),
             //         allergies = table.Column<string>(type: "text", nullable: true),
             //         personality_traits = table.Column<string>(type: "text", nullable: false),
             //         medical_history_id = table.Column<Guid>(type: "uuid", nullable: true),

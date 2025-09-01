@@ -18,13 +18,14 @@ namespace Profile.API.Data.Pii.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("pii")
                 .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pii", "citext");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Profile.API.Pii.Models.AliasOwnerMap", b =>
+            modelBuilder.Entity("Profile.API.Models.Pii.AliasOwnerMap", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -42,9 +43,9 @@ namespace Profile.API.Data.Pii.Migrations
                         .HasColumnType("text")
                         .HasColumnName("created_by");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("SubjectRef")
                         .HasColumnType("uuid")
-                        .HasColumnName("user_id");
+                        .HasColumnName("subject_ref");
 
                     b.HasKey("Id")
                         .HasName("alias_owner_map_pkey");
@@ -53,18 +54,19 @@ namespace Profile.API.Data.Pii.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_alias_owner_map_alias_id");
 
-                    b.HasIndex(new[] { "UserId" }, "ix_alias_owner_map_user_id")
+                    b.HasIndex(new[] { "SubjectRef" }, "ix_alias_owner_map_subject_ref")
                         .IsUnique()
-                        .HasDatabaseName("ix_alias_owner_map_user_id");
+                        .HasDatabaseName("ix_alias_owner_map_subject_ref");
 
                     b.ToTable("alias_owner_map", "pii");
                 });
 
-            modelBuilder.Entity("Profile.API.Pii.Models.PersonProfile", b =>
+            modelBuilder.Entity("Profile.API.Models.Pii.PersonProfile", b =>
                 {
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("SubjectRef")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("user_id");
+                        .HasColumnName("subject_ref");
 
                     b.Property<DateOnly?>("BirthDate")
                         .HasColumnType("date")
@@ -99,7 +101,11 @@ namespace Profile.API.Data.Pii.Migrations
                         .HasColumnType("text")
                         .HasColumnName("last_modified_by");
 
-                    b.ComplexProperty<Dictionary<string, object>>("ContactInfo", "Profile.API.Pii.Models.PersonProfile.ContactInfo#ContactInfo", b1 =>
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.ComplexProperty<Dictionary<string, object>>("ContactInfo", "Profile.API.Models.Pii.PersonProfile.ContactInfo#ContactInfo", b1 =>
                         {
                             b1.IsRequired();
 
@@ -118,25 +124,29 @@ namespace Profile.API.Data.Pii.Migrations
                                 .HasColumnName("phone_number");
                         });
 
-                    b.HasKey("UserId")
-                        .HasName("person_profiles_pkey");
+                    b.HasKey("SubjectRef")
+                        .HasName("pk_person_profiles");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_person_profiles_user_id");
 
                     b.ToTable("person_profiles", "pii");
                 });
 
-            modelBuilder.Entity("Profile.API.Pii.Models.AliasOwnerMap", b =>
+            modelBuilder.Entity("Profile.API.Models.Pii.AliasOwnerMap", b =>
                 {
-                    b.HasOne("Profile.API.Pii.Models.PersonProfile", "PersonProfile")
+                    b.HasOne("Profile.API.Models.Pii.PersonProfile", "PersonProfile")
                         .WithOne("AliasOwnerMap")
-                        .HasForeignKey("Profile.API.Pii.Models.AliasOwnerMap", "UserId")
+                        .HasForeignKey("Profile.API.Models.Pii.AliasOwnerMap", "SubjectRef")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_alias_owner_map_person_profiles_user_id");
+                        .HasConstraintName("fk_alias_owner_map_person_profiles_subject_ref");
 
                     b.Navigation("PersonProfile");
                 });
 
-            modelBuilder.Entity("Profile.API.Pii.Models.PersonProfile", b =>
+            modelBuilder.Entity("Profile.API.Models.Pii.PersonProfile", b =>
                 {
                     b.Navigation("AliasOwnerMap");
                 });
