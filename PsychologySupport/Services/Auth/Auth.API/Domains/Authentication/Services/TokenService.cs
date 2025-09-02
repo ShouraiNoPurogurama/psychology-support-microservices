@@ -16,57 +16,20 @@ namespace Auth.API.Domains.Authentication.Services;
 
 public class TokenService(
     UserManager<User> userManager,
-    IConfiguration configuration,
-    IRequestClient<GetPatientProfileRequest> patientClient,
-    IRequestClient<GetDoctorProfileRequest> doctorClient,
-    IRequestClient<GetUserSubscriptionRequest> subscriptionClient,
-    IRequestClient<CheckPatientEmotionTodayRequest> lifestyleClient
+    IConfiguration configuration
     ) : ITokenService
 {
     private readonly PasswordHasher<User> _passwordHasher = new();
 
+    //TODO ensure subject ref when user registered
     public async Task<(string Token, string Jti)> GenerateJWTToken(User user)
     {
         var roles = await userManager.GetRolesAsync(user);
-
-        var profileId = Guid.Empty;
-        var isProfileCompleted = false;
-        var hasEmotionLoggedToday = false;
-
-        if (roles.Contains("Doctor"))
-        {
-            var doctorProfile =
-                await doctorClient.GetResponse<GetDoctorProfileResponse>(new GetDoctorProfileRequest(Guid.Empty, user.Id));
-            profileId = doctorProfile.Message.Id;
-        }
-        else if (roles.Contains("User"))
-        {
-            var patientProfile =
-                await patientClient.GetResponse<GetPatientProfileResponse>(new GetPatientProfileRequest(Guid.Empty, user.Id));
-            profileId = patientProfile.Message.Id;
-
-            isProfileCompleted = patientProfile.Message.IsProfileCompleted;
-
-            var PatietnEmotion = (await lifestyleClient.GetResponse<CheckPatientEmotionTodayResponse>(
-                new CheckPatientEmotionTodayRequest(profileId)));
-
-            hasEmotionLoggedToday = PatietnEmotion.Message.HasLoggedToday;
-
-        }
-
-        var subscriptionResponse = await subscriptionClient.GetResponse<GetUserSubscriptionResponse>(
-            new GetUserSubscriptionRequest(profileId));
-
-        var subscriptionPlan = subscriptionResponse.Message.PlanName;
-
+        
         var jti = Guid.NewGuid().ToString(); // JWT ID (JTI) for unique identification of the token
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Jti, jti),
-            new Claim("aliasId", user.Id.ToString()),
-            new Claim("subscription", subscriptionPlan),
-            new Claim("IsProfileCompleted", isProfileCompleted.ToString()),
-            new Claim("HasEmotionLoggedToday", hasEmotionLoggedToday.ToString()),
             new Claim(ClaimTypes.Role, string.Join(",", roles))
         };
 

@@ -10,6 +10,7 @@ using Auth.API.Models;
 using BuildingBlocks.Constants;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Notification;
+using BuildingBlocks.Messaging.Events.Profile.Pii;
 using BuildingBlocks.Utils;
 using Google.Apis.Auth;
 using Mapster;
@@ -23,10 +24,10 @@ namespace Auth.API.Domains.Authentication.Services.v3;
 
 public class AuthService(
     UserManager<User> userManager,
+    ILogger<AuthService> logger,
     IConfiguration configuration,
     ITokenService tokenService,
     IPayloadProtector payloadProtector,
-    PatientProfileService.PatientProfileServiceClient patientProfileClient, // gRPC client
     NotificationService.NotificationServiceClient notificationClient, // gRPC client
     AuthDbContext authDbContext,
     IPublishEndpoint publishEndpoint,
@@ -53,8 +54,11 @@ public class AuthService(
         }
 
         //Tạo pending verification
-        var pendingVerificationUser = new PendingVerificationUser();
-        
+        var pendingVerificationUser = new PendingVerificationUser
+        {
+            UserId = user.Id
+        };
+
         var dto = new PendingSeedDto(registerRequest.FullName, registerRequest.Gender, registerRequest.BirthDate,
             new BuildingBlocks.Data.Common.ContactInfo
             {
@@ -68,9 +72,9 @@ public class AuthService(
         authDbContext.PendingVerificationUsers.Add(pendingVerificationUser);
 
         await authDbContext.SaveChangesAsync();
-        
+
         await AssignUserRoleAsync(user);
-        // await SendEmailConfirmationAsync(user);
+        await SendEmailConfirmationAsync(user);
 
         return true;
     }
@@ -95,21 +99,14 @@ public class AuthService(
             user.EmailConfirmed = true;
             await userManager.UpdateAsync(user);
 
-            var profileResult = await CreateUserProfileAsync(user);
+            await CreateUserProfileAsync(user);
 
-            if (profileResult.IsSuccess)
-            {
-                message = "Xác nhận email và tạo hồ sơ thành công.";
-            }
-            else
-            {
-                status = "partial";
-                message = $"Xác nhận email thành công nhưng tạo hồ sơ thất bại: {profileResult.ErrorMessage}";
-            }
+            message = "Xác nhận email thành công.";
         }
         else
         {
-            message = $"Xác nhận email thất bại: {string.Join("; ", result.Errors.Select(e => e.Description))}";
+            logger.LogError($"*** Xác nhận email thất bại cho user {user.Id}. \n[Details] {string.Join("; ", result.Errors.Select(e => e.Description))}");
+            message = $"Xác nhận email thất bại.";
         }
 
         var baseRedirectUrl = configuration["Mail:ConfirmationRedirectUrl"];
@@ -136,7 +133,9 @@ public class AuthService(
 
         //5. Tạo token
         var (accessToken, refreshToken) = await GenerateTokensAsync(user, device.Id);
-
+        
+        await authDbContext.SaveChangesAsync();
+        
         return new LoginResponse(accessToken, refreshToken);
     }
 
@@ -344,38 +343,32 @@ public class AuthService(
             throw new InvalidDataException("Gán vai trò thất bại");
     }
 
-    private async Task<(bool IsSuccess, string? ErrorMessage)> CreateUserProfileAsync(User user)
+    private async Task CreateUserProfileAsync(User user)
     {
-        try
-        {
-            var contactInfo = new ContactInfo
-            {
-                Address = "None",
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber ?? ""
-            };
+        var pendingUser = await authDbContext.PendingVerificationUsers
+                              .FirstOrDefaultAsync(p => p.UserId == user.Id && p.ProcessedAt == null)
+                          ?? throw new NotFoundException("Không tìm thấy dữ liệu người đùng để tạo profile",
+                              nameof(PendingVerificationUser));
 
-            var createProfileRequest = new CreatePatientProfileRequest
-            {
-                UserId = user.Id.ToString(),
-                PersonalityTrait = PersonalityTrait.None1,
-                ContactInfo = contactInfo
-            };
+        var pendingSeedDto = payloadProtector.Unprotect<PendingSeedDto>(pendingUser.PayloadProtected);
 
-            var profileResponse = await patientProfileClient.CreatePatientProfileAsync(createProfileRequest);
+        var userRegisteredIntegrationEvent = new UserRegisteredIntegrationEvent(
+            UserId: user.Id,
+            Email: pendingSeedDto.ContactInfo!.Email,
+            PhoneNumber: pendingSeedDto.ContactInfo.PhoneNumber,
+            Address: pendingSeedDto.ContactInfo.Address,
+            FullName: pendingSeedDto.FullName,
+            BirthDate: pendingSeedDto.BirthDate,
+            Gender: pendingSeedDto.Gender
+        );
 
-            if (profileResponse.Success)
-            {
-                return (true, null);
-            }
+        await publishEndpoint.Publish(userRegisteredIntegrationEvent);
 
-            return (false, profileResponse.Message);
-        }
-        catch (Exception ex)
-        {
-            return (false, ex.Message);
-        }
+        pendingUser.ProcessedAt = DateTimeOffset.UtcNow;
+        
+        await authDbContext.SaveChangesAsync();
     }
+
 
     private async Task SendEmailConfirmationAsync(User user)
     {
@@ -567,7 +560,6 @@ public class AuthService(
         };
 
         authDbContext.DeviceSessions.Add(session);
-        await authDbContext.SaveChangesAsync();
 
         return (accessToken.Token, refreshToken);
     }

@@ -38,6 +38,12 @@ public class AuthDbContext : IdentityDbContext<User, Role, Guid>
             e.Ignore(x => x.Gender);
             e.Ignore(x => x.BirthDate);
             e.Ignore(x => x.ContactInfo);
+            
+            e.HasOne(e => e.User)
+                .WithOne()
+                .HasForeignKey<PendingVerificationUser>(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
         });
     }
 }
