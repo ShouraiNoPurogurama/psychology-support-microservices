@@ -17,7 +17,11 @@ service PiiService {
 
   //Tra subject_ref từ alias_id (UUID string)
   rpc ResolveSubjectRefByAliasId (ResolveSubjectRefByAliasIdRequest)
-      returns (ResolveSubjectRefByAliasIdResponse);
+      returns (ResolveSubjectRefByAliasIdResponse);  
+  
+  //Tra subject_ref từ user_id (UUID string)
+  rpc ResolveSubjectRefByUserId (ResolveSubjectRefByUserIdRequest)
+      returns (ResolveSubjectRefByUserIdResponse);
 
   //Tạo/đảm bảo subject_ref cho một user_id (nội bộ)
   rpc CreateSubjectRef (CreateSubjectRefRequest)
@@ -42,6 +46,14 @@ message ResolveSubjectRefByAliasIdRequest {
 }
 
 message ResolveSubjectRefByAliasIdResponse {
+  string subject_ref = 1; //UUID string; empty nếu không tìm thấy
+}
+
+message ResolveSubjectRefByUserIdRequest {
+  string user_id = 1; //UUID string
+}
+
+message ResolveSubjectRefByUserIdResponse  {
   string subject_ref = 1; //UUID string; empty nếu không tìm thấy
 }
 

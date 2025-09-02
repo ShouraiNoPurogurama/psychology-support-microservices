@@ -43,6 +43,26 @@ public class PiiService : global::Pii.API.Protos.PiiService.PiiServiceBase
         };
     }
 
+   
+    public override async Task<ResolveSubjectRefByUserIdResponse> ResolveSubjectRefByUserId(ResolveSubjectRefByUserIdRequest request, ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.UserId, out var userId))
+            return new ResolveSubjectRefByUserIdResponse
+            {
+                SubjectRef = null
+            };
+
+        var subjectRef = await _piiDbContext.PersonProfiles.AsNoTracking()
+            .Where(p => p.UserId == userId)
+            .Select(p => p.SubjectRef)
+            .FirstOrDefaultAsync();
+
+        return new ResolveSubjectRefByUserIdResponse
+        {
+            SubjectRef = subjectRef.ToString()
+        };
+    }
+
     public override async Task<CreateSubjectRefResponse> CreateSubjectRef(CreateSubjectRefRequest request,
         ServerCallContext context)
     {
