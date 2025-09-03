@@ -1,6 +1,6 @@
-using Billing.API.Extensions;
 using BuildingBlocks.Behaviors;
 using Carter;
+using DigitalGoods.API.Extensions;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
 
-builder.Host.UseCustomSerilog(builder.Configuration, "Billing");
+builder.Host.UseCustomSerilog(builder.Configuration, "DigitalGoods");
 
 var services = builder.Services;
 
@@ -35,7 +35,7 @@ else
 {
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/billing-service/swagger/v1/swagger.json", "Billing API v1");
+        c.SwaggerEndpoint("/digitalgoods-service/swagger/v1/swagger.json", "DigitalGoods API v1");
     });
 }
 
