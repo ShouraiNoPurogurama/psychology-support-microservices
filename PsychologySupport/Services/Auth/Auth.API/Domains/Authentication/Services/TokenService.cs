@@ -10,14 +10,16 @@ using BuildingBlocks.Messaging.Events.Subscription;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Pii.API.Protos;
 using Exception = System.Exception;
 
 namespace Auth.API.Domains.Authentication.Services;
 
 public class TokenService(
     UserManager<User> userManager,
-    IConfiguration configuration
-    ) : ITokenService
+    IConfiguration configuration,
+    PiiService.PiiServiceClient piiClient
+) : ITokenService
 {
     private readonly PasswordHasher<User> _passwordHasher = new();
 
@@ -26,10 +28,18 @@ public class TokenService(
     {
         var roles = await userManager.GetRolesAsync(user);
         
+        var resolveSubjectRef = await piiClient.EnsureSubjectRefAsync(new EnsureSubjectRefRequest
+        {
+            UserId = user.Id.ToString()
+        });
+
+        var subjectRef = resolveSubjectRef.SubjectRef;
+        
         var jti = Guid.NewGuid().ToString(); // JWT ID (JTI) for unique identification of the token
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Jti, jti),
+            new Claim(JwtRegisteredClaimNames.Sub, subjectRef),
             new Claim(ClaimTypes.Role, string.Join(",", roles))
         };
 
@@ -161,7 +171,7 @@ public class TokenService(
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        
+
         SecurityToken securityToken;
 
         var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);

@@ -12,7 +12,7 @@ public class UserRegisteredIntegrationEventHandler(ISender sender, ILogger<UserR
     {
         var userId = context.Message.UserId;
         
-        var seed = new PersonSeed(
+        var seed = new PersonSeedDto(
             context.Message.FullName,
             context.Message.Gender,
             context.Message.BirthDate,

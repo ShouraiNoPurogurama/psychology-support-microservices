@@ -27,25 +27,25 @@
         </Content>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="AspNetCore.HealthChecks.NpgSql"/>
-        <PackageReference Include="AspNetCore.HealthChecks.UI.Client"/>
-        <PackageReference Include="Carter"/>
+        <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+        <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
+        <PackageReference Include="Carter" />
         <PackageReference Include="EFCore.NamingConventions" />
-        <PackageReference Include="FirebaseAdmin"/>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.Google"/>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer"/>
+        <PackageReference Include="FirebaseAdmin" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets"/>
-        <PackageReference Include="Scrutor"/>
-        <PackageReference Include="System.IdentityModel.Tokens.Jwt"/>
+        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
+        <PackageReference Include="Scrutor" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
 		<PackageReference Include="Grpc.AspNetCore" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks.Messaging\BuildingBlocks.Messaging.csproj"/>
-        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj"/>
+        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks.Messaging\BuildingBlocks.Messaging.csproj" />
+        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Content Update="appsettings.Development.json">
@@ -70,6 +70,9 @@
 		</Protobuf>
 		<Protobuf Include="..\..\Profile\Profile.API\Protos\patient_profile.proto" GrpcServices="Client">
 			<Link>Protos\patient_profile.proto</Link>
+		</Protobuf>
+        <Protobuf Include="..\..\Profile\Profile.API\Protos\pii.proto" GrpcServices="Client">
+			<Link>Protos\pii.proto</Link>
 		</Protobuf>
 	</ItemGroup>
 	<ItemGroup>

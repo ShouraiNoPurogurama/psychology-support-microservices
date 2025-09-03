@@ -6,7 +6,7 @@ using Profile.API.Models.Pii;
 
 namespace Profile.API.Domains.Pii.Features.EnsureSubjectRef;
 
-public record EnsureSubjectRefCommand(Guid UserId, PersonSeed? Seed) : ICommand<EnsureSubjectRefResult>;
+public record EnsureSubjectRefCommand(Guid UserId, PersonSeedDto? Seed) : ICommand<EnsureSubjectRefResult>;
 
 public record EnsureSubjectRefResult(Guid SubjectRef);
 
@@ -73,63 +73,59 @@ public class EnsureSubjectRefHandler(PiiDbContext dbContext, ILogger<EnsureSubje
         }
     }
 
-    private async Task MergeIfNeededAsync(Guid subjectRef, PersonSeed seed, CancellationToken ct)
+    private async Task MergeIfNeededAsync(Guid subjectRef, PersonSeedDto seedDto, CancellationToken ct)
     {
-        //Tải entity có tracking để cập nhật
         var entity = await dbContext.PersonProfiles.FirstOrDefaultAsync(p => p.SubjectRef == subjectRef, ct);
         if (entity is null) return;
 
         bool changed = false;
 
-        //Chiến lược merge “điền chỗ trống” (chỉ ghi nếu đang null/empty)
-        if (!string.IsNullOrWhiteSpace(seed.FullName) && string.IsNullOrWhiteSpace(entity.FullName))
+        //Merge kiểu “điền chỗ trống” (chỉ ghi nếu đang null/empty)
+        if (!string.IsNullOrWhiteSpace(seedDto.FullName) && string.IsNullOrWhiteSpace(entity.FullName))
         {
-            entity.Rename(seed.FullName); // dùng domain method
+            entity.Rename(seedDto.FullName);
             changed = true;
         }
 
-        if (seed.Gender.HasValue && entity.Gender == default)
+        if (entity.Gender == default)
         {
-            entity.ChangeGender(seed.Gender.Value);
+            entity.ChangeGender(seedDto.Gender);
             changed = true;
         }
 
-        if (seed.BirthDate.HasValue && entity.BirthDate is null)
+        if (entity.BirthDate is null)
         {
-            entity.ChangeBirthDate(seed.BirthDate.Value); //domain validate
+            entity.ChangeBirthDate(seedDto.BirthDate);
             changed = true;
         }
 
-        if (seed.ContactInfo is not null)
+        var seedCI = seedDto.ContactInfo;
+        var entityCI = entity.ContactInfo;
+
+        bool contactChanged = false;
+
+        if (!string.IsNullOrWhiteSpace(seedCI.Email) && string.IsNullOrWhiteSpace(entityCI.Email))
         {
-            var seedCI = seed.ContactInfo;
-            var entityCI = entity.ContactInfo;
+            entityCI.Email = seedCI.Email;
+            contactChanged = true;
+        }
 
-            bool contactChanged = false;
+        if (!string.IsNullOrWhiteSpace(seedCI.PhoneNumber) && string.IsNullOrWhiteSpace(entityCI.PhoneNumber))
+        {
+            entityCI.PhoneNumber = seedCI.PhoneNumber;
+            contactChanged = true;
+        }
 
-            if (!string.IsNullOrWhiteSpace(seedCI.Email) && string.IsNullOrWhiteSpace(entityCI.Email))
-            {
-                entityCI.Email = seedCI.Email;
-                contactChanged = true;
-            }
+        if (!string.IsNullOrWhiteSpace(seedCI.Address) && string.IsNullOrWhiteSpace(entityCI.Address))
+        {
+            entityCI.Address = seedCI.Address;
+            contactChanged = true;
+        }
 
-            if (!string.IsNullOrWhiteSpace(seedCI.PhoneNumber) && string.IsNullOrWhiteSpace(entityCI.PhoneNumber))
-            {
-                entityCI.PhoneNumber = seedCI.PhoneNumber;
-                contactChanged = true;
-            }
-
-            if (!string.IsNullOrWhiteSpace(seedCI.Address) && string.IsNullOrWhiteSpace(entityCI.Address))
-            {
-                entityCI.Address = seedCI.Address;
-                contactChanged = true;
-            }
-
-            if (contactChanged)
-            {
-                entity.UpdateContact(entityCI);
-                changed = true;
-            }
+        if (contactChanged)
+        {
+            entity.UpdateContact(entityCI);
+            changed = true;
         }
 
         if (changed)

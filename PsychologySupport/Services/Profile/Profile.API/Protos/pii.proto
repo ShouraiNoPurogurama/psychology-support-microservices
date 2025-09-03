@@ -34,6 +34,9 @@ service PiiService {
   //Tra patient_id từ alias_id (public domain ở Profile, nhưng PII có thể facade nếu cần)
   rpc ResolvePatientIdByAliasId (ResolvePatientIdByAliasIdRequest)
       returns (ResolvePatientIdByAliasIdResponse);
+
+  rpc EnsureSubjectRef (EnsureSubjectRefRequest) returns (EnsureSubjectRefResponse);
+
 }
 
 //=========================
@@ -95,6 +98,23 @@ message ResolvePersonInfoBySubjectRefResponse {
   UserGender gender = 3;
   google.protobuf.Timestamp birth_date = 4;
   ContactInfo contact_info = 5;
+}
+
+message EnsureSubjectRefRequest {
+  string user_id = 1;
+  optional PersonSeedDto person_seed = 2;
+}
+
+message PersonSeedDto {
+  optional string full_name = 1;
+  optional UserGender gender = 2;
+  optional google.protobuf.Timestamp birth_date = 3; // ISO 8601 format
+  optional ContactInfo contact_info = 4;
+}
+
+
+message EnsureSubjectRefResponse {
+  string subject_ref = 1;
 }
 
 //----- Common/Nested -----
