@@ -115,6 +115,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DigitalGoods", "DigitalGood
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DigitalGoods.API", "Services\DigitalGoods\DigitalGoods.API\DigitalGoods.API.csproj", "{0CCA9792-104A-4CF4-A439-04CE3BB3E44A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Media.API", "Services\Media\Media.API\Media.API.csproj", "{35DAF167-CFDB-4F8C-AE85-4B5162C9D7F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -249,6 +251,10 @@ Global
 		{0CCA9792-104A-4CF4-A439-04CE3BB3E44A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0CCA9792-104A-4CF4-A439-04CE3BB3E44A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0CCA9792-104A-4CF4-A439-04CE3BB3E44A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35DAF167-CFDB-4F8C-AE85-4B5162C9D7F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35DAF167-CFDB-4F8C-AE85-4B5162C9D7F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35DAF167-CFDB-4F8C-AE85-4B5162C9D7F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35DAF167-CFDB-4F8C-AE85-4B5162C9D7F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -306,6 +312,7 @@ Global
 		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {AFBB2CD2-FCC5-4146-A8FE-8EEC5EE57044}
 		{05EAF337-CDA2-4A5D-B142-28A379687370} = {AFBB2CD2-FCC5-4146-A8FE-8EEC5EE57044}
 		{0CCA9792-104A-4CF4-A439-04CE3BB3E44A} = {05EAF337-CDA2-4A5D-B142-28A379687370}
+		{35DAF167-CFDB-4F8C-AE85-4B5162C9D7F6} = {F5EEB5A6-C4F1-4C43-9FBA-6144F9CEB0E1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9F295B72-0C22-4375-A44F-7F4256AB2C44}
