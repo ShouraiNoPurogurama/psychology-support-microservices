@@ -1,6 +1,4 @@
-﻿using Carter;
-using FluentValidation;
-using Mapster;
+﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Profile.API.Domains.DoctorProfiles.Dtos;
 

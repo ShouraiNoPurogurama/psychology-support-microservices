@@ -1,6 +1,4 @@
 ﻿using BuildingBlocks.Pagination;
-using Mapster;
-using Profile.API.Data.Public;
 using Profile.API.Domains.DoctorProfiles.Dtos;
 
 namespace Profile.API.Domains.DoctorProfiles.Features.GetDoctorProfileBySpecialities;

@@ -1,5 +1,4 @@
-﻿using Profile.API.Data.Public;
-using Profile.API.Domains.MentalDisorders.Dtos;
+﻿using Profile.API.Domains.MentalDisorders.Dtos;
 using Profile.API.Domains.PatientProfiles.Dtos;
 using Profile.API.Domains.PatientProfiles.Exceptions;
 

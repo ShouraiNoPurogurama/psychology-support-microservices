@@ -106,6 +106,44 @@ namespace Auth.API.Data.Migrations
                     b.ToTable("device_sessions", (string)null);
                 });
 
+            modelBuilder.Entity("Auth.API.Models.PendingVerificationUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<byte[]>("PayloadProtected")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("payload_protected");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_pending_verification_users");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_pending_verification_users_user_id");
+
+                    b.ToTable("pending_verification_users", (string)null);
+                });
+
             modelBuilder.Entity("Auth.API.Models.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -149,10 +187,6 @@ namespace Auth.API.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("access_failed_count");
 
-                    b.Property<DateOnly?>("BirthDate")
-                        .HasColumnType("date")
-                        .HasColumnName("birth_date");
-
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text")
@@ -170,18 +204,6 @@ namespace Auth.API.Data.Migrations
                     b.Property<string>("FirebaseUserId")
                         .HasColumnType("text")
                         .HasColumnName("firebase_user_id");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("full_name");
-
-                    b.Property<string>("Gender")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasDefaultValue("Else")
-                        .HasColumnName("gender");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean")
@@ -212,6 +234,10 @@ namespace Auth.API.Data.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean")
                         .HasColumnName("phone_number_confirmed");
+
+                    b.Property<bool>("PiiCreated")
+                        .HasColumnType("boolean")
+                        .HasColumnName("pii_created");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text")
@@ -391,6 +417,18 @@ namespace Auth.API.Data.Migrations
                         .HasConstraintName("fk_device_sessions_devices_device_id");
 
                     b.Navigation("Device");
+                });
+
+            modelBuilder.Entity("Auth.API.Models.PendingVerificationUser", b =>
+                {
+                    b.HasOne("Auth.API.Models.User", "User")
+                        .WithOne()
+                        .HasForeignKey("Auth.API.Models.PendingVerificationUser", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_pending_verification_users_user_user_id");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

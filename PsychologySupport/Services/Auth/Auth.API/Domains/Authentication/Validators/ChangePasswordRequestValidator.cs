@@ -1,5 +1,4 @@
-﻿using Auth.API.Domains.Authentication.Dtos.Requests;
-using BuildingBlocks.Constants;
+﻿using BuildingBlocks.Constants;
 using FluentValidation;
 
 namespace Auth.API.Domains.Authentication.Validators

@@ -1,8 +1,6 @@
 ﻿using Auth.API.Data;
-using Auth.API.Models;
-using BuildingBlocks.Messaging.Events.Auth;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Profile;
 using MassTransit;
-using Microsoft.AspNetCore.Identity;
 
 namespace Auth.API.Domains.Authentication.EventHandlers;
 
@@ -24,8 +22,6 @@ public class DoctorProfileUpdatedEventHandler : IConsumer<DoctorProfileUpdatedIn
         var user = await _context.Users.FindAsync(message.UserId);
         if (user != null)
         {
-            user.FullName = message.FullName;
-            user.Gender = message.Gender;
             await _userManager.SetEmailAsync(user, message.Email);
             await _userManager.SetPhoneNumberAsync(user, message.PhoneNumber);
             user.EmailConfirmed = true;

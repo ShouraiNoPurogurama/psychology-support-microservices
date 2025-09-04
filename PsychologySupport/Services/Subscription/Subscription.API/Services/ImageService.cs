@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.ImageStorage;
+﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.ImageStorage;
 using MassTransit;
 
 namespace Subscription.API.Services;
@@ -32,7 +32,7 @@ public class ImageService : IImageService
         }
 
         // Gửi sự kiện lên Message Bus để ImageStorage service xử lý
-        var imageEvent = new UploadImageIntegrationEvent(
+        var imageEvent = new ImageUploadedIntegrationEvent(
             imageId,
             fileName,
             imageBytes,

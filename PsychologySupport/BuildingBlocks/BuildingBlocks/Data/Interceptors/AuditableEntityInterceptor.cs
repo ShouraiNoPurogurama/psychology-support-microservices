@@ -1,6 +1,5 @@
 ﻿using System.Security.Claims;
 using BuildingBlocks.DDD;
-using BuildingBlocks.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;

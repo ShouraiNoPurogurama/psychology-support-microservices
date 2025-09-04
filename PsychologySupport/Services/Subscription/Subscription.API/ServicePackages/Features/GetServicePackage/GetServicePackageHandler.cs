@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
-using BuildingBlocks.Messaging.Events.Translation;
+using BuildingBlocks.Messaging.Events.Queries.Translation;
 using BuildingBlocks.Utils;
 using Subscription.API.Data;
 using Subscription.API.Exceptions;

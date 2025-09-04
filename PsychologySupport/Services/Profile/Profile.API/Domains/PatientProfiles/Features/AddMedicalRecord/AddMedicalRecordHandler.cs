@@ -1,5 +1,4 @@
-﻿using Profile.API.Data.Public;
-using Profile.API.Domains.PatientProfiles.Enum;
+﻿using Profile.API.Domains.PatientProfiles.Enum;
 using Profile.API.Domains.PatientProfiles.Exceptions;
 
 namespace Profile.API.Domains.PatientProfiles.Features.AddMedicalRecord;

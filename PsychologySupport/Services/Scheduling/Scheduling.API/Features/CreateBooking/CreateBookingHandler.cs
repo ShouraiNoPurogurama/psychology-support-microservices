@@ -1,9 +1,9 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
-using BuildingBlocks.Messaging.Events.ChatBox;
-using BuildingBlocks.Messaging.Events.Payment;
-using BuildingBlocks.Messaging.Events.Profile;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Scheduling;
+using BuildingBlocks.Messaging.Events.Queries.Profile;
+using BuildingBlocks.Messaging.Events.Queries.Scheduling;
 using BuildingBlocks.Utils;
 using Mapster;
 using MassTransit;

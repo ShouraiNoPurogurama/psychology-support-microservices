@@ -1,20 +1,27 @@
 ﻿using Auth.API.Data;
 using Auth.API.Domains.Authentication.BackgroundServices;
 using Auth.API.Domains.Authentication.ServiceContracts;
+using Auth.API.Domains.Authentication.ServiceContracts.v2;
 using Auth.API.Domains.Authentication.Services;
+using Auth.API.Domains.Authentication.Services.v2;
 using Auth.API.Domains.Authentication.Validators;
+using Auth.API.Domains.Encryption.ServiceContracts;
+using Auth.API.Domains.Encryption.Services;
 using BuildingBlocks.Behaviors;
+using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Filters;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using Notification.API.Protos;
+using Pii.API.Protos;
 using Profile.API.Protos;
+using AuthService = Auth.API.Domains.Authentication.Services.v2.AuthService;
+using IAuthService = Auth.API.Domains.Authentication.ServiceContracts.v2.IAuthService;
 
 namespace Auth.API.Extensions;
 
@@ -37,7 +44,7 @@ public static class ApplicationServiceExtensions
 
         ConfigureCors(services);
 
-        // ConfigureMediatR(services);
+        ConfigureMediatR(services);
 
         AddDatabase(services, config);
 
@@ -121,12 +128,18 @@ public static class ApplicationServiceExtensions
 
     private static void AddServiceDependencies(IServiceCollection services)
     {
-        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<Domains.Authentication.ServiceContracts.IAuthService, Domains.Authentication.Services.v1.AuthService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
         services.AddScoped<LoggingActionFilter>();
-        services.AddScoped<IAuthService02, AuthService02>();
-
+        services.AddScoped<IAuthService, AuthService>();
+        services
+            .AddScoped<Domains.Authentication.ServiceContracts.v3.IAuthService, Domains.Authentication.Services.v3.AuthService>();
+        services.AddScoped<IPayloadProtector, PayloadProtector>();
+        
+        services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+        services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        
         services.AddFluentValidationAutoValidation();
         services.AddValidatorsFromAssemblyContaining<ChangePasswordRequestValidator>();
     }
@@ -168,6 +181,19 @@ public static class ApplicationServiceExtensions
         {
             options.Address = new Uri(config["GrpcSettings:PatientProfileUrl"]!);
         })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                return handler;
+            });
+        
+        services.AddGrpcClient<PiiService.PiiServiceClient>(options =>
+            {
+                options.Address = new Uri(config["GrpcSettings:PiiUrl"]!);
+            })
             .ConfigurePrimaryHttpMessageHandler(() =>
             {
                 var handler = new HttpClientHandler

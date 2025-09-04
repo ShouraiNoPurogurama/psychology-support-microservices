@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.Profile;
+﻿using BuildingBlocks.Messaging.Events.Queries.Profile;
 using Profile.API.Data.Pii;
 
 namespace Profile.API.Domains.PatientProfiles.EventHandlers;

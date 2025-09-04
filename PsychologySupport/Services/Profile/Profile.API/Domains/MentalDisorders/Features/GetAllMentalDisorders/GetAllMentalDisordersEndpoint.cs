@@ -1,6 +1,4 @@
 ﻿using BuildingBlocks.Pagination;
-using Carter;
-using Mapster;
 using Profile.API.Domains.MentalDisorders.Dtos;
 
 namespace Profile.API.Domains.MentalDisorders.Features.GetAllMentalDisorders

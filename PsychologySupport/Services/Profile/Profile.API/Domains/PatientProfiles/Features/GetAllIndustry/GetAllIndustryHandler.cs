@@ -1,11 +1,9 @@
-﻿using BuildingBlocks.Messaging.Events.Translation;
+﻿using BuildingBlocks.Messaging.Events.Queries.Translation;
 using BuildingBlocks.Pagination;
-using Mapster;
 using Microsoft.AspNetCore.Mvc;
-using Profile.API.Data.Public;
 using Profile.API.Domains.PatientProfiles.Dtos;
-using Profile.API.Domains.PatientProfiles.Models;
 using Profile.API.Extensions;
+using Profile.API.Models.Public;
 
 namespace Profile.API.Domains.PatientProfiles.Features.GetAllIndustry
 {

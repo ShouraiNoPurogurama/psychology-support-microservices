@@ -1,6 +1,6 @@
-﻿using BuildingBlocks.Messaging.Events.Auth;
-using BuildingBlocks.Messaging.Events.Notification;
-using BuildingBlocks.Messaging.Events.Subscription;
+﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Payment;
+using BuildingBlocks.Messaging.Events.Queries.Profile;
 using Mapster;
 using MassTransit;
 using MediatR;

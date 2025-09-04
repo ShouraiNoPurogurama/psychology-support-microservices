@@ -1,8 +1,7 @@
-﻿using BuildingBlocks.Messaging.Events.Translation;
-using Mapster;
-using Profile.API.Data.Public;
+﻿using BuildingBlocks.Messaging.Events.Queries.Translation;
 using Profile.API.Domains.PatientProfiles.Dtos;
 using Profile.API.Extensions;
+using Profile.API.Models.Public;
 
 namespace Profile.API.Domains.PatientProfiles.Features.GetJobByIndustryId
 {
@@ -28,7 +27,7 @@ namespace Profile.API.Domains.PatientProfiles.Features.GetJobByIndustryId
 
             var jobDtos = jobs.Adapt<List<JobDto>>();
             
-            var translatedJobs = await jobDtos.TranslateEntitiesAsync(nameof(Models.Job),
+            var translatedJobs = await jobDtos.TranslateEntitiesAsync(nameof(Job),
                 _translationClient,
                 j => j.Id.ToString(),
                 cancellationToken,

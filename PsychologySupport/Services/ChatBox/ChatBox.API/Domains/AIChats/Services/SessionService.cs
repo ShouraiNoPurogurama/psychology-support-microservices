@@ -1,5 +1,5 @@
 ﻿using BuildingBlocks.Exceptions;
-using BuildingBlocks.Messaging.Events.Profile;
+using BuildingBlocks.Messaging.Events.Queries.Profile;
 using BuildingBlocks.Pagination;
 using ChatBox.API.Data;
 using ChatBox.API.Domains.AIChats.Dtos.AI;

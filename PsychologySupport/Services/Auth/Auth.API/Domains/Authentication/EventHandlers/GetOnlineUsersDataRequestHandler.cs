@@ -1,10 +1,7 @@
-﻿using Auth.API.Models;
-using BuildingBlocks.Dtos;
-using BuildingBlocks.Messaging.Events.Auth;
+﻿using BuildingBlocks.Dtos;
+using BuildingBlocks.Messaging.Events.Queries.Profile;
 using Mapster;
 using MassTransit;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Auth.API.Domains.Authentication.EventHandlers;
 

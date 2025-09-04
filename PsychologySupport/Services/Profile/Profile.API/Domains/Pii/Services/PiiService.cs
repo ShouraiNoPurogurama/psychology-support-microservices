@@ -1,110 +1,131 @@
-﻿using Google.Protobuf.WellKnownTypes;
-using Grpc.Core;
+﻿using Grpc.Core;
 using Pii.API.Protos;
 using Profile.API.Data.Pii;
-using Profile.API.Data.Public;
-using Enum = System.Enum;
+using Profile.API.Domains.Pii.Dtos;
+using Profile.API.Domains.Pii.Features.EnsureSubjectRef;
+using PersonSeedDto = Profile.API.Domains.Pii.Dtos.PersonSeedDto;
+using UserGender = BuildingBlocks.Enums.UserGender;
 
 namespace Profile.API.Domains.Pii.Services;
 
-public class PiiService : global::Pii.API.Protos.PiiService.PiiServiceBase
+public class PiiService(PiiDbContext piiDbContext, ISender sender, ILogger<PiiService> logger)
+    : global::Pii.API.Protos.PiiService.PiiServiceBase
 {
-    private readonly PiiDbContext _piiDbContext;
-    private readonly ProfileDbContext _profileDbContext;
-
-    public PiiService(PiiDbContext piiDbContext, ProfileDbContext profileDbContext)
+    public override Task<ResolvePersonInfoBySubjectRefResponse> ResolvePersonInfoBySubjectRef(
+        ResolvePersonInfoBySubjectRefRequest request, ServerCallContext context)
     {
-        _piiDbContext = piiDbContext;
-        _profileDbContext = profileDbContext;
+        return base.ResolvePersonInfoBySubjectRef(request, context);
     }
 
-    public override async Task<ResolveUserIdResponse> ResolveUserId(ResolveUserIdRequest request, ServerCallContext context)
+    public override async Task<ResolveSubjectRefByAliasIdResponse> ResolveSubjectRefByAliasId(
+        ResolveSubjectRefByAliasIdRequest request, ServerCallContext context)
     {
         if (!Guid.TryParse(request.AliasId, out var aliasId))
-        {
-            return new ResolveUserIdResponse { UserId = Guid.Empty.ToString() };
-        }
+            return new ResolveSubjectRefByAliasIdResponse
+            {
+                SubjectRef = null
+            };
 
-        var existingOwnerMap = await _piiDbContext.AliasOwnerMaps
+        var subjectRef = await piiDbContext.AliasOwnerMaps
             .AsNoTracking()
-            .FirstOrDefaultAsync(a => a.AliasId == aliasId);
+            .Where(x => x.AliasId == aliasId)
+            .Select(x => x.SubjectRef)
+            .FirstOrDefaultAsync(context.CancellationToken);
 
-        var userId = existingOwnerMap?.UserId ?? Guid.Empty;
-
-        return new ResolveUserIdResponse { UserId = userId.ToString() };
+        return new ResolveSubjectRefByAliasIdResponse
+        {
+            SubjectRef = subjectRef.ToString()
+        };
     }
 
-    public override async Task<ResolvePatientIdResponse> ResolvePatientId(ResolvePatientIdRequest request, ServerCallContext context)
+
+    public override async Task<ResolveSubjectRefByUserIdResponse> ResolveSubjectRefByUserId(
+        ResolveSubjectRefByUserIdRequest request, ServerCallContext context)
     {
-        if (!Guid.TryParse(request.AliasId, out var aliasId))
-        {
-            return new ResolvePatientIdResponse { PatientId = Guid.Empty.ToString() };
-        }
+        if (!Guid.TryParse(request.UserId, out var userId))
+            return new ResolveSubjectRefByUserIdResponse
+            {
+                SubjectRef = null
+            };
 
-        var userId = await _piiDbContext.AliasOwnerMaps
-            .AsNoTracking()
-            .Where(a => a.AliasId == aliasId)
-            .Select(a => a.UserId)
-            .FirstOrDefaultAsync();
-
-        var patientId = await _profileDbContext.PatientProfiles
-            .AsNoTracking()
+        var subjectRef = await piiDbContext.PersonProfiles.AsNoTracking()
             .Where(p => p.UserId == userId)
-            .Select(p => p.Id)
+            .Select(p => p.SubjectRef)
             .FirstOrDefaultAsync();
 
-        return new ResolvePatientIdResponse { PatientId = patientId.ToString() };
+        return new ResolveSubjectRefByUserIdResponse
+        {
+            SubjectRef = subjectRef.ToString()
+        };
     }
 
-    public override async Task<ResolvePersonInfoResponse> ResolvePersonInfo(ResolvePersonInfoRequest request, ServerCallContext context)
+    public override Task<ResolveUserIdBySubjectRefResponse> ResolveUserIdBySubjectRef(ResolveUserIdBySubjectRefRequest request,
+        ServerCallContext context)
     {
-        if (!Guid.TryParse(request.AliasId, out var aliasId))
+        return base.ResolveUserIdBySubjectRef(request, context);
+    }
+
+    public override Task<ResolvePatientIdByAliasIdResponse> ResolvePatientIdByAliasId(ResolvePatientIdByAliasIdRequest request,
+        ServerCallContext context)
+    {
+        return base.ResolvePatientIdByAliasId(request, context);
+    }
+
+    public override async Task<EnsureSubjectRefResponse> EnsureSubjectRef(EnsureSubjectRefRequest request,
+        ServerCallContext context)
+    {
+        try
         {
-            return new ResolvePersonInfoResponse
+            if (!Guid.TryParse(request.UserId, out var userId))
             {
-                UserId = Guid.Empty.ToString(),
-                FullName = string.Empty,
-                Gender = UserGender.None,
-                ContactInfo = null
+                throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid user id format"));
+            }
+
+            PersonSeedDto? seed = null;
+            if (request.PersonSeed != null)
+            {
+                seed = MapToPersonSeed(request.PersonSeed);
+            }
+
+            var command = new EnsureSubjectRefCommand(userId, seed);
+            var result = await sender.Send(command, context.CancellationToken);
+
+            return new EnsureSubjectRefResponse
+            {
+                SubjectRef = result.SubjectRef.ToString()
             };
         }
-
-        var ownerMap = await _piiDbContext.AliasOwnerMaps
-            .AsNoTracking()
-            .Include(a => a.PersonProfile)
-            .FirstOrDefaultAsync(a => a.AliasId == aliasId);
-
-        if (ownerMap?.PersonProfile == null)
+        catch (Exception ex) when (!(ex is RpcException))
         {
-            return new ResolvePersonInfoResponse
-            {
-                UserId = Guid.Empty.ToString(),
-                FullName = string.Empty,
-                Gender = UserGender.None,
-                ContactInfo = null
-            };
+            logger.LogError(ex, "Error ensuring subject ref for user {UserId}", request.UserId);
+            throw new RpcException(new Status(StatusCode.Internal, "Internal server error"));
+        }
+    }
+
+    private static PersonSeedDto MapToPersonSeed(global::Pii.API.Protos.PersonSeedDto dto)
+    {
+        DateOnly birthDate = DateOnly.FromDateTime(dto.BirthDate.ToDateTime());
+
+        UserGender gender = UserGender.Else;
+        if (dto.Gender != 0 && Enum.IsDefined(typeof(UserGender), dto.Gender))
+        {
+            gender = (UserGender)dto.Gender;
         }
 
-        var profile = ownerMap.PersonProfile;
+        BuildingBlocks.Data.Common.ContactInfo contactInfo = dto.ContactInfo is not null
+            ? new BuildingBlocks.Data.Common.ContactInfo
+            {
+                Address = dto.ContactInfo.Address,
+                PhoneNumber = dto.ContactInfo.PhoneNumber,
+                Email = dto.ContactInfo.Email
+            }
+            : new BuildingBlocks.Data.Common.ContactInfo();
 
-        var contactInfo = new ContactInfo
-        {
-            Address = profile.ContactInfo.Address,
-            Email = profile.ContactInfo.Email,
-            PhoneNumber = profile.ContactInfo.PhoneNumber ?? string.Empty
-        };
-
-        var birthDate = profile.BirthDate.HasValue
-            ? Timestamp.FromDateTime(profile.BirthDate.Value.ToDateTime(TimeOnly.MinValue).ToUniversalTime())
-            : null;
-
-        return new ResolvePersonInfoResponse
-        {
-            UserId = ownerMap.UserId.ToString(),
-            FullName = profile.FullName ?? string.Empty,
-            Gender = Enum.TryParse<UserGender>(profile.Gender.ToString(), out var gender) ? gender : UserGender.None,
-            BirthDate = birthDate,
-            ContactInfo = contactInfo
-        };
+        return new PersonSeedDto(
+            dto.FullName,
+            gender,
+            birthDate,
+            contactInfo
+        );
     }
 }

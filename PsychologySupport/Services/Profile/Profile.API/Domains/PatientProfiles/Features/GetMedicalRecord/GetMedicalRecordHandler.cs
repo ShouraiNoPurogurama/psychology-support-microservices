@@ -1,6 +1,4 @@
-﻿using Mapster;
-using Profile.API.Data.Public;
-using Profile.API.Domains.PatientProfiles.Dtos;
+﻿using Profile.API.Domains.PatientProfiles.Dtos;
 
 namespace Profile.API.Domains.PatientProfiles.Features.GetMedicalRecord
 {

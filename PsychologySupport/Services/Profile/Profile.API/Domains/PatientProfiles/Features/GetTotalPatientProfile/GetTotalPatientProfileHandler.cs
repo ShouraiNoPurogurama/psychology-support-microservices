@@ -1,6 +1,4 @@
-﻿using BuildingBlocks.Enums;
-using Profile.API.Data.Public;
-using Profile.API.Domains.PatientProfiles.Models;
+﻿using Profile.API.Models.Public;
 
 namespace Profile.API.Domains.PatientProfiles.Features.GetTotalPatientProfile
 {

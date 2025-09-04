@@ -1,9 +1,6 @@
 ﻿using System.Linq.Expressions;
-using Auth.API.Models;
-using BuildingBlocks.Messaging.Events.Auth;
+using BuildingBlocks.Messaging.Events.Queries.Profile;
 using MassTransit;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Auth.API.Domains.Authentication.EventHandlers;
 

@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 using BuildingBlocks.Enums;
-using BuildingBlocks.Messaging.Events.Translation;
+using BuildingBlocks.Messaging.Events.Queries.Translation;
 using BuildingBlocks.Utils;
 using MassTransit;
 

@@ -1,5 +1,4 @@
 ﻿using Auth.API.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace Auth.API.Domains.Authentication.BackgroundServices
 {

@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.Subscription;
+﻿using BuildingBlocks.Messaging.Events.Queries.Subscription;
 using MassTransit;
 using Promotion.Grpc;
 using Subscription.API.Data;

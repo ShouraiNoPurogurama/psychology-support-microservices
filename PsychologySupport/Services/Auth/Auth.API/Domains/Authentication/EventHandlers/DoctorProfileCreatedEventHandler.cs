@@ -1,10 +1,7 @@
-﻿using Auth.API.Models;
-using BuildingBlocks.Constants;
-using BuildingBlocks.Messaging.Events.Auth;
-using BuildingBlocks.Messaging.Events.Notification;
+﻿using BuildingBlocks.Constants;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Profile;
 using MassTransit;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Auth.API.Domains.Authentication.EventHandlers;
 
@@ -37,8 +34,6 @@ public class DoctorProfileCreatedEventHandler : IConsumer<DoctorProfileCreatedRe
         var user = new User
         {
             Id = Guid.NewGuid(),
-            FullName = message.FullName,
-            Gender = message.Gender,
             Email = message.Email,
             UserName = message.Email,
             PhoneNumber = message.PhoneNumber,

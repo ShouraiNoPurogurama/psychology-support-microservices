@@ -1,6 +1,4 @@
-﻿using BuildingBlocks.Enums;
-
-namespace Profile.API.Domains.PatientProfiles.Dtos;
+﻿namespace Profile.API.Domains.PatientProfiles.Dtos;
 
 public record SimplifiedPatientProfileDto(    
     Guid Id,

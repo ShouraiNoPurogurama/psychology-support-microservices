@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Messaging.Events;
+using BuildingBlocks.Messaging.Events.IntegrationEvents;
 using Notification.API.Data;
 using Notification.API.Domains.Outbox.Models;
 
@@ -13,7 +14,7 @@ public class OutboxService(NotificationDbContext dbContext)
     }
 
     public async Task<bool> HasMessageAsync<TMessage>(TMessage message, CancellationToken cancellationToken)
-        where TMessage : IntegrationEvents
+        where TMessage : IntegrationEvent
     {
         return await dbContext.OutboxMessages.AnyAsync(x => x.Id.Equals(message.Id), cancellationToken);
     }

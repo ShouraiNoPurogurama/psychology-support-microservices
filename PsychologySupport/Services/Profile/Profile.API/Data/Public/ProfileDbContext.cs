@@ -1,9 +1,6 @@
-﻿using BuildingBlocks.Enums;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Profile.API.Domains.DoctorProfiles.Models;
-using Profile.API.Domains.MentalDisorders.Models;
+﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Profile.API.Domains.PatientProfiles.Enum;
-using Profile.API.Domains.PatientProfiles.Models;
+using Profile.API.Models.Public;
 
 namespace Profile.API.Data.Public;
 

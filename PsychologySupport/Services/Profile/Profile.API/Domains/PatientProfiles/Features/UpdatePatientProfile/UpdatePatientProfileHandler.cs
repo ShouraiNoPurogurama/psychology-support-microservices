@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.Data.Common;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Profile;
 using Profile.API.Data.Pii;
-using Profile.API.Data.Public;
 using Profile.API.Domains.PatientProfiles.Dtos;
 using Profile.API.Domains.PatientProfiles.Exceptions;
 
@@ -57,7 +57,7 @@ public class UpdatePatientProfileHandler : ICommandHandler<UpdatePatientProfileC
         await _context.SaveChangesAsync(cancellationToken);
 
         var patientProfileUpdatedEvent = new PatientProfileUpdatedIntegrationEvent(
-            patientProfile.UserId,
+            // patientProfile.UserId,
             piiProfile.FullName!,
             piiProfile.Gender,
             piiProfile.ContactInfo.Email,

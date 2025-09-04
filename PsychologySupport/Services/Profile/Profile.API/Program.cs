@@ -1,9 +1,9 @@
 ﻿using BuildingBlocks.Exceptions.Handler;
-using Carter;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Profile.API.Domains.PatientProfiles.Services;
+using Profile.API.Domains.Pii.Services;
 using Profile.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,7 +43,6 @@ app.MapCarter();
 app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
-    app.InitializeDatabaseAsync();
     app.UseSwaggerUI();
 }
 else
@@ -56,6 +55,7 @@ else
 
 //Map gRPC services
 app.MapGrpcService<PatientProfileService>();
+app.MapGrpcService<PiiService>();
 app.MapGrpcReflectionService(); // Tùy chọn, để hỗ trợ phản xạ gRPC
 
 app.UseHealthChecks("/health",

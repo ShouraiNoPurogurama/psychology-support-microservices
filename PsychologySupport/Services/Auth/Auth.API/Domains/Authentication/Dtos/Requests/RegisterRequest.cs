@@ -10,4 +10,4 @@ public record RegisterRequest(
     string Password,
     string ConfirmPassword,
     DateOnly BirthDate
-    );
+);

@@ -1,9 +1,9 @@
-﻿using BuildingBlocks.Messaging.Events.Subscription;
+﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Payment;
 using MassTransit;
 using MediatR;
 using Promotion.Grpc;
 using Subscription.API.Data.Common;
-using Subscription.API.UserSubscriptions.Features.UpdateSubscriptionStatus;
+using Subscription.API.UserSubscriptions.Features.v1.UpdateSubscriptionStatus;
 
 namespace Subscription.API.UserSubscriptions.EventHandlers;
 

@@ -1,9 +1,7 @@
 ﻿using BuildingBlocks.Messaging.MassTransit;
-using Carter;
 using FluentValidation;
 using Notification.API.Protos;
 using Profile.API.Data.Pii;
-using Profile.API.Data.Public;
 using Profile.API.Domains.DoctorProfiles.Validators;
 using Profile.API.Domains.PatientProfiles.Validators;
 
@@ -135,17 +133,19 @@ public static class ApplicationServiceExtensions
             opt.UseSnakeCaseNamingConvention();
         });
         
+        var piiConnectionString = GetConnectionString(config, "PiiProfileDb");
+        
         services.AddDbContext<PiiDbContext>((sp, opt) =>
         {
             opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-            opt.UseNpgsql(connectionString);
+            opt.UseNpgsql(piiConnectionString);
             opt.UseSnakeCaseNamingConvention();
         });
     }
 
-    private static string? GetConnectionString(IConfiguration config)
+    private static string? GetConnectionString(IConfiguration config, string name = "PublicProfileDb")
     {
-        var connectionString = config.GetConnectionString("ProfileDb");
+        var connectionString = config.GetConnectionString(name);
         return connectionString;
     }
 

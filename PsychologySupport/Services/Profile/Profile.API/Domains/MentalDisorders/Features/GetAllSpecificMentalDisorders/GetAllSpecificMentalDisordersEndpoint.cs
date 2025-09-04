@@ -1,6 +1,4 @@
 ﻿using BuildingBlocks.Pagination;
-using Carter;
-using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Profile.API.Domains.MentalDisorders.Dtos;
 

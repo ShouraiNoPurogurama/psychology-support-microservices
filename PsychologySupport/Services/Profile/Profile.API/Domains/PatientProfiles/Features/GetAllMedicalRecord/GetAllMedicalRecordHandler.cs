@@ -1,9 +1,7 @@
 ﻿using BuildingBlocks.Pagination;
-using Mapster;
-using Profile.API.Data.Public;
 using Profile.API.Domains.PatientProfiles.Dtos;
 using Profile.API.Domains.PatientProfiles.Enum;
-using Profile.API.Domains.PatientProfiles.Models;
+using Profile.API.Models.Public;
 
 namespace Profile.API.Domains.PatientProfiles.Features.GetAllMedicalRecord;
 

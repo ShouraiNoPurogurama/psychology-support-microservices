@@ -1,9 +1,9 @@
-﻿using BuildingBlocks.Messaging.Events.LifeStyle;
-using BuildingBlocks.Messaging.Events.Profile;
-using MassTransit;
+﻿using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Text;
+using BuildingBlocks.Messaging.Events.Queries.LifeStyle;
+using BuildingBlocks.Messaging.Events.Queries.Profile;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
