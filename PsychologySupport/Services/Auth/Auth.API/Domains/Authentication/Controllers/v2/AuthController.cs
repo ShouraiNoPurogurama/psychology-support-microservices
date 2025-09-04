@@ -1,7 +1,4 @@
-﻿using Auth.API.Domains.Authentication.Dtos.Requests;
-using Auth.API.Domains.Authentication.ServiceContracts;
-using Auth.API.Models;
-using Microsoft.AspNetCore.Identity;
+﻿using Auth.API.Domains.Authentication.ServiceContracts;
 using Microsoft.AspNetCore.Mvc;
 using IAuthService = Auth.API.Domains.Authentication.ServiceContracts.v3.IAuthService;
 

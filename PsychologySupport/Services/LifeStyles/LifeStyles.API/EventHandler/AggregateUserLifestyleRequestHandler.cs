@@ -1,5 +1,5 @@
 ﻿using BuildingBlocks.Messaging.Dtos.LifeStyles;
-using BuildingBlocks.Messaging.Events.LifeStyle;
+using BuildingBlocks.Messaging.Events.Queries.LifeStyle;
 using LifeStyles.API.Features.DASS21LifestyleInput.BuildDASS21LifestyleInput;
 using MassTransit;
 using MediatR;

@@ -1,5 +1,5 @@
 ﻿using BuildingBlocks.Enums;
-using BuildingBlocks.Messaging.Events.Payment;
+using BuildingBlocks.Messaging.Events.Queries.Subscription;
 using Mapster;
 using MassTransit;
 using MediatR;

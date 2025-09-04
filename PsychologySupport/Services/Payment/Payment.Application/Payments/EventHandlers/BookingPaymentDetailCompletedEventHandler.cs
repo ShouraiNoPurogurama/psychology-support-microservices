@@ -1,6 +1,6 @@
-﻿using BuildingBlocks.Messaging.Events.Auth;
-using BuildingBlocks.Messaging.Events.Notification;
-using BuildingBlocks.Messaging.Events.Scheduling;
+﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Payment;
+using BuildingBlocks.Messaging.Events.Queries.Profile;
 using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Logging;

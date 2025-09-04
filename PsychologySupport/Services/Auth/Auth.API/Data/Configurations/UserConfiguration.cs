@@ -1,6 +1,4 @@
-﻿using Auth.API.Models;
-using BuildingBlocks.Enums;
-using Microsoft.EntityFrameworkCore;
+﻿using BuildingBlocks.Enums;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Auth.API.Data.Configurations;

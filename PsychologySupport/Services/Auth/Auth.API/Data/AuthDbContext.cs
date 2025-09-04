@@ -1,8 +1,6 @@
 ﻿using System.Reflection;
-using Auth.API.Models;
 using BuildingBlocks.Enums;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 
 namespace Auth.API.Data;
 

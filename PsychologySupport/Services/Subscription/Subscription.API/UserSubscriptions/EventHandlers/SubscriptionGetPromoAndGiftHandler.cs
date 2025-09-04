@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.Subscription;
+﻿using BuildingBlocks.Messaging.Events.Queries.Subscription;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Promotion.Grpc;
@@ -9,9 +9,9 @@ namespace Subscription.API.UserSubscriptions.EventHandlers
     public class SubscriptionGetPromoAndGiftHandler(
         SubscriptionDbContext dbContext,
         PromotionService.PromotionServiceClient promotionService
-    ) : IConsumer<SubscriptionGetPromoAndGiftRequestEvent>
+    ) : IConsumer<SubscriptionGetPromoAndGiftRequest>
     {
-        public async Task Consume(ConsumeContext<SubscriptionGetPromoAndGiftRequestEvent> context)
+        public async Task Consume(ConsumeContext<SubscriptionGetPromoAndGiftRequest> context)
         {
             var request = context.Message;
 
@@ -21,7 +21,7 @@ namespace Subscription.API.UserSubscriptions.EventHandlers
 
             if (subscription == null)
             {
-                await context.RespondAsync(new SubscriptionGetPromoAndGiftResponseEvent(null, null));
+                await context.RespondAsync(new SubscriptionGetPromoAndGiftResponse(null, null));
                 return;
             }
 
@@ -44,7 +44,7 @@ namespace Subscription.API.UserSubscriptions.EventHandlers
             {
             }
 
-            await context.RespondAsync(new SubscriptionGetPromoAndGiftResponseEvent(
+            await context.RespondAsync(new SubscriptionGetPromoAndGiftResponse(
                 PromoCode: promoCode,
                 GiftId: subscription.GiftId
             ));

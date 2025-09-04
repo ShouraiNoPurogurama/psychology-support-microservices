@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
-using BuildingBlocks.Messaging.Events.Profile;
-using BuildingBlocks.Messaging.Events.Scheduling;
-using BuildingBlocks.Messaging.Events.Subscription;
+using BuildingBlocks.Messaging.Events.Queries.Profile;
+using BuildingBlocks.Messaging.Events.Queries.Scheduling;
+using BuildingBlocks.Messaging.Events.Queries.Subscription;
 using Mapster;
 using MassTransit;
 using Payment.Application.Payments.Dtos;

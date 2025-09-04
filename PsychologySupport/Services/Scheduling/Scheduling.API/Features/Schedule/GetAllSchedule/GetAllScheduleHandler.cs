@@ -3,8 +3,8 @@ using BuildingBlocks.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Scheduling.API.Dtos;
 using MassTransit;
-using BuildingBlocks.Messaging.Events.LifeStyle;
 using BuildingBlocks.Dtos;
+using BuildingBlocks.Messaging.Events.Queries.LifeStyle;
 
 namespace Scheduling.API.Features.Schedule.GetAllSchedule
 {

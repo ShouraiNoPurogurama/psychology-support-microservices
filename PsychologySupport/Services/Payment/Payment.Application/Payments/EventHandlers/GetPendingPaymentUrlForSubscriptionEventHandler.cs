@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.Payment;
+﻿using BuildingBlocks.Messaging.Events.Queries.Payment;
 using MassTransit;
 using MediatR;
 using Payment.Application.Payments.Queries;

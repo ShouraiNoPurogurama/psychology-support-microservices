@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.Notification;
+﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
 using Notification.API.Base.EventHandlers;
 using Notification.API.Domains.Firebase.Events;
 using Notification.API.Domains.Outbox.Services;

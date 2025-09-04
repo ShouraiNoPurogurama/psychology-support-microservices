@@ -1,14 +1,10 @@
-﻿using Auth.API.Domains.Authentication.Dtos.Requests;
-using Auth.API.Domains.Authentication.Dtos.Responses;
+﻿using Auth.API.Domains.Authentication.Dtos.Responses;
 using Auth.API.Domains.Authentication.ServiceContracts;
-using Auth.API.Models;
 using BuildingBlocks.Constants;
 using BuildingBlocks.Exceptions;
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Auth.API.Domains.Authentication.Services
 {

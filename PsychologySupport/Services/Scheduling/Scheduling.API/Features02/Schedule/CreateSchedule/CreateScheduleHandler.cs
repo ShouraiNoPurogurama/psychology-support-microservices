@@ -1,5 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
-using BuildingBlocks.Messaging.Events.LifeStyle;
+using BuildingBlocks.Messaging.Events.Queries.LifeStyle;
 using Mapster;
 using MassTransit;
 using Scheduling.API.Enums;

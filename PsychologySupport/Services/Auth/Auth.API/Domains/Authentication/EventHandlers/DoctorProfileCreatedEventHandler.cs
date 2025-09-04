@@ -1,10 +1,7 @@
-﻿using Auth.API.Models;
-using BuildingBlocks.Constants;
-using BuildingBlocks.Messaging.Events.Auth;
-using BuildingBlocks.Messaging.Events.Notification;
+﻿using BuildingBlocks.Constants;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Profile;
 using MassTransit;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Auth.API.Domains.Authentication.EventHandlers;
 

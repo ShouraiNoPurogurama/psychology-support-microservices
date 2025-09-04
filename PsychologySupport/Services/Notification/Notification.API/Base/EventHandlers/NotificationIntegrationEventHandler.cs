@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.Notification;
+﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
 using MassTransit;
 using Notification.API.Domains.Outbox.Models;
 using Notification.API.Domains.Outbox.Services;

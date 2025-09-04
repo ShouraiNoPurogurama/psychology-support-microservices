@@ -1,11 +1,9 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 using Auth.API.Data;
-using Auth.API.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Auth.API.Extensions;

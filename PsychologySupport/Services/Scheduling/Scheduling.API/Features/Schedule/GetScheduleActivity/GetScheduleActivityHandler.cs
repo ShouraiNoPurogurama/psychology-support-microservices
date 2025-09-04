@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Dtos;
-using BuildingBlocks.Messaging.Events.LifeStyle;
+using BuildingBlocks.Messaging.Events.Queries.LifeStyle;
 using MassTransit;
 using Scheduling.API.Dtos;
 

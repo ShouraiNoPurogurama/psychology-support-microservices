@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.LifeStyle;
+﻿using BuildingBlocks.Messaging.Events.Queries.LifeStyle;
 using LifeStyles.API.Features.ActivitiesCommon;
 using MassTransit;
 using MediatR;

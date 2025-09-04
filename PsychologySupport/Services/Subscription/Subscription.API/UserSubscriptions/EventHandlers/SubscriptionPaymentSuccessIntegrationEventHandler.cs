@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.Subscription;
+﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Payment;
 using MassTransit;
 using MediatR;
 using Subscription.API.Data.Common;

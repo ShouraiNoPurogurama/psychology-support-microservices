@@ -1,8 +1,8 @@
-﻿using BuildingBlocks.Messaging.Events.Subscription;
+﻿using BuildingBlocks.Messaging.Events.Queries.Subscription;
 using MassTransit;
 using MediatR;
 using Subscription.API.UserSubscriptions.Features.v1.GetUserSubscriptionForClaims;
-using GetUserSubscriptionResponse = BuildingBlocks.Messaging.Events.Subscription.GetUserSubscriptionResponse;
+using GetUserSubscriptionResponse = BuildingBlocks.Messaging.Events.Queries.Subscription.GetUserSubscriptionResponse;
 
 namespace Subscription.API.UserSubscriptions.EventHandlers;
 

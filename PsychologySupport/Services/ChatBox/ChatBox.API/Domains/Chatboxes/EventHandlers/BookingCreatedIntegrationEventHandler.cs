@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.ChatBox;
+﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Scheduling;
 using ChatBox.API.Data;
 using ChatBox.API.Models;
 using MassTransit;

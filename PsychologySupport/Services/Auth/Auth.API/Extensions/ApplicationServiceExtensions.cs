@@ -15,7 +15,6 @@ using Carter;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using Notification.API.Protos;
@@ -129,7 +128,7 @@ public static class ApplicationServiceExtensions
 
     private static void AddServiceDependencies(IServiceCollection services)
     {
-        services.AddScoped<Domains.Authentication.ServiceContracts.IAuthService, Domains.Authentication.Services.AuthService>();
+        services.AddScoped<Domains.Authentication.ServiceContracts.IAuthService, Domains.Authentication.Services.v1.AuthService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
         services.AddScoped<LoggingActionFilter>();

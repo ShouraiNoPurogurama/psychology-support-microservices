@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using BuildingBlocks.Messaging.Dtos.LifeStyles;
-using BuildingBlocks.Messaging.Events.LifeStyle;
+using BuildingBlocks.Messaging.Events.Queries.LifeStyle;
 using MassTransit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

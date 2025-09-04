@@ -1,5 +1,4 @@
-﻿using Auth.API.Domains.Authentication.Dtos.Requests;
-using Auth.API.Domains.Authentication.Dtos.Responses;
+﻿using Auth.API.Domains.Authentication.Dtos.Responses;
 
 namespace Auth.API.Domains.Authentication.ServiceContracts.v2;
 

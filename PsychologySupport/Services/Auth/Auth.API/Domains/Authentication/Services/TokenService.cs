@@ -2,13 +2,8 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Auth.API.Domains.Authentication.ServiceContracts;
-using Auth.API.Models;
 using BuildingBlocks.Exceptions;
-using BuildingBlocks.Messaging.Events.LifeStyle;
-using BuildingBlocks.Messaging.Events.Profile;
-using BuildingBlocks.Messaging.Events.Subscription;
 using MassTransit;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Pii.API.Protos;
 using Exception = System.Exception;
@@ -27,14 +22,8 @@ public class TokenService(
     public async Task<(string Token, string Jti)> GenerateJWTToken(User user)
     {
         var roles = await userManager.GetRolesAsync(user);
-        
-        
-        var resolveSubjectRef = await piiClient.EnsureSubjectRefAsync(new EnsureSubjectRefRequest
-        {
-            UserId = user.Id.ToString()
-        });
 
-        var subjectRef = resolveSubjectRef.SubjectRef;
+        var subjectRef = await ResolveSubjectRef(user);
         
         var jti = Guid.NewGuid().ToString(); // JWT ID (JTI) for unique identification of the token
         var claims = new[]
@@ -59,6 +48,31 @@ public class TokenService(
         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
         return (tokenString, jti);
+    }
+
+    private async Task<string> ResolveSubjectRef(User user)
+    {
+        string subjectRef;
+        if (!user.PiiCreated)
+        {
+            var resolveSubjectRef = await piiClient.EnsureSubjectRefAsync(new EnsureSubjectRefRequest
+            {
+                UserId = user.Id.ToString()
+            });
+
+            subjectRef = resolveSubjectRef.SubjectRef;
+        }
+        else
+        {
+            var resolveSubjectRef = await piiClient.ResolveSubjectRefByUserIdAsync(new ResolveSubjectRefByUserIdRequest()
+            {
+                UserId = user.Id.ToString()
+            });
+            
+            subjectRef = resolveSubjectRef.SubjectRef;
+        }
+
+        return subjectRef;
     }
 
     private RsaSecurityKey GetRsaSecurityKey()

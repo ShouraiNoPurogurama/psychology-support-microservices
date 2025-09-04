@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.Translation;
+﻿using BuildingBlocks.Messaging.Events.Queries.Translation;
 using MassTransit;
 using MediatR;
 using Translation.API.Domains.Translations.Features.TranslateData;
