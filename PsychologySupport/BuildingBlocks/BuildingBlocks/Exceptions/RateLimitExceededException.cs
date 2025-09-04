@@ -1,13 +1,26 @@
-﻿namespace BuildingBlocks.Exceptions;
+﻿using BuildingBlocks.Exceptions.Base;
+using Microsoft.AspNetCore.Http;
 
-public class RateLimitExceededException : Exception
+namespace BuildingBlocks.Exceptions;
+
+public class RateLimitExceededException : CustomException
 {
-    public string? Details { get; set; }
-    public RateLimitExceededException(string message = "Bạn đã thực hiện quá nhiều yêu cầu, vui lòng thử lại sau.") 
-        : base(message) { }
+    private const string Code = "RATE_LIMIT_EXCEEDED";
+    private const string DefaultSafeMessage = "Bạn đã thực hiện quá nhiều yêu cầu trong một khoảng thời gian ngắn. Vui lòng thử lại sau.";
 
-    public RateLimitExceededException(string? details, string message) : base(message)
+    public RateLimitExceededException()
+        : base(errorCode: Code, statusCode: StatusCodes.Status429TooManyRequests, safeMessage: DefaultSafeMessage)
     {
-        Details = details;
+    }
+
+    public RateLimitExceededException(string safeMessage, string errorCode = Code, string? internalDetail = null)
+        : base(errorCode: errorCode, statusCode: StatusCodes.Status429TooManyRequests, safeMessage: safeMessage, internalDetail: internalDetail)
+    {
+    }
+
+    [Obsolete("Dùng constructor (string safeMessage, string? internalDetail = null) thay thế để tránh leak domain logic")]
+    public RateLimitExceededException(string entityName, object key)
+        : base(errorCode: Code, statusCode: StatusCodes.Status429TooManyRequests, safeMessage: DefaultSafeMessage, internalDetail: $"{entityName}:{key}")
+    {
     }
 }

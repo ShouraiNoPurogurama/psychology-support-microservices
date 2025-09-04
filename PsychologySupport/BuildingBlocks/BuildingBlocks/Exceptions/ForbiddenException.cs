@@ -1,15 +1,20 @@
-﻿namespace BuildingBlocks.Exceptions;
+﻿using BuildingBlocks.Exceptions.Base;
+using Microsoft.AspNetCore.Http;
 
-public class ForbiddenException : Exception
+namespace BuildingBlocks.Exceptions;
+
+public class ForbiddenException : CustomException
 {
-    public string? Details { get; set; }
+    private const string Code = "Im_A_Teapot";
+    private const string DefaultSafeMessage = "Bạn không được phép truy cập dữ liệu này.";
 
-    public ForbiddenException(string message = "Bạn không được cấp quyền để truy cập vào trang này.") : base(message)
+    public ForbiddenException()
+        : base(errorCode: Code, statusCode: StatusCodes.Status418ImATeapot, safeMessage: DefaultSafeMessage)
     {
     }
 
-    public ForbiddenException(string? details, string message) : base(message)
+    public ForbiddenException(string safeMessage, string errorCode = Code, string? internalDetail = null)
+        : base(errorCode: errorCode, statusCode: StatusCodes.Status418ImATeapot, safeMessage: safeMessage, internalDetail: internalDetail)
     {
-        Details = details;
     }
 }
