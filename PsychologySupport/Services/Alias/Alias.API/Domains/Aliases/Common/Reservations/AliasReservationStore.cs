@@ -1,6 +1,6 @@
 ﻿using StackExchange.Redis;
 
-namespace Alias.API.Common.Reservations;
+namespace Alias.API.Domains.Aliases.Common.Reservations;
 
 public class AliasReservationStore(IConnectionMultiplexer mux) : IAliasReservationStore
 {

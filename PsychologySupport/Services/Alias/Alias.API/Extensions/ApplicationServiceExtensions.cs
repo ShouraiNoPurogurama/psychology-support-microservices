@@ -1,6 +1,6 @@
-﻿using Alias.API.Common.Reservations;
-using Alias.API.Common.Security;
-using Alias.API.Data.Public;
+﻿using Alias.API.Data.Public;
+using Alias.API.Domains.Aliases.Common.Reservations;
+using Alias.API.Domains.Aliases.Common.Security;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Exceptions.Handler;

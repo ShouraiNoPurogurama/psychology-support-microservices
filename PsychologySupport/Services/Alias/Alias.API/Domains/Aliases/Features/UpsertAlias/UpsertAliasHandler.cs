@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
-using Alias.API.Common.Security;
 using Alias.API.Data.Public;
+using Alias.API.Domains.Aliases.Common.Security;
 using Alias.API.Domains.Aliases.Enums;
 using Alias.API.Domains.Aliases.Utils;
 using Alias.API.Models.Public;

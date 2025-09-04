@@ -1,4 +1,4 @@
-﻿namespace Alias.API.Common.Security;
+﻿namespace Alias.API.Domains.Aliases.Common.Security;
 
 public interface IAliasTokenService
 {

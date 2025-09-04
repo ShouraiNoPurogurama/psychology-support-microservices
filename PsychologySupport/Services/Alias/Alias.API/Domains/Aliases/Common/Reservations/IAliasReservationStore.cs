@@ -1,4 +1,4 @@
-﻿namespace Alias.API.Common.Reservations;
+﻿namespace Alias.API.Domains.Aliases.Common.Reservations;
 
 public interface IAliasReservationStore
 {

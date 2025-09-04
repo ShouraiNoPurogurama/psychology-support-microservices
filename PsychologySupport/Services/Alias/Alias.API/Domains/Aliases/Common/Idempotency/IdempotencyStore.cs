@@ -1,4 +1,4 @@
-﻿namespace Alias.API.Common.Idempotency;
+﻿namespace Alias.API.Domains.Aliases.Common.Idempotency;
 
 public class IdempotencyStore
 {

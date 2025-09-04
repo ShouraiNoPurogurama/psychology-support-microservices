@@ -1,6 +1,6 @@
-﻿using Alias.API.Common.Reservations;
-using Alias.API.Common.Security;
-using Alias.API.Data.Public;
+﻿using Alias.API.Data.Public;
+using Alias.API.Domains.Aliases.Common.Reservations;
+using Alias.API.Domains.Aliases.Common.Security;
 using Alias.API.Domains.Aliases.Dtos;
 using Alias.API.Domains.Aliases.Utils;
 using BuildingBlocks.CQRS;

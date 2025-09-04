@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace Alias.API.Common.Security;
+namespace Alias.API.Domains.Aliases.Common.Security;
 
 public class AliasTokenService(IConfiguration config) : IAliasTokenService
 {
