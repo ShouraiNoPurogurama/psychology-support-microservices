@@ -6,7 +6,7 @@ using MediatR;
 
 namespace Alias.API.Domains.Aliases.Features.SuggestAliases;
 
-public record SuggestAliasesRequest(TimeSpan Ttl, int PageIndex = 1, int PageSize = 10);
+public record SuggestAliasesRequest(TimeSpan Ttl, int PageIndex = 1, int PageSize = 5);
 
 public record SuggestAliasesResponse(IReadOnlyList<SuggestAliasesItemDto> Aliases, DateTimeOffset GeneratedAt);
 

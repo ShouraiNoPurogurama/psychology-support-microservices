@@ -8,6 +8,7 @@ using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
+using Pii.API.Protos;
 using StackExchange.Redis;
 
 namespace Alias.API.Extensions;
@@ -38,6 +39,8 @@ public static class ApplicationServiceExtensions
         AddServiceDependencies(services);
         
         AddRedisCache(services, config);
+
+        AddGrpcServiceDependencies(services, config);
         
         services.AddHttpContextAccessor();
 
@@ -150,6 +153,22 @@ public static class ApplicationServiceExtensions
             opt.UseNpgsql(connectionString);
             opt.UseSnakeCaseNamingConvention();
         });
+    }
+    
+    private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
+    {
+        services.AddGrpcClient<PiiService.PiiServiceClient>(options =>
+            {
+                options.Address = new Uri(config["GrpcSettings:PiiUrl"]!);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                return handler;
+            });
     }
 
     private static string? GetConnectionString(IConfiguration config)

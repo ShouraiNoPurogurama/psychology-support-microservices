@@ -38,11 +38,11 @@ public partial class AliasDbContext : DbContext
             entity.Property(e => e.LastModified).HasColumnName("last_modified");
             entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
 
-            entity.Property(e => e.Visibility)
-                .HasDefaultValue(Visibility.Public)
-                .HasSentinel(Visibility.Public)
+            entity.Property(e => e.AliasVisibility)
+                .HasDefaultValue(AliasVisibility.Public)
+                .HasSentinel(AliasVisibility.Public)
                 .HasConversion(s => s.ToString(),
-                    dbStatus => (Visibility)Enum.Parse(typeof(Visibility), dbStatus));
+                    dbStatus => (AliasVisibility)Enum.Parse(typeof(AliasVisibility), dbStatus));
 
             entity.HasOne<AliasVersion>()
                 .WithMany()

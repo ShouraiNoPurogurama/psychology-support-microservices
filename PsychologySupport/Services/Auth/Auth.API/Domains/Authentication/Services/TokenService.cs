@@ -95,7 +95,7 @@ public class TokenService(
         if (string.IsNullOrWhiteSpace(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
             throw new ForbiddenException("Định dạng header Authorization không hợp lệ.");
 
-        var jwtToken = authorizationHeader["Bearer ".Length..]; // Slice token to get Payload
+        var jwtToken = authorizationHeader["Bearer ".Length..]; //Slice token to get Payload
 
         var tokenHandler = new JwtSecurityTokenHandler();
         if (!tokenHandler.CanReadToken(jwtToken)) throw new ForbiddenException("Định dạng JWT token không hợp lệ.");

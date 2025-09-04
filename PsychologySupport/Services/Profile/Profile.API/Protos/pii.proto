@@ -55,7 +55,7 @@ message ResolveAliasIdBySubjectRefRequest {
 }
 
 message ResolveAliasIdBySubjectRefResponse {
-  optional string alias_id = 1; //UUID string; null nếu không tìm thấy
+  string alias_id = 1; //UUID string; null nếu không tìm thấy
 }
 
 

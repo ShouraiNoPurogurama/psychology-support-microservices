@@ -9,7 +9,7 @@ public partial class Alias : AuditableEntity<Guid>
     
     public Guid? AvatarMediaId { get; set; }
 
-    public Visibility Visibility { get; set; } = Visibility.Public;
+    public AliasVisibility AliasVisibility { get; set; } = AliasVisibility.Public;
 
     public virtual ICollection<AliasVersion> AliasVersions { get; set; } = new List<AliasVersion>();
 }

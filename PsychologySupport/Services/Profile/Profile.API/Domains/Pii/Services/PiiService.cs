@@ -33,7 +33,7 @@ public class PiiService(PiiDbContext piiDbContext, ISender sender, ILogger<PiiSe
 
         return new ResolveAliasIdBySubjectRefResponse
         {
-            AliasId = aliasId != Guid.Empty ? aliasId.ToString() : null
+            AliasId = aliasId.ToString()
         };
     }
 

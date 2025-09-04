@@ -5,7 +5,6 @@ namespace BuildingBlocks.Exceptions;
 
 public class BadRequestException : CustomException
 {
-    
     private const string Code = "BAD_REQUEST";
     private const string DefaultSafeMessage = "Yêu cầu không hợp lệ.";
 

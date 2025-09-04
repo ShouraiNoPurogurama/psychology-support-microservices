@@ -2,7 +2,6 @@
 using Alias.API.Domains.PublicProfiles.Dtos;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
-using Microsoft.EntityFrameworkCore;
 
 namespace Alias.API.Domains.PublicProfiles.Features.GetPublicProfile;
 
@@ -12,9 +11,9 @@ public record GetPublicProfileResult(PublicProfileDto Profile);
 
 public class GetPublicProfileHandler : IQueryHandler<GetPublicProfileQuery, GetPublicProfileResult>
 {
-    private readonly PublicDbContext _dbContext;
+    private readonly AliasDbContext _dbContext;
 
-    public GetPublicProfileHandler(PublicDbContext dbContext)
+    public GetPublicProfileHandler(AliasDbContext dbContext)
     {
         _dbContext = dbContext;
     }

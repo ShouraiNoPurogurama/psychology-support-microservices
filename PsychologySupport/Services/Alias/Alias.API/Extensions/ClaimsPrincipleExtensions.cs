@@ -13,9 +13,9 @@ public static class ClaimsPrincipalExtensions
         return Guid.Parse(result);
     }
     
-    public static Guid GetSubjectRefId(this ClaimsPrincipal user)
+    public static Guid GetSubjectRef(this ClaimsPrincipal user)
     {
-        var result = user.Claims.FirstOrDefault(c => c.Type == "sub")?.Value ??
+        var result = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ??
                      throw new UnauthorizedAccessException("Token không hợp lệ.");
         
         return Guid.Parse(result);

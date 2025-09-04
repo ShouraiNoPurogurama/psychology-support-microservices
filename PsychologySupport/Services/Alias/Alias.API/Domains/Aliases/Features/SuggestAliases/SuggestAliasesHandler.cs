@@ -5,7 +5,6 @@ using Alias.API.Domains.Aliases.Dtos;
 using Alias.API.Domains.Aliases.Utils;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
-using Microsoft.EntityFrameworkCore;
 
 namespace Alias.API.Domains.Aliases.Features.SuggestAliases;
 
@@ -14,7 +13,7 @@ public record SuggestAliasesQuery(PaginationRequest PaginationRequest, TimeSpan 
 public record SuggestAliasesResult(IReadOnlyList<SuggestAliasesItemDto> Aliases, DateTimeOffset GeneratedAt);
 
 public class SuggestAliasesHandler(
-    PublicDbContext dbContext,
+    AliasDbContext dbContext,
     IAliasReservationStore store,
     IAliasTokenService tokens)
     : IQueryHandler<SuggestAliasesQuery, SuggestAliasesResult>

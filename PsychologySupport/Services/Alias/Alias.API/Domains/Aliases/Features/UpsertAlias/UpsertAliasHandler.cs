@@ -7,7 +7,6 @@ using Alias.API.Models.Public;
 using BuildingBlocks.CQRS;
 using FluentValidation;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 
 namespace Alias.API.Domains.Aliases.Features.UpsertAlias;
 
@@ -44,11 +43,11 @@ public sealed class UpsertAliasCommandValidator : AbstractValidator<UpsertAliasC
 
 public class UpsertAliasHandler : ICommandHandler<UpsertAliasCommand, UpsertAliasResult>
 {
-    private readonly PublicDbContext _db;
+    private readonly AliasDbContext _db;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IAliasTokenService _aliasTokenService;
 
-    public UpsertAliasHandler(PublicDbContext db, IPublishEndpoint publishEndpoint, IAliasTokenService aliasTokenService)
+    public UpsertAliasHandler(AliasDbContext db, IPublishEndpoint publishEndpoint, IAliasTokenService aliasTokenService)
     {
         _db = db;
         _publishEndpoint = publishEndpoint;
