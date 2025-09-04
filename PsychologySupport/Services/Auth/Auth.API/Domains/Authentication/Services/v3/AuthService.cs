@@ -382,7 +382,10 @@ public class AuthService(
         var baseUrl = configuration["Mail:ConfirmationUrl"]!;
         var url = string.Format(baseUrl, Uri.EscapeDataString(emailConfirmationToken), Uri.EscapeDataString(user.Email));
 
-        var confirmTemplatePath = Path.Combine(env.ContentRootPath, "EmailTemplates", "AccountConfirmation.html");
+        
+        var basePath = Path.Combine(env.ContentRootPath, "Domains", "Authentication", "EmailTemplates");
+        var confirmTemplatePath = Path.Combine(basePath, configuration["EmailTemplates:ConfirmEmail"]!);
+        
         var confirmBody = RenderTemplate(confirmTemplatePath, new Dictionary<string, string>
         {
             ["ConfirmUrl"] = url,
@@ -407,7 +410,9 @@ public class AuthService(
         var resetUrlTemplate = configuration["Mail:PasswordResetUrl"];
         var callbackUrl = string.Format(resetUrlTemplate!, Uri.EscapeDataString(token), Uri.EscapeDataString(user.Email));
 
-        var resetTemplatePath = Path.Combine(env.ContentRootPath, "EmailTemplates", "PasswordReset.html");
+        var basePath = Path.Combine(env.ContentRootPath, "Domains", "Authentication", "EmailTemplates");
+        var resetTemplatePath = Path.Combine(basePath, configuration["EmailTemplates:ResetPassword"]!);
+        
         var resetBody = RenderTemplate(resetTemplatePath, new Dictionary<string, string>
         {
             ["ResetUrl"] = callbackUrl,

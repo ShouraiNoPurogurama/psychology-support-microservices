@@ -22,11 +22,7 @@ service PiiService {
   //Tra subject_ref từ user_id (UUID string)
   rpc ResolveSubjectRefByUserId (ResolveSubjectRefByUserIdRequest)
       returns (ResolveSubjectRefByUserIdResponse);
-
-  //Tạo/đảm bảo subject_ref cho một user_id (nội bộ)
-  rpc CreateSubjectRef (CreateSubjectRefRequest)
-      returns (CreateSubjectRefResponse);
-
+  
   //Tra user_id từ subject_ref (nội bộ)
   rpc ResolveUserIdBySubjectRef (ResolveUserIdBySubjectRefRequest)
       returns (ResolveUserIdBySubjectRefResponse);
@@ -49,7 +45,7 @@ message ResolveSubjectRefByAliasIdRequest {
 }
 
 message ResolveSubjectRefByAliasIdResponse {
-  string subject_ref = 1; //UUID string; empty nếu không tìm thấy
+  optional string subject_ref = 1; //UUID string; null nếu không tìm thấy
 }
 
 message ResolveSubjectRefByUserIdRequest {
@@ -57,16 +53,7 @@ message ResolveSubjectRefByUserIdRequest {
 }
 
 message ResolveSubjectRefByUserIdResponse  {
-  string subject_ref = 1; //UUID string; empty nếu không tìm thấy
-}
-
-//----- Create SubjectRef (internal) -----
-message CreateSubjectRefRequest {
-  string user_id = 1; //UUID string
-}
-
-message CreateSubjectRefResponse {
-  string subject_ref = 1; //UUID string
+  optional string subject_ref = 1; //UUID string; empty nếu không tìm thấy
 }
 
 //----- UserId <-> SubjectRef (internal) -----
@@ -84,7 +71,7 @@ message ResolvePatientIdByAliasIdRequest {
 }
 
 message ResolvePatientIdByAliasIdResponse {
-  string patient_id = 1; //UUID string; empty nếu không tìm thấy
+  optional string patient_id = 1; //UUID string; empty nếu không tìm thấy
 }
 
 //----- PersonInfo theo SubjectRef -----
@@ -93,7 +80,7 @@ message ResolvePersonInfoBySubjectRefRequest {
 }
 
 message ResolvePersonInfoBySubjectRefResponse {
-  string user_id = 1; //UUID string; tùy scope mới trả, else empty
+  string user_id = 1; 
   string full_name = 2;
   UserGender gender = 3;
   google.protobuf.Timestamp birth_date = 4;

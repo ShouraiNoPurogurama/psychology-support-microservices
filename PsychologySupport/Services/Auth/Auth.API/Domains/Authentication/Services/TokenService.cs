@@ -28,6 +28,7 @@ public class TokenService(
     {
         var roles = await userManager.GetRolesAsync(user);
         
+        
         var resolveSubjectRef = await piiClient.EnsureSubjectRefAsync(new EnsureSubjectRefRequest
         {
             UserId = user.Id.ToString()

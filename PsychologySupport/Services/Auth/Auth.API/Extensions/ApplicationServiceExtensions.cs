@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using Notification.API.Protos;
+using Pii.API.Protos;
 using Profile.API.Protos;
 using AuthService = Auth.API.Domains.Authentication.Services.v2.AuthService;
 using IAuthService = Auth.API.Domains.Authentication.ServiceContracts.v2.IAuthService;
@@ -181,6 +182,19 @@ public static class ApplicationServiceExtensions
         {
             options.Address = new Uri(config["GrpcSettings:PatientProfileUrl"]!);
         })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                return handler;
+            });
+        
+        services.AddGrpcClient<PiiService.PiiServiceClient>(options =>
+            {
+                options.Address = new Uri(config["GrpcSettings:PiiUrl"]!);
+            })
             .ConfigurePrimaryHttpMessageHandler(() =>
             {
                 var handler = new HttpClientHandler

@@ -9,21 +9,9 @@ using UserGender = BuildingBlocks.Enums.UserGender;
 
 namespace Profile.API.Domains.Pii.Services;
 
-public class PiiService : global::Pii.API.Protos.PiiService.PiiServiceBase
+public class PiiService(PiiDbContext piiDbContext, ISender sender, ILogger<PiiService> logger)
+    : global::Pii.API.Protos.PiiService.PiiServiceBase
 {
-    private readonly PiiDbContext _piiDbContext;
-    private readonly ProfileDbContext _profileDbContext;
-    private readonly ISender _sender;
-    private readonly ILogger<PiiService> _logger;
-
-    public PiiService(PiiDbContext piiDbContext, ProfileDbContext profileDbContext, ISender sender, ILogger<PiiService> logger)
-    {
-        _piiDbContext = piiDbContext;
-        _profileDbContext = profileDbContext;
-        _sender = sender;
-        _logger = logger;
-    }
-
     public override Task<ResolvePersonInfoBySubjectRefResponse> ResolvePersonInfoBySubjectRef(
         ResolvePersonInfoBySubjectRefRequest request, ServerCallContext context)
     {
@@ -39,7 +27,7 @@ public class PiiService : global::Pii.API.Protos.PiiService.PiiServiceBase
                 SubjectRef = null
             };
 
-        var subjectRef = await _piiDbContext.AliasOwnerMaps
+        var subjectRef = await piiDbContext.AliasOwnerMaps
             .AsNoTracking()
             .Where(x => x.AliasId == aliasId)
             .Select(x => x.SubjectRef)
@@ -61,7 +49,7 @@ public class PiiService : global::Pii.API.Protos.PiiService.PiiServiceBase
                 SubjectRef = null
             };
 
-        var subjectRef = await _piiDbContext.PersonProfiles.AsNoTracking()
+        var subjectRef = await piiDbContext.PersonProfiles.AsNoTracking()
             .Where(p => p.UserId == userId)
             .Select(p => p.SubjectRef)
             .FirstOrDefaultAsync();
@@ -69,23 +57,6 @@ public class PiiService : global::Pii.API.Protos.PiiService.PiiServiceBase
         return new ResolveSubjectRefByUserIdResponse
         {
             SubjectRef = subjectRef.ToString()
-        };
-    }
-
-    public override async Task<CreateSubjectRefResponse> CreateSubjectRef(CreateSubjectRefRequest request,
-        ServerCallContext context)
-    {
-        if (!Guid.TryParse(request.UserId, out var userId))
-            return new CreateSubjectRefResponse
-            {
-                SubjectRef = null
-            };
-
-        var newSubjectRef = Guid.NewGuid();
-
-        return new CreateSubjectRefResponse
-        {
-            SubjectRef = newSubjectRef.ToString()
         };
     }
 
@@ -118,7 +89,7 @@ public class PiiService : global::Pii.API.Protos.PiiService.PiiServiceBase
             }
 
             var command = new EnsureSubjectRefCommand(userId, seed);
-            var result = await _sender.Send(command, context.CancellationToken);
+            var result = await sender.Send(command, context.CancellationToken);
 
             return new EnsureSubjectRefResponse
             {
@@ -127,7 +98,7 @@ public class PiiService : global::Pii.API.Protos.PiiService.PiiServiceBase
         }
         catch (Exception ex) when (!(ex is RpcException))
         {
-            _logger.LogError(ex, "Error ensuring subject ref for user {UserId}", request.UserId);
+            logger.LogError(ex, "Error ensuring subject ref for user {UserId}", request.UserId);
             throw new RpcException(new Status(StatusCode.Internal, "Internal server error"));
         }
     }
