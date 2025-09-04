@@ -17,6 +17,27 @@ public class PiiService(PiiDbContext piiDbContext, ISender sender, ILogger<PiiSe
         return base.ResolvePersonInfoBySubjectRef(request, context);
     }
 
+    public override async Task<ResolveAliasIdBySubjectRefResponse> ResolveAliasIdBySubjectRef(
+        ResolveAliasIdBySubjectRefRequest request, ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.SubjectRef, out var subjectRef))
+            return new ResolveAliasIdBySubjectRefResponse
+            {
+                AliasId = null
+            };
+
+        var aliasId = await piiDbContext.AliasOwnerMaps.AsNoTracking()
+            .Where(a => a.SubjectRef == subjectRef)
+            .Select(a => a.AliasId)
+            .FirstOrDefaultAsync();
+
+        return new ResolveAliasIdBySubjectRefResponse
+        {
+            AliasId = aliasId != Guid.Empty ? aliasId.ToString() : null
+        };
+    }
+
+
     public override async Task<ResolveSubjectRefByAliasIdResponse> ResolveSubjectRefByAliasId(
         ResolveSubjectRefByAliasIdRequest request, ServerCallContext context)
     {

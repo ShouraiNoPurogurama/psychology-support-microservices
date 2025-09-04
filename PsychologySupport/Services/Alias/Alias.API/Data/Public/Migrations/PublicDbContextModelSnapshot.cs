@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Alias.API.Data.Public.Migrations
 {
-    [DbContext(typeof(PublicDbContext))]
+    [DbContext(typeof(AliasDbContext))]
     partial class PublicDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -52,6 +52,13 @@ namespace Alias.API.Data.Public.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text")
                         .HasColumnName("last_modified_by");
+
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Public")
+                        .HasColumnName("visibility");
 
                     b.HasKey("Id")
                         .HasName("aliases_pkey");

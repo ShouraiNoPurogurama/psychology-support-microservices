@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Alias.API.Data.Public.Migrations
 {
     [DbContext(typeof(AliasDbContext))]
-    [Migration("20250829093839_AddAvatarMediaId")]
-    partial class AddAvatarMediaId
+    [Migration("20250904112646_IntroduceVisibilityForAlias")]
+    partial class IntroduceVisibilityForAlias
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -55,6 +55,13 @@ namespace Alias.API.Data.Public.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text")
                         .HasColumnName("last_modified_by");
+
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Public")
+                        .HasColumnName("visibility");
 
                     b.HasKey("Id")
                         .HasName("aliases_pkey");

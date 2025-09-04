@@ -33,7 +33,6 @@ services.RegisterMapsterConfiguration();
 // Configure the HTTP request pipeline
 var app = builder.Build();
 
-
 app.UseExceptionHandler(options => { });
 
 app.UseStaticFiles();

@@ -6,7 +6,6 @@ using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Exceptions.Handler;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
@@ -145,7 +144,7 @@ public static class ApplicationServiceExtensions
     {
         var connectionString = GetConnectionString(config);
 
-        services.AddDbContext<PublicDbContext>((sp, opt) =>
+        services.AddDbContext<AliasDbContext>((sp, opt) =>
         {
             opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             opt.UseNpgsql(connectionString);
