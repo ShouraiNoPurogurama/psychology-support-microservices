@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.Enums;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Profile.API.Domains.PatientProfiles.Enum;
 using Profile.API.Models.Public;
 

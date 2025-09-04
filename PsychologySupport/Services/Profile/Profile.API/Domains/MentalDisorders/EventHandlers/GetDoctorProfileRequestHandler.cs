@@ -1,7 +1,4 @@
-﻿using BuildingBlocks.Enums;
-using BuildingBlocks.Messaging.Events.Profile;
-using Mapster;
-using Profile.API.Data.Public;
+﻿using BuildingBlocks.Messaging.Events.Queries.Profile;
 using Profile.API.Models.Public;
 
 namespace Profile.API.Domains.MentalDisorders.EventHandlers;

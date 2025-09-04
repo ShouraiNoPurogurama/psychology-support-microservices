@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.Notification;
+﻿using BuildingBlocks.Messaging.Events.Queries.Notification;
 using MassTransit;
 using Notification.API.Domains.Emails.ServiceContracts;
 

@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
-using BuildingBlocks.Messaging.Events.Translation;
+using BuildingBlocks.Messaging.Events.Queries.Translation;
 using BuildingBlocks.Pagination;
 using LifeStyles.API.Abstractions;
 using LifeStyles.API.Data;

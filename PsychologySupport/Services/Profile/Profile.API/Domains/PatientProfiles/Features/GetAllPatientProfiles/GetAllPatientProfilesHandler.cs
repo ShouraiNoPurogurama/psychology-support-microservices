@@ -1,8 +1,5 @@
-﻿using BuildingBlocks.Enums;
-using BuildingBlocks.Pagination;
-using Mapster;
+﻿using BuildingBlocks.Pagination;
 using Profile.API.Data.Pii;
-using Profile.API.Data.Public;
 using Profile.API.Domains.PatientProfiles.Dtos;
 using Profile.API.Domains.PatientProfiles.Enum;
 

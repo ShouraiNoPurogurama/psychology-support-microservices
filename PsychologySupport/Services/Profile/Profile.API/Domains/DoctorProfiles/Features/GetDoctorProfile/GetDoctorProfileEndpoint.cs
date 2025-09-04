@@ -1,6 +1,4 @@
-﻿using Carter;
-using Mapster;
-using Profile.API.Domains.DoctorProfiles.Dtos;
+﻿using Profile.API.Domains.DoctorProfiles.Dtos;
 
 namespace Profile.API.Domains.DoctorProfiles.Features.GetDoctorProfile;
 

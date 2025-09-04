@@ -1,5 +1,4 @@
 ﻿using BuildingBlocks.Exceptions.Handler;
-using Carter;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Server.Kestrel.Core;

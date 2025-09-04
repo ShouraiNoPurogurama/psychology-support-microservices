@@ -1,5 +1,4 @@
 ﻿using BuildingBlocks.Data.Common;
-using BuildingBlocks.Enums;
 using Profile.API.Models.Public;
 
 namespace Profile.API.Domains.PatientProfiles.Dtos;

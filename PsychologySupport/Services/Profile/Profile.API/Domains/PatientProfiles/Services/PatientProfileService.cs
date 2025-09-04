@@ -1,7 +1,6 @@
 ﻿using Grpc.Core;
 using Notification.API.Protos;
 using Profile.API.Data.Pii;
-using Profile.API.Data.Public;
 using Profile.API.Models.Pii;
 using Profile.API.Models.Public;
 using Profile.API.Protos;

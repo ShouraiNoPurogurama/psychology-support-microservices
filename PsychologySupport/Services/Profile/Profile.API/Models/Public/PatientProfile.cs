@@ -1,6 +1,5 @@
 ﻿using BuildingBlocks.Data.Common;
 using BuildingBlocks.DDD;
-using BuildingBlocks.Enums;
 using Profile.API.Domains.PatientProfiles.Enum;
 using Profile.API.Domains.PatientProfiles.Events;
 

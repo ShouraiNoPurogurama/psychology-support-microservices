@@ -1,6 +1,4 @@
 ﻿using BuildingBlocks.Pagination;
-using Carter;
-using Mapster;
 using Profile.API.Common.Helpers;
 using Profile.API.Domains.PatientProfiles.Dtos;
 

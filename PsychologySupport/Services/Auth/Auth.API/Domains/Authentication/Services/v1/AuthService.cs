@@ -1,24 +1,21 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using Auth.API.Data;
-using Auth.API.Domains.Authentication.Dtos.Requests;
 using Auth.API.Domains.Authentication.Dtos.Responses;
 using Auth.API.Domains.Authentication.Exceptions;
 using Auth.API.Domains.Authentication.ServiceContracts;
-using Auth.API.Models;
 using BuildingBlocks.Constants;
 using BuildingBlocks.Data.Common;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
-using BuildingBlocks.Messaging.Events.Notification;
-using BuildingBlocks.Messaging.Events.Profile;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
+using BuildingBlocks.Messaging.Events.Queries.Notification;
+using BuildingBlocks.Messaging.Events.Queries.Profile;
 using BuildingBlocks.Utils;
 using Google.Apis.Auth;
 using Mapster;
 using MassTransit;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
-namespace Auth.API.Domains.Authentication.Services;
+namespace Auth.API.Domains.Authentication.Services.v1;
 
 public class AuthService(
     UserManager<User> userManager,

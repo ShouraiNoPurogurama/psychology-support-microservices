@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.Scheduling;
+﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Payment;
 using MassTransit;
 using MediatR;
 using Scheduling.API.Features.Schedule.CreateSchedule;

@@ -1,7 +1,6 @@
 ﻿using Grpc.Core;
 using Pii.API.Protos;
 using Profile.API.Data.Pii;
-using Profile.API.Data.Public;
 using Profile.API.Domains.Pii.Dtos;
 using Profile.API.Domains.Pii.Features.EnsureSubjectRef;
 using PersonSeedDto = Profile.API.Domains.Pii.Dtos.PersonSeedDto;

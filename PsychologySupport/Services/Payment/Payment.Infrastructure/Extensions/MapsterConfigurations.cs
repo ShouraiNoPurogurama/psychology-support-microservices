@@ -1,10 +1,10 @@
-﻿using BuildingBlocks.Messaging.Events.Payment;
-using Mapster;
+﻿using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using Payment.Application.Payments.Dtos;
 using Payment.Domain.Models;
 using System;
 using System.Reflection;
+using BuildingBlocks.Messaging.Events.Queries.Subscription;
 
 namespace Payment.Infrastructure.Extensions;
 

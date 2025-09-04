@@ -1,9 +1,6 @@
 ﻿using BuildingBlocks.Data.Common;
-using BuildingBlocks.Enums;
-using BuildingBlocks.Messaging.Events.Profile;
-using Mapster;
+using BuildingBlocks.Messaging.Events.Queries.Profile;
 using Profile.API.Data.Pii;
-using Profile.API.Data.Public;
 using Profile.API.Models.Public;
 
 namespace Profile.API.Domains.PatientProfiles.EventHandlers;

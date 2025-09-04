@@ -1,6 +1,4 @@
-﻿using BuildingBlocks.Enums;
-using Carter;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace Profile.API.Domains.PatientProfiles.Features.GetTotalPatientProfile
 {

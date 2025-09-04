@@ -1,7 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
-using BuildingBlocks.Messaging.Events.Scheduling;
-using BuildingBlocks.Messaging.Events.Subscription;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +9,8 @@ using Payment.Application.ServiceContracts;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Transactions;
+using BuildingBlocks.Messaging.Events.Queries.Scheduling;
+using BuildingBlocks.Messaging.Events.Queries.Subscription;
 
 namespace Payment.Application.Payments.Queries;
 
@@ -21,14 +21,14 @@ public record ProcessPayOSWebhookResult(bool Success);
 public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCommand, ProcessPayOSWebhookResult>
 {
     private readonly IPaymentDbContext _dbContext;
-    private readonly IRequestClient<SubscriptionGetPromoAndGiftRequestEvent> _subscriptionClient;
+    private readonly IRequestClient<SubscriptionGetPromoAndGiftRequest> _subscriptionClient;
     private readonly IRequestClient<BookingGetPromoAndGiftRequestEvent> _bookingClient;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPayOSService _payOSService;
 
     public ProcessPayOSWebhookHandler(
         IPaymentDbContext dbContext,
-        IRequestClient<SubscriptionGetPromoAndGiftRequestEvent> subscriptionClient,
+        IRequestClient<SubscriptionGetPromoAndGiftRequest> subscriptionClient,
         IRequestClient<BookingGetPromoAndGiftRequestEvent> bookingClient,
         IHttpContextAccessor httpContextAccessor,
         IPayOSService payOSService)
@@ -55,8 +55,8 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
 
         if (payment.SubscriptionId.HasValue && payment.SubscriptionId != Guid.Empty)
         {
-            var subscriptionEvent = new SubscriptionGetPromoAndGiftRequestEvent(payment.SubscriptionId.Value);
-            var subResponse = await _subscriptionClient.GetResponse<SubscriptionGetPromoAndGiftResponseEvent>(subscriptionEvent, cancellationToken);
+            var subscriptionEvent = new SubscriptionGetPromoAndGiftRequest(payment.SubscriptionId.Value);
+            var subResponse = await _subscriptionClient.GetResponse<SubscriptionGetPromoAndGiftResponse>(subscriptionEvent, cancellationToken);
             promotionCode = subResponse.Message.PromoCode;
             giftId = subResponse.Message.GiftId;
         }

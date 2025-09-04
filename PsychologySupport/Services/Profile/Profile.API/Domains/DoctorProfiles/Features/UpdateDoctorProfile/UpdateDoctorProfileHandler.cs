@@ -1,4 +1,4 @@
-﻿using Profile.API.Data.Public;
+﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Profile;
 using Profile.API.Domains.DoctorProfiles.Dtos;
 using Profile.API.Domains.PatientProfiles.Exceptions;
 

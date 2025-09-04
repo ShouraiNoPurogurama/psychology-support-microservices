@@ -1,6 +1,4 @@
-﻿using Carter;
-using Mapster;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Profile.API.Domains.DoctorProfiles.Dtos;
 
 namespace Profile.API.Domains.DoctorProfiles.Features.CreateDoctorProfile;

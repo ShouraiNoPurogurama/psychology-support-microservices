@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.Dtos;
 using BuildingBlocks.Enums;
-using BuildingBlocks.Messaging.Events.LifeStyle;
+using BuildingBlocks.Messaging.Events.Queries.LifeStyle;
 using LifeStyles.API.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;

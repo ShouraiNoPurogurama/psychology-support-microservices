@@ -1,5 +1,4 @@
 ﻿using BuildingBlocks.DDD;
-using BuildingBlocks.Enums;
 
 namespace Profile.API.Models.Public
 {

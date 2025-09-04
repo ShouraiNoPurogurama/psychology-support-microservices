@@ -1,6 +1,4 @@
-﻿using Mapster;
-using Profile.API.Data.Public;
-using Profile.API.Domains.DoctorProfiles.Dtos;
+﻿using Profile.API.Domains.DoctorProfiles.Dtos;
 using Profile.API.Domains.PatientProfiles.Exceptions;
 
 namespace Profile.API.Domains.DoctorProfiles.Features.GetDoctorProfile;

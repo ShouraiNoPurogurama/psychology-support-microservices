@@ -1,8 +1,6 @@
-﻿using BuildingBlocks.Messaging.Events.Scheduling;
+﻿using BuildingBlocks.Messaging.Events.Queries.Scheduling;
 using BuildingBlocks.Pagination;
-using Mapster;
 using Microsoft.AspNetCore.Mvc;
-using Profile.API.Data.Public;
 using Profile.API.Domains.DoctorProfiles.Dtos;
 using Profile.API.Models.Public;
 

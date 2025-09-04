@@ -1,5 +1,4 @@
-﻿using Mapster;
-using Profile.API.Domains.DoctorProfiles.Features;
+﻿using Profile.API.Domains.DoctorProfiles.Features;
 using Profile.API.Domains.PatientProfiles.Events;
 
 namespace Profile.API.Domains.DoctorProfiles.EventHandlers;

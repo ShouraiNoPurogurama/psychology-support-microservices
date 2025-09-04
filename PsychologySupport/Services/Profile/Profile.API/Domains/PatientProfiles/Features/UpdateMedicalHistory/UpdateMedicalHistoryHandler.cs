@@ -1,6 +1,4 @@
-﻿using Profile.API.Data.Public;
-
-namespace Profile.API.Domains.PatientProfiles.Features.UpdateMedicalHistory;
+﻿namespace Profile.API.Domains.PatientProfiles.Features.UpdateMedicalHistory;
 
 public record UpdateMedicalHistoryCommand(
     Guid PatientProfileId,

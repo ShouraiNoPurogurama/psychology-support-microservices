@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
-using BuildingBlocks.Messaging.Events.Profile;
+using BuildingBlocks.Messaging.Events.Queries.Profile;
 using LifeStyles.API.Data;
 using LifeStyles.API.Exceptions;
 using MassTransit;

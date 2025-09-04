@@ -1,6 +1,4 @@
-﻿using Carter;
-using Mapster;
-using Profile.API.Common.Helpers;
+﻿using Profile.API.Common.Helpers;
 using Profile.API.Domains.PatientProfiles.Dtos;
 
 namespace Profile.API.Domains.PatientProfiles.Features.GetMedicalHistory;

@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using Auth.API.Models;
 
 namespace Auth.API.Domains.Authentication.ServiceContracts;
 

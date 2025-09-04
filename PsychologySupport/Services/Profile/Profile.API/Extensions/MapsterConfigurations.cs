@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using Mapster;
 using Profile.API.Domains.DoctorProfiles.Dtos;
 using Profile.API.Domains.MentalDisorders.Dtos;
 using Profile.API.Domains.PatientProfiles.Dtos;

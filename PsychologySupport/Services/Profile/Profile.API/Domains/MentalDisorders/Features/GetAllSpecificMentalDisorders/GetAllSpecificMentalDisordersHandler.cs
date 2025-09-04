@@ -1,7 +1,5 @@
-﻿using BuildingBlocks.Messaging.Events.Translation;
+﻿using BuildingBlocks.Messaging.Events.Queries.Translation;
 using BuildingBlocks.Pagination;
-using Mapster;
-using Profile.API.Data.Public;
 using Profile.API.Domains.MentalDisorders.Dtos;
 using Profile.API.Extensions;
 using Profile.API.Models.Public;

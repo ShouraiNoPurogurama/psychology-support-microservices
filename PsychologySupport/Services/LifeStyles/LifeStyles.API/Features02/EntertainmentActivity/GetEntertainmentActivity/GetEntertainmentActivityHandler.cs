@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
-using BuildingBlocks.Messaging.Events.Translation;
+using BuildingBlocks.Messaging.Events.Queries.Translation;
 using LifeStyles.API.Data;
 using LifeStyles.API.Dtos;
 using LifeStyles.API.Extensions;

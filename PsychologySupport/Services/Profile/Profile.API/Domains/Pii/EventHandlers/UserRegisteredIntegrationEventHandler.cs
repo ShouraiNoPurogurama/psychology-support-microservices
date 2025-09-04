@@ -1,5 +1,5 @@
 ﻿using BuildingBlocks.Data.Common;
-using BuildingBlocks.Messaging.Events.Profile.Pii;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Auth;
 using Profile.API.Domains.Pii.Dtos;
 using Profile.API.Domains.Pii.Features.EnsureSubjectRef;
 

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Security.Claims;
-using BuildingBlocks.Messaging.Events.Auth;
+using BuildingBlocks.Messaging.Events.Queries.Profile;
 using ChatBox.API.Data;
 using ChatBox.API.Domains.Chatboxes.Dtos;
 using ChatBox.API.Extensions;

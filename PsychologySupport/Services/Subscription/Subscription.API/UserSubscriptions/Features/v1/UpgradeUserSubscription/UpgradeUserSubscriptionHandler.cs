@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
-using BuildingBlocks.Messaging.Events.Payment;
-using BuildingBlocks.Messaging.Events.Profile;
+using BuildingBlocks.Messaging.Events.Queries.Profile;
+using BuildingBlocks.Messaging.Events.Queries.Subscription;
 using Mapster;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;

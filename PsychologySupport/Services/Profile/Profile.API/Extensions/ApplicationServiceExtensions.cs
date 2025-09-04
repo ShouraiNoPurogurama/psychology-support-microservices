@@ -1,9 +1,7 @@
 ﻿using BuildingBlocks.Messaging.MassTransit;
-using Carter;
 using FluentValidation;
 using Notification.API.Protos;
 using Profile.API.Data.Pii;
-using Profile.API.Data.Public;
 using Profile.API.Domains.DoctorProfiles.Validators;
 using Profile.API.Domains.PatientProfiles.Validators;
 

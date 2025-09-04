@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.Scheduling;
+﻿using BuildingBlocks.Messaging.Events.Queries.Scheduling;
 using MassTransit;
 
 namespace Scheduling.API.EventHandlers

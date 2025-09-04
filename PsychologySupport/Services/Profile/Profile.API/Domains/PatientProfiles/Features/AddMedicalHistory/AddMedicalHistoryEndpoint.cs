@@ -1,6 +1,4 @@
-﻿using Carter;
-using Mapster;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Profile.API.Common.Helpers;
 using Profile.API.Domains.PatientProfiles.Features.AddMedicalRecord;
 
