@@ -5,7 +5,7 @@ using System.Text.Unicode;
 
 namespace Alias.API.Domains.Aliases.Utils;
 
-public static class AliasNormalizer
+public static class AliasNormalizerUtils
 {
     private static readonly Regex SpaceCollapse = new("\\s+", RegexOptions.Compiled);
     private static readonly UnicodeRange[] AllowedRanges =

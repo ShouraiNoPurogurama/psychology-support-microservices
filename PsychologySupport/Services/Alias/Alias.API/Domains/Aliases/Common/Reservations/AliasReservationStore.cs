@@ -23,7 +23,12 @@ public class AliasReservationStore(IConnectionMultiplexer mux) : IAliasReservati
         
         return (val.HasValue, val.HasValue ? (string?)val : null);
     }
-
+    
+    public async Task<bool> RemoveAsync(string aliasKey, CancellationToken ct)
+    {
+        var db = mux.GetDatabase();
+        return await db.KeyDeleteAsync(Prefix + aliasKey);
+    }
 
     public async Task<bool> ExistsAsync(string aliasKey, CancellationToken ct)
     {

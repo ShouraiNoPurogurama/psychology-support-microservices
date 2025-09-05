@@ -25,13 +25,13 @@ public sealed class IssueAliasCommandValidator : AbstractValidator<IssueAliasCom
     {
         RuleFor(x => x.SubjectRef)
             .NotEmpty()
-            .WithMessage("SubjectRef không được để trống.");
+            .WithMessage("Reference không được để trống.");
 
         RuleFor(x => x.Label)
             .NotEmpty()
-            .WithMessage("Label không được để trống.")
+            .WithMessage("Tên bí danh không được để trống.")
             .MaximumLength(30)
-            .WithMessage("Label tối đa 30 kí tự.");
+            .WithMessage("Tên bí danh tối đa 30 kí tự.");
     }
 }
 
@@ -56,17 +56,17 @@ public class IssueAliasHandler(
         if (aliasId != Guid.Empty)
             throw new AliasConflictException("Người dùng đã có bí danh, không thể tạo mới.");
         
-        var uniqueKey = AliasNormalizer.ToUniqueKey(command.Label);
-        var searchKey = AliasNormalizer.ToSearchKey(command.Label);
+        var uniqueKey = AliasNormalizerUtils.ToUniqueKey(command.Label);
+        var searchKey = AliasNormalizerUtils.ToSearchKey(command.Label);
         
         var nicknameSource = NicknameSource.Custom;
 
         if (command.ReservationToken is not null)
         {
-            if (!aliasTokenService.TryValidate(command.ReservationToken, out var tokenAliasKey, out var expiresAt))
+            if (!aliasTokenService.TryValidate(command.ReservationToken, out var aliasUniqueKeyFromToken, out var expiresAt))
                 throw new AliasTokenException(AliasTokenFaultReason.Invalid);
 
-            if (tokenAliasKey != uniqueKey)
+            if (aliasUniqueKeyFromToken != uniqueKey)
                 throw new AliasTokenException(AliasTokenFaultReason.Mismatch, expiresAt);
 
             if (expiresAt < DateTimeOffset.UtcNow)
@@ -79,7 +79,7 @@ public class IssueAliasHandler(
 
         var labelTaken = dbContext.AliasVersions
             .AsNoTracking()
-            .Any(v => v.SearchKey == uniqueKey);
+            .Any(v => v.UniqueKey == uniqueKey);
 
         if (labelTaken)
             throw new AliasConflictException("Label đã được sử dụng.");
@@ -87,8 +87,7 @@ public class IssueAliasHandler(
         var alias = new Models.Public.Alias
         {
             Id = Guid.NewGuid(),
-            AliasVisibility = AliasVisibility.Public,
-            CreatedAt = now
+            AliasVisibility = AliasVisibility.Public
         };
 
         dbContext.Aliases.Add(alias);

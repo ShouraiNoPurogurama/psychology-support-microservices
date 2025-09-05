@@ -15,7 +15,7 @@ public class IssueAliasEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/v1/aliases/issue", async (IssueAliasRequest req, ClaimsPrincipal user, ISender sender) =>
+        app.MapPost("/v1/me/aliases/issue", async (IssueAliasRequest req, ClaimsPrincipal user, ISender sender) =>
             {
                 var subjectRef = user.GetSubjectRef();
                 
