@@ -41,15 +41,15 @@ public class SuggestAliasesHandler(
         while (candidates.Count < poolSize)
         {
             var label = $"{Animals[Random.Shared.Next(Animals.Length)]} #{Random.Shared.Next(100, 999)}";
-            var key = AliasNormalizer.ToKey(label);
+            var key = AliasNormalizer.ToUniqueKey(label);
             if (seenKeys.Add(key))
                 candidates.Add((key, label));
         }
 
         var keys = candidates.Select(c => c.Key).ToArray();
         var taken = await dbContext.AliasVersions.AsNoTracking()
-            .Where(a => a.ValidTo == null && keys.Contains(a.AliasKey))
-            .Select(a => a.AliasKey)
+            .Where(a => a.ValidTo == null && keys.Contains(a.UniqueKey))
+            .Select(a => a.UniqueKey)
             .ToListAsync(ct);
 
         var takenSet = new HashSet<string>(taken, StringComparer.Ordinal);

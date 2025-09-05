@@ -77,7 +77,10 @@ public partial class AliasDbContext : DbContext
 
             entity.ToTable("alias_versions");
 
-            entity.HasIndex(e => e.AliasKey, "uniq_alias_key_current")
+            entity.HasIndex(e => e.SearchKey, "idx_search_key_current")
+                .HasFilter("(valid_to IS NULL)");
+            
+            entity.HasIndex(e => e.UniqueKey, "uniq_unique_key_current")
                 .IsUnique()
                 .HasFilter("(valid_to IS NULL)");
 
@@ -89,10 +92,13 @@ public partial class AliasDbContext : DbContext
                 .Property(e => e.AliasId)
                 .HasColumnName("alias_id");
 
-            entity.Property(e => e.AliasKey)
-                .HasColumnType("citext")
-                .HasColumnName("alias_key");
-            entity.Property(e => e.AliasLabel).HasColumnName("alias_label");
+            entity.Property(e => e.SearchKey)
+                .HasColumnType("citext");
+
+            entity.Property(e => e.UniqueKey)
+                .HasColumnType("citext");
+            
+            entity.Property(e => e.Label).HasColumnName("alias_label");
 
             entity.Property(e => e.NicknameSource)
                 .HasColumnName("nickname_source")

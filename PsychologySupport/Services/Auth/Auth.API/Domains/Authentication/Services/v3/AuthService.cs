@@ -37,7 +37,7 @@ public class AuthService(
         var existingUser = await userManager.FindByEmailAsync(registerRequest.Email);
         existingUser ??= await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == registerRequest.PhoneNumber);
 
-        if (existingUser is not null) throw new InvalidDataException("Email hoặc số điện thoại đã tồn tại trong hệ thống");
+        if (existingUser is not null) throw new ConflictException("Email hoặc số điện thoại đã tồn tại trong hệ thống");
 
         var user = registerRequest.Adapt<User>();
         user.Email = user.UserName = registerRequest.Email;

@@ -33,7 +33,7 @@ public class GetPublicProfileHandler : IQueryHandler<GetPublicProfileQuery, GetP
         
         var dto = new PublicProfileDto(
             AliasId: alias.Id,
-            Label: lastVersion.AliasLabel,
+            Label: lastVersion.Label,
             Followers: 0,
             Followings: 0,
             Posts: 0,

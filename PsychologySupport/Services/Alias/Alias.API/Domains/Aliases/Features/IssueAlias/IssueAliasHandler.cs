@@ -7,6 +7,7 @@ using Alias.API.Domains.Aliases.Utils;
 using Alias.API.Models.Public;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Alias;
 using FluentValidation;
 using MassTransit;
 using Pii.API.Protos;
@@ -55,7 +56,9 @@ public class IssueAliasHandler(
         if (aliasId != Guid.Empty)
             throw new AliasConflictException("Người dùng đã có bí danh, không thể tạo mới.");
         
-        var aliasKey = AliasNormalizer.ToKey(command.Label);
+        var uniqueKey = AliasNormalizer.ToUniqueKey(command.Label);
+        var searchKey = AliasNormalizer.ToSearchKey(command.Label);
+        
         var nicknameSource = NicknameSource.Custom;
 
         if (command.ReservationToken is not null)
@@ -63,7 +66,7 @@ public class IssueAliasHandler(
             if (!aliasTokenService.TryValidate(command.ReservationToken, out var tokenAliasKey, out var expiresAt))
                 throw new AliasTokenException(AliasTokenFaultReason.Invalid);
 
-            if (tokenAliasKey != aliasKey)
+            if (tokenAliasKey != uniqueKey)
                 throw new AliasTokenException(AliasTokenFaultReason.Mismatch, expiresAt);
 
             if (expiresAt < DateTimeOffset.UtcNow)
@@ -76,7 +79,7 @@ public class IssueAliasHandler(
 
         var labelTaken = dbContext.AliasVersions
             .AsNoTracking()
-            .Any(v => v.AliasKey == aliasKey);
+            .Any(v => v.SearchKey == uniqueKey);
 
         if (labelTaken)
             throw new AliasConflictException("Label đã được sử dụng.");
@@ -95,9 +98,10 @@ public class IssueAliasHandler(
         var newVersion = new AliasVersion
         {
             Id = Guid.NewGuid(),
-            AliasId = aliasId,
-            AliasLabel = command.Label,
-            AliasKey = aliasKey,
+            AliasId = alias.Id,
+            Label = command.Label,
+            SearchKey = searchKey,
+            UniqueKey = uniqueKey,
             NicknameSource = nicknameSource,
             ValidFrom = now
         };
@@ -120,6 +124,13 @@ public class IssueAliasHandler(
         try
         {
             await dbContext.SaveChangesAsync(ct);
+
+            var aliasIssuedIntegrationEvent = new AliasIssuedIntegrationEvent(
+                alias.Id,
+                command.SubjectRef
+            );
+            await publishEndpoint.Publish(aliasIssuedIntegrationEvent, ct);
+            
             await tx.CommitAsync(ct);
         }
         catch (DbUpdateException ex) when (IsUniqueViolation(ex))
@@ -129,7 +140,7 @@ public class IssueAliasHandler(
 
         //TODO: publish event nếu sau này cần dùng (AliasIssued)
 
-        return new IssueAliasResult(alias.Id, newVersion.Id, newVersion.AliasLabel, alias.AliasVisibility.ToString());
+        return new IssueAliasResult(alias.Id, newVersion.Id, newVersion.Label, alias.AliasVisibility.ToString());
     }
 
     private static bool IsUniqueViolation(DbUpdateException ex)

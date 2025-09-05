@@ -1,36 +1,93 @@
 ﻿using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Text.Unicode; 
 
 namespace Alias.API.Domains.Aliases.Utils;
 
-/// <summary>
-/// Class này giúp chống mạo danh bằng homoglyph/confusable:
-/// @Anh vs @Aпh (chữ “n” Cyrillic) → người dùng thấy như nhau, hệ thống coi khác nhau → fake account, lừa đảo.
-/// Và nhiều lợi ích khác như:
-/// - Người dùng gõ nguyen van anh, nhưng post lưu Nguyễn Văn Ánh dạng tổ hợp khác → full-text/trigram/index không hit.
-/// - Fullwidth/ligature: fi (ligature ﬁ), chữ fullwidth ＡＢＣ → tokenizer/LIKE/ILIKE khó match.
-/// - Dấu & hoa/thường: không normalize + không casefold → kết quả lộn xộn, khó autocomplete.
-/// </summary>
 public static class AliasNormalizer
 {
-    public static string ToKey(string label)
+    private static readonly Regex SpaceCollapse = new("\\s+", RegexOptions.Compiled);
+    private static readonly UnicodeRange[] AllowedRanges =
     {
-        //Chuẩn hóa NFKC, convert tất cả variants của 1 kí tự về 1 thể đồng nhất (ví dụ cùng là số 1 nhưng khác font width,...)
+        UnicodeRanges.BasicLatin,
+        UnicodeRanges.Latin1Supplement,
+        UnicodeRanges.LatinExtendedA,
+        UnicodeRanges.LatinExtendedB,
+        UnicodeRanges.LatinExtendedAdditional,
+        UnicodeRanges.LatinExtendedC,
+        UnicodeRanges.LatinExtendedD,
+        UnicodeRanges.LatinExtendedE,
+        UnicodeRanges.CombiningDiacriticalMarks   //cho ký tự dấu VN
+    };
+
+    /// <summary>
+    /// Key dùng để UNIQUE: phân biệt đầy đủ dấu/âm, nhưng normalize width/ligature/case + chuẩn hóa khoảng trắng.
+    /// Ví dụ: "Nhật  Anh" -> "nhật anh"; "Aпh" (Cyrillic n) => bị chặn ở ValidateAllowedScript.
+    /// </summary>
+    public static string ToUniqueKey(string label)
+    {
+        ValidateAllowedScript(label);
+
+        //NFKC để gom fullwidth/ligature; KHÔNG bỏ dấu
+        var nfkc = label.Normalize(NormalizationForm.FormKC);
+        var lower = nfkc.ToLowerInvariant();
+
+        var collapsed = SpaceCollapse.Replace(lower, " ").Trim();
+        return collapsed;
+    }
+
+    /// <summary>
+    /// Key dùng cho tìm kiếm (accent-insensitive).
+    /// Ví dụ: "Nhật Anh" -> "nhat anh"; "Nguyễn  Văn  Ánh" -> "nguyen van anh".
+    /// </summary>
+    public static string ToSearchKey(string label)
+    {
+        ValidateAllowedScript(label);
+
         var nfkc = label.Normalize(NormalizationForm.FormKC);
         var sb = new StringBuilder(capacity: nfkc.Length);
-        
-        //FormD giúp tách chuỗi và kí tự có dấu thành các kí tự rời rạc để dễ xử lý
-        foreach (var character in nfkc.Normalize(NormalizationForm.FormD))
+
+        foreach (var ch in nfkc.Normalize(NormalizationForm.FormD))
         {
-            var uc = CharUnicodeInfo.GetUnicodeCategory(character);
-            //Ko thêm các kí tự dấu chữ vào kết quả, ví dụ Nha◌́ t  Anh => Nhat Anh
-            if (uc != UnicodeCategory.NonSpacingMark) sb.Append(character);
+            var uc = CharUnicodeInfo.GetUnicodeCategory(ch);
+            if (uc != UnicodeCategory.NonSpacingMark)
+                sb.Append(ch);
         }
 
-        //Chuẩn hóa lần nữa cho chắc
-        var folded = sb.ToString().Normalize(NormalizationForm.FormKC);
-        var collapsed = Regex.Replace(folded, "\\s+", " ").Trim();
-        return collapsed.ToLowerInvariant();
+        var noMarks = sb.ToString().Normalize(NormalizationForm.FormKC);
+        var lower = noMarks.ToLowerInvariant();
+        var collapsed = SpaceCollapse.Replace(lower, " ").Trim();
+        return collapsed;
     }
+
+    /// <summary>
+    /// Chỉ cho phép Latin (+ Vietnamese diacritics), digits, space và 1 số ký tự an toàn.
+    /// Dừng sớm nếu gặp ký tự ngoài allowlist để tránh homoglyph spoofing (Cyrillic/Greek).
+    /// </summary>
+    public static void ValidateAllowedScript(string label)
+    {
+        foreach (var rune in label.EnumerateRunes())
+        {
+            if (Rune.IsWhiteSpace(rune) || char.IsDigit((char)rune.Value))
+                continue;
+
+            if (IsInAllowedRanges(rune))
+                continue;
+
+            if (rune.Value is '_' or '-' or '.')
+                continue;
+
+            throw new ArgumentException($"Kí tự không hợp lệ trong tên bí danh: '{rune}'");
+        }
+    }
+
+    private static bool IsInAllowedRanges(Rune r)
+        => AllowedRanges.Any(range => r.Value >= range.FirstCodePoint && r.Value <= range.FirstCodePoint + range.Length);
+
+    /// <summary>
+    /// Bộ đôi key phục vụ lưu DB & search.
+    /// </summary>
+    public static (string unique_key, string search_key) BuildKeys(string label)
+        => (ToUniqueKey(label), ToSearchKey(label));
 }

@@ -62,14 +62,15 @@ public class UpsertAliasHandler : ICommandHandler<UpsertAliasCommand, UpsertAlia
             .Include(a => a.AliasVersions)
             .FirstOrDefaultAsync(a => a.Id == command.AliasId, cancellationToken);
 
-        var aliasKey = AliasNormalizer.ToKey(command.AliasLabel);
+        var uniqueKey = AliasNormalizer.ToUniqueKey(command.AliasLabel);
+        var searchKey = AliasNormalizer.ToSearchKey(command.AliasLabel);
 
         if (command.NicknameSource == NicknameSource.Gacha)
         {
             if (!_aliasTokenService.TryValidate(command.Token, out var tokenAliasKey, out var expiresAt))
                 throw new InvalidOperationException("Alias token không hợp lệ.");
 
-            if (tokenAliasKey != aliasKey)
+            if (tokenAliasKey != uniqueKey)
                 throw new InvalidOperationException("Alias label không khớp với token.");
 
             if (expiresAt < DateTimeOffset.UtcNow)
@@ -91,8 +92,9 @@ public class UpsertAliasHandler : ICommandHandler<UpsertAliasCommand, UpsertAlia
             {
                 Id = Guid.NewGuid(),
                 AliasId = command.AliasId,
-                AliasLabel = command.AliasLabel,
-                AliasKey = aliasKey,
+                Label = command.AliasLabel,
+                SearchKey = searchKey,
+                UniqueKey = uniqueKey,
                 NicknameSource = command.NicknameSource,
                 ValidFrom = now,
                 CreatedAt = DateTimeOffset.UtcNow,
@@ -116,8 +118,9 @@ public class UpsertAliasHandler : ICommandHandler<UpsertAliasCommand, UpsertAlia
             {
                 Id = Guid.NewGuid(),
                 AliasId = alias.Id,
-                AliasLabel = command.AliasLabel,
-                AliasKey = aliasKey,
+                Label = command.AliasLabel,
+                SearchKey = searchKey,
+                UniqueKey = uniqueKey,
                 NicknameSource = command.NicknameSource,
                 ValidFrom = now,
                 CreatedAt = DateTimeOffset.UtcNow,

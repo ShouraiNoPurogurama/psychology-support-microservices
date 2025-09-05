@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Data.Common;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Pii;
 using Npgsql;
 using Profile.API.Data.Pii;
 using Profile.API.Domains.Pii.Dtos;
@@ -10,7 +11,7 @@ public record EnsureSubjectRefCommand(Guid UserId, PersonSeedDto? Seed) : IComma
 
 public record EnsureSubjectRefResult(Guid SubjectRef);
 
-public class EnsureSubjectRefHandler(PiiDbContext dbContext, ILogger<EnsureSubjectRefHandler> logger)
+public class EnsureSubjectRefHandler(PiiDbContext dbContext, IPublishEndpoint publishEndpoint, ILogger<EnsureSubjectRefHandler> logger)
     : ICommandHandler<EnsureSubjectRefCommand, EnsureSubjectRefResult>
 {
     public async Task<EnsureSubjectRefResult> Handle(EnsureSubjectRefCommand request, CancellationToken cancellationToken)
@@ -34,21 +35,26 @@ public class EnsureSubjectRefHandler(PiiDbContext dbContext, ILogger<EnsureSubje
             return new EnsureSubjectRefResult(existed.SubjectRef);
         }
 
+        //Nếu chưa có person profile thì tạo mới
         var subjectRef = Guid.NewGuid();
 
-        var entity = PersonProfile.Create(
+        var personProfile = PersonProfile.Create(
             userId: userId,
             fullName: seed?.FullName,
             gender: seed?.Gender,
             birthDate: seed?.BirthDate,
             contactInfo: seed?.ContactInfo ?? new ContactInfo());
 
-        entity.SubjectRef = subjectRef;
-        dbContext.PersonProfiles.Add(entity);
+        personProfile.SubjectRef = subjectRef;
+        dbContext.PersonProfiles.Add(personProfile);
 
         try
         {
             await dbContext.SaveChangesAsync(cancellationToken);
+            
+            var piiCreatedIntegrationEvent = new PiiCreatedIntegrationEvent(personProfile.SubjectRef);
+            await publishEndpoint.Publish(piiCreatedIntegrationEvent, cancellationToken);
+            
             return new EnsureSubjectRefResult(subjectRef);
         }
         catch (DbUpdateException ex) when (IsUniqueViolation(ex))
