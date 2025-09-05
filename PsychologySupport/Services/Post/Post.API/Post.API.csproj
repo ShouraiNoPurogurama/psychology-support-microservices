@@ -15,6 +15,17 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Post.Application\Post.Application.csproj" />
+      <ProjectReference Include="..\Post.Infrastructure\Post.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+      <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
+      <PackageReference Include="Carter" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
     </ItemGroup>
 
 </Project>
