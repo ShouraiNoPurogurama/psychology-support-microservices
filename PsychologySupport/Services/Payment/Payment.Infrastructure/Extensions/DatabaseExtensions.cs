@@ -11,9 +11,9 @@ public static class DatabaseExtensions
     {
         using var scope = app.Services.CreateScope();
 
-        var context = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
-
-        context.Database.MigrateAsync().GetAwaiter().GetResult();
+        // var context = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
+        //
+        // context.Database.MigrateAsync().GetAwaiter().GetResult();
 
         // await SeedAsync(context);
     }

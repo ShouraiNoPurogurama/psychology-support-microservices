@@ -4,8 +4,6 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Payment.API;
 using Payment.Application;
-using Payment.Application.ServiceContracts;
-using Payment.Application.Utils;
 using Payment.Infrastructure;
 using Payment.Infrastructure.Extensions;
 
