@@ -4,7 +4,7 @@ public partial class IdempotencyKey
 {
     public Guid Id { get; set; }
 
-    public Guid IdempotencyKey1 { get; set; }
+    public Guid Key { get; set; }
 
     public byte[] RequestFingerprint { get; set; } = null!;
 
