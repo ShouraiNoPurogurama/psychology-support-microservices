@@ -9,9 +9,11 @@ public partial class AliasVersion : Entity<Guid>, IHasCreationAudit
 {
     public Guid AliasId { get; set; }
 
-    public string AliasLabel { get; set; } = null!;
+    public string Label { get; set; } = null!;
 
-    public string AliasKey { get; set; } = null!;
+    public string SearchKey { get; set; } = null!;
+    
+    public string UniqueKey { get; set; } = null!;
 
     public NicknameSource NicknameSource { get; set; }
     

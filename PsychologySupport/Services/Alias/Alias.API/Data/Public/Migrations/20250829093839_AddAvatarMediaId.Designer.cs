@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Alias.API.Data.Public.Migrations
 {
-    [DbContext(typeof(PublicDbContext))]
+    [DbContext(typeof(AliasDbContext))]
     [Migration("20250829093839_AddAvatarMediaId")]
     partial class AddAvatarMediaId
     {

@@ -27,7 +27,7 @@ public class AuditableEntityInterceptor(IHttpContextAccessor httpContextAccessor
     {
         if (context is null) return;
 
-        var now = DateTimeOffset.UtcNow; 
+        var now = DateTimeOffset.UtcNow;
         var currentUser = GetCurrentUser();
 
         foreach (EntityEntry<IEntity> entry in context.ChangeTracker.Entries<IEntity>())
@@ -61,12 +61,11 @@ public class AuditableEntityInterceptor(IHttpContextAccessor httpContextAccessor
 
         if (httpContext?.User.Identity?.IsAuthenticated != true) return "System";
 
-        var userName = httpContext.User.FindFirst(ClaimTypes.Name)?.Value;
-        
-        var userId = httpContext.User.FindFirst("aliasId")?.Value
-                     ?? httpContext.User.FindFirst("sub")?.Value;
-        
-        return userName ?? userId ?? "Unknown";
+        var subjectRef = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        var sub = httpContext.User.FindFirst("sub")?.Value;
+
+        return subjectRef ?? sub ?? "Unknown";
     }
 }
 

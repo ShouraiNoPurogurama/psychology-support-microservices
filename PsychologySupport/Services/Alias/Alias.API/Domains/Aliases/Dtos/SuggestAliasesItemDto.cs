@@ -1,3 +1,3 @@
 ﻿namespace Alias.API.Domains.Aliases.Dtos;
 
-public record SuggestAliasesItemDto(string Label, string Token, DateTimeOffset ExpiredAt);
+public record SuggestAliasesItemDto(string Label, string ReservationToken, DateTimeOffset ExpiredAt);

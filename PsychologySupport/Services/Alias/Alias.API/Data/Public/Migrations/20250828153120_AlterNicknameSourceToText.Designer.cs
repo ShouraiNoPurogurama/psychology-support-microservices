@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Alias.API.Data.Public.Migrations
 {
-    [DbContext(typeof(PublicDbContext))]
+    [DbContext(typeof(AliasDbContext))]
     [Migration("20250828153120_AlterNicknameSourceToText")]
     partial class AlterNicknameSourceToText
     {

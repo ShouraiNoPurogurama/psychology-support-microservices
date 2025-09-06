@@ -3,6 +3,7 @@ using Auth.API.Data;
 using Auth.API.Domains.Authentication.Dtos.Responses;
 using Auth.API.Domains.Authentication.Exceptions;
 using Auth.API.Domains.Authentication.ServiceContracts;
+using Auth.API.Domains.Authentication.ServiceContracts.v1;
 using BuildingBlocks.Constants;
 using BuildingBlocks.Data.Common;
 using BuildingBlocks.Enums;

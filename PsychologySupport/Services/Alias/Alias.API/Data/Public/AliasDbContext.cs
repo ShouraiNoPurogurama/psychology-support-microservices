@@ -1,12 +1,11 @@
 ﻿using Alias.API.Domains.Aliases.Enums;
 using Alias.API.Models.Public;
-using Microsoft.EntityFrameworkCore;
 
 namespace Alias.API.Data.Public;
 
-public partial class PublicDbContext : DbContext
+public partial class AliasDbContext : DbContext
 {
-    public PublicDbContext(DbContextOptions<PublicDbContext> options)
+    public AliasDbContext(DbContextOptions<AliasDbContext> options)
         : base(options)
     {
     }
@@ -38,7 +37,13 @@ public partial class PublicDbContext : DbContext
             entity.Property(e => e.CurrentVersionId).HasColumnName("current_version_id");
             entity.Property(e => e.LastModified).HasColumnName("last_modified");
             entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
-            
+
+            entity.Property(e => e.AliasVisibility)
+                .HasDefaultValue(AliasVisibility.Public)
+                .HasSentinel(AliasVisibility.Public)
+                .HasConversion(s => s.ToString(),
+                    dbStatus => (AliasVisibility)Enum.Parse(typeof(AliasVisibility), dbStatus));
+
             entity.HasOne<AliasVersion>()
                 .WithMany()
                 .HasForeignKey(e => e.CurrentVersionId)
@@ -72,32 +77,38 @@ public partial class PublicDbContext : DbContext
 
             entity.ToTable("alias_versions");
 
-            entity.HasIndex(e => e.AliasKey, "uniq_alias_key_current")
+            entity.HasIndex(e => e.SearchKey, "idx_search_key_current")
+                .HasFilter("(valid_to IS NULL)");
+            
+            entity.HasIndex(e => e.UniqueKey, "uniq_unique_key_current")
                 .IsUnique()
                 .HasFilter("(valid_to IS NULL)");
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
-            
+
             entity
                 .Property(e => e.AliasId)
                 .HasColumnName("alias_id");
+
+            entity.Property(e => e.SearchKey)
+                .HasColumnType("citext");
+
+            entity.Property(e => e.UniqueKey)
+                .HasColumnType("citext");
             
-            entity.Property(e => e.AliasKey)
-                .HasColumnType("citext")
-                .HasColumnName("alias_key");
-            entity.Property(e => e.AliasLabel).HasColumnName("alias_label");
-            
+            entity.Property(e => e.Label).HasColumnName("alias_label");
+
             entity.Property(e => e.NicknameSource)
                 .HasColumnName("nickname_source")
                 .HasConversion(s => s.ToString(),
                     dbStatus => (NicknameSource)Enum.Parse(typeof(NicknameSource), dbStatus));
-            //
+
             // entity.Property(e => e.NicknameSource)
             //     .HasColumnType("public.nickname_source")
             //     .HasColumnName("nickname_source");
-            
+
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.CreatedBy).HasColumnName("created_by");
             entity.Property(e => e.ValidFrom).HasColumnName("valid_from");
@@ -107,9 +118,8 @@ public partial class PublicDbContext : DbContext
                 .WithMany(p => p.AliasVersions)
                 .HasForeignKey(d => d.AliasId)
                 .HasConstraintName("alias_versions_alias_id_fkey");
-            
-            entity.HasIndex(e => e.AliasId, "ix_alias_versions_alias_id");
 
+            entity.HasIndex(e => e.AliasId, "ix_alias_versions_alias_id");
         });
 
         OnModelCreatingPartial(modelBuilder);

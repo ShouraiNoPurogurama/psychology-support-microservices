@@ -1,16 +1,20 @@
-﻿namespace BuildingBlocks.Exceptions;
+﻿using BuildingBlocks.Exceptions.Base;
+using Microsoft.AspNetCore.Http;
 
-public class BadRequestException : Exception
+namespace BuildingBlocks.Exceptions;
+
+public class BadRequestException : CustomException
 {
-    public string? Details { get; set; }
-    
-    public BadRequestException(string message) : base(message)
+    private const string Code = "BAD_REQUEST";
+    private const string DefaultSafeMessage = "Yêu cầu không hợp lệ.";
+
+    public BadRequestException()
+        : base(errorCode: Code, statusCode: StatusCodes.Status400BadRequest, safeMessage: DefaultSafeMessage)
     {
-        
     }
 
-    public BadRequestException(string message, string details) : base(message)
+    public BadRequestException(string safeMessage, string errorCode = Code, string? internalDetail = null)
+        : base(errorCode: errorCode, statusCode: StatusCodes.Status400BadRequest, safeMessage: safeMessage, internalDetail: internalDetail)
     {
-        Details = details;
     }
 }

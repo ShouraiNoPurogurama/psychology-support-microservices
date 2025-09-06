@@ -1,6 +1,6 @@
 ﻿using Auth.API.Domains.Authentication.Dtos.Responses;
 
-namespace Auth.API.Domains.Authentication.ServiceContracts;
+namespace Auth.API.Domains.Authentication.ServiceContracts.v1;
 
 public interface IAuthService
 {

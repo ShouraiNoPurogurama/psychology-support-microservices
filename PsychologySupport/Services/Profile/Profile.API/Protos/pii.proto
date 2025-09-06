@@ -15,14 +15,17 @@ service PiiService {
   rpc ResolvePersonInfoBySubjectRef (ResolvePersonInfoBySubjectRefRequest)
       returns (ResolvePersonInfoBySubjectRefResponse);
 
+  rpc ResolveAliasIdBySubjectRef (ResolveAliasIdBySubjectRefRequest)
+      returns (ResolveAliasIdBySubjectRefResponse);
+
   //Tra subject_ref từ alias_id (UUID string)
   rpc ResolveSubjectRefByAliasId (ResolveSubjectRefByAliasIdRequest)
-      returns (ResolveSubjectRefByAliasIdResponse);  
-  
+      returns (ResolveSubjectRefByAliasIdResponse);
+
   //Tra subject_ref từ user_id (UUID string)
   rpc ResolveSubjectRefByUserId (ResolveSubjectRefByUserIdRequest)
       returns (ResolveSubjectRefByUserIdResponse);
-  
+
   //Tra user_id từ subject_ref (nội bộ)
   rpc ResolveUserIdBySubjectRef (ResolveUserIdBySubjectRefRequest)
       returns (ResolveUserIdBySubjectRefResponse);
@@ -32,7 +35,6 @@ service PiiService {
       returns (ResolvePatientIdByAliasIdResponse);
 
   rpc EnsureSubjectRef (EnsureSubjectRefRequest) returns (EnsureSubjectRefResponse);
-
 }
 
 //=========================
@@ -47,6 +49,15 @@ message ResolveSubjectRefByAliasIdRequest {
 message ResolveSubjectRefByAliasIdResponse {
   optional string subject_ref = 1; //UUID string; null nếu không tìm thấy
 }
+
+message ResolveAliasIdBySubjectRefRequest {
+  string subject_ref = 1; //UUID string
+}
+
+message ResolveAliasIdBySubjectRefResponse {
+  string alias_id = 1; //UUID string; null nếu không tìm thấy
+}
+
 
 message ResolveSubjectRefByUserIdRequest {
   string user_id = 1; //UUID string
@@ -80,7 +91,7 @@ message ResolvePersonInfoBySubjectRefRequest {
 }
 
 message ResolvePersonInfoBySubjectRefResponse {
-  string user_id = 1; 
+  string user_id = 1;
   string full_name = 2;
   UserGender gender = 3;
   google.protobuf.Timestamp birth_date = 4;

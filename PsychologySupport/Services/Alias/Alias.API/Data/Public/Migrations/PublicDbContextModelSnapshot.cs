@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Alias.API.Data.Public.Migrations
 {
-    [DbContext(typeof(PublicDbContext))]
+    [DbContext(typeof(AliasDbContext))]
     partial class PublicDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -28,6 +28,13 @@ namespace Alias.API.Data.Public.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<string>("AliasVisibility")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Public")
+                        .HasColumnName("alias_visibility");
 
                     b.Property<Guid?>("AvatarMediaId")
                         .HasColumnType("uuid")
@@ -108,16 +115,6 @@ namespace Alias.API.Data.Public.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("alias_id");
 
-                    b.Property<string>("AliasKey")
-                        .IsRequired()
-                        .HasColumnType("citext")
-                        .HasColumnName("alias_key");
-
-                    b.Property<string>("AliasLabel")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("alias_label");
-
                     b.Property<DateTimeOffset?>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -126,10 +123,25 @@ namespace Alias.API.Data.Public.Migrations
                         .HasColumnType("text")
                         .HasColumnName("created_by");
 
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("alias_label");
+
                     b.Property<string>("NicknameSource")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("nickname_source");
+
+                    b.Property<string>("SearchKey")
+                        .IsRequired()
+                        .HasColumnType("citext")
+                        .HasColumnName("search_key");
+
+                    b.Property<string>("UniqueKey")
+                        .IsRequired()
+                        .HasColumnType("citext")
+                        .HasColumnName("unique_key");
 
                     b.Property<DateTime>("ValidFrom")
                         .HasColumnType("timestamp with time zone")
@@ -142,12 +154,16 @@ namespace Alias.API.Data.Public.Migrations
                     b.HasKey("Id")
                         .HasName("alias_versions_pkey");
 
+                    b.HasIndex(new[] { "SearchKey" }, "idx_search_key_current")
+                        .HasDatabaseName("ix_alias_versions_search_key")
+                        .HasFilter("(valid_to IS NULL)");
+
                     b.HasIndex(new[] { "AliasId" }, "ix_alias_versions_alias_id")
                         .HasDatabaseName("ix_alias_versions_alias_id");
 
-                    b.HasIndex(new[] { "AliasKey" }, "uniq_alias_key_current")
+                    b.HasIndex(new[] { "UniqueKey" }, "uniq_unique_key_current")
                         .IsUnique()
-                        .HasDatabaseName("ix_alias_versions_alias_key")
+                        .HasDatabaseName("ix_alias_versions_unique_key")
                         .HasFilter("(valid_to IS NULL)");
 
                     b.ToTable("alias_versions", (string)null);

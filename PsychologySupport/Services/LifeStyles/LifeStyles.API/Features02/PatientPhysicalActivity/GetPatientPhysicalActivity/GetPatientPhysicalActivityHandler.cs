@@ -4,7 +4,7 @@ using LifeStyles.API.Exceptions;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
-namespace LifeStyles.API.Features.PatientPhysicalActivity.GetPatientPhysicalActivity;
+namespace LifeStyles.API.Features02.PatientPhysicalActivity.GetPatientPhysicalActivity;
 
 public record GetPatientPhysicalActivityV2Query(Guid PatientProfileId)
     : IQuery<GetPatientPhysicalActivityV2Result>;

@@ -5,33 +5,22 @@ namespace Alias.API.Extensions;
 
 public static class ClaimsPrincipalExtensions
 {
-    public static string GetUserId(this ClaimsPrincipal user)
-    {
-        var result = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value ??
-                     throw new UnauthorizedAccessException("Token không hợp lệ: Không tìm thấy Claims userId.");
-        return result;
-    }
-
     public static Guid GetAliasId(this ClaimsPrincipal user)
     {
         var result = user.Claims.FirstOrDefault(c => c.Type == "aliasId")?.Value ??
-                     throw new UnauthorizedAccessException("Token không hợp lệ: Không tìm thấy Claims Alias Id.");
+                     throw new UnauthorizedAccessException("Token không hợp lệ.");
         
         return Guid.Parse(result);
     }
-
-    public static string GetProfileId(this ClaimsPrincipal user)
+    
+    public static Guid GetSubjectRef(this ClaimsPrincipal user)
     {
-        var result = user.Claims.FirstOrDefault(c => c.Type == "profileId")?.Value ??
-                     throw new UnauthorizedAccessException("Token không hợp lệ: Không tìm thấy Claims profileId.");
-        return result;
+        var result = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ??
+                     throw new UnauthorizedAccessException("Token không hợp lệ.");
+        
+        return Guid.Parse(result);
     }
-
-    public static string GetUserName(this ClaimsPrincipal user)
-    {
-        return user.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? string.Empty;
-    }
-
+    
     public static IEnumerable<Claim> GetAllClaims(this ClaimsPrincipal user)
     {
         return user.Claims;

@@ -3,9 +3,8 @@ using Carter;
 using LifeStyles.API.Common;
 using Mapster;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 
-namespace LifeStyles.API.Features.PatientPhysicalActivity.GetPatientPhysicalActivity;
+namespace LifeStyles.API.Features02.PatientPhysicalActivity.GetPatientPhysicalActivity;
 
 public record GetPatientPhysicalActivityV2Request(Guid PatientProfileId);
 
