@@ -1,8 +1,7 @@
 ﻿namespace Post.Domain.Models;
 
-public partial class Post
+public partial class Post : SoftDeletableEntity<Guid>
 {
-    public Guid Id { get; set; }
 
     public string Visibility { get; set; } = null!;
 
@@ -23,14 +22,4 @@ public partial class Post
     public int ReactionCount { get; set; }
 
     public int CommentCount { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public Guid CreatedBy { get; set; }
-
-    public DateTime? LastModified { get; set; }
-
-    public Guid? LastModifiedBy { get; set; }
-
-    public DateTime? DeletedAt { get; set; }
 }

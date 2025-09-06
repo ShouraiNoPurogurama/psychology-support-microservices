@@ -9,11 +9,11 @@ public abstract class AuditableEntity<T> : IEntity<T>, IHasCreationAudit, IHasMo
     
     public DateTimeOffset? CreatedAt { get; set; }
     
-    public string? CreatedBy { get; set; }
+    public string? CreatedByAliasId { get; set; }
     
     public DateTimeOffset? LastModified { get; set; }
     
-    public string? LastModifiedBy { get; set; }
+    public string? LastModifiedByAliasId { get; set; }
     
     public override bool Equals(object? obj)
     {

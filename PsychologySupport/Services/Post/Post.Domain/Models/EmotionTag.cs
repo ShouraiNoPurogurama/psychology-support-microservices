@@ -1,9 +1,7 @@
 ﻿namespace Post.Domain.Models;
 
-public partial class EmotionTag
+public partial class EmotionTag : AuditableEntity<Guid>
 {
-    public Guid Id { get; set; }
-
     public string Code { get; set; } = null!;
 
     public string DisplayName { get; set; } = null!;
@@ -11,15 +9,9 @@ public partial class EmotionTag
     public string? Icon { get; set; }
 
     public string? Color { get; set; }
-
     public bool IsActive { get; set; }
-
     public int SortOrder { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime? LastModified { get; set; }
-
+    
     public Guid? DigitalGoodId { get; set; }
 
     public string? UnicodeCodepoint { get; set; }

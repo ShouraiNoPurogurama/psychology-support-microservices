@@ -31,7 +31,7 @@ public partial class PostDbContext : DbContext, IPostDbContext
 
     public virtual DbSet<PostEmotion> PostEmotions { get; set; }
 
-    public virtual DbSet<PostMedium> PostMedia { get; set; }
+    public virtual DbSet<PostMedia> PostMedia { get; set; }
 
     public virtual DbSet<Reaction> Reactions { get; set; }
 
@@ -183,7 +183,7 @@ public partial class PostDbContext : DbContext, IPostDbContext
         entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
     });
 
-    modelBuilder.Entity<PostMedium>(entity =>
+    modelBuilder.Entity<PostMedia>(entity =>
     {
         entity.HasKey(e => e.Id).HasName("post_media_pkey");
         entity.ToTable("post_media");

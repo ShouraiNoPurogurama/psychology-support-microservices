@@ -1,6 +1,6 @@
 ﻿namespace Post.Domain.Models;
 
-public partial class IdempotencyKey
+public partial class IdempotencyKey : Entity<Guid>, IHasCreationAudit
 {
     public Guid Id { get; set; }
 
@@ -8,5 +8,7 @@ public partial class IdempotencyKey
 
     public byte[] RequestFingerprint { get; set; } = null!;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset? CreatedAt { get; set; }
+    
+    public string? CreatedByAliasId { get; set; }
 }

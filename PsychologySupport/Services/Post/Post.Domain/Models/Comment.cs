@@ -1,9 +1,7 @@
 ﻿namespace Post.Domain.Models;
 
-public partial class Comment
+public partial class Comment : SoftDeletableEntity<Guid>
 {
-    public Guid Id { get; set; }
-
     public Guid PostId { get; set; }
 
     public Guid? ParentCommentId { get; set; }
@@ -17,16 +15,5 @@ public partial class Comment
     public Guid AuthorAliasId { get; set; }
 
     public Guid AuthorAliasVersionId { get; set; }
-
     public string ModerationStatus { get; set; } = null!;
-
-    public DateTime CreatedAt { get; set; }
-
-    public Guid CreatedBy { get; set; }
-
-    public DateTime? LastModified { get; set; }
-
-    public Guid? LastModifiedBy { get; set; }
-
-    public DateTime? DeletedAt { get; set; }
 }

@@ -1,9 +1,7 @@
 ﻿namespace Post.Domain.Models;
 
-public partial class CategoryTag
+public partial class CategoryTag : AuditableEntity<Guid>
 {
-    public Guid Id { get; set; }
-
     public string Code { get; set; } = null!;
 
     public string DisplayName { get; set; } = null!;
@@ -13,10 +11,6 @@ public partial class CategoryTag
     public bool IsActive { get; set; }
 
     public int SortOrder { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime? LastModified { get; set; }
-
+    
     public string? UnicodeCodepoint { get; set; }
 }

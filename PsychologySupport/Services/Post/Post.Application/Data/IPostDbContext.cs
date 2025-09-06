@@ -25,7 +25,7 @@ public interface IPostDbContext
 
     DbSet<PostEmotion> PostEmotions { get; set; }
 
-    DbSet<PostMedium> PostMedia { get; set; }
+    DbSet<PostMedia> PostMedia { get; set; }
 
     DbSet<Reaction> Reactions { get; set; }
     
