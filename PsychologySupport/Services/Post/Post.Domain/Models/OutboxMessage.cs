@@ -1,6 +1,6 @@
 ﻿namespace Post.Domain.Models;
 
-public partial class OutboxMessage: AuditableEntity<Guid>
+public partial class OutboxMessage: Entity<Guid>
 {
     public string Type { get; set; } = null!;
 

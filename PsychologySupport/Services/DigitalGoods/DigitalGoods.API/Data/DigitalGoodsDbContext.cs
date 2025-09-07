@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using DigitalGoods.API.DigitalGoods.Models;
+using DigitalGoods.API.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace DigitalGoods.API.Data;

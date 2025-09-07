@@ -9,7 +9,7 @@ public interface IPostDbContext
 
     DbSet<Comment> Comments { get; set; }
 
-    DbSet<EmotionTag> EmotionTags { get; set; }
+    // DbSet<EmotionTag> EmotionTags { get; set; }
 
     DbSet<GiftsAttach> GiftsAttaches { get; set; }
 

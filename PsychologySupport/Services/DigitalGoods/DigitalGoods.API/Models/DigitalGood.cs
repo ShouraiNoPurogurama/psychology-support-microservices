@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DigitalGoods.API.DigitalGoods.Models;
+﻿namespace DigitalGoods.API.Models;
 
 public partial class DigitalGood
 {

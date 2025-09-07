@@ -9,5 +9,6 @@ public sealed class Reaction : SoftDeletableEntity<Guid>
     public string ReactionType { get; set; } = null!; //"care", "haha" (validate ở API)
     
     public Guid AuthorAliasId { get; set; }
+    
     public Guid AuthorAliasVersionId { get; set; }
 }

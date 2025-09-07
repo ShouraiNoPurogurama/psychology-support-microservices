@@ -15,7 +15,7 @@ public partial class PostDbContext : DbContext, IPostDbContext
 
     public virtual DbSet<Comment> Comments { get; set; }
 
-    public virtual DbSet<EmotionTag> EmotionTags { get; set; }
+    // public virtual DbSet<EmotionTag> EmotionTags { get; set; }
 
     public virtual DbSet<GiftsAttach> GiftsAttaches { get; set; }
 
@@ -66,18 +66,18 @@ public partial class PostDbContext : DbContext, IPostDbContext
         entity.Property(e => e.ModerationStatus).HasDefaultValueSql("'pending'::text");
     });
 
-    modelBuilder.Entity<EmotionTag>(entity =>
-    {
-        entity.HasKey(e => e.Id).HasName("emotion_tags_pkey");
-        entity.ToTable("emotion_tags");
-
-        entity.HasIndex(e => e.Code, "emotion_tags_code_key").IsUnique();
-
-        entity.Property(e => e.Id).ValueGeneratedNever();
-        entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
-        entity.Property(e => e.IsActive).HasDefaultValue(true);
-        entity.Property(e => e.SortOrder).HasDefaultValue(0);
-    });
+    // modelBuilder.Entity<EmotionTag>(entity =>
+    // {
+    //     entity.HasKey(e => e.Id).HasName("emotion_tags_pkey");
+    //     entity.ToTable("emotion_tags");
+    //
+    //     entity.HasIndex(e => e.Code, "emotion_tags_code_key").IsUnique();
+    //
+    //     entity.Property(e => e.Id).ValueGeneratedNever();
+    //     entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+    //     entity.Property(e => e.IsActive).HasDefaultValue(true);
+    //     entity.Property(e => e.SortOrder).HasDefaultValue(0);
+    // });
 
     modelBuilder.Entity<GiftsAttach>(entity =>
     {

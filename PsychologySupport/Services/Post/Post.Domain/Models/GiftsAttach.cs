@@ -1,8 +1,7 @@
 ﻿namespace Post.Domain.Models;
 
-public partial class GiftsAttach 
+public partial class GiftsAttach : SoftDeletableEntity<Guid>
 {
-    public Guid Id { get; set; }
 
     public string TargetType { get; set; } = null!;
 
@@ -15,10 +14,4 @@ public partial class GiftsAttach
     public Guid SenderAliasId { get; set; }
 
     public Guid SenderAliasVersionId { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public Guid CreatedBy { get; set; }
-
-    public DateTime? DeletedAt { get; set; }
 }
