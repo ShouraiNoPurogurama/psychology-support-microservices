@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Billing.API.Billings.Models;
+namespace Billing.API.Domains.Billings.Models;
 
 public partial class Invoice
 {
@@ -11,7 +11,7 @@ public partial class Invoice
 
     public Guid OrderId { get; set; }
 
-    public Guid AliasId { get; set; }
+    public Guid Subject_ref { get; set; }
 
     public decimal Amount { get; set; }
 

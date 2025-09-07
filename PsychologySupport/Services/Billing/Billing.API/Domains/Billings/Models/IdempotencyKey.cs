@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Billing.API.Billings.Models;
+namespace Billing.API.Domains.Billings.Models;
 
 public partial class IdempotencyKey
 {
     public Guid Id { get; set; }
 
-    public string IdempotencyKey1 { get; set; } = null!;
+    public Guid Key { get; set; }
 
     public string RequestHash { get; set; } = null!;
 

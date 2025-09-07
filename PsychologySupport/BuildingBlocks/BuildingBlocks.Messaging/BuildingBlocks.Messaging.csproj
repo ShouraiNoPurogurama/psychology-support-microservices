@@ -8,13 +8,14 @@
         <NoWarn>$(NoWarn);CS9113;CS8618;CS8602;CS8629;CS8600;CS8601;CS8604;CS8625;CS8603;CS8765</NoWarn>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="MassTransit"/>
-        <PackageReference Include="MassTransit.RabbitMQ"/>
+        <PackageReference Include="MassTransit" />
+        <PackageReference Include="MassTransit.RabbitMQ" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.csproj"/>
+        <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.csproj" />
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Events\IntegrationEvents\Moderation\" />
+      <Folder Include="Events\Queries\DigitalGoods\" />
     </ItemGroup>
 </Project>

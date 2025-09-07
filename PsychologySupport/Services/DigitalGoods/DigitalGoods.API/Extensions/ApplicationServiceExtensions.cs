@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using Translation.API.Protos;
 using Microsoft.EntityFrameworkCore;
+using DigitalGoods.API.Data;
 
 namespace DigitalGoods.API.Extensions
 {
@@ -32,7 +33,7 @@ namespace DigitalGoods.API.Extensions
             ConfigureSwagger(services, env);
             ConfigureCORS(services);
             ConfigureMediatR(services);
-            //AddDatabase(services, config);
+            AddDatabase(services, config);
             AddServiceDependencies(services);
 
             AddGrpcServiceDependencies(services, config);
@@ -135,21 +136,21 @@ namespace DigitalGoods.API.Extensions
             services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
         }
 
-        //private static void AddDatabase(IServiceCollection services, IConfiguration config)
-        //{
-        //    var connectionString = GetConnectionString(config);
+        private static void AddDatabase(IServiceCollection services, IConfiguration config)
+        {
+            var connectionString = GetConnectionString(config);
 
-        //    services.AddDbContext<DigitalGoodDbContext>((sp, opt) =>
-        //    {
-        //        opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-        //        opt.UseNpgsql(connectionString);
-        //        opt.UseSnakeCaseNamingConvention();
-        //    });
-        //}
+            services.AddDbContext<DigitalGoodsDbContext>((sp, opt) =>
+            {
+                opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+                opt.UseNpgsql(connectionString);
+                opt.UseSnakeCaseNamingConvention();
+            });
+        }
 
         private static string? GetConnectionString(IConfiguration config)
         {
-            var connectionString = config.GetConnectionString("BillingDb");
+            var connectionString = config.GetConnectionString("DigitalGoodsDb");
             return connectionString;
         }
     }

@@ -4,7 +4,7 @@ public partial class Inventory
 {
     public Guid InventoryId { get; set; }
 
-    public Guid UserId { get; set; }
+    public Guid Subject_ref { get; set; }
 
     public Guid DigitalGoodId { get; set; }
 
