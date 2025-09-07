@@ -1,12 +1,11 @@
-﻿using System;
+﻿using BuildingBlocks.DDD;
+using System;
 using System.Collections.Generic;
 
-namespace DigitalGoods.API.DigitalGoods.Models;
+namespace DigitalGoods.API.Models;
 
-public partial class DigitalGood
+public partial class DigitalGood : Entity<DigitalGood>
 {
-    public Guid DigitalGoodId { get; set; }
-
     public string Name { get; set; } = null!;
 
     public string Type { get; set; } = null!;

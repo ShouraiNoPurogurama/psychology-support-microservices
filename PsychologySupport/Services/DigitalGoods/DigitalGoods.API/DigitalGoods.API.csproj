@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <Folder Include="Data\Common\" />
+    <Folder Include="DigitalGoods\" />
   </ItemGroup>
 
   <ItemGroup>
