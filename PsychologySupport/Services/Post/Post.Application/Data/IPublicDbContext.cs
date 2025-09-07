@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Post.Domain.Models;
+using Post.Domain.Models.Public;
 
 namespace Post.Application.Data;
 
-public interface IPostDbContext
+public interface IPublicDbContext
 {
     DbSet<CategoryTag> CategoryTags { get; set; }
 
@@ -17,7 +18,7 @@ public interface IPostDbContext
 
     DbSet<OutboxMessage> OutboxMessages { get; set; }
 
-    DbSet<Domain.Models.Post> Posts { get; set; }
+    DbSet<Domain.Models.Public.Post> Posts { get; set; }
 
     DbSet<PostCategory> PostCategories { get; set; }
 

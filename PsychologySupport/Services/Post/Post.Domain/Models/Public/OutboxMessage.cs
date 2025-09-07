@@ -1,4 +1,4 @@
-﻿namespace Post.Domain.Models;
+﻿namespace Post.Domain.Models.Public;
 
 public partial class OutboxMessage: Entity<Guid>
 {

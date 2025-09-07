@@ -7,12 +7,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Post.Infrastructure.Data;
+using Post.Infrastructure.Data.Public;
 
 #nullable disable
 
 namespace Post.Infrastructure.Data.Migrations
 {
-    [DbContext(typeof(PostDbContext))]
+    [DbContext(typeof(PublicDbContext))]
     [Migration("20250905164905_RenameColumns")]
     partial class RenameColumns
     {
