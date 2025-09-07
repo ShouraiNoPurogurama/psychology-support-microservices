@@ -25,13 +25,13 @@ public partial class DigitalGoodsDbContext : DbContext
     {
         modelBuilder.Entity<DigitalGood>(entity =>
         {
-            entity.HasKey(e => e.DigitalGoodId).HasName("digital_goods_pkey");
+            entity.HasKey(e => e.Id).HasName("digital_goods_pkey");
 
             entity.ToTable("digital_goods");
 
-            entity.Property(e => e.DigitalGoodId)
+            entity.Property(e => e.Id)
                 .ValueGeneratedNever()
-                .HasColumnName("digital_good_id");
+                .HasColumnName("id");
             entity.Property(e => e.ConsumptionType)
                 .HasMaxLength(20)
                 .HasColumnName("consumption_type");
@@ -59,15 +59,15 @@ public partial class DigitalGoodsDbContext : DbContext
 
         modelBuilder.Entity<Inventory>(entity =>
         {
-            entity.HasKey(e => e.InventoryId).HasName("inventories_pkey");
+            entity.HasKey(e => e.Id).HasName("inventories_pkey");
 
             entity.ToTable("inventories");
 
             entity.HasIndex(e => new { e.Subject_ref, e.DigitalGoodId, e.Status }, "uq_inventory_user_good_active").IsUnique();
 
-            entity.Property(e => e.InventoryId)
+            entity.Property(e => e.Id)
                 .ValueGeneratedNever()
-                .HasColumnName("inventory_id");
+                .HasColumnName("id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace DigitalGoods.API.Models;
 
-public partial class DigitalGood : Entity<DigitalGood>
+public partial class DigitalGood : Entity<Guid>
 {
     public string Name { get; set; } = null!;
 

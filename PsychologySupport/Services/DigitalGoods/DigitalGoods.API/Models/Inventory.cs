@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace DigitalGoods.API.Models;
 
-public partial class Inventory : Entity<Inventory>
+public partial class Inventory : Entity<Guid>
 {
     public Guid Subject_ref { get; set; }
 
