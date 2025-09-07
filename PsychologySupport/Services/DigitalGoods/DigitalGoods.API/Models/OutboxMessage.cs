@@ -1,10 +1,29 @@
-﻿namespace DigitalGoods.API.Models;
+﻿using System.Text.Json;
+using BuildingBlocks.DDD;
 
-public class OutboxMessage
+namespace DigitalGoods.API.Models;
+
+public class OutboxMessage : AuditableEntity<Guid>
 {
-    public Guid Id { get; set; }
-    public string Type { get; set; } = string.Empty; // Tên của event
-    public string Content { get; set; } = string.Empty; // Payload của event (dạng JSON)
+    public string Type { get; set; } = default!;
+    public string Content { get; set; } = default!;
     public DateTimeOffset OccuredOn { get; set; }
     public DateTimeOffset? ProcessedOn { get; set; }
+
+    public void Process()
+    {
+        ProcessedOn = DateTimeOffset.UtcNow.AddHours(7);
+    }
+
+    public static OutboxMessage Create<TMessage>(TMessage eventMessage) 
+        where TMessage : class
+    {
+        return new OutboxMessage
+        {
+            Id = Guid.NewGuid(),
+            Type = typeof(TMessage).AssemblyQualifiedName!,
+            Content = JsonSerializer.Serialize(eventMessage),
+            OccuredOn = DateTimeOffset.UtcNow
+        };
+    }
 }

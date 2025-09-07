@@ -29,4 +29,6 @@ public partial class DigitalGood : Entity<Guid>
     public Guid? LastModifiedBy { get; set; }
 
     public virtual ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
+    
+    public ICollection<EmotionTag> EmotionTags { get; set; } = new List<EmotionTag>();
 }
