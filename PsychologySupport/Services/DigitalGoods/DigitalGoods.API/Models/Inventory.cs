@@ -1,9 +1,11 @@
-﻿namespace DigitalGoods.API.Models;
+using BuildingBlocks.DDD;
+using System;
+using System.Collections.Generic;
 
-public partial class Inventory
+namespace DigitalGoods.API.Models;
+
+public partial class Inventory : Entity<Guid>
 {
-    public Guid InventoryId { get; set; }
-
     public Guid Subject_ref { get; set; }
 
     public Guid DigitalGoodId { get; set; }

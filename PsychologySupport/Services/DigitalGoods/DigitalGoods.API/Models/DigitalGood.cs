@@ -1,9 +1,11 @@
-﻿namespace DigitalGoods.API.Models;
+using BuildingBlocks.DDD;
+using System;
+using System.Collections.Generic;
 
-public partial class DigitalGood
+namespace DigitalGoods.API.Models;
+
+public partial class DigitalGood : Entity<Guid>
 {
-    public Guid DigitalGoodId { get; set; }
-
     public string Name { get; set; } = null!;
 
     public string Type { get; set; } = null!;
