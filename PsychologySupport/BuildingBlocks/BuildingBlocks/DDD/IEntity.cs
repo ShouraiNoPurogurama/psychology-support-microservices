@@ -20,7 +20,7 @@ public interface IHasModificationAudit
     string? LastModifiedBy { get; set; }
 }
 
-public interface ISoftDelete
+public interface ISoftDeletable
 {
     bool IsDeleted { get; set; }
     DateTimeOffset? DeletedAt { get; set; }
