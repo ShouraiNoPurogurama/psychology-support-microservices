@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Billing.API.Billings.Models;
+using Billing.API.Domains.Billings.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Billing.API.Data;
@@ -36,30 +36,42 @@ public partial class BillingDbContext : DbContext
 
             entity.ToTable("idempotency_keys");
 
-            entity.HasIndex(e => e.IdempotencyKey1, "idempotency_keys_idempotency_key_key").IsUnique();
+            entity.HasIndex(e => e.Key, "idempotency_keys_key_key").IsUnique();
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");
-            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
-            entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
-            entity.Property(e => e.IdempotencyKey1)
-                .HasMaxLength(255)
-                .HasColumnName("idempotency_key");
+
+            entity.Property(e => e.CreatedBy)
+                .HasColumnName("created_by");
+
+            entity.Property(e => e.ExpiresAt)
+                .HasColumnName("expires_at");
+
+            // Lúc này map Key -> cột mới "key"
+            entity.Property(e => e.Key)
+                .HasColumnName("key");
+
             entity.Property(e => e.LastModified)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("last_modified");
-            entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
+
+            entity.Property(e => e.LastModifiedBy)
+                .HasColumnName("last_modified_by");
+
             entity.Property(e => e.RequestHash)
                 .HasMaxLength(128)
                 .HasColumnName("request_hash");
+
             entity.Property(e => e.ResponsePayload)
                 .HasColumnType("jsonb")
                 .HasColumnName("response_payload");
         });
+
 
         modelBuilder.Entity<Invoice>(entity =>
         {
@@ -72,7 +84,7 @@ public partial class BillingDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
-            entity.Property(e => e.AliasId).HasColumnName("alias_id");
+            entity.Property(e => e.Subject_ref).HasColumnName("subject_ref");
             entity.Property(e => e.Amount)
                 .HasPrecision(15, 2)
                 .HasColumnName("amount");
@@ -203,7 +215,7 @@ public partial class BillingDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
-            entity.Property(e => e.AliasId).HasColumnName("alias_id");
+            entity.Property(e => e.Subject_ref).HasColumnName("subject_ref");
             entity.Property(e => e.Amount)
                 .HasPrecision(15, 2)
                 .HasColumnName("amount");
@@ -214,6 +226,11 @@ public partial class BillingDbContext : DbContext
             entity.Property(e => e.Currency)
                 .HasMaxLength(3)
                 .HasColumnName("currency");
+
+            entity.Property(e => e.ProductCode)
+                .HasMaxLength(50)
+                .HasColumnName("product_code");
+
             entity.Property(e => e.IdempotencyKeyId).HasColumnName("idempotency_key_id");
             entity.Property(e => e.InvoiceId).HasColumnName("invoice_id");
             entity.Property(e => e.LastModified)
@@ -236,6 +253,7 @@ public partial class BillingDbContext : DbContext
                 .HasForeignKey(d => d.IdempotencyKeyId)
                 .HasConstraintName("orders_idempotency_key_id_fkey");
         });
+
 
         modelBuilder.Entity<OutboxMessage>(entity =>
         {

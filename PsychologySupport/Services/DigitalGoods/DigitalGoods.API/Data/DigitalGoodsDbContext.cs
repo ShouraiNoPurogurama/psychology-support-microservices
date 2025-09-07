@@ -63,7 +63,7 @@ public partial class DigitalGoodsDbContext : DbContext
 
             entity.ToTable("inventories");
 
-            entity.HasIndex(e => new { e.UserId, e.DigitalGoodId, e.Status }, "uq_inventory_user_good_active").IsUnique();
+            entity.HasIndex(e => new { e.Subject_ref, e.DigitalGoodId, e.Status }, "uq_inventory_user_good_active").IsUnique();
 
             entity.Property(e => e.InventoryId)
                 .ValueGeneratedNever()
@@ -85,7 +85,7 @@ public partial class DigitalGoodsDbContext : DbContext
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .HasColumnName("status");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Subject_ref).HasColumnName("subject_ref");
 
             entity.HasOne(d => d.DigitalGood).WithMany(p => p.Inventories)
                 .HasForeignKey(d => d.DigitalGoodId)

@@ -21,7 +21,6 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Billings\Features\CreateOrder\" />
     <Folder Include="Data\Common\" />
   </ItemGroup>
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Billing.API.Billings.Models;
+namespace Billing.API.Domains.Billings.Models;
 
 public partial class InvoiceSnapshot
 {
