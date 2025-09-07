@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace Notification.API.Domains.Outbox.Models;
+namespace Notification.API.Models;
 
 public class OutboxMessage : AuditableEntity<Guid>
 {

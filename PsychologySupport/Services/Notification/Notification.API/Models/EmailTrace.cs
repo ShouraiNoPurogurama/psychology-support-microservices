@@ -1,6 +1,6 @@
 ﻿using Notification.API.Domains.Emails.ValueObjects;
 
-namespace Notification.API.Domains.Emails.Models;
+namespace Notification.API.Models;
 
 public class EmailTrace
 {

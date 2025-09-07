@@ -6,8 +6,8 @@ using Microsoft.Extensions.Options;
 using Notification.API.Data;
 using Notification.API.Domains.Emails.Configurations;
 using Notification.API.Domains.Emails.Dtos;
-using Notification.API.Domains.Emails.Models;
 using Notification.API.Domains.Emails.ServiceContracts;
+using Notification.API.Models;
 
 namespace Notification.API.Domains.Emails.Services;
 
