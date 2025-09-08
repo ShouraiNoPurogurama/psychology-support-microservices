@@ -8,30 +8,28 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Billing.API.Domains.Billings.Features.CreateOrder;
 
-// Request wrapper
+
 public record CreateOrderRequest(CreateOrderDto Order);
 
-// Response wrapper
 public record CreateOrderResponse(Guid OrderId, string InvoiceCode, string PaymentUrl, long? PaymentCode);
 
 public class CreateOrderEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/orders", async ([FromBody] CreateOrderRequest request, ISender sender, HttpContext httpContext) =>
+        app.MapPost("/orders", async (
+            [FromBody] CreateOrderRequest request,
+            [FromHeader(Name = "X-Idempotency-Key")] string idempotencyKeyHeader,
+            ISender sender) =>
         {
             if (request?.Order == null)
                 throw new BadRequestException("Request body is required.");
 
-            // Read Idempotency-Key from header
-            if (!httpContext.Request.Headers.TryGetValue("Idempotency-Key", out var idempotencyKeyHeader))
-                throw new BadRequestException("Idempotency-Key header is required.");
-
             if (!Guid.TryParse(idempotencyKeyHeader, out var idempotencyKey))
-                throw new BadRequestException("Invalid Idempotency-Key header.");
+                throw new BadRequestException("Invalid X-Idempotency-Key header.");
 
             // Build command
-            var command = new CreateOrderCommand(request.Order, idempotencyKey);
+            var command = new CreateOrderCommand(idempotencyKey,request.Order);
 
             // Send to handler
             var result = await sender.Send(command);

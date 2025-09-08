@@ -3,10 +3,12 @@ using Billing.API.Domains.Billings.Dtos;
 using Billing.API.Domains.Idempotency;
 using Billing.API.Models;
 using BuildingBlocks.CQRS;
+using BuildingBlocks.DDD;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Queries.Billing;
 using BuildingBlocks.Messaging.Events.Queries.Payment;
 using BuildingBlocks.Messaging.Events.Queries.Wallet;
+using BuildingBlocks.Services;
 using Mapster;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +20,8 @@ using System.Text.Json;
 
 namespace Billing.API.Domains.Billings.Features.CreateOrder;
 
-public record CreateOrderCommand(CreateOrderDto Dto, Guid IdempotencyKey) : ICommand<CreateOrderResult>;
+public record CreateOrderCommand(Guid RequestKey, CreateOrderDto Dto)
+    : IdempotentCommand<CreateOrderResult>(RequestKey);
 
 public record CreateOrderResult(Guid OrderId, string InvoiceCode, string PaymentUrl, long? PaymentCode);
 
@@ -28,7 +31,7 @@ public class CreateOrderHandler(
     PromotionService.PromotionServiceClient promotionClient,
     IRequestClient<GenerateOrderPaymentUrlRequest> paymentClient,
     IRequestClient<GetPendingPaymentUrlForOrderRequest> paymentUrlClient,
-    IdempotencyService idempotencyService // Inject here
+    IIdempotencyService idempotencyService
 ) : ICommandHandler<CreateOrderCommand, CreateOrderResult>
 {
     private readonly BillingDbContext _context = context;
@@ -36,7 +39,7 @@ public class CreateOrderHandler(
     private readonly PromotionService.PromotionServiceClient _promotionClient = promotionClient;
     private readonly IRequestClient<GenerateOrderPaymentUrlRequest> _paymentClient = paymentClient;
     private readonly IRequestClient<GetPendingPaymentUrlForOrderRequest> _paymentUrlClient = paymentUrlClient;
-    private readonly IdempotencyService _idempotencyService = idempotencyService;
+    private readonly IIdempotencyService _idempotencyService = idempotencyService;
 
     public async Task<CreateOrderResult> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
@@ -70,195 +73,203 @@ public class CreateOrderHandler(
             );
         }
 
-        // Use IdempotencyService to handle idempotency
-        var (result, idKey) = await _idempotencyService.CheckOrCreateAsync(
-            _context,
-            request.IdempotencyKey,
-            dto,
-            async (idKey) =>
+        // --- Idempotency check ---
+        if (await _idempotencyService.RequestExistsAsync(request.RequestKey, cancellationToken))
+        {
+            var existing = await _context.Set<IdempotencyKey>()
+                .FirstOrDefaultAsync(k => k.Key == request.RequestKey, cancellationToken);
+
+            if (existing != null && !string.IsNullOrEmpty(existing.ResponsePayload))
             {
-                // Get PointPackage from Wallet Service
-                var pkgResp = await _pointPackageClient.GetResponse<GetPointPackageResponse>(
-                    new GetPointPackageRequest(dto.ProductCode), cancellationToken);
+                var cachedResponse = JsonSerializer.Deserialize<CreateOrderResult>(existing.ResponsePayload);
+                if (cachedResponse != null)
+                    return cachedResponse;
+            }
+        }
 
-                var pkg = pkgResp.Message;
-                if (pkg == null)
-                    throw new NotFoundException("PointPackage", dto.ProductCode);
+        // Create new IdempotencyKey
+        var idKeyId = await _idempotencyService.CreateRequestAsync(request.RequestKey, cancellationToken);
 
-                decimal basePrice = pkg.Price;
-                string PackageName = pkg.Name;
-                string PackageCurrency = pkg.Currency;
-                string PackageDescription = pkg.Description;
-                decimal finalPrice = basePrice;
-                decimal totalDiscount = 0m;
+        // Get PointPackage from Wallet Service
+        var pkgResp = await _pointPackageClient.GetResponse<GetPointPackageResponse>(
+            new GetPointPackageRequest(dto.ProductCode), cancellationToken);
 
-                // Step 4: Validate promo code and compute finalPrice (uncomment if needed)
-                //if (!string.IsNullOrEmpty(dto.PromoCode))
-                //{
-                //    var promoResp = await _promotionClient.ValidatePromoAsync(
-                //        new ValidatePromoRequest { Code = dto.PromoCode, UserId = dto.AliasId, OrderType = dto.OrderType },
-                //        cancellationToken: cancellationToken);
-                //
-                //    if (!promoResp.IsValid)
-                //        throw new BadRequestException("Invalid promo code.");
-                //
-                //    var discountResp = await _promotionClient.CalculateDiscountAsync(
-                //        new CalculateDiscountRequest { BasePrice = basePrice, Code = dto.PromoCode },
-                //        cancellationToken: cancellationToken);
-                //
-                //    finalPrice = discountResp.DiscountedPrice;
-                //    totalDiscount = basePrice - finalPrice;
-                //    if (totalDiscount < 0) totalDiscount = 0;
-                //}
+        var pkg = pkgResp.Message;
+        if (pkg == null)
+            throw new NotFoundException("PointPackage", dto.ProductCode);
 
-                // Create Order
-                var order = Order.Create(
-                    subject_ref: dto.Subject_ref,
-                    orderType: dto.OrderType,
-                    productCode: dto.ProductCode,
-                    amount: finalPrice,
-                    currency: pkg.Currency,
-                    promoCode: dto.PromoCode,
-                    idempotencyKeyId: idKey.Id,
-                    createdBy: Guid.NewGuid() // Replace with PiiService if needed
-                );
-                _context.Orders.Add(order);
+        decimal basePrice = pkg.Price;
+        string PackageName = pkg.Name;
+        string PackageCurrency = pkg.Currency;
+        string PackageDescription = pkg.Description;
+        decimal finalPrice = basePrice;
+        decimal totalDiscount = 0m;
 
-                // Create Invoice
-                var invoice = new Invoice
-                {
-                    Id = Guid.NewGuid(),
-                    Code = GenerateInvoiceCode(),
-                    OrderId = order.Id,
-                    Subject_ref = dto.Subject_ref,
-                    Amount = finalPrice,
-                    Status = "Issued",
-                    IssuedAt = DateTime.UtcNow,
-                    CreatedAt = DateTime.UtcNow,
-                    LastModified = DateTime.UtcNow
-                    // CreatedBy = dto.AliasId, // Replace with PiiService if needed
-                    // LastModifiedBy = dto.AliasId
-                };
-                _context.Invoices.Add(invoice);
+        // Step 4: Validate promo code and compute finalPrice (uncomment if needed)
+        //if (!string.IsNullOrEmpty(dto.PromoCode))
+        //{
+        //    var promoResp = await _promotionClient.ValidatePromoAsync(
+        //        new ValidatePromoRequest { Code = dto.PromoCode, UserId = dto.AliasId, OrderType = dto.OrderType },
+        //        cancellationToken: cancellationToken);
+        //
+        //    if (!promoResp.IsValid)
+        //        throw new BadRequestException("Invalid promo code.");
+        //
+        //    var discountResp = await _promotionClient.CalculateDiscountAsync(
+        //        new CalculateDiscountRequest { BasePrice = basePrice, Code = dto.PromoCode },
+        //        cancellationToken: cancellationToken);
+        //
+        //    finalPrice = discountResp.DiscountedPrice;
+        //    totalDiscount = basePrice - finalPrice;
+        //    if (totalDiscount < 0) totalDiscount = 0;
+        //}
 
-                // Create InvoiceSnapshot
-                var aliasInfoJson = JsonSerializer.Serialize(new { subject_ref = dto.Subject_ref.ToString() }); // Replace with PiiService
-                var snapshot = new InvoiceSnapshot
-                {
-                    Id = Guid.NewGuid(),
-                    InvoiceId = invoice.Id,
-                    OrderType = dto.OrderType,
-                    TotalDiscountAmount = totalDiscount,
-                    AliasInfo = aliasInfoJson,
-                    Currency = order.Currency,
-                    TotalAmount = finalPrice,
-                    TaxAmount = 0m,
-                    CreatedAt = invoice.IssuedAt,
-                    LastModified = DateTime.UtcNow
-                    // CreatedBy = dto.AliasId, // Replace with PiiService if needed
-                    // LastModifiedBy = dto.AliasId
-                };
-                _context.InvoiceSnapshots.Add(snapshot);
-
-                // Create InvoiceItem
-                var item = new InvoiceItem
-                {
-                    Id = Guid.NewGuid(),
-                    InvoiceSnapshotId = snapshot.Id,
-                    ItemType = "Point",
-                    ProductCode = dto.ProductCode,
-                    ProductName = pkg.Name,
-                    PromoCode = dto.PromoCode,
-                    Description = pkg.Description,
-                    Quantity = 1,
-                    Unit = "package",
-                    UnitPrice = basePrice,
-                    DiscountAmount = totalDiscount,
-                    TotalAmount = finalPrice,
-                    CreatedAt = DateTime.UtcNow,
-                    LastModified = DateTime.UtcNow
-                    // CreatedBy = dto.AliasId, // Replace with PiiService if needed
-                    // LastModifiedBy = dto.AliasId
-                };
-                _context.InvoiceItems.Add(item);
-
-                // Write Outbox messages
-                var orderCreatedPayload = new
-                {
-                    order.Id,
-                    order.Subject_ref,
-                    order.OrderType,
-                    order.Amount,
-                    order.Currency,
-                    order.PromoCode,
-                    order.Status,
-                    IdempotencyKeyId = idKey.Id,
-                    order.ProductCode
-                };
-
-                var invoiceIssuedPayload = new
-                {
-                    invoice.Id,
-                    invoice.OrderId,
-                    invoice.Code,
-                    invoice.Amount,
-                    invoice.Status,
-                    invoice.IssuedAt
-                };
-
-                _context.OutboxMessages.AddRange(
-                    new OutboxMessage
-                    {
-                        Id = Guid.NewGuid(),
-                        AggregateType = "Order",
-                        AggregateId = order.Id,
-                        EventType = "OrderCreated",
-                        Payload = JsonSerializer.Serialize(orderCreatedPayload),
-                        OccurredOn = DateTime.UtcNow
-                    },
-                    new OutboxMessage
-                    {
-                        Id = Guid.NewGuid(),
-                        AggregateType = "Invoice",
-                        AggregateId = invoice.Id,
-                        EventType = "InvoiceIssued",
-                        Payload = JsonSerializer.Serialize(invoiceIssuedPayload),
-                        OccurredOn = DateTime.UtcNow
-                    }
-                );
-
-                await _context.SaveChangesAsync(cancellationToken);
-
-                // Generate Payment URL
-                var paymentReq = new GenerateOrderPaymentUrlRequest
-                (
-                    OrderId: order.Id,
-                    Amount: order.Amount,
-                    Currency: order.Currency,
-                    PaymentMethodName: dto.PaymentMethodName,
-                    SubjectRef: dto.Subject_ref,
-                    PointPackageCode: dto.ProductCode
-                );
-
-                var paymentResp = await _paymentClient.GetResponse<GenerateOrderPaymentUrlResponse>(paymentReq, cancellationToken);
-
-                if (paymentResp?.Message == null || string.IsNullOrEmpty(paymentResp.Message.Url))
-                    throw new BadRequestException("Cannot create payment URL: Invalid or empty response from payment service.");
-
-                // Update Order Status
-                order.Status = "AwaitPayment";
-                _context.Orders.Update(order);
-                await _context.SaveChangesAsync(cancellationToken);
-
-                // Create result
-                var result = new CreateOrderResult(order.Id, invoice.Code, paymentResp.Message.Url, paymentResp.Message.PaymentCode);
-
-                await transaction.CommitAsync(cancellationToken);
-
-                return result;
-            },
-            cancellationToken
+        // Create Order
+        var order = Order.Create(
+            subject_ref: dto.Subject_ref,
+            orderType: dto.OrderType,
+            productCode: dto.ProductCode,
+            amount: finalPrice,
+            currency: pkg.Currency,
+            promoCode: dto.PromoCode,
+            idempotencyKeyId: idKeyId,
+            createdBy: Guid.NewGuid() // Replace with PiiService if needed
         );
+        _context.Orders.Add(order);
+
+        // Create Invoice
+        var invoice = new Invoice
+        {
+            Id = Guid.NewGuid(),
+            Code = GenerateInvoiceCode(),
+            OrderId = order.Id,
+            Subject_ref = dto.Subject_ref,
+            Amount = finalPrice,
+            Status = "Issued",
+            IssuedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
+            LastModified = DateTime.UtcNow
+            // CreatedBy = dto.AliasId, // Replace with PiiService if needed
+            // LastModifiedBy = dto.AliasId
+        };
+        _context.Invoices.Add(invoice);
+
+        // Create InvoiceSnapshot
+        var aliasInfoJson = JsonSerializer.Serialize(new { subject_ref = dto.Subject_ref.ToString() }); // Replace with PiiService
+        var snapshot = new InvoiceSnapshot
+        {
+            Id = Guid.NewGuid(),
+            InvoiceId = invoice.Id,
+            OrderType = dto.OrderType,
+            TotalDiscountAmount = totalDiscount,
+            AliasInfo = aliasInfoJson,
+            Currency = order.Currency,
+            TotalAmount = finalPrice,
+            TaxAmount = 0m,
+            CreatedAt = invoice.IssuedAt,
+            LastModified = DateTime.UtcNow
+            // CreatedBy = dto.AliasId, // Replace with PiiService if needed
+            // LastModifiedBy = dto.AliasId
+        };
+        _context.InvoiceSnapshots.Add(snapshot);
+
+        // Create InvoiceItem
+        var item = new InvoiceItem
+        {
+            Id = Guid.NewGuid(),
+            InvoiceSnapshotId = snapshot.Id,
+            ItemType = "Point",
+            ProductCode = dto.ProductCode,
+            ProductName = pkg.Name,
+            PromoCode = dto.PromoCode,
+            Description = pkg.Description,
+            Quantity = 1,
+            Unit = "package",
+            UnitPrice = basePrice,
+            DiscountAmount = totalDiscount,
+            TotalAmount = finalPrice,
+            CreatedAt = DateTime.UtcNow,
+            LastModified = DateTime.UtcNow
+            // CreatedBy = dto.AliasId, // Replace with PiiService if needed
+            // LastModifiedBy = dto.AliasId
+        };
+        _context.InvoiceItems.Add(item);
+
+        // Write Outbox messages
+        var orderCreatedPayload = new
+        {
+            order.Id,
+            order.Subject_ref,
+            order.OrderType,
+            order.Amount,
+            order.Currency,
+            order.PromoCode,
+            order.Status,
+            IdempotencyKeyId = idKeyId,
+            order.ProductCode
+        };
+
+        var invoiceIssuedPayload = new
+        {
+            invoice.Id,
+            invoice.OrderId,
+            invoice.Code,
+            invoice.Amount,
+            invoice.Status,
+            invoice.IssuedAt
+        };
+
+        _context.OutboxMessages.AddRange(
+            new OutboxMessage
+            {
+                Id = Guid.NewGuid(),
+                AggregateType = "Order",
+                AggregateId = order.Id,
+                EventType = "OrderCreated",
+                Payload = JsonSerializer.Serialize(orderCreatedPayload),
+                OccurredOn = DateTime.UtcNow
+            },
+            new OutboxMessage
+            {
+                Id = Guid.NewGuid(),
+                AggregateType = "Invoice",
+                AggregateId = invoice.Id,
+                EventType = "InvoiceIssued",
+                Payload = JsonSerializer.Serialize(invoiceIssuedPayload),
+                OccurredOn = DateTime.UtcNow
+            }
+        );
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Generate Payment URL
+        var paymentReq = new GenerateOrderPaymentUrlRequest
+        (
+            OrderId: order.Id,
+            Amount: order.Amount,
+            Currency: order.Currency,
+            PaymentMethodName: dto.PaymentMethodName,
+            SubjectRef: dto.Subject_ref,
+            PointPackageCode: dto.ProductCode
+        );
+
+        var paymentResp = await _paymentClient.GetResponse<GenerateOrderPaymentUrlResponse>(paymentReq, cancellationToken);
+
+        if (paymentResp?.Message == null || string.IsNullOrEmpty(paymentResp.Message.Url))
+            throw new BadRequestException("Cannot create payment URL: Invalid or empty response from payment service.");
+
+        // Update Order Status
+        order.Status = "AwaitPayment";
+        _context.Orders.Update(order);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Create result
+        var result = new CreateOrderResult(order.Id, invoice.Code, paymentResp.Message.Url, paymentResp.Message.PaymentCode);
+
+        // Save response to Idempotency storage
+        await _idempotencyService.SaveResponseAsync(request.RequestKey, result, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
 
         return result;
     }

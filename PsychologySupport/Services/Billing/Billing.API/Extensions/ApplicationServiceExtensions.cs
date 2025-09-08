@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Promotion.Grpc;
 using Translation.API.Protos;
 using Billing.API.Data;
+using BuildingBlocks.Services;
+using Billing.API.Domains.Idempotency;
 
 namespace Billing.API.Extensions
 {
@@ -141,6 +143,7 @@ namespace Billing.API.Extensions
                 options.RegisterServicesFromAssembly(typeof(Program).Assembly);
                 // options.AddOpenBehavior(typeof(ValidationBehavior<,>));
                 options.AddOpenBehavior(typeof(LoggingBehavior<,>));
+                config.AddOpenBehavior(typeof(IdempotentCommandPipelineBehaviour<,>));
             });
         }
 
@@ -148,6 +151,7 @@ namespace Billing.API.Extensions
         {
             services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
             services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+            services.AddScoped<IIdempotencyService, IdempotencyService>();
         }
 
         private static void AddDatabase(IServiceCollection services, IConfiguration config)

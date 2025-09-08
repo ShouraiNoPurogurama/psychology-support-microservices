@@ -1,100 +1,88 @@
-using System.Text.Json;
 using Billing.API.Models;
 using BuildingBlocks.Exceptions;
+using BuildingBlocks.Services;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
+using System.Text.Json;
 
 namespace Billing.API.Domains.Idempotency;
 
-public class IdempotencyService
+public sealed class IdempotencyService : IIdempotencyService
 {
     private readonly IDatabase _redis;
+    private readonly DbContext _dbContext;
 
-    public IdempotencyService(IConnectionMultiplexer redis)
+    public IdempotencyService(IConnectionMultiplexer redis, DbContext dbContext)
     {
         _redis = redis.GetDatabase();
+        _dbContext = dbContext;
     }
 
-    public async Task<(T? Result, IdempotencyKey IdempotencyKey)> CheckOrCreateAsync<T, TDbContext>(
-        TDbContext dbContext,
-        Guid idempotencyKey,
-        object requestDto,
-        Func<IdempotencyKey, Task<T>> createFunc,
-        CancellationToken cancellationToken
-    ) where TDbContext : DbContext
+    public async Task<bool> RequestExistsAsync(
+        Guid requestKey,
+        CancellationToken cancellationToken = default)
     {
-        var requestJson = JsonSerializer.Serialize(requestDto);
-        var requestHash = ComputeSha256(requestJson);
+        var redisKey = $"idempotency:{requestKey}";
 
-        // Redis lookup for key existence and expiration
-        var redisKey = $"idempotency:{idempotencyKey}";
+        // Check Redis
         var redisValue = await _redis.StringGetAsync(redisKey);
         if (redisValue.HasValue)
         {
             var existing = JsonSerializer.Deserialize<IdempotencyKey>(redisValue!);
             if (existing != null)
             {
-                if (!string.Equals(existing.RequestHash, requestHash, StringComparison.OrdinalIgnoreCase))
-                    throw new BadRequestException("Idempotency key already used with different request payload.");
-
-                if (!string.IsNullOrEmpty(existing.ResponsePayload))
-                {
-                    var replay = JsonSerializer.Deserialize<T>(existing.ResponsePayload);
-                    if (replay != null) return (replay, existing);
-                }
-
-                throw new ConflictException("Request with same idempotency key is in progress.");
+                return true;
             }
         }
 
-        // Fallback to DB lookup if not in Redis
-        var existingKey = await dbContext.Set<IdempotencyKey>()
-            .FirstOrDefaultAsync(k => k.Key == idempotencyKey, cancellationToken);
+        // Check DB
+        var dbKey = await _dbContext.Set<IdempotencyKey>()
+            .FirstOrDefaultAsync(k => k.Key == requestKey, cancellationToken);
 
-        if (existingKey != null)
+        if (dbKey != null)
         {
-            if (!string.Equals(existingKey.RequestHash, requestHash, StringComparison.OrdinalIgnoreCase))
-                throw new BadRequestException("Idempotency key already used with different request payload.");
-
-            if (!string.IsNullOrEmpty(existingKey.ResponsePayload))
-            {
-                var replay = JsonSerializer.Deserialize<T>(existingKey.ResponsePayload);
-                if (replay != null) return (replay, existingKey);
-            }
-
-            throw new ConflictException("Request with same idempotency key is in progress.");
+            return true;
         }
 
-        // Create new key
+        return false;
+    }
+
+    public async Task<Guid> CreateRequestAsync(
+        Guid requestKey,
+        CancellationToken cancellationToken = default)
+    {
         var idKey = new IdempotencyKey
         {
             Id = Guid.NewGuid(),
-            Key = idempotencyKey,
-            RequestHash = requestHash,
+            Key = requestKey,
             ExpiresAt = DateTime.UtcNow.AddHours(12),
             CreatedAt = DateTime.UtcNow
         };
-        dbContext.Add(idKey);
-        await dbContext.SaveChangesAsync(cancellationToken);
 
-        // Store in Redis with expiration
+        _dbContext.Add(idKey);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        var redisKey = $"idempotency:{requestKey}";
         await _redis.StringSetAsync(redisKey, JsonSerializer.Serialize(idKey), TimeSpan.FromHours(12));
 
-        // Proceed with creation
-        var result = await createFunc(idKey);
-
-        // Save response payload for replay
-        idKey.ResponsePayload = JsonSerializer.Serialize(result);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        await _redis.StringSetAsync(redisKey, JsonSerializer.Serialize(idKey), TimeSpan.FromHours(12));
-
-        return (result, idKey);
+        return idKey.Id;
     }
 
-    private static string ComputeSha256(string rawData)
+    public async Task SaveResponseAsync<T>(
+        Guid requestKey,
+        T response,
+        CancellationToken cancellationToken = default)
     {
-        using var sha256 = System.Security.Cryptography.SHA256.Create();
-        var bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(rawData));
-        return BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
+        var dbKey = await _dbContext.Set<IdempotencyKey>()
+            .FirstOrDefaultAsync(k => k.Key == requestKey, cancellationToken);
+
+        if (dbKey == null)
+            throw new KeyNotFoundException("Idempotency key not found.");
+
+        dbKey.ResponsePayload = JsonSerializer.Serialize(response);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        var redisKey = $"idempotency:{requestKey}";
+        await _redis.StringSetAsync(redisKey, JsonSerializer.Serialize(dbKey), TimeSpan.FromHours(12));
     }
 }
