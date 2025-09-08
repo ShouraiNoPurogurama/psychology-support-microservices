@@ -2,28 +2,29 @@
 using Auth.API.Data;
 using Auth.API.Domains.Authentication.Dtos.Responses;
 using Auth.API.Domains.Authentication.Exceptions;
-using Auth.API.Domains.Authentication.ServiceContracts;
-using Auth.API.Domains.Authentication.ServiceContracts.v1;
+using Auth.API.Domains.Authentication.ServiceContracts.Features.v3;
+using Auth.API.Domains.Authentication.ServiceContracts.Shared;
+using Auth.API.Domains.Encryption.Dtos;
+using Auth.API.Domains.Encryption.ServiceContracts;
 using BuildingBlocks.Constants;
-using BuildingBlocks.Data.Common;
-using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Auth;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
-using BuildingBlocks.Messaging.Events.Queries.Notification;
-using BuildingBlocks.Messaging.Events.Queries.Profile;
 using BuildingBlocks.Utils;
 using Google.Apis.Auth;
 using Mapster;
 using MassTransit;
+using Notification.API.Protos;
 
-namespace Auth.API.Domains.Authentication.Services.v1;
+namespace Auth.API.Domains.Authentication.Services.Features.v3;
 
 public class AuthService(
     UserManager<User> userManager,
+    ILogger<AuthService> logger,
     IConfiguration configuration,
     ITokenService tokenService,
-    IRequestClient<CreatePatientProfileRequest> profileClient,
-    IRequestClient<HasSentEmailRecentlyRequest> hasSentEmailRecentlyClient,
+    IPayloadProtector payloadProtector,
+    NotificationService.NotificationServiceClient notificationClient, // gRPC client
     AuthDbContext authDbContext,
     IPublishEndpoint publishEndpoint,
     IWebHostEnvironment env
@@ -36,17 +37,37 @@ public class AuthService(
         var existingUser = await userManager.FindByEmailAsync(registerRequest.Email);
         existingUser ??= await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == registerRequest.PhoneNumber);
 
-        if (existingUser is not null) throw new InvalidDataException("Email hoặc số điện thoại đã tồn tại trong hệ thống");
+        if (existingUser is not null) throw new ConflictException("Email hoặc số điện thoại đã tồn tại trong hệ thống");
 
         var user = registerRequest.Adapt<User>();
         user.Email = user.UserName = registerRequest.Email;
-        
+
         var result = await userManager.CreateAsync(user, registerRequest.Password);
         if (!result.Succeeded)
         {
             var errors = string.Join("; ", result.Errors.Select(ie => ie.Description));
             throw new InvalidDataException($"Đăng ký thất bại: {errors}");
         }
+
+        //Tạo pending verification
+        var pendingVerificationUser = new PendingVerificationUser
+        {
+            UserId = user.Id
+        };
+
+        var dto = new PendingSeedDto(registerRequest.FullName, registerRequest.Gender, registerRequest.BirthDate,
+            new BuildingBlocks.Data.Common.ContactInfo
+            {
+                Address = "None",
+                Email = registerRequest.Email,
+                PhoneNumber = registerRequest.PhoneNumber,
+            });
+
+        pendingVerificationUser.PayloadProtected = payloadProtector.Protect(dto);
+
+        authDbContext.PendingVerificationUsers.Add(pendingVerificationUser);
+
+        await authDbContext.SaveChangesAsync();
 
         await AssignUserRoleAsync(user);
         await SendEmailConfirmationAsync(user);
@@ -74,21 +95,14 @@ public class AuthService(
             user.EmailConfirmed = true;
             await userManager.UpdateAsync(user);
 
-            var profileResult = await CreateUserProfileAsync(user);
+            await CreateUserProfileAsync(user);
 
-            if (profileResult.IsSuccess)
-            {
-                message = "Xác nhận email và tạo hồ sơ thành công.";
-            }
-            else
-            {
-                status = "partial";
-                message = $"Xác nhận email thành công nhưng tạo hồ sơ thất bại: {profileResult.ErrorMessage}";
-            }
+            message = "Xác nhận email thành công.";
         }
         else
         {
-            message = $"Xác nhận email thất bại: {string.Join("; ", result.Errors.Select(e => e.Description))}";
+            logger.LogError($"*** Xác nhận email thất bại cho user {user.Id}. \n[Details] {string.Join("; ", result.Errors.Select(e => e.Description))}");
+            message = $"Xác nhận email thất bại.";
         }
 
         var baseRedirectUrl = configuration["Mail:ConfirmationRedirectUrl"];
@@ -115,7 +129,9 @@ public class AuthService(
 
         //5. Tạo token
         var (accessToken, refreshToken) = await GenerateTokensAsync(user, device.Id);
-
+        
+        await authDbContext.SaveChangesAsync();
+        
         return new LoginResponse(accessToken, refreshToken);
     }
 
@@ -323,34 +339,32 @@ public class AuthService(
             throw new InvalidDataException("Gán vai trò thất bại");
     }
 
-    private async Task<(bool IsSuccess, string? ErrorMessage)> CreateUserProfileAsync(User user)
+    private async Task CreateUserProfileAsync(User user)
     {
-        try
-        {
-            var contactInfo = ContactInfo.Of("None", user.Email, user.PhoneNumber);
-            var createProfileRequest = new CreatePatientProfileRequest(
-                user.Id,
-                null,
-                PersonalityTrait.None,
-                contactInfo
-            );
+        var pendingUser = await authDbContext.PendingVerificationUsers
+                              .FirstOrDefaultAsync(p => p.UserId == user.Id && p.ProcessedAt == null)
+                          ?? throw new NotFoundException("Không tìm thấy dữ liệu người đùng để tạo profile",
+                              nameof(PendingVerificationUser));
 
-            var profileResponse = await profileClient.GetResponse<CreatePatientProfileResponse>(createProfileRequest);
+        var pendingSeedDto = payloadProtector.Unprotect<PendingSeedDto>(pendingUser.PayloadProtected);
 
-            if (profileResponse.Message.Success)
-            {
-                return (true, null);
-            }
-            else
-            {
-                return (false, profileResponse.Message.Message);
-            }
-        }
-        catch (Exception ex)
-        {
-            return (false, ex.Message);
-        }
+        var userRegisteredIntegrationEvent = new UserRegisteredIntegrationEvent(
+            UserId: user.Id,
+            Email: pendingSeedDto.ContactInfo!.Email,
+            PhoneNumber: pendingSeedDto.ContactInfo.PhoneNumber,
+            Address: pendingSeedDto.ContactInfo.Address,
+            FullName: pendingSeedDto.FullName,
+            BirthDate: pendingSeedDto.BirthDate,
+            Gender: pendingSeedDto.Gender
+        );
+
+        await publishEndpoint.Publish(userRegisteredIntegrationEvent);
+
+        pendingUser.ProcessedAt = DateTimeOffset.UtcNow;
+        
+        await authDbContext.SaveChangesAsync();
     }
+
 
     private async Task SendEmailConfirmationAsync(User user)
     {
@@ -364,7 +378,10 @@ public class AuthService(
         var baseUrl = configuration["Mail:ConfirmationUrl"]!;
         var url = string.Format(baseUrl, Uri.EscapeDataString(emailConfirmationToken), Uri.EscapeDataString(user.Email));
 
-        var confirmTemplatePath = Path.Combine(env.ContentRootPath, "EmailTemplates", "AccountConfirmation.html");
+        
+        var basePath = Path.Combine(env.ContentRootPath, "Domains", "Authentication", "EmailTemplates");
+        var confirmTemplatePath = Path.Combine(basePath, configuration["EmailTemplates:ConfirmEmail"]!);
+        
         var confirmBody = RenderTemplate(confirmTemplatePath, new Dictionary<string, string>
         {
             ["ConfirmUrl"] = url,
@@ -384,12 +401,14 @@ public class AuthService(
             throw new RateLimitExceededException(
                 "Vui lòng đợi ít nhất 1 phút trước khi gửi lại email đổi mật khẩu. Nếu chưa nhận được email, hãy kiểm tra hộp thư rác (spam) hoặc đợi thêm một chút.");
         }
-        
+
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
         var resetUrlTemplate = configuration["Mail:PasswordResetUrl"];
         var callbackUrl = string.Format(resetUrlTemplate!, Uri.EscapeDataString(token), Uri.EscapeDataString(user.Email));
 
-        var resetTemplatePath = Path.Combine(env.ContentRootPath, "EmailTemplates", "PasswordReset.html");
+        var basePath = Path.Combine(env.ContentRootPath, "Domains", "Authentication", "EmailTemplates");
+        var resetTemplatePath = Path.Combine(basePath, configuration["EmailTemplates:ResetPassword"]!);
+        
         var resetBody = RenderTemplate(resetTemplatePath, new Dictionary<string, string>
         {
             ["ResetUrl"] = callbackUrl,
@@ -402,10 +421,9 @@ public class AuthService(
 
     private async Task<bool> HasSentResetEmailRecentlyAsync(string email)
     {
-        var response = await hasSentEmailRecentlyClient.GetResponse<HasSentEmailRecentlyResponse>(
-            new HasSentEmailRecentlyRequest(email));
-
-        return response.Message.IsRecentlySent;
+        var grpcRequest = new Notification.API.Protos.HasSentEmailRecentlyRequest { Email = email };
+        var response = await notificationClient.HasSentEmailRecentlyAsync(grpcRequest);
+        return response.IsRecentlySent;
     }
 
     private async Task<User> FindAndValidateUserAsync(LoginRequest loginRequest)
@@ -543,7 +561,6 @@ public class AuthService(
         };
 
         authDbContext.DeviceSessions.Add(session);
-        await authDbContext.SaveChangesAsync();
 
         return (accessToken.Token, refreshToken);
     }

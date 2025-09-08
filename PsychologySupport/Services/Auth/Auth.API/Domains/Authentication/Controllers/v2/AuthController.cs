@@ -1,15 +1,12 @@
-﻿using Auth.API.Domains.Authentication.ServiceContracts;
+﻿using Auth.API.Domains.Authentication.ServiceContracts.Shared;
 using Microsoft.AspNetCore.Mvc;
-using IAuthService = Auth.API.Domains.Authentication.ServiceContracts.v3.IAuthService;
+using IAuthService = Auth.API.Domains.Authentication.ServiceContracts.Features.v3.IAuthService;
 
 namespace Auth.API.Domains.Authentication.Controllers.v2;
 
 [ApiController]
 [Route("[controller]")]
 public class AuthController(
-    UserManager<User> userManager,
-    RoleManager<Role> roleManager,
-    IConfiguration configuration,
     IAuthService authService,
     IFirebaseAuthService firebaseAuthService) : ControllerBase
 {

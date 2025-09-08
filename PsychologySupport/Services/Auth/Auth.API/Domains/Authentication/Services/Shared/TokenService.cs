@@ -2,13 +2,13 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Auth.API.Domains.Authentication.ServiceContracts;
+using Auth.API.Domains.Authentication.ServiceContracts.Shared;
 using BuildingBlocks.Exceptions;
-using MassTransit;
 using Microsoft.IdentityModel.Tokens;
 using Pii.API.Protos;
 using Exception = System.Exception;
 
-namespace Auth.API.Domains.Authentication.Services;
+namespace Auth.API.Domains.Authentication.Services.Shared;
 
 public class TokenService(
     UserManager<User> userManager,

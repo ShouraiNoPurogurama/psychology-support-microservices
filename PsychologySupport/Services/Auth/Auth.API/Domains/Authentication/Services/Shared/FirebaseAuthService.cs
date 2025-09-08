@@ -1,12 +1,12 @@
 ﻿using Auth.API.Domains.Authentication.Dtos.Responses;
-using Auth.API.Domains.Authentication.ServiceContracts;
+using Auth.API.Domains.Authentication.ServiceContracts.Shared;
 using BuildingBlocks.Constants;
 using BuildingBlocks.Exceptions;
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
 
-namespace Auth.API.Domains.Authentication.Services
+namespace Auth.API.Domains.Authentication.Services.Shared
 {
     public class FirebaseAuthService(
         UserManager<User> userManager,
