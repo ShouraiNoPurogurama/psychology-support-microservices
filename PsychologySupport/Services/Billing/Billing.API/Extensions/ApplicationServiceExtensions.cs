@@ -143,7 +143,7 @@ namespace Billing.API.Extensions
                 options.RegisterServicesFromAssembly(typeof(Program).Assembly);
                 // options.AddOpenBehavior(typeof(ValidationBehavior<,>));
                 options.AddOpenBehavior(typeof(LoggingBehavior<,>));
-                config.AddOpenBehavior(typeof(IdempotentCommandPipelineBehaviour<,>));
+                options.AddOpenBehavior(typeof(IdempotentCommandPipelineBehaviour<,>));
             });
         }
 
