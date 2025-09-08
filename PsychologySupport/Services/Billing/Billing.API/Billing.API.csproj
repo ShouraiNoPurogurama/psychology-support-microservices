@@ -18,10 +18,13 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
 		<PackageReference Include="SixLabors.ImageSharp" />
+		<PackageReference Include="StackExchange.Redis" />
 	</ItemGroup>
 
   <ItemGroup>
     <Folder Include="Data\Common\" />
+    <Folder Include="Domains\Billings\Features\GetOrder\" />
+    <Folder Include="Domains\Billings\Features\GetOrders\" />
   </ItemGroup>
 
   <ItemGroup>

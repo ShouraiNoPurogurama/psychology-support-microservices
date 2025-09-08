@@ -1,12 +1,11 @@
-﻿using System;
+﻿using BuildingBlocks.DDD;
+using System;
 using System.Collections.Generic;
 
-namespace Billing.API.Domains.Billings.Models;
+namespace Billing.API.Models;
 
-public partial class InvoiceItem
+public partial class InvoiceItem : Entity<Guid>
 {
-    public Guid Id { get; set; }
-
     public Guid InvoiceSnapshotId { get; set; }
 
     public string ItemType { get; set; } = null!;

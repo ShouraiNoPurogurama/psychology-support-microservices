@@ -1,12 +1,11 @@
-﻿using System;
+﻿using BuildingBlocks.DDD;
+using System;
 using System.Collections.Generic;
 
-namespace Billing.API.Domains.Billings.Models;
+namespace Billing.API.Models;
 
-public partial class IdempotencyKey
+public partial class IdempotencyKey : Entity<Guid>
 {
-    public Guid Id { get; set; }
-
     public Guid Key { get; set; }
 
     public string RequestHash { get; set; } = null!;

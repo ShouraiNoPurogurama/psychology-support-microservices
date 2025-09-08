@@ -1,12 +1,11 @@
-﻿using System;
+﻿using BuildingBlocks.DDD;
+using System;
 using System.Collections.Generic;
 
-namespace Billing.API.Domains.Billings.Models;
+namespace Billing.API.Models;
 
-public partial class OutboxMessage
+public partial class OutboxMessage : AuditableEntity<Guid>
 {
-    public Guid Id { get; set; }
-
     public string AggregateType { get; set; } = null!;
 
     public Guid AggregateId { get; set; }
@@ -19,11 +18,4 @@ public partial class OutboxMessage
 
     public DateTime? ProcessedOn { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public Guid CreatedBy { get; set; }
-
-    public DateTime LastModified { get; set; }
-
-    public Guid LastModifiedBy { get; set; }
 }

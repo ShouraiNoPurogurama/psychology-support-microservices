@@ -3,7 +3,7 @@ using BuildingBlocks.Exceptions;
 using System;
 using System.Collections.Generic;
 
-namespace Billing.API.Domains.Billings.Models;
+namespace Billing.API.Models;
 
 public partial class Order : AggregateRoot<Guid>
 {
