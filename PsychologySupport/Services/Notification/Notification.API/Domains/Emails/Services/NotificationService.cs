@@ -2,8 +2,8 @@
 using Notification.API.Domains.Emails.Dtos;
 using Notification.API.Domains.Emails.Events;
 using Notification.API.Domains.Emails.ServiceContracts;
-using Notification.API.Domains.Outbox.Models;
 using Notification.API.Domains.Outbox.Services;
+using Notification.API.Models;
 using Notification.API.Protos;
 
 namespace Notification.API.Domains.Emails.Services

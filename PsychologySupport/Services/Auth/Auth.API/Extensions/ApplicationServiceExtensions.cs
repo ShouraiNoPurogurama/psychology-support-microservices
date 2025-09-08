@@ -1,9 +1,13 @@
 ﻿using Auth.API.Data;
 using Auth.API.Domains.Authentication.BackgroundServices;
 using Auth.API.Domains.Authentication.ServiceContracts;
-using Auth.API.Domains.Authentication.ServiceContracts.v2;
+using Auth.API.Domains.Authentication.ServiceContracts.Features.v3;
+using Auth.API.Domains.Authentication.ServiceContracts.Features.v4;
+using Auth.API.Domains.Authentication.ServiceContracts.Shared;
 using Auth.API.Domains.Authentication.Services;
-using Auth.API.Domains.Authentication.Services.v2;
+using Auth.API.Domains.Authentication.Services.Features.v3;
+using Auth.API.Domains.Authentication.Services.Features.v4;
+using Auth.API.Domains.Authentication.Services.Shared;
 using Auth.API.Domains.Authentication.Validators;
 using Auth.API.Domains.Encryption.ServiceContracts;
 using Auth.API.Domains.Encryption.Services;
@@ -20,8 +24,7 @@ using Microsoft.OpenApi.Models;
 using Notification.API.Protos;
 using Pii.API.Protos;
 using Profile.API.Protos;
-using AuthService = Auth.API.Domains.Authentication.Services.v2.AuthService;
-using IAuthService = Auth.API.Domains.Authentication.ServiceContracts.v2.IAuthService;
+using EmailService = Auth.API.Domains.Authentication.Services.Shared.EmailService;
 
 namespace Auth.API.Extensions;
 
@@ -128,14 +131,27 @@ public static class ApplicationServiceExtensions
 
     private static void AddServiceDependencies(IServiceCollection services)
     {
-        services.AddScoped<Domains.Authentication.ServiceContracts.v1.IAuthService, Domains.Authentication.Services.v1.AuthService>();
-        services.AddScoped<ITokenService, TokenService>();
-        services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
         services.AddScoped<LoggingActionFilter>();
         services.AddScoped<IAuthService, AuthService>();
-        services
-            .AddScoped<Domains.Authentication.ServiceContracts.v3.IAuthService, Domains.Authentication.Services.v3.AuthService>();
         services.AddScoped<IPayloadProtector, PayloadProtector>();
+        
+        //Facade
+        services.AddScoped<IAuthFacade, AuthFacade>();
+        services.AddScoped<IFirebaseAuthService, FirebaseAuthService>(); 
+        
+        //Features
+        services.AddScoped<IUserRegistrationService, UserRegistrationService>();
+        services.AddScoped<ISessionService, SessionService>();
+        services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<IUserAccountService, UserAccountService>();
+        
+        //Shared
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<IDeviceManagementService, DeviceManagementService>();
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<ITokenService, TokenService>(); 
+        services.AddScoped<IPayloadProtector, PayloadProtector>();
+        services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();

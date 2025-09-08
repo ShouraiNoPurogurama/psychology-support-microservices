@@ -44,14 +44,6 @@ public class AuditableEntityInterceptor(IHttpContextAccessor httpContextAccessor
                 m.LastModified = now;
                 m.LastModifiedBy = currentUser;
             }
-
-            if (entry.State == EntityState.Deleted && entry.Entity is ISoftDelete d)
-            {
-                entry.State = EntityState.Modified;
-                d.IsDeleted = true;
-                d.DeletedAt = now;
-                d.DeletedBy = currentUser;
-            }
         }
     }
 

@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.DDD;
+using BuildingBlocks.DDD;
 using System;
 using System.Collections.Generic;
 

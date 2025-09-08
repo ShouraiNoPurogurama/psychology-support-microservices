@@ -10,9 +10,12 @@ public class PaymentDetail
     public decimal Amount { get; set; }
 
     public string? ExternalTransactionCode { get; set; }
+    
     public PaymentDetailStatus Status { get; set; } = PaymentDetailStatus.Pending;
+    
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
 
     private PaymentDetail(decimal amount, string? externalTransactionCode)
     {

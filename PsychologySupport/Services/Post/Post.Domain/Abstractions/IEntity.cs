@@ -11,20 +11,20 @@ public interface IEntity;
 public interface IHasCreationAudit
 {
     DateTimeOffset? CreatedAt { get; set; }
-    string? CreatedBy { get; set; }
+    string? CreatedByAliasId { get; set; }
 }
 
 public interface IHasModificationAudit
 {
     DateTimeOffset? LastModified { get; set; }
-    string? LastModifiedBy { get; set; }
+    string? LastModifiedByAliasId { get; set; }
 }
 
-public interface ISoftDelete
+public interface ISoftDeletable
 {
     bool IsDeleted { get; set; }
     DateTimeOffset? DeletedAt { get; set; }
-    string? DeletedBy { get; set; }
+    string? DeletedByAliasId { get; set; }
 }
 
 public interface IHasRowVersion

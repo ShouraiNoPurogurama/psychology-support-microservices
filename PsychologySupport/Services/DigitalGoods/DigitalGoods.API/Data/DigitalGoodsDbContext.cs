@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DigitalGoods.API.Models;
+using Microsoft.Build.Tasks.Deployment.Bootstrapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace DigitalGoods.API.Data;
@@ -20,6 +21,9 @@ public partial class DigitalGoodsDbContext : DbContext
 
     public virtual DbSet<Inventory> Inventories { get; set; }
 
+    public virtual DbSet<EmotionTag> EmotionTags { get; set; }
+
+    public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -87,9 +91,15 @@ public partial class DigitalGoodsDbContext : DbContext
                 .HasColumnName("status");
             entity.Property(e => e.Subject_ref).HasColumnName("subject_ref");
 
-            entity.HasOne(d => d.DigitalGood).WithMany(p => p.Inventories)
+            entity.HasOne(d => d.DigitalGood)
+                .WithMany(p => p.Inventories)
                 .HasForeignKey(d => d.DigitalGoodId)
                 .HasConstraintName("fk_inventory_digital_good");
+        });
+
+        modelBuilder.Entity<EmotionTag>(entity =>
+        {
+            entity.HasIndex(e => e.Code, "unq_emotion_tags_code").IsUnique(); 
         });
 
         OnModelCreatingPartial(modelBuilder);

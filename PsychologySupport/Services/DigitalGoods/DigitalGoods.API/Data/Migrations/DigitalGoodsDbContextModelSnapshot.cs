@@ -22,6 +22,25 @@ namespace DigitalGoods.API.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("DigitalGoodEmotionTag", b =>
+                {
+                    b.Property<Guid>("DigitalGoodsId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("digital_goods_id");
+
+                    b.Property<Guid>("EmotionTagsId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("emotion_tags_id");
+
+                    b.HasKey("DigitalGoodsId", "EmotionTagsId")
+                        .HasName("pk_digital_good_emotion_tag");
+
+                    b.HasIndex("EmotionTagsId")
+                        .HasDatabaseName("ix_digital_good_emotion_tag_emotion_tags_id");
+
+                    b.ToTable("digital_good_emotion_tag", (string)null);
+                });
+
             modelBuilder.Entity("DigitalGoods.API.Models.DigitalGood", b =>
                 {
                     b.Property<Guid>("Id")
@@ -90,6 +109,65 @@ namespace DigitalGoods.API.Data.Migrations
                     b.ToTable("digital_goods", (string)null);
                 });
 
+            modelBuilder.Entity("DigitalGoods.API.Models.EmotionTag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("code");
+
+                    b.Property<DateTimeOffset?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("display_name");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<DateTimeOffset?>("LastModified")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("last_modified_by");
+
+                    b.Property<Guid?>("MediaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("media_id");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("Topic")
+                        .HasColumnType("text")
+                        .HasColumnName("topic");
+
+                    b.HasKey("Id")
+                        .HasName("pk_emotion_tags");
+
+                    b.HasIndex(new[] { "Code" }, "unq_emotion_tags_code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_emotion_tags_code");
+
+                    b.ToTable("emotion_tags", (string)null);
+                });
+
             modelBuilder.Entity("DigitalGoods.API.Models.Inventory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -155,6 +233,70 @@ namespace DigitalGoods.API.Data.Migrations
                         .HasDatabaseName("ix_inventories_subject_ref_digital_good_id_status");
 
                     b.ToTable("inventories", (string)null);
+                });
+
+            modelBuilder.Entity("DigitalGoods.API.Models.OutboxMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<DateTimeOffset?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTimeOffset?>("LastModified")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("last_modified_by");
+
+                    b.Property<DateTimeOffset>("OccuredOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occured_on");
+
+                    b.Property<DateTimeOffset?>("ProcessedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_on");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_outbox_messages");
+
+                    b.ToTable("outbox_messages", (string)null);
+                });
+
+            modelBuilder.Entity("DigitalGoodEmotionTag", b =>
+                {
+                    b.HasOne("DigitalGoods.API.Models.DigitalGood", null)
+                        .WithMany()
+                        .HasForeignKey("DigitalGoodsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_digital_good_emotion_tag_digital_goods_digital_goods_id");
+
+                    b.HasOne("DigitalGoods.API.Models.EmotionTag", null)
+                        .WithMany()
+                        .HasForeignKey("EmotionTagsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_digital_good_emotion_tag_emotion_tags_emotion_tags_id");
                 });
 
             modelBuilder.Entity("DigitalGoods.API.Models.Inventory", b =>

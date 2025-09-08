@@ -1,7 +1,6 @@
-﻿using Auth.API.Domains.Authentication.ServiceContracts;
-using Auth.API.Domains.Authentication.ServiceContracts.v2;
+﻿using Auth.API.Domains.Authentication.ServiceContracts.Features.v3;
+using Auth.API.Domains.Authentication.ServiceContracts.Shared;
 using Microsoft.AspNetCore.Mvc;
-using IAuthService = Auth.API.Domains.Authentication.ServiceContracts.v2.IAuthService;
 
 namespace Auth.API.Domains.Authentication.Controllers.v1;
 

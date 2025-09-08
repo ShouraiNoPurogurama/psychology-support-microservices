@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.Messaging.Events;
 using BuildingBlocks.Messaging.Events.IntegrationEvents;
 using Notification.API.Data;
-using Notification.API.Domains.Outbox.Models;
+using Notification.API.Models;
 
 namespace Notification.API.Domains.Outbox.Services;
 
