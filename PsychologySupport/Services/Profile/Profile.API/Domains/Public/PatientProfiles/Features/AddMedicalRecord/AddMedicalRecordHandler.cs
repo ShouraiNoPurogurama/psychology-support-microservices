@@ -27,7 +27,7 @@ public class AddMedicalRecordHandler : ICommandHandler<AddMedicalRecordCommand, 
         var patientProfile = await _context.PatientProfiles.FindAsync(request.PatientProfileId);
 
         if (patientProfile == null)
-            throw new ProfileNotFoundException($"Không tìm thấy hồ sơ người dùng với ID {request.PatientProfileId}");
+            throw new ProfileNotFoundException("Không tìm thấy hồ sơ người dùng");
 
         var existingDisorders = await _context.SpecificMentalDisorders
             .Where(s => request.ExistingDisorderIds.Contains(s.Id))

@@ -2,16 +2,12 @@
 using FluentValidation;
 using Profile.API.Domains.PatientProfiles.Dtos;
 
-namespace Profile.API.Domains.PatientProfiles.Validators
+namespace Profile.API.Domains.Public.PatientProfiles.Validators
 {
-    public class UpdatePatientProfileValidator : AbstractValidator<UpdatePatientProfileDto>
+    public class PatchPatientProfileValidator : AbstractValidator<UpdatePatientProfileDto>
     {
-        public UpdatePatientProfileValidator()
+        public PatchPatientProfileValidator()
         {
-            RuleFor(x => x.FullName)
-                .NotEmpty().WithMessage("Không được để trống trường Họ và tên.")
-                .MaximumLength(100).WithMessage("Họ và tên không được vượt quá 100 ký tự.");
-
             RuleFor(x => x.Gender)
                 .IsInEnum().WithMessage("Giới tính không hợp lệ.");
 
@@ -21,9 +17,6 @@ namespace Profile.API.Domains.PatientProfiles.Validators
             RuleFor(x => x.PersonalityTraits)
                 .IsInEnum().WithMessage("Tính cách không hợp lệ.");
 
-            RuleFor(x => x.ContactInfo)
-                .SetValidator(new ContactInfoValidator()!)
-                .When(x => x.ContactInfo is not null);
         }
     }
 

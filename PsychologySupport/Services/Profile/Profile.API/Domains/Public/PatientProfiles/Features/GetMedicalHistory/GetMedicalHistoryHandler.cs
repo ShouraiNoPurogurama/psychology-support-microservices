@@ -27,7 +27,7 @@ public class GetMedicalHistoryHandler : IRequestHandler<GetMedicalHistoryQuery, 
             .ThenInclude(mh => mh.PhysicalSymptoms)
             .FirstOrDefaultAsync(p => p.Id == request.PatientId, cancellationToken);
 
-        if (patient is null) throw new ProfileNotFoundException(request.PatientId);
+        if (patient is null) throw new ProfileNotFoundException();
 
         if (patient.MedicalHistory is null) throw new KeyNotFoundException($"Không tìm thấy hồ sơ y tế cho người dùng {request.PatientId}");
 

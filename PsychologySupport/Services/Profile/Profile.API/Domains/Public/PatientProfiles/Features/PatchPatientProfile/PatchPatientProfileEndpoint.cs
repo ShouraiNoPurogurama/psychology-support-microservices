@@ -1,17 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Profile.API.Common.Helpers;
 using Profile.API.Domains.PatientProfiles.Dtos;
+using Profile.API.Domains.PatientProfiles.Features.UpdatePatientProfile;
 
-namespace Profile.API.Domains.PatientProfiles.Features.UpdatePatientProfile;
+namespace Profile.API.Domains.PatientProfiles.Features.PatchPatientProfile;
 
-public record UpdatePatientProfileRequest(UpdatePatientProfileDto PatientProfileUpdate);
-public record UpdatePatientProfileResponse(Guid Id);
+public record UpdatePatientProfileRequest(UpdatePatientProfileDto PatientProfile);
+public record UpdatePatientProfileResponse(bool IsSuccess);
 
-public class UpdatePatientProfileEndpoint : ICarterModule
+public class PatchPatientProfileEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPut("patients/{id:guid}",
+        app.MapPatch("patients/{id:guid}",
             async ([FromRoute] Guid id,
                    [FromBody] UpdatePatientProfileRequest request,
                    ISender sender, HttpContext httpContext) =>
@@ -20,7 +21,7 @@ public class UpdatePatientProfileEndpoint : ICarterModule
                 if (!AuthorizationHelpers.CanModifyPatientProfile(id, httpContext.User))
                     throw new ForbiddenException();
 
-                var command = new UpdatePatientProfileCommand(id, request.PatientProfileUpdate);
+                var command = new UpdatePatientProfileCommand(id, request.PatientProfile);
                 var result = await sender.Send(command);
                 var response = result.Adapt<UpdatePatientProfileResponse>();
 

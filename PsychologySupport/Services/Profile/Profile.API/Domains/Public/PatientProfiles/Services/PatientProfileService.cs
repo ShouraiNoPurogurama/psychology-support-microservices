@@ -5,7 +5,7 @@ using Profile.API.Models.Pii;
 using Profile.API.Models.Public;
 using Profile.API.Protos;
 
-namespace Profile.API.Domains.PatientProfiles.Services
+namespace Profile.API.Domains.Public.PatientProfiles.Services
 {
     public class PatientProfileService : Protos.PatientProfileService.PatientProfileServiceBase
     {
@@ -35,7 +35,17 @@ namespace Profile.API.Domains.PatientProfiles.Services
                     {
                         Id = Guid.Empty.ToString(),
                         Success = false,
-                        Message = "Invalid user ID."
+                        Message = "Reference không hợp lệ."
+                    };
+                }
+
+                if (!Guid.TryParse(request.JobId, out var jobId))
+                {
+                    return new CreatePatientProfileResponse
+                    {
+                        Id = Guid.Empty.ToString(),
+                        Success = false,
+                        Message = "Công việc được chọn không hợp lệ."
                     };
                 }
 
@@ -65,7 +75,7 @@ namespace Profile.API.Domains.PatientProfiles.Services
                         {
                             Id = Guid.Empty.ToString(),
                             Success = false,
-                            Message = "Invalid gender."
+                            Message = "Giới tính được chọn không hợp lệ."
                         };
                 }
 
@@ -90,7 +100,7 @@ namespace Profile.API.Domains.PatientProfiles.Services
                         {
                             Id = Guid.Empty.ToString(),
                             Success = false,
-                            Message = "Invalid personality trait."
+                            Message = "Đặc điểm tính cách không hợp lệ."
                         };
                 }
 
@@ -122,15 +132,10 @@ namespace Profile.API.Domains.PatientProfiles.Services
                 }
 
                 // Create new profile
-                var newProfile = new PatientProfile
-                {
-                    Id = Guid.NewGuid(),
-                    // UserId = userId,
-                    Allergies = request.Allergies,
-                    PersonalityTraits = personalityTrait,
-                };
+                var newProfile = PatientProfile.Create(userId, request.Allergies, personalityTrait, Guid.Parse(request.JobId));
 
                 var newPiiProfile = PersonProfile.Create(
+                    subjectRef: Guid.NewGuid(),
                     userId: userId,
                     fullName: request.FullName,
                     gender: gender,
@@ -148,8 +153,7 @@ namespace Profile.API.Domains.PatientProfiles.Services
                     AliasId = newAliasId,
                     // UserId = newProfile.UserId
                 };
-
-
+                
                 _piiDbContext.AliasOwnerMaps.Add(newAliasOwner);
                 _piiDbContext.PersonProfiles.Add(newPiiProfile);
                 await _piiDbContext.SaveChangesAsync();
