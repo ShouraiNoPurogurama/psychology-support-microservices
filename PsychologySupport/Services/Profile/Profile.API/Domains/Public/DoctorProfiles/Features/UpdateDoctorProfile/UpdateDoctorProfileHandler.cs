@@ -24,7 +24,7 @@ public class UpdateDoctorProfileHandler : ICommandHandler<UpdateDoctorProfileCom
         var doctorProfile = await _context.DoctorProfiles
             .Include(d => d.Specialties)
             .FirstOrDefaultAsync(d => d.Id == request.Id, cancellationToken)
-            ?? throw new ProfileNotFoundException("Doctor profile", request.Id);
+            ?? throw new ProfileNotFoundException();
 
 
         var specialties = await _context.Specialties

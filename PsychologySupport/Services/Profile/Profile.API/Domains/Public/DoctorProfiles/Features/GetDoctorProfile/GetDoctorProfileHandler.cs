@@ -15,7 +15,7 @@ public class GetDoctorProfileHandler(ProfileDbContext context) : IQueryHandler<G
                                 .Include(d => d.MedicalRecords)
                                 .Include(d => d.Specialties)
                                 .FirstOrDefaultAsync(d => d.Id.Equals(request.Id), cancellationToken)
-                            ?? throw new ProfileNotFoundException("Doctor profile", request.Id);
+                            ?? throw new ProfileNotFoundException();
 
         var doctorProfileDto = doctorProfile.Adapt<DoctorProfileDto>();
 

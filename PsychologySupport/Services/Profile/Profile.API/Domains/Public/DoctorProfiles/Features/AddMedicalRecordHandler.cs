@@ -22,7 +22,7 @@ public class AddMedicalRecordHandler : ICommandHandler<AddMedicalRecordCommand, 
         var doctorProfile = await _context.DoctorProfiles.AsNoTracking()
                                 .Include(d => d.MedicalRecords)
                                 .FirstOrDefaultAsync(d => d.Id.Equals(request.MedicalRecord.DoctorProfileId), cancellationToken)
-                            ?? throw new ProfileNotFoundException("Doctor Profile", request.MedicalRecord.DoctorProfileId);
+                            ?? throw new ProfileNotFoundException();
 
         doctorProfile.AddMedicalRecord(request.MedicalRecord);
 
