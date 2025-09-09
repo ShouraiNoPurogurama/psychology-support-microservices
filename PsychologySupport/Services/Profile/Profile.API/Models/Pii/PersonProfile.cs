@@ -1,21 +1,22 @@
 ﻿using BuildingBlocks.Data.Common;
 using BuildingBlocks.DDD;
+using Profile.API.ValueObjects.Pii;
 
 namespace Profile.API.Models.Pii;
 
 public partial class PersonProfile : IHasCreationAudit, IHasModificationAudit
 {
-    public Guid SubjectRef { get; set; }
-    
-    public Guid UserId { get; set; }
+    public Guid SubjectRef { get; private set; }
 
-    public string? FullName { get; set; }
+    public Guid UserId { get; private set; }
 
-    public UserGender Gender { get; set; }
+    public PersonName FullName { get; private set; }
 
-    public DateOnly? BirthDate { get; set; }
+    public UserGender Gender { get; private set; }
 
-    public ContactInfo ContactInfo { get; set; }
+    public DateOnly? BirthDate { get; private set; }
+
+    public ContactInfo ContactInfo { get; private set; }
 
     public DateTimeOffset? CreatedAt { get; set; }
 
@@ -24,10 +25,11 @@ public partial class PersonProfile : IHasCreationAudit, IHasModificationAudit
     public DateTimeOffset? LastModified { get; set; }
 
     public string? LastModifiedBy { get; set; }
-    
+
     public AliasOwnerMap? AliasOwnerMap { get; set; }
 
     public static PersonProfile Create(
+        Guid subjectRef,
         Guid userId,
         string? fullName,
         UserGender? gender,
@@ -39,18 +41,19 @@ public partial class PersonProfile : IHasCreationAudit, IHasModificationAudit
 
         var entity = new PersonProfile
         {
+            SubjectRef = subjectRef,
             UserId = userId,
-            FullName = fullName,
+            FullName = PersonName.Of(fullName),
             Gender = gender ?? UserGender.Else,
             BirthDate = birthDate,
             ContactInfo = contactInfo
         };
-        
+
         //TODO Public 1 event để validate tên mới xem có vi phạm gì ko
 
         return entity;
     }
-    
+
     public void Update(
         string? fullName,
         UserGender? gender,
@@ -59,17 +62,17 @@ public partial class PersonProfile : IHasCreationAudit, IHasModificationAudit
     {
         if (contactInfo is null) throw new ArgumentNullException(nameof(contactInfo));
 
-        FullName = fullName;
+        FullName = PersonName.Of(fullName);
         Gender = gender ?? Gender;
         BirthDate = birthDate;
         ContactInfo = contactInfo;
-        
+
         //TODO Public 1 event để validate tên mới xem có vi phạm gì ko
     }
 
     public void Rename(string? fullName)
     {
-        FullName = fullName;
+        FullName = PersonName.Of(fullName);
     }
 
     public void ChangeGender(UserGender gender)
@@ -86,8 +89,8 @@ public partial class PersonProfile : IHasCreationAudit, IHasModificationAudit
     {
         ContactInfo = contactInfo ?? throw new ArgumentNullException(nameof(contactInfo));
     }
-    
-    
+
+
     private static DateOnly? ValidateBirthDate(DateOnly? birthDate)
     {
         if (birthDate is null) return null;

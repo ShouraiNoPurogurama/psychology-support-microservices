@@ -57,7 +57,7 @@
 		</Protobuf>
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="Domains\" />
+	  <Folder Include="Domains\Public\" />
 	</ItemGroup>
 
 </Project>
