@@ -1,6 +1,6 @@
-﻿using Profile.API.Domains.PatientProfiles.Exceptions;
+﻿using Profile.API.Domains.Public.PatientProfiles.Exceptions;
 
-namespace Profile.API.Domains.PatientProfiles.Features.UpdatePatientJob;
+namespace Profile.API.Domains.Public.PatientProfiles.Features.UpdatePatientJob;
 
 public record UpdatePatientJobCommand(Guid SubjectRef, Guid JobId) : ICommand<UpdatePatientProfileResult>;
 

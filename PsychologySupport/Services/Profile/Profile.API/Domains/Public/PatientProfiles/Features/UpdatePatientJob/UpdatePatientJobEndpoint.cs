@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Profile.API.Extensions;
 
-namespace Profile.API.Domains.PatientProfiles.Features.UpdatePatientJob;
+namespace Profile.API.Domains.Public.PatientProfiles.Features.UpdatePatientJob;
 
 public record UpdatePatientJobResponse(Guid Id);
 

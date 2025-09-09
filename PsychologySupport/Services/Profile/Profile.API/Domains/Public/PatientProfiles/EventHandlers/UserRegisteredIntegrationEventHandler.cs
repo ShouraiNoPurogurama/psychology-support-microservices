@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Auth;
 
-namespace Profile.API.Domains.PatientProfiles.EventHandlers;
+namespace Profile.API.Domains.Public.PatientProfiles.EventHandlers;
 
 public class UserRegisteredIntegrationEventHandler : IConsumer<UserRegisteredIntegrationEvent>
 {

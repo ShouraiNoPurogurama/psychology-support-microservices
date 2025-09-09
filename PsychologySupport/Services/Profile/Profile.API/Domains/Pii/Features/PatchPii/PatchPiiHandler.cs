@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.Data.Common;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Profile;
 using Profile.API.Data.Pii;
-using Profile.API.Domains.PatientProfiles.Exceptions;
 using Profile.API.Domains.Pii.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Exceptions;
 
 namespace Profile.API.Domains.Pii.Features.PatchPii;
 

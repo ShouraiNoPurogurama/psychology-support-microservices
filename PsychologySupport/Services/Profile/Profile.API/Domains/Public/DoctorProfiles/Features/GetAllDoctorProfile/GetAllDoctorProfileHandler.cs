@@ -1,10 +1,10 @@
 ﻿using BuildingBlocks.Messaging.Events.Queries.Scheduling;
 using BuildingBlocks.Pagination;
 using Microsoft.AspNetCore.Mvc;
-using Profile.API.Domains.DoctorProfiles.Dtos;
+using Profile.API.Domains.Public.DoctorProfiles.Dtos;
 using Profile.API.Models.Public;
 
-namespace Profile.API.Domains.DoctorProfiles.Features.GetAllDoctorProfile;
+namespace Profile.API.Domains.Public.DoctorProfiles.Features.GetAllDoctorProfile;
 
 public record GetAllDoctorProfilesQuery(
     [FromQuery] int PageIndex,

@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.Data.Common;
 using FluentValidation;
-using Profile.API.Domains.PatientProfiles.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Dtos;
 
 namespace Profile.API.Domains.Public.PatientProfiles.Validators
 {

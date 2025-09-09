@@ -1,7 +1,7 @@
-﻿using Profile.API.Domains.MentalDisorders.Dtos;
-using Profile.API.Domains.PatientProfiles.Enum;
+﻿using Profile.API.Domains.Public.MentalDisorders.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Enum;
 
-namespace Profile.API.Domains.PatientProfiles.Dtos;
+namespace Profile.API.Domains.Public.PatientProfiles.Dtos;
 
 public record MedicalRecordDto(
     Guid Id,

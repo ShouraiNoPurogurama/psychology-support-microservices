@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Profile.API.Common.Helpers;
-using Profile.API.Domains.PatientProfiles.Features.AddMedicalRecord;
+using Profile.API.Domains.Public.PatientProfiles.Features.AddMedicalRecord;
 
-namespace Profile.API.Domains.PatientProfiles.Features.AddMedicalHistory;
+namespace Profile.API.Domains.Public.PatientProfiles.Features.AddMedicalHistory;
 
 public record AddMedicalHistoryRequest(
     Guid PatientProfileId,

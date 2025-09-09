@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.Pagination;
 using Microsoft.AspNetCore.Mvc;
-using Profile.API.Domains.MentalDisorders.Dtos;
+using Profile.API.Domains.Public.MentalDisorders.Dtos;
 
-namespace Profile.API.Domains.MentalDisorders.Features.GetAllSpecificMentalDisorders
+namespace Profile.API.Domains.Public.MentalDisorders.Features.GetAllSpecificMentalDisorders
 {
     public record GetAllSpecificMentalDisordersResponse(PaginatedResult<SpecificMentalDisorderDto> SpecificMentalDisorder);
 

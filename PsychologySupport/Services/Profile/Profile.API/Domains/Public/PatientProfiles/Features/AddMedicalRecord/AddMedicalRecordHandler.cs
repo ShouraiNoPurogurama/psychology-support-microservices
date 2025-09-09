@@ -1,7 +1,7 @@
-﻿using Profile.API.Domains.PatientProfiles.Enum;
-using Profile.API.Domains.PatientProfiles.Exceptions;
+﻿using Profile.API.Domains.Public.PatientProfiles.Enum;
+using Profile.API.Domains.Public.PatientProfiles.Exceptions;
 
-namespace Profile.API.Domains.PatientProfiles.Features.AddMedicalRecord;
+namespace Profile.API.Domains.Public.PatientProfiles.Features.AddMedicalRecord;
 
 public record AddMedicalRecordCommand(
     Guid PatientProfileId,

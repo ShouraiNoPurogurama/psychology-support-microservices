@@ -1,9 +1,9 @@
 ﻿using BuildingBlocks.Messaging.Events.Queries.Translation;
-using Profile.API.Domains.PatientProfiles.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Dtos;
 using Profile.API.Extensions;
 using Profile.API.Models.Public;
 
-namespace Profile.API.Domains.PatientProfiles.Features.GetJobByIndustryId
+namespace Profile.API.Domains.Public.PatientProfiles.Features.GetJobByIndustryId
 {
     public record GetJobByIndustryIdQuery(Guid IndustryId) : IQuery<GetJobByIndustryIdResult>;
 

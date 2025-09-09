@@ -2,7 +2,7 @@
 using FluentValidation;
 using Notification.API.Protos;
 using Profile.API.Data.Pii;
-using Profile.API.Domains.DoctorProfiles.Validators;
+using Profile.API.Domains.Public.DoctorProfiles.Validators;
 using Profile.API.Domains.Public.PatientProfiles.Validators;
 
 namespace Profile.API.Extensions;

@@ -1,6 +1,6 @@
 ﻿using Profile.API.Models.Public;
 
-namespace Profile.API.Domains.PatientProfiles.Features.GetTotalPatientProfile
+namespace Profile.API.Domains.Public.PatientProfiles.Features.GetTotalPatientProfile
 {
     public record GetTotalPatientProfileQuery(DateOnly StartDate, DateOnly EndDate, UserGender? Gender = null) : IRequest<int>;
 

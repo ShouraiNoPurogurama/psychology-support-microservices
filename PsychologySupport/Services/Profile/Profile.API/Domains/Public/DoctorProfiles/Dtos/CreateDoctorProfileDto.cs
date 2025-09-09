@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.Data.Common;
 
-namespace Profile.API.Domains.DoctorProfiles.Dtos;
+namespace Profile.API.Domains.Public.DoctorProfiles.Dtos;
 
 public record CreateDoctorProfileDto(
         string FullName,

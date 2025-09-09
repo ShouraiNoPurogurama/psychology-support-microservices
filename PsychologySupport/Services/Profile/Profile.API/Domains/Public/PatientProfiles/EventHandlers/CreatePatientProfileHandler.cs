@@ -1,10 +1,7 @@
-﻿using System.Transactions;
-using BuildingBlocks.Messaging.Events.Queries.Profile;
+﻿using BuildingBlocks.Messaging.Events.Queries.Profile;
 using Profile.API.Data.Pii;
-using Profile.API.Models.Pii;
-using Profile.API.Models.Public;
 
-namespace Profile.API.Domains.PatientProfiles.EventHandlers
+namespace Profile.API.Domains.Public.PatientProfiles.EventHandlers
 {
     public class CreatePatientProfileHandler : IConsumer<CreatePatientProfileRequest>
     {

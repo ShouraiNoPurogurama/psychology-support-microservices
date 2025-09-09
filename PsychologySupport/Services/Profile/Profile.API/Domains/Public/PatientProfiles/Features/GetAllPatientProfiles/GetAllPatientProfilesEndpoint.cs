@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.Pagination;
 using Profile.API.Common.Helpers;
-using Profile.API.Domains.PatientProfiles.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Dtos;
 
-namespace Profile.API.Domains.PatientProfiles.Features.GetAllPatientProfiles;
+namespace Profile.API.Domains.Public.PatientProfiles.Features.GetAllPatientProfiles;
 
 public record GetAllPatientProfilesResponse(PaginatedResult<GetPatientProfileDto> PaginatedResult);
 

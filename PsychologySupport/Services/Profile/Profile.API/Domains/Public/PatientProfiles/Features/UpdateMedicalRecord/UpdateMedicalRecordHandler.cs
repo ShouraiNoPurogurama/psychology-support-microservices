@@ -1,6 +1,6 @@
-﻿using Profile.API.Domains.PatientProfiles.Enum;
+﻿using Profile.API.Domains.Public.PatientProfiles.Enum;
 
-namespace Profile.API.Domains.PatientProfiles.Features.UpdateMedicalRecord;
+namespace Profile.API.Domains.Public.PatientProfiles.Features.UpdateMedicalRecord;
 
 public record UpdateMedicalRecordCommand(
     Guid PatientProfileId,

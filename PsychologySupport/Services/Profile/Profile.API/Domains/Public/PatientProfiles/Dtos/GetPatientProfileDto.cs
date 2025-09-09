@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.Data.Common;
 using Profile.API.Models.Public;
 
-namespace Profile.API.Domains.PatientProfiles.Dtos;
+namespace Profile.API.Domains.Public.PatientProfiles.Dtos;
 
 public record GetPatientProfileDto(
     Guid Id,

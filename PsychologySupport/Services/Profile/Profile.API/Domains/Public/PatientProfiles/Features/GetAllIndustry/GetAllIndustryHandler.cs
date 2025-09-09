@@ -1,11 +1,11 @@
 ﻿using BuildingBlocks.Messaging.Events.Queries.Translation;
 using BuildingBlocks.Pagination;
 using Microsoft.AspNetCore.Mvc;
-using Profile.API.Domains.PatientProfiles.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Dtos;
 using Profile.API.Extensions;
 using Profile.API.Models.Public;
 
-namespace Profile.API.Domains.PatientProfiles.Features.GetAllIndustry
+namespace Profile.API.Domains.Public.PatientProfiles.Features.GetAllIndustry
 {
     public record GetAllIndustryQuery(
     [FromQuery] int PageIndex = 1,

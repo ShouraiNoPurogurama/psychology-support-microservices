@@ -1,9 +1,8 @@
 ﻿using BuildingBlocks.Data.Common;
 using BuildingBlocks.Messaging.Events.Queries.Profile;
 using Profile.API.Data.Pii;
-using Profile.API.Models.Public;
 
-namespace Profile.API.Domains.PatientProfiles.EventHandlers;
+namespace Profile.API.Domains.Public.PatientProfiles.EventHandlers;
 
 public class GetPatientProfileHandler(ProfileDbContext dbContext, PiiDbContext piiDbContext)
     : IConsumer<GetPatientProfileRequest>

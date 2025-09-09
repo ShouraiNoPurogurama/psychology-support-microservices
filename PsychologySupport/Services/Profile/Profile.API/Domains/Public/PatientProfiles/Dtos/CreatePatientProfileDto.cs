@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.Data.Common;
 
-namespace Profile.API.Domains.PatientProfiles.Dtos;
+namespace Profile.API.Domains.Public.PatientProfiles.Dtos;
 
 public record CreatePatientProfileDto(
     Guid AliasId,

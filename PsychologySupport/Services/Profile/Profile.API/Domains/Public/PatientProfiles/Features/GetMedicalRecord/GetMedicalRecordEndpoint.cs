@@ -1,7 +1,7 @@
 ﻿using Profile.API.Common.Helpers;
-using Profile.API.Domains.PatientProfiles.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Dtos;
 
-namespace Profile.API.Domains.PatientProfiles.Features.GetMedicalRecord
+namespace Profile.API.Domains.Public.PatientProfiles.Features.GetMedicalRecord
 {
     public record GetMedicalRecordRequest(Guid MedicalRecordId);
 

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Profile.API.Domains.DoctorProfiles.Dtos;
+using Profile.API.Domains.Public.DoctorProfiles.Dtos;
 
-namespace Profile.API.Domains.DoctorProfiles.Features.CreateDoctorProfile;
+namespace Profile.API.Domains.Public.DoctorProfiles.Features.CreateDoctorProfile;
 
 public record CreateDoctorProfileRequest(CreateDoctorProfileDto DoctorProfile);
 

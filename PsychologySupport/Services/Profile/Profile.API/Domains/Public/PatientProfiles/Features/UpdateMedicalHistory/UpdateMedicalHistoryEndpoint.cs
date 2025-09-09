@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Profile.API.Common.Helpers;
 
-namespace Profile.API.Domains.PatientProfiles.Features.UpdateMedicalHistory;
+namespace Profile.API.Domains.Public.PatientProfiles.Features.UpdateMedicalHistory;
 
 public record UpdateMedicalHistoryRequest(
     Guid PatientProfileId,

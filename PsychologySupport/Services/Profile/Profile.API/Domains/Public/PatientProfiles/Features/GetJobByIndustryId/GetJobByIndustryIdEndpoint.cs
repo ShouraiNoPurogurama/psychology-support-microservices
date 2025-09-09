@@ -1,6 +1,6 @@
-﻿using Profile.API.Domains.PatientProfiles.Dtos;
+﻿using Profile.API.Domains.Public.PatientProfiles.Dtos;
 
-namespace Profile.API.Domains.PatientProfiles.Features.GetJobByIndustryId
+namespace Profile.API.Domains.Public.PatientProfiles.Features.GetJobByIndustryId
 {
     public record GetJobByIndustryIdResponse(List<JobDto> Jobs);
 

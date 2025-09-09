@@ -1,4 +1,4 @@
-﻿namespace Profile.API.Domains.MentalDisorders.Dtos;
+﻿namespace Profile.API.Domains.Public.MentalDisorders.Dtos;
 
 public record SpecificMentalDisorderDto(
     Guid Id,

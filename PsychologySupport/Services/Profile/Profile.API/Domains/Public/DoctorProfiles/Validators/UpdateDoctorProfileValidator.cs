@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.Data.Common;
 using FluentValidation;
-using Profile.API.Domains.DoctorProfiles.Dtos;
+using Profile.API.Domains.Public.DoctorProfiles.Dtos;
 
-namespace Profile.API.Domains.DoctorProfiles.Validators
+namespace Profile.API.Domains.Public.DoctorProfiles.Validators
 {
     public class UpdateDoctorProfileValidator : AbstractValidator<UpdateDoctorProfileDto>
     {

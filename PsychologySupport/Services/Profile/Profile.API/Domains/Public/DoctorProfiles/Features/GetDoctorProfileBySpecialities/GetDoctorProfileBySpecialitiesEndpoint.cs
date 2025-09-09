@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.Pagination;
 using Microsoft.AspNetCore.Mvc;
-using Profile.API.Domains.DoctorProfiles.Dtos;
+using Profile.API.Domains.Public.DoctorProfiles.Dtos;
 
-namespace Profile.API.Domains.DoctorProfiles.Features.GetDoctorProfileBySpecialities;
+namespace Profile.API.Domains.Public.DoctorProfiles.Features.GetDoctorProfileBySpecialities;
 
 public record GetDoctorsBySpecialitiesResponse(PaginatedResult<DoctorProfileDto> DoctorProfiles);
 

@@ -1,7 +1,7 @@
 ﻿using Profile.API.Common.Helpers;
-using Profile.API.Domains.PatientProfiles.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Dtos;
 
-namespace Profile.API.Domains.PatientProfiles.Features.GetMedicalHistory;
+namespace Profile.API.Domains.Public.PatientProfiles.Features.GetMedicalHistory;
 
 public record GetMedicalHistoryRequest(Guid PatientId);
 

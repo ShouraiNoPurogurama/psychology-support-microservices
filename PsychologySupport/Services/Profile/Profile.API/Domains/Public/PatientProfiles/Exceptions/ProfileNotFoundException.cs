@@ -1,4 +1,4 @@
-﻿namespace Profile.API.Domains.PatientProfiles.Exceptions;
+﻿namespace Profile.API.Domains.Public.PatientProfiles.Exceptions;
 
 public class ProfileNotFoundException : NotFoundException
 {

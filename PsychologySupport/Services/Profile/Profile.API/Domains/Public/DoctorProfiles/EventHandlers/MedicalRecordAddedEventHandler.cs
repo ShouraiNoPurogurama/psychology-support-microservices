@@ -1,7 +1,7 @@
-﻿using Profile.API.Domains.DoctorProfiles.Features;
-using Profile.API.Domains.PatientProfiles.Events;
+﻿using Profile.API.Domains.Public.DoctorProfiles.Features;
+using Profile.API.Domains.Public.PatientProfiles.Events;
 
-namespace Profile.API.Domains.DoctorProfiles.EventHandlers;
+namespace Profile.API.Domains.Public.DoctorProfiles.EventHandlers;
 
 public class MedicalRecordAddedEventHandler(IBus bus, ISender sender, ILogger<MedicalRecordAddedEventHandler> logger)
     : INotificationHandler<MedicalRecordAddedEvent>

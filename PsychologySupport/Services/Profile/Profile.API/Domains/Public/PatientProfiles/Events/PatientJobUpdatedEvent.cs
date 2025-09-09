@@ -1,5 +1,5 @@
 ﻿using BuildingBlocks.DDD;
 
-namespace Profile.API.Domains.PatientProfiles.Events;
+namespace Profile.API.Domains.Public.PatientProfiles.Events;
 
 public record PatientJobUpdatedEvent(Guid SubjectRef, Guid? JobId) : IDomainEvent;

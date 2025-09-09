@@ -1,4 +1,4 @@
-﻿namespace Profile.API.Domains.PatientProfiles.Dtos;
+﻿namespace Profile.API.Domains.Public.PatientProfiles.Dtos;
 
 public record UpdatePatientProfileDto(
     UserGender? Gender,

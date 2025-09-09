@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Profile.API.Common.Helpers;
-using Profile.API.Domains.PatientProfiles.Dtos;
-using Profile.API.Domains.PatientProfiles.Features.UpdatePatientProfile;
+using Profile.API.Domains.Public.PatientProfiles.Dtos;
 
-namespace Profile.API.Domains.PatientProfiles.Features.PatchPatientProfile;
+namespace Profile.API.Domains.Public.PatientProfiles.Features.PatchPatientProfile;
 
 public record UpdatePatientProfileRequest(UpdatePatientProfileDto PatientProfile);
 public record UpdatePatientProfileResponse(bool IsSuccess);

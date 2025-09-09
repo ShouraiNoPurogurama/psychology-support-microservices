@@ -1,7 +1,7 @@
-﻿using Profile.API.Domains.PatientProfiles.Exceptions;
+﻿using Profile.API.Domains.Public.PatientProfiles.Exceptions;
 using Profile.API.Models.Public;
 
-namespace Profile.API.Domains.DoctorProfiles.Features;
+namespace Profile.API.Domains.Public.DoctorProfiles.Features;
 
 public record AddMedicalRecordCommand(MedicalRecord MedicalRecord)
     : ICommand<AddMedicalRecordResult>;

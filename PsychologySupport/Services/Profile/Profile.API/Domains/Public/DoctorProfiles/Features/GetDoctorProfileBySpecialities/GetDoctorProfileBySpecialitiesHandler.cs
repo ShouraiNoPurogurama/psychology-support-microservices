@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.Pagination;
-using Profile.API.Domains.DoctorProfiles.Dtos;
+using Profile.API.Domains.Public.DoctorProfiles.Dtos;
 
-namespace Profile.API.Domains.DoctorProfiles.Features.GetDoctorProfileBySpecialities;
+namespace Profile.API.Domains.Public.DoctorProfiles.Features.GetDoctorProfileBySpecialities;
 
 public record GetDoctorProfileBySpecialitiesQuery(string Specialties, PaginationRequest Request)
     : IQuery<GetDoctorProfileBySpecialitiesResult>;

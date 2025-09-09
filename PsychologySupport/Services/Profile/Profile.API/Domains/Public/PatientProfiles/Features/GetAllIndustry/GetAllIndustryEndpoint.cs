@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.Pagination;
-using Profile.API.Domains.PatientProfiles.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Dtos;
 
-namespace Profile.API.Domains.PatientProfiles.Features.GetAllIndustry;
+namespace Profile.API.Domains.Public.PatientProfiles.Features.GetAllIndustry;
 
 public record GetAllIndustryResponse(PaginatedResult<IndustryDto> Industries);
 

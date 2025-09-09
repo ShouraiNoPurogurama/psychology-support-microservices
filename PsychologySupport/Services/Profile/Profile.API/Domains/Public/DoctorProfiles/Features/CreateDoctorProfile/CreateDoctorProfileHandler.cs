@@ -1,9 +1,9 @@
 ﻿using BuildingBlocks.Data.Common;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Profile;
-using Profile.API.Domains.DoctorProfiles.Dtos;
+using Profile.API.Domains.Public.DoctorProfiles.Dtos;
 using Profile.API.Models.Public;
 
-namespace Profile.API.Domains.DoctorProfiles.Features.CreateDoctorProfile;
+namespace Profile.API.Domains.Public.DoctorProfiles.Features.CreateDoctorProfile;
 
 public record CreateDoctorProfileCommand(CreateDoctorProfileDto DoctorProfile) : ICommand<CreateDoctorProfileResult>;
 

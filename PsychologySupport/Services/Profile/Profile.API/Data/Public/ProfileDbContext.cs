@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Profile.API.Domains.PatientProfiles.Enum;
+using Profile.API.Domains.Public.PatientProfiles.Enum;
 using Profile.API.Models.Public;
 
 namespace Profile.API.Data.Public;

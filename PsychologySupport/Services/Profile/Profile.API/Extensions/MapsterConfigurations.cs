@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
-using Profile.API.Domains.DoctorProfiles.Dtos;
-using Profile.API.Domains.MentalDisorders.Dtos;
-using Profile.API.Domains.PatientProfiles.Dtos;
+using Profile.API.Domains.Public.DoctorProfiles.Dtos;
+using Profile.API.Domains.Public.MentalDisorders.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Dtos;
 using Profile.API.Models.Public;
 
 namespace Profile.API.Extensions;

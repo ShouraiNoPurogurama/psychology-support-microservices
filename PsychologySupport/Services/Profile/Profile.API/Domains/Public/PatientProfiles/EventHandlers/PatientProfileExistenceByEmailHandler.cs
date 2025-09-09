@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.Messaging.Events.Queries.Profile;
 using Profile.API.Data.Pii;
 
-namespace Profile.API.Domains.PatientProfiles.EventHandlers;
+namespace Profile.API.Domains.Public.PatientProfiles.EventHandlers;
 
 public class PatientProfileExistenceByEmailHandler : IConsumer<PatientProfileExistenceByEmailRequest>
 {

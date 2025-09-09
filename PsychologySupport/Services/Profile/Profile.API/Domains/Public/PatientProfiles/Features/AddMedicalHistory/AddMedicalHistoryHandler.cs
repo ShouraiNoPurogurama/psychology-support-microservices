@@ -1,6 +1,6 @@
 ﻿using Profile.API.Models.Public;
 
-namespace Profile.API.Domains.PatientProfiles.Features.AddMedicalHistory;
+namespace Profile.API.Domains.Public.PatientProfiles.Features.AddMedicalHistory;
 
 public record AddMedicalHistoryCommand(
     Guid PatientProfileId,

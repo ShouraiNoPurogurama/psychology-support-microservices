@@ -1,7 +1,7 @@
-﻿using Profile.API.Domains.DoctorProfiles.Dtos;
-using Profile.API.Domains.PatientProfiles.Exceptions;
+﻿using Profile.API.Domains.Public.DoctorProfiles.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Exceptions;
 
-namespace Profile.API.Domains.DoctorProfiles.Features.GetDoctorProfile;
+namespace Profile.API.Domains.Public.DoctorProfiles.Features.GetDoctorProfile;
 
 public record GetDoctorProfileQuery(Guid Id) : IQuery<GetDoctorProfileResult>;
 

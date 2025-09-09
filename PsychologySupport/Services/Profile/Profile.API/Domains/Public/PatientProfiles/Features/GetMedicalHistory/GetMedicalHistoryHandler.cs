@@ -1,8 +1,8 @@
-﻿using Profile.API.Domains.MentalDisorders.Dtos;
-using Profile.API.Domains.PatientProfiles.Dtos;
-using Profile.API.Domains.PatientProfiles.Exceptions;
+﻿using Profile.API.Domains.Public.MentalDisorders.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Exceptions;
 
-namespace Profile.API.Domains.PatientProfiles.Features.GetMedicalHistory;
+namespace Profile.API.Domains.Public.PatientProfiles.Features.GetMedicalHistory;
 
 public record GetMedicalHistoryQuery(Guid PatientId) : IQuery<GetMedicalHistoryResult>;
 

@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.DDD;
 using BuildingBlocks.Utils;
-using Profile.API.Domains.PatientProfiles.Enum;
-using Profile.API.Domains.PatientProfiles.Events;
+using Profile.API.Domains.Public.PatientProfiles.Enum;
+using Profile.API.Domains.Public.PatientProfiles.Events;
 
 namespace Profile.API.Models.Public;
 

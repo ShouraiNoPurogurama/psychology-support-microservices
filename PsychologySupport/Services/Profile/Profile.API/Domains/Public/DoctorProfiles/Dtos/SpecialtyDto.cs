@@ -1,4 +1,4 @@
-﻿namespace Profile.API.Domains.DoctorProfiles.Dtos;
+﻿namespace Profile.API.Domains.Public.DoctorProfiles.Dtos;
 
 public record SpecialtyDto(
     Guid Id,

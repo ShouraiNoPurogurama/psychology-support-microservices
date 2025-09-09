@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Profile.API.Domains.DoctorProfiles.Dtos;
+using Profile.API.Domains.Public.DoctorProfiles.Dtos;
 
-namespace Profile.API.Domains.DoctorProfiles.Features.UpdateDoctorProfile;
+namespace Profile.API.Domains.Public.DoctorProfiles.Features.UpdateDoctorProfile;
 
 public record UpdateDoctorProfileRequest(UpdateDoctorProfileDto DoctorProfileUpdate);
 public record UpdateDoctorProfileResponse(Guid Id);

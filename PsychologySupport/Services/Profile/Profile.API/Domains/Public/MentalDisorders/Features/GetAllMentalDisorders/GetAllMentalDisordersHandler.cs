@@ -1,10 +1,10 @@
 ﻿using BuildingBlocks.Messaging.Events.Queries.Translation;
 using BuildingBlocks.Pagination;
-using Profile.API.Domains.MentalDisorders.Dtos;
+using Profile.API.Domains.Public.MentalDisorders.Dtos;
 using Profile.API.Extensions;
 using Profile.API.Models.Public;
 
-namespace Profile.API.Domains.MentalDisorders.Features.GetAllMentalDisorders
+namespace Profile.API.Domains.Public.MentalDisorders.Features.GetAllMentalDisorders
 {
     public record GetAllMentalDisordersQuery(PaginationRequest PaginationRequest) : IQuery<GetAllMentalDisordersResult>;
 

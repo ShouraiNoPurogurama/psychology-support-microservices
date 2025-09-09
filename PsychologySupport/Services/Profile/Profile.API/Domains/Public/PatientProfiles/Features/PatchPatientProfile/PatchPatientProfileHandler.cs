@@ -1,7 +1,7 @@
-﻿using Profile.API.Domains.PatientProfiles.Dtos;
-using Profile.API.Domains.PatientProfiles.Exceptions;
+﻿using Profile.API.Domains.Public.PatientProfiles.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Exceptions;
 
-namespace Profile.API.Domains.PatientProfiles.Features.UpdatePatientProfile;
+namespace Profile.API.Domains.Public.PatientProfiles.Features.PatchPatientProfile;
 
 public record UpdatePatientProfileCommand(Guid SubjectRef, UpdatePatientProfileDto PatientProfileUpdate)
     : ICommand<UpdatePatientProfileResult>;

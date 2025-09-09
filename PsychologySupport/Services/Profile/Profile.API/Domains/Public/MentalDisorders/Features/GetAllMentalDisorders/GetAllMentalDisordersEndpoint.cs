@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.Pagination;
-using Profile.API.Domains.MentalDisorders.Dtos;
+using Profile.API.Domains.Public.MentalDisorders.Dtos;
 
-namespace Profile.API.Domains.MentalDisorders.Features.GetAllMentalDisorders
+namespace Profile.API.Domains.Public.MentalDisorders.Features.GetAllMentalDisorders
 {
     public record GetAllMentalDisordersResponse(PaginatedResult<MentalDisorderDto> PaginatedResult);
 

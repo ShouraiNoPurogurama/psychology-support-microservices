@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace Profile.API.Domains.PatientProfiles.Features.GetTotalPatientProfile
+namespace Profile.API.Domains.Public.PatientProfiles.Features.GetTotalPatientProfile
 {
     public class GetTotalPatientProfileEndpoint : ICarterModule
     {

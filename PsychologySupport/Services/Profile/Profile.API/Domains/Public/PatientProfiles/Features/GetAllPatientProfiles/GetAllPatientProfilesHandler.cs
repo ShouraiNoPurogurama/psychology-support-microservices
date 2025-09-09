@@ -1,9 +1,9 @@
 ﻿using BuildingBlocks.Pagination;
 using Profile.API.Data.Pii;
-using Profile.API.Domains.PatientProfiles.Dtos;
-using Profile.API.Domains.PatientProfiles.Enum;
+using Profile.API.Domains.Public.PatientProfiles.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Enum;
 
-namespace Profile.API.Domains.PatientProfiles.Features.GetAllPatientProfiles;
+namespace Profile.API.Domains.Public.PatientProfiles.Features.GetAllPatientProfiles;
 
 public record GetAllPatientProfilesQuery(
     int PageIndex,

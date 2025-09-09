@@ -1,4 +1,4 @@
-﻿namespace Profile.API.Domains.PatientProfiles.Features.UpdateMedicalHistory;
+﻿namespace Profile.API.Domains.Public.PatientProfiles.Features.UpdateMedicalHistory;
 
 public record UpdateMedicalHistoryCommand(
     Guid PatientProfileId,

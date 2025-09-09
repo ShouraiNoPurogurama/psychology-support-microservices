@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.Messaging.Events.Queries.Profile;
-using Profile.API.Domains.PatientProfiles.Features.GetPatientProfile;
+using Profile.API.Domains.Public.PatientProfiles.Features.GetPatientProfile;
 
-namespace Profile.API.Domains.PatientProfiles.EventHandlers;
+namespace Profile.API.Domains.Public.PatientProfiles.EventHandlers;
 
 public class AggregatePatientProfileRequestHandler(ISender sender, ILogger<AggregatePatientProfileRequestHandler> logger) : IConsumer<AggregatePatientProfileRequest>
 {

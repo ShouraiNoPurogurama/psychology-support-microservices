@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.Pagination;
-using Profile.API.Domains.PatientProfiles.Dtos;
+using Profile.API.Domains.Public.PatientProfiles.Dtos;
 using Profile.API.Models.Public;
 
-namespace Profile.API.Domains.PatientProfiles.Features.GetAllPhysicalSymptom
+namespace Profile.API.Domains.Public.PatientProfiles.Features.GetAllPhysicalSymptom
 {
     public record GetAllPhysicalSymptomQuery(
     int PageIndex,
