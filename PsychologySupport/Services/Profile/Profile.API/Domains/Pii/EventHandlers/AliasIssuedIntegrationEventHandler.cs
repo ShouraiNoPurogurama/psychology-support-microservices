@@ -11,8 +11,13 @@ public class AliasIssuedIntegrationEventHandler(ISender sender, ILogger<AliasIss
     {
         var msg = context.Message;
 
+        Dictionary<string, string[]> errors = new();
+        
         if (msg.AliasId == Guid.Empty || msg.SubjectRef == Guid.Empty)
-            throw new ValidationException("AliasId/SubjectRef không hợp lệ.");
+            errors.Add("INVALID_ALIAS_ISSUED_EVENT", ["Dữ liệu Id bí danh hoặc Reference không hợp lệ."]);
+
+        if (errors.Count > 0)
+            throw new CustomValidationException(errors);
 
         logger.LogInformation("Consuming AliasIssued: {MessageId} alias={AliasId} subjectRef={SubjectRef}",
             context.MessageId, msg.AliasId, msg.SubjectRef);
