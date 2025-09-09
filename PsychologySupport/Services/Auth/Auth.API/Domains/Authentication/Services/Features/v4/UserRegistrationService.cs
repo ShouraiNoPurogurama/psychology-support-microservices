@@ -85,7 +85,7 @@ public class UserRegistrationService(
             user.EmailConfirmed = true;
             await userManager.UpdateAsync(user);
 
-            await CreateUserProfileAsync(user);
+            await RaiseUserRegisteredEventAsync(user);
 
             message = "Xác nhận email thành công.";
         }
@@ -108,7 +108,7 @@ public class UserRegistrationService(
             throw new InvalidDataException("Gán vai trò thất bại");
     }
 
-    private async Task CreateUserProfileAsync(User user)
+    private async Task RaiseUserRegisteredEventAsync(User user)
     {
         var pendingUser = await authDbContext.PendingVerificationUsers
                               .FirstOrDefaultAsync(p => p.UserId == user.Id && p.ProcessedAt == null)
