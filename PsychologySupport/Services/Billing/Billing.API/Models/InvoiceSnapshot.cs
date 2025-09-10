@@ -1,12 +1,11 @@
-﻿using System;
+﻿using BuildingBlocks.DDD;
+using System;
 using System.Collections.Generic;
 
-namespace Billing.API.Domains.Billings.Models;
+namespace Billing.API.Models;
 
-public partial class InvoiceSnapshot
+public partial class InvoiceSnapshot : AuditableEntity<Guid>
 {
-    public Guid Id { get; set; }
-
     public Guid InvoiceId { get; set; }
 
     public string OrderType { get; set; } = null!;
@@ -20,14 +19,6 @@ public partial class InvoiceSnapshot
     public decimal TotalAmount { get; set; }
 
     public decimal? TaxAmount { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public Guid CreatedBy { get; set; }
-
-    public DateTime LastModified { get; set; }
-
-    public Guid LastModifiedBy { get; set; }
 
     public virtual Invoice Invoice { get; set; } = null!;
 
