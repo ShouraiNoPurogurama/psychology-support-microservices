@@ -1,20 +1,20 @@
+using Billing.API.Abstractions;
 using Billing.API.Models;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Services;
 using Microsoft.EntityFrameworkCore;
-using StackExchange.Redis;
 using System.Text.Json;
 
 namespace Billing.API.Domains.Idempotency;
 
 public sealed class IdempotencyService : IIdempotencyService
 {
-    private readonly IDatabase _redis;
+    private readonly IRedisCache _redisCache;
     private readonly DbContext _dbContext;
 
-    public IdempotencyService(IConnectionMultiplexer redis, DbContext dbContext)
+    public IdempotencyService(IRedisCache redisCache, DbContext dbContext)
     {
-        _redis = redis.GetDatabase();
+        _redisCache = redisCache;
         _dbContext = dbContext;
     }
 
@@ -25,26 +25,17 @@ public sealed class IdempotencyService : IIdempotencyService
         var redisKey = $"idempotency:{requestKey}";
 
         // Check Redis
-        var redisValue = await _redis.StringGetAsync(redisKey);
-        if (redisValue.HasValue)
+        var existing = await _redisCache.GetCacheDataAsync<IdempotencyKey>(redisKey);
+        if (existing != null)
         {
-            var existing = JsonSerializer.Deserialize<IdempotencyKey>(redisValue!);
-            if (existing != null)
-            {
-                return true;
-            }
+            return true;
         }
 
         // Check DB
         var dbKey = await _dbContext.Set<IdempotencyKey>()
             .FirstOrDefaultAsync(k => k.Key == requestKey, cancellationToken);
 
-        if (dbKey != null)
-        {
-            return true;
-        }
-
-        return false;
+        return dbKey != null;
     }
 
     public async Task<Guid> CreateRequestAsync(
@@ -63,7 +54,7 @@ public sealed class IdempotencyService : IIdempotencyService
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         var redisKey = $"idempotency:{requestKey}";
-        await _redis.StringSetAsync(redisKey, JsonSerializer.Serialize(idKey), TimeSpan.FromHours(12));
+        await _redisCache.SetCacheDataAsync(redisKey, idKey, TimeSpan.FromHours(12));
 
         return idKey.Id;
     }
@@ -83,6 +74,6 @@ public sealed class IdempotencyService : IIdempotencyService
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         var redisKey = $"idempotency:{requestKey}";
-        await _redis.StringSetAsync(redisKey, JsonSerializer.Serialize(dbKey), TimeSpan.FromHours(12));
+        await _redisCache.SetCacheDataAsync(redisKey, dbKey, TimeSpan.FromHours(12));
     }
 }

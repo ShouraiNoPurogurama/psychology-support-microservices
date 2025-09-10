@@ -1,16 +1,18 @@
-﻿using BuildingBlocks.Behaviors;
+﻿using Billing.API.Data;
+using Billing.API.Domains.Idempotency;
+using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Exceptions.Handler;
 using BuildingBlocks.Messaging.MassTransit;
+using BuildingBlocks.Services;
 using Carter;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
-using Microsoft.EntityFrameworkCore;
 using Promotion.Grpc;
+using StackExchange.Redis;
 using Translation.API.Protos;
-using Billing.API.Data;
-using BuildingBlocks.Services;
-using Billing.API.Domains.Idempotency;
+//using Billing.API.Domains.Idempotency;
 
 namespace Billing.API.Extensions
 {
@@ -41,6 +43,8 @@ namespace Billing.API.Extensions
             AddServiceDependencies(services);
 
             AddGrpcServiceDependencies(services, config);
+
+            AddRedisCache(services, config);
 
             //services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
@@ -170,6 +174,14 @@ namespace Billing.API.Extensions
         {
             var connectionString = config.GetConnectionString("BillingDb");
             return connectionString;
+        }
+
+        private static void AddRedisCache(IServiceCollection services, IConfiguration config)
+        {
+            services.AddSingleton<IConnectionMultiplexer>(x =>
+                ConnectionMultiplexer.Connect(config.GetSection("Redis:RedisUrl").Value!));
+
+            var redisConnectionString = config.GetConnectionString("Redis");
         }
     }
 }

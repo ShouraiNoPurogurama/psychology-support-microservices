@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Billing.API.Models;
 
-public partial class InvoiceSnapshot : Entity<Guid>
+public partial class InvoiceSnapshot : AuditableEntity<Guid>
 {
     public Guid InvoiceId { get; set; }
 
@@ -19,14 +19,6 @@ public partial class InvoiceSnapshot : Entity<Guid>
     public decimal TotalAmount { get; set; }
 
     public decimal? TaxAmount { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public Guid CreatedBy { get; set; }
-
-    public DateTime LastModified { get; set; }
-
-    public Guid LastModifiedBy { get; set; }
 
     public virtual Invoice Invoice { get; set; } = null!;
 

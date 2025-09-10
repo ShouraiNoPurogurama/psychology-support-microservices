@@ -7,7 +7,7 @@ namespace Billing.API.Models;
 
 public partial class Order : AggregateRoot<Guid>
 {
-    public Guid Subject_ref { get; private set; }
+    public Guid SubjectRef { get; private set; }
     public string OrderType { get; private set; } = null!;
     public string ProductCode { get; private set; } = null!;
     public decimal Amount { get; private set; }
@@ -17,10 +17,6 @@ public partial class Order : AggregateRoot<Guid>
     public Guid? PaymentId { get; set; }
     public Guid? InvoiceId { get; set; }
     public Guid? IdempotencyKeyId { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    public Guid CreatedBy { get; private set; }
-    public DateTime LastModified { get; private set; }
-    public Guid LastModifiedBy { get; private set; }
 
     public virtual IdempotencyKey? IdempotencyKey { get; set; }
     public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
@@ -37,11 +33,11 @@ public partial class Order : AggregateRoot<Guid>
         string? promoCode,
         string status,
         Guid? idempotencyKeyId,
-        Guid createdBy,
-        Guid lastModifiedBy)
+        string createdBy,
+        string lastModifiedBy)
     {
         Id = id;
-        Subject_ref = subject_ref;
+        SubjectRef = subject_ref;
         OrderType = orderType;
         ProductCode = productCode;
         Amount = amount;
@@ -63,7 +59,7 @@ public partial class Order : AggregateRoot<Guid>
         string currency,
         string? promoCode,
         Guid? idempotencyKeyId,
-        Guid createdBy)
+        string createdBy)
     {
         // Validations
 

@@ -23,8 +23,7 @@
 
   <ItemGroup>
     <Folder Include="Data\Common\" />
-    <Folder Include="Domains\Billings\Features\GetOrder\" />
-    <Folder Include="Domains\Billings\Features\GetOrders\" />
+    <Folder Include="Domains\Billings\Features\GetInvoice\" />
   </ItemGroup>
 
   <ItemGroup>

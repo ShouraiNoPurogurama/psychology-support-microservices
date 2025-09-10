@@ -56,13 +56,6 @@ public partial class BillingDbContext : DbContext
             entity.Property(e => e.Key)
                 .HasColumnName("key");
 
-            entity.Property(e => e.LastModified)
-                .HasDefaultValueSql("now()")
-                .HasColumnName("last_modified");
-
-            entity.Property(e => e.LastModifiedBy)
-                .HasColumnName("last_modified_by");
-
             entity.Property(e => e.RequestHash)
                 .HasMaxLength(128)
                 .HasColumnName("request_hash");
@@ -84,7 +77,7 @@ public partial class BillingDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
-            entity.Property(e => e.Subject_ref).HasColumnName("subject_ref");
+            entity.Property(e => e.SubjectRef).HasColumnName("subject_ref");
             entity.Property(e => e.Amount)
                 .HasPrecision(15, 2)
                 .HasColumnName("amount");
@@ -215,7 +208,7 @@ public partial class BillingDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
-            entity.Property(e => e.Subject_ref).HasColumnName("subject_ref");
+            entity.Property(e => e.SubjectRef).HasColumnName("subject_ref");
             entity.Property(e => e.Amount)
                 .HasPrecision(15, 2)
                 .HasColumnName("amount");

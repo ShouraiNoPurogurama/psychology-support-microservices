@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Billing.API.Models;
 
-public partial class IdempotencyKey : Entity<Guid>
+public partial class IdempotencyKey : Entity<Guid>, IHasCreationAudit
 {
     public Guid Key { get; set; }
 
@@ -14,13 +14,7 @@ public partial class IdempotencyKey : Entity<Guid>
 
     public DateTime ExpiresAt { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public Guid CreatedBy { get; set; }
-
-    public DateTime LastModified { get; set; }
-
-    public Guid LastModifiedBy { get; set; }
-
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+    public DateTimeOffset? CreatedAt { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public string? CreatedBy { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 }
