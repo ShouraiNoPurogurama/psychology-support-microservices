@@ -349,6 +349,7 @@ public class AuthService(
         var pendingSeedDto = payloadProtector.Unprotect<PendingSeedDto>(pendingUser.PayloadProtected);
 
         var userRegisteredIntegrationEvent = new UserRegisteredIntegrationEvent(
+            SeedSubjectRef: Guid.NewGuid(),
             UserId: user.Id,
             Email: pendingSeedDto.ContactInfo!.Email,
             PhoneNumber: pendingSeedDto.ContactInfo.PhoneNumber,

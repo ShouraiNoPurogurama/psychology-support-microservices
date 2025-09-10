@@ -108,6 +108,7 @@ message PersonSeedDto {
   optional UserGender gender = 2;
   optional google.protobuf.Timestamp birth_date = 3; // ISO 8601 format
   optional ContactInfo contact_info = 4;
+  optional string subject_ref = 5; //UUID string
 }
 
 

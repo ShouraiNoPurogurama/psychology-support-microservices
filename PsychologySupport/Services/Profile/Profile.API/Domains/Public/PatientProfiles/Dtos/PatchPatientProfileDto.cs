@@ -1,6 +1,6 @@
 ﻿namespace Profile.API.Domains.Public.PatientProfiles.Dtos;
 
-public record UpdatePatientProfileDto(
+public record PatchPatientProfileDto(
     UserGender? Gender,
     string? Allergies,
     PersonalityTrait? PersonalityTraits,

@@ -4,7 +4,7 @@ using Profile.API.Domains.Public.PatientProfiles.Dtos;
 
 namespace Profile.API.Domains.Public.PatientProfiles.Validators
 {
-    public class PatchPatientProfileValidator : AbstractValidator<UpdatePatientProfileDto>
+    public class PatchPatientProfileValidator : AbstractValidator<PatchPatientProfileDto>
     {
         public PatchPatientProfileValidator()
         {

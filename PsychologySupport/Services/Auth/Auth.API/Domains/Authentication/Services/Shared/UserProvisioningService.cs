@@ -59,7 +59,10 @@ public class UserProvisioningService(
 
         var pendingSeedDto = payloadProtector.Unprotect<PendingSeedDto>(pendingUser.PayloadProtected);
 
+        var seedSubjectRef = Guid.NewGuid();
+        
         var userRegisteredIntegrationEvent = new UserRegisteredIntegrationEvent(
+            SeedSubjectRef : seedSubjectRef,
             UserId: user.Id,
             Email: pendingSeedDto.ContactInfo!.Email,
             PhoneNumber: pendingSeedDto.ContactInfo.PhoneNumber,

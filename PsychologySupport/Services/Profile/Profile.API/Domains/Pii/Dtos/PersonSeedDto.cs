@@ -2,4 +2,4 @@
 
 namespace Profile.API.Domains.Pii.Dtos;
 
-public record PersonSeedDto(string FullName, UserGender Gender, DateOnly BirthDate, ContactInfo ContactInfo);
+public record PersonSeedDto(Guid SubjectRef, string FullName, UserGender Gender, DateOnly BirthDate, ContactInfo ContactInfo);

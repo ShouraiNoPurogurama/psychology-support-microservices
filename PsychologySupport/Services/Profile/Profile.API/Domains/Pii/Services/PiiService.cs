@@ -142,7 +142,10 @@ public class PiiService(PiiDbContext piiDbContext, ISender sender, ILogger<PiiSe
             }
             : new BuildingBlocks.Data.Common.ContactInfo();
 
+        
+        //TODO quay lại sửa
         return new PersonSeedDto(
+            Guid.NewGuid(),
             dto.FullName,
             gender,
             birthDate,
