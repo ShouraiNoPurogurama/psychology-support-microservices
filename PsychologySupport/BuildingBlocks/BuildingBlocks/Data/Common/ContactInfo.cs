@@ -2,8 +2,8 @@
 
 public record ContactInfo
 {
-    public string Address { get; set; } = "None"!;
-    public string Email { get; set; } = null!;
+    public string Address { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }
 
     public ContactInfo()
@@ -40,6 +40,5 @@ public record ContactInfo
     public static ContactInfo Empty() => new ContactInfo(string.Empty, string.Empty, null);
 
     public bool HasEnoughInfo() => 
-        !string.IsNullOrWhiteSpace(Address) &&
         !string.IsNullOrWhiteSpace(Email);
 }

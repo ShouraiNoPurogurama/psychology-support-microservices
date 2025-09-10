@@ -1,4 +1,5 @@
 ﻿using Profile.API.Models.Pii;
+using Profile.API.ValueObjects.Pii;
 
 namespace Profile.API.Data.Pii;
 
@@ -40,13 +41,16 @@ public partial class PiiDbContext : DbContext
             entity.HasKey(e => e.SubjectRef);
 
             entity.ToTable("person_profiles", "pii");
+
+            entity.Property(e => e.FullName)
+                .HasConversion(e => e.Value,
+                    dbValue => PersonName.Of(dbValue));
             
             entity.Property(e => e.UserId)
                 .ValueGeneratedNever();
+            
             entity.HasIndex(e => e.UserId).IsUnique();
             
-            entity.Property(e => e.FullName);
-            entity.Property(e => e.BirthDate);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()");
 

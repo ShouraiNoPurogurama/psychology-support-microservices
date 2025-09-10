@@ -2,8 +2,8 @@
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Profile.API.Domains.PatientProfiles.Services;
 using Profile.API.Domains.Pii.Services;
+using Profile.API.Domains.Public.PatientProfiles.Services;
 using Profile.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);

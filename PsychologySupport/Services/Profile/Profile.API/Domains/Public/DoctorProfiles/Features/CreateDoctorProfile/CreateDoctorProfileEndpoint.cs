@@ -1,0 +1,29 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Profile.API.Domains.Public.DoctorProfiles.Dtos;
+
+namespace Profile.API.Domains.Public.DoctorProfiles.Features.CreateDoctorProfile;
+
+public record CreateDoctorProfileRequest(CreateDoctorProfileDto DoctorProfile);
+
+public record CreateDoctorProfileResponse(Guid Id);
+
+public class CreateDoctorProfileEndpoint : ICarterModule
+{
+    public void AddRoutes(IEndpointRouteBuilder app)
+    {
+        app.MapPost("doctor-profiles", async ([FromBody] CreateDoctorProfileRequest request, ISender sender) =>
+            {
+                var command = request.Adapt<CreateDoctorProfileCommand>();
+                var result = await sender.Send(command);
+                var response = result.Adapt<CreateDoctorProfileResponse>();
+                return Results.Created($"/doctor-profiles/{response.Id}", response);
+            })
+            .RequireAuthorization(policy => policy.RequireRole("Manager", "Admin"))
+            .WithName("CreateDoctorProfile")
+            .WithTags("DoctorProfiles")
+            .Produces<CreateDoctorProfileResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .WithDescription("Create Doctor Profile")
+            .WithSummary("Create Doctor Profile");
+    }
+}

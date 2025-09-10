@@ -456,9 +456,9 @@ namespace Profile.API.Data.Public.Migrations
                         .HasColumnType("text")
                         .HasColumnName("personality_traits");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("SubjectRef")
                         .HasColumnType("uuid")
-                        .HasColumnName("user_id");
+                        .HasColumnName("subject_ref");
 
                     b.HasKey("Id")
                         .HasName("pk_patient_profiles");

@@ -1,5 +1,5 @@
 ﻿using BuildingBlocks.DDD;
-using Profile.API.Domains.PatientProfiles.Enum;
+using Profile.API.Domains.Public.PatientProfiles.Enum;
 
 namespace Profile.API.Models.Public;
 

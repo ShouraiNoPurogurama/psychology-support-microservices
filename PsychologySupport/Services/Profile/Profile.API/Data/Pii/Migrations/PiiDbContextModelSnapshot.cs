@@ -50,13 +50,13 @@ namespace Profile.API.Data.Pii.Migrations
                     b.HasKey("Id")
                         .HasName("alias_owner_map_pkey");
 
+                    b.HasIndex("SubjectRef")
+                        .IsUnique()
+                        .HasDatabaseName("ix_alias_owner_map_subject_ref");
+
                     b.HasIndex(new[] { "AliasId" }, "ix_alias_owner_map_alias_id")
                         .IsUnique()
                         .HasDatabaseName("ix_alias_owner_map_alias_id");
-
-                    b.HasIndex(new[] { "SubjectRef" }, "ix_alias_owner_map_subject_ref")
-                        .IsUnique()
-                        .HasDatabaseName("ix_alias_owner_map_subject_ref");
 
                     b.ToTable("alias_owner_map", "pii");
                 });
@@ -83,6 +83,7 @@ namespace Profile.API.Data.Pii.Migrations
                         .HasColumnName("created_by");
 
                     b.Property<string>("FullName")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("full_name");
 

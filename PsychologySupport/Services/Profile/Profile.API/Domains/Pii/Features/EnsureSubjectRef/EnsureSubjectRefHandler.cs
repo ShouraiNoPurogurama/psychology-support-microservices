@@ -39,13 +39,13 @@ public class EnsureSubjectRefHandler(PiiDbContext dbContext, IPublishEndpoint pu
         var subjectRef = Guid.NewGuid();
 
         var personProfile = PersonProfile.Create(
+            subjectRef: subjectRef,
             userId: userId,
             fullName: seed?.FullName,
             gender: seed?.Gender,
             birthDate: seed?.BirthDate,
             contactInfo: seed?.ContactInfo ?? new ContactInfo());
-
-        personProfile.SubjectRef = subjectRef;
+        
         dbContext.PersonProfiles.Add(personProfile);
 
         try
@@ -87,7 +87,7 @@ public class EnsureSubjectRefHandler(PiiDbContext dbContext, IPublishEndpoint pu
         bool changed = false;
 
         //Merge kiểu “điền chỗ trống” (chỉ ghi nếu đang null/empty)
-        if (!string.IsNullOrWhiteSpace(seedDto.FullName) && string.IsNullOrWhiteSpace(entity.FullName))
+        if (!string.IsNullOrWhiteSpace(seedDto.FullName) && string.IsNullOrWhiteSpace(entity.FullName?.Value))
         {
             entity.Rename(seedDto.FullName);
             changed = true;
