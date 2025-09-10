@@ -1,9 +1,11 @@
-﻿namespace Billing.API.Domains.Billings.Dtos
+﻿using Billing.API.Data.Common;
+
+namespace Billing.API.Domains.Billings.Dtos
 {
     public record InvoiceDto(
     Guid InvoiceId,
     string Code,
-    string Status,
+    InvoiceStatus Status,
     List<InvoiceItemDto> Items
 );
 }

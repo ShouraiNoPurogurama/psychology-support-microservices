@@ -1,4 +1,6 @@
-﻿namespace Billing.API.Domains.Billings.Dtos
+﻿using Billing.API.Data.Common;
+
+namespace Billing.API.Domains.Billings.Dtos
 {
 
     public record OrderDto(
@@ -8,7 +10,7 @@
             decimal Amount,
             string Currency,
             string? PromoCode,
-            string Status,
+            OrderStatus Status,
             string InvoiceCode,
             DateTimeOffset? CreatedAt
         );

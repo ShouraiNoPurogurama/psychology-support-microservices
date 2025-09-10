@@ -1,20 +1,94 @@
-﻿namespace Billing.API.Models;
+﻿using Billing.API.Data.Common;
+
+namespace Billing.API.Models;
 
 public partial class Invoice : AggregateRoot<Guid>
 {
-    public string Code { get; set; } = null!;
+    public string Code { get; private set; } = null!;
+    public Guid OrderId { get; private set; }
+    public Guid SubjectRef { get; private set; }
+    public decimal Amount { get; private set; }
+    public InvoiceStatus Status { get; private set; }
+    public DateTime IssuedAt { get; private set; }
 
-    public Guid OrderId { get; set; }
+    public virtual InvoiceSnapshot? InvoiceSnapshot { get; private set; }
+    public virtual Order Order { get; private set; } = null!;
 
-    public Guid SubjectRef { get; set; }
+    private Invoice() { }
 
-    public decimal Amount { get; set; }
+    private Invoice(
+        Guid id,
+        string code,
+        Guid orderId,
+        Guid subjectRef,
+        decimal amount,
+        InvoiceStatus status,
+        DateTime issuedAt,
+        string createdBy)
+    {
+        Id = id;
+        Code = code;
+        OrderId = orderId;
+        SubjectRef = subjectRef;
+        Amount = amount;
+        Status = status;
+        IssuedAt = issuedAt;
 
-    public string Status { get; set; } = null!;
+        CreatedAt = DateTime.UtcNow;
+        CreatedBy = createdBy;
+        LastModified = DateTime.UtcNow;
+        LastModifiedBy = createdBy;
+    }
 
-    public DateTime IssuedAt { get; set; }
+    public static Invoice Create(
+        string code,
+        Guid orderId,
+        Guid subjectRef,
+        decimal amount,
+        string createdBy)
+    {
+        // Validation
+        if (string.IsNullOrWhiteSpace(code))
+            throw new InvalidDataException("Mã hóa đơn (Code) không được để trống.");
 
-    public virtual InvoiceSnapshot? InvoiceSnapshot { get; set; }
+        if (orderId == Guid.Empty)
+            throw new InvalidDataException("OrderId không được để trống.");
 
-    public virtual Order Order { get; set; } = null!;
+        if (subjectRef == Guid.Empty)
+            throw new InvalidDataException("SubjectRef không được để trống.");
+
+        if (amount <= 0)
+            throw new InvalidDataException("Số tiền (Amount) phải lớn hơn 0.");
+
+        return new Invoice(
+            id: Guid.NewGuid(),
+            code: code,
+            orderId: orderId,
+            subjectRef: subjectRef,
+            amount: amount,
+            status: InvoiceStatus.Issued,
+            issuedAt: DateTime.UtcNow,
+            createdBy: createdBy
+        );
+    }
+
+    public void MarkAsPaid(string modifiedBy)
+    {
+        if (Status != InvoiceStatus.Issued)
+            throw new InvalidOperationException("Chỉ hóa đơn ở trạng thái 'Issued' mới có thể thanh toán.");
+
+        Status = InvoiceStatus.Paid;
+        LastModified = DateTime.UtcNow;
+        LastModifiedBy = modifiedBy;
+    }
+
+    public void Cancel(string modifiedBy)
+    {
+        if (Status == InvoiceStatus.Paid)
+            throw new InvalidOperationException("Không thể hủy hóa đơn đã thanh toán.");
+
+        Status = InvoiceStatus.Cancelled;
+        LastModified = DateTime.UtcNow;
+        LastModifiedBy = modifiedBy;
+    }
 }
