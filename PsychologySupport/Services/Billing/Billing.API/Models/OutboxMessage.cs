@@ -1,8 +1,4 @@
-﻿using BuildingBlocks.DDD;
-using System;
-using System.Collections.Generic;
-
-namespace Billing.API.Models;
+﻿namespace Billing.API.Models;
 
 public partial class OutboxMessage : AuditableEntity<Guid>
 {

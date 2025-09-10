@@ -34,7 +34,7 @@ public static class GetOrderEndpoint
         })
         .WithName("GetOrder")
         .WithTags("Orders")
-        .Produces<GetOrderResponse>() // ✅ rõ response
+        .Produces<GetOrderResponse>() 
         .Produces(StatusCodes.Status404NotFound)
         .WithDescription("Get a single order by Id")
         .WithSummary("GetOrder");

@@ -1,9 +1,4 @@
-﻿using BuildingBlocks.DDD;
-using BuildingBlocks.Exceptions;
-using System;
-using System.Collections.Generic;
-
-namespace Billing.API.Models;
+﻿namespace Billing.API.Models;
 
 public partial class Order : AggregateRoot<Guid>
 {
@@ -13,13 +8,13 @@ public partial class Order : AggregateRoot<Guid>
     public decimal Amount { get; private set; }
     public string Currency { get; private set; } = null!;
     public string? PromoCode { get; private set; }
-    public string Status { get; set; } = null!;
-    public Guid? PaymentId { get; set; }
-    public Guid? InvoiceId { get; set; }
+    public string Status { get; private set; } = null!;
+    public Guid? PaymentId { get; private set; }
+    public Guid? InvoiceId { get; private set; }
     public Guid? IdempotencyKeyId { get; private set; }
 
-    public virtual IdempotencyKey? IdempotencyKey { get; set; }
-    public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+    public virtual IdempotencyKey? IdempotencyKey { get; private set; }
+    public virtual ICollection<Invoice> Invoices { get; private set; } = new List<Invoice>();
 
     private Order() { } 
 
