@@ -1,4 +1,4 @@
-﻿namespace Media.API.Media.Dtos
+﻿namespace Media.Application.Dtos
 {
     public class MediaUploadContextDto
     {

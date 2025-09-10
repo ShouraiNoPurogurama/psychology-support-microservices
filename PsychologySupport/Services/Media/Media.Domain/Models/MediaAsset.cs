@@ -15,17 +15,22 @@ public partial class MediaAsset
 
     public string ChecksumSha256 { get; set; } = null!;
 
+
+    // Optional (images, deduplication)
     public string? Phash64 { get; set; }
 
     public int? Width { get; set; }
 
     public int? Height { get; set; }
 
-    public bool ExifRemoved { get; set; }
 
-    public bool HoldThumbUntilPass { get; set; }
+    // Security / policy
+    public bool ExifRemoved { get; set; } = false;
+    public bool HoldThumbUntilPass { get; set; } = false;
 
-    public string ModerationStatus { get; set; } = null!;
+
+    // Moderation (nullable -> optional)
+    public string? ModerationStatus { get; set; }
 
     public decimal? ModerationScore { get; set; }
 

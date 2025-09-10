@@ -1,7 +1,9 @@
-﻿using System.Reflection;
-using Mapster;
+﻿using Mapster;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
-namespace Media.API.Extensions
+
+namespace Media.Application.Extensions
 {
     public static class MapsterConfigurations
     {
@@ -9,8 +11,9 @@ namespace Media.API.Extensions
         {
             TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
 
-            //TypeAdapterConfig<ServicePackageDto, ServicePackage>.NewConfig()
-            //    .IgnoreNullValues(true);
+            //TypeAdapterConfig<TestResult, TestResultDto>
+            //    .NewConfig();
+
 
         }
     }
