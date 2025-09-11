@@ -6,11 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
-
-    <ItemGroup>
-        <None Remove="Protos\pii.proto"/>
-    </ItemGroup>
-
+    
     <ItemGroup>
         <Content Include="..\..\..\.dockerignore">
             <Link>.dockerignore</Link>
