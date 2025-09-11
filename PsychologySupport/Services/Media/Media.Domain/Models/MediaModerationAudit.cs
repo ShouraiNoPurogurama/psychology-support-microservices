@@ -1,15 +1,15 @@
-﻿using System;
+﻿using Media.Domain.Abstractions;
+using Media.Domain.Enums;
+using System;
 using System.Collections.Generic;
 
 namespace Media.API.Media.Models;
 
-public partial class MediaModerationAudit
+public partial class MediaModerationAudit : AuditableEntity<Guid>
 {
-    public Guid Id { get; set; }
-
     public Guid MediaId { get; set; }
 
-    public string Status { get; set; } = null!;
+    public MediaModerationStatus Status { get; set; }
 
     public decimal? Score { get; set; }
 
@@ -18,14 +18,6 @@ public partial class MediaModerationAudit
     public string RawJson { get; set; } = null!;
 
     public DateTime CheckedAt { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public Guid CreatedBy { get; set; }
-
-    public DateTime LastModified { get; set; }
-
-    public Guid? LastModifiedBy { get; set; }
 
     public virtual MediaAsset Media { get; set; } = null!;
 }

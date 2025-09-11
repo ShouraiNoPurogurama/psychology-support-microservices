@@ -9,8 +9,6 @@
 		<PackageReference Include="MediatR" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="Abstractions\" />
-	  <Folder Include="Enums\" />
 	  <Folder Include="Exceptions\" />
 	</ItemGroup>
 

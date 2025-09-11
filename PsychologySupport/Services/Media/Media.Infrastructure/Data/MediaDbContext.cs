@@ -1,6 +1,8 @@
 ﻿using Media.API.Media.Models;
 using Media.Application.Data;
+using Media.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 using System.Collections.Generic;
 
@@ -34,6 +36,47 @@ public partial class MediaDbContext : DbContext, IMediaDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         OnModelCreatingPartial(modelBuilder);
+
+        modelBuilder.Entity<MediaAsset>()
+          .Property(e => e.State)
+          .HasConversion(new EnumToStringConverter<MediaState>())
+          .HasColumnType("VARCHAR(20)");
+
+        modelBuilder.Entity<MediaModerationAudit>()
+          .Property(e => e.Status)
+          .HasConversion(new EnumToStringConverter<MediaModerationStatus>())
+          .HasColumnType("VARCHAR(20)");
+
+        modelBuilder.Entity<MediaOwner>()
+         .Property(e => e.MediaOwnerType)
+         .HasConversion(new EnumToStringConverter<MediaOwnerType>())
+         .HasColumnType("VARCHAR(20)");
+
+        modelBuilder.Entity<MediaProcessingJob>()
+         .Property(e => e.JobType)
+         .HasConversion(new EnumToStringConverter<JobType>())
+         .HasColumnType("VARCHAR(20)");
+
+        modelBuilder.Entity<MediaProcessingJob>()
+          .Property(e => e.Status)
+          .HasConversion(new EnumToStringConverter<ProcessStatus>())
+          .HasColumnType("VARCHAR(20)");
+
+        modelBuilder.Entity<MediaProcessingJob>()
+          .Property(e => e.Status)
+          .HasConversion(new EnumToStringConverter<ProcessStatus>())
+          .HasColumnType("VARCHAR(20)");
+
+        modelBuilder.Entity<MediaVariant>()
+         .Property(e => e.VariantType)
+         .HasConversion(new EnumToStringConverter<VariantType>())
+         .HasColumnType("VARCHAR(20)");
+
+        modelBuilder.Entity<MediaVariant>()
+         .Property(e => e.Format)
+         .HasConversion(new EnumToStringConverter<MediaFormat>())
+         .HasColumnType("VARCHAR(20)");
+
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

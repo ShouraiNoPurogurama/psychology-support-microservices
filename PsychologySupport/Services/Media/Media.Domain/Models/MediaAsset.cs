@@ -1,13 +1,13 @@
-﻿using System;
+﻿using Media.Domain.Abstractions;
+using Media.Domain.Enums;
+using System;
 using System.Collections.Generic;
 
 namespace Media.API.Media.Models;
 
-public partial class MediaAsset
+public partial class MediaAsset : AuditableEntity<Guid>
 {
-    public Guid Id { get; set; }
-
-    public string State { get; set; } = null!;
+    public MediaState State { get; set; }
 
     public string SourceMime { get; set; } = null!;
 
@@ -39,14 +39,6 @@ public partial class MediaAsset
     public string? ModerationPolicyVersion { get; set; }
 
     public string? RawModerationJson { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public Guid CreatedBy { get; set; }
-
-    public DateTime LastModified { get; set; }
-
-    public Guid? LastModifiedBy { get; set; }
 
     public virtual ICollection<MediaModerationAudit> MediaModerationAudits { get; set; } = new List<MediaModerationAudit>();
 
