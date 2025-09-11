@@ -529,13 +529,12 @@ public class AuthService(
             _ => 1
         };
 
-        var allDeviceIds = await authDbContext.Devices
-            .Where(d => d.UserId == userId && d.DeviceType == deviceType)
-            .Select(d => d.Id)
-            .ToListAsync();
+        var existingDevice = await authDbContext.Devices
+            .FirstOrDefaultAsync(d => d.Id == deviceId && d.UserId == userId)
+            ?? throw new NotFoundException("Thiết bị không hợp lệ");
 
         var activeSessions = await authDbContext.DeviceSessions
-            .Where(s => allDeviceIds.Contains(s.DeviceId) && !s.IsRevoked)
+            .Where(s => existingDevice.Id == s.DeviceId && !s.IsRevoked)
             .OrderBy(s => s.LastRefeshToken ?? s.CreatedAt)
             .ToListAsync();
 

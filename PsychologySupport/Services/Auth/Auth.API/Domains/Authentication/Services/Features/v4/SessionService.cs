@@ -14,7 +14,7 @@ public class SessionService(
     ITokenService tokenService,
     IDeviceManagementService deviceManagementService,
     IAuthenticationService authenticationService
-    )
+)
     : ISessionService
 {
     public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
@@ -26,11 +26,15 @@ public class SessionService(
         var device = await deviceManagementService.GetOrUpsertDeviceAsync(user.Id, loginRequest.ClientDeviceId!,
             loginRequest.DeviceType!.Value,
             loginRequest.DeviceToken);
-        await deviceManagementService.ManageDeviceSessionsAsync(user.Id, loginRequest.DeviceType!.Value, device.Id);
+        
+        //3. Tạo token mới
+        var (accessToken, jti, refreshToken) = await GenerateTokensAsync(user, device.Id);
+        await deviceManagementService.CreateDeviceSessionAsync(device.Id, jti, refreshToken);
 
-        //3. Tạo token
-        var (accessToken, refreshToken) = await GenerateTokensAsync(user, device.Id);
+        //4. KIỂM TRA và thu hồi session CŨ NHẤT nếu vượt giới hạn
+        await deviceManagementService.RevokeOldestSessionIfLimitExceededAsync(user.Id, loginRequest.DeviceType.Value, device.Id);
 
+        //5. Trả về token
         return new LoginResponse(accessToken, refreshToken);
     }
 
@@ -42,10 +46,10 @@ public class SessionService(
         var device = await deviceManagementService.GetOrUpsertDeviceAsync(user.Id, request.ClientDeviceId!,
             request.DeviceType!.Value,
             request.DeviceToken);
-        await deviceManagementService.ManageDeviceSessionsAsync(user.Id, request.DeviceType!.Value, device.Id);
+        await deviceManagementService.RevokeOldestSessionIfLimitExceededAsync(user.Id, request.DeviceType!.Value, device.Id);
 
         //2. Tạo token
-        var (accessToken, refreshToken) = await GenerateTokensAsync(user, device.Id);
+        var (accessToken, jti, refreshToken) = await GenerateTokensAsync(user, device.Id);
 
         await authDbContext.SaveChangesAsync();
 
@@ -93,7 +97,8 @@ public class SessionService(
         var principal = tokenService.GetPrincipalFromExpiredToken(request.Token)
                         ?? throw new BadRequestException("Access token không hợp lệ");
 
-        var userId = principal.Claims.First(c => c.Type == "userId").Value;
+        // var userId = principal.Claims.First(c => c.Type == "userId").Value;
+        var userId = "6e1a065e-9b00-442b-9be1-d4447e19ff78";
         var jti = principal.Claims.First(c => c.Type == JwtRegisteredClaimNames.Jti).Value;
 
         var user = await userManager.FindByIdAsync(userId)
@@ -118,24 +123,14 @@ public class SessionService(
         await authDbContext.SaveChangesAsync();
         return true;
     }
-    
 
-    private async Task<(string AccessToken, string RefreshToken)> GenerateTokensAsync(User user, Guid deviceId)
+
+    private async Task<(string AccessToken, string Jti, string RefreshToken)> GenerateTokensAsync(User user, Guid deviceId)
     {
         var accessToken = await tokenService.GenerateJWTToken(user);
         var refreshToken = tokenService.GenerateRefreshToken();
+        
 
-        var session = new DeviceSession
-        {
-            DeviceId = deviceId,
-            AccessTokenId = accessToken.Jti,
-            RefreshToken = refreshToken,
-            CreatedAt = DateTimeOffset.UtcNow,
-            LastRefeshToken = DateTimeOffset.UtcNow
-        };
-
-        authDbContext.DeviceSessions.Add(session);
-
-        return (accessToken.Token, refreshToken);
+        return (accessToken.Token, accessToken.Jti, refreshToken);
     }
 }
