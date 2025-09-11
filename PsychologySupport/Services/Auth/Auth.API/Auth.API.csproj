@@ -78,7 +78,6 @@
 	<ItemGroup>
 	  <Folder Include="Data\Migrations\" />
 	  <Folder Include="Domains\Authentication\" />
-	  <Folder Include="Domains\Authentication\ServiceContracts\Features\" />
 	</ItemGroup>
 
 </Project>

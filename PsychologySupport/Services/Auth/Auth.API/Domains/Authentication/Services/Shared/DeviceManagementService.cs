@@ -1,10 +1,11 @@
-﻿using Auth.API.Data;
+﻿using System.Runtime.InteropServices;
+using Auth.API.Data;
 using Auth.API.Domains.Authentication.ServiceContracts.Shared;
 using BuildingBlocks.Exceptions;
 
 namespace Auth.API.Domains.Authentication.Services.Shared;
 
-public class DeviceManagementService(AuthDbContext authDbContext) : IDeviceManagementService
+public class DeviceManagementService(AuthDbContext authDbContext, ITokenRevocationService tokenRevocationService) : IDeviceManagementService
 {
     public async Task<Device> GetOrUpsertDeviceAsync(Guid userId, string clientDeviceId, DeviceType deviceType,
         string? deviceToken)
@@ -36,7 +37,7 @@ public class DeviceManagementService(AuthDbContext authDbContext) : IDeviceManag
     }
     
 
-    public async Task RevokeOldestSessionIfLimitExceededAsync(Guid userId, DeviceType deviceType, Guid deviceId)
+    public async Task RevokeOldestSessionIfLimitExceededAsync(Guid userId, DeviceType deviceType, Guid deviceId, string currentJti)
     {
         int allowedLimit = deviceType switch
         {
@@ -47,14 +48,14 @@ public class DeviceManagementService(AuthDbContext authDbContext) : IDeviceManag
         };
 
         var userDeviceIds = await authDbContext.Devices.AsNoTracking()
-            .Where(d => d.UserId == userId && d.DeviceType == deviceType)
+            .Where(d => d.UserId == userId &&  d.DeviceType == deviceType)
             .Select(d => d.Id)
             .ToListAsync();
 
         if (!userDeviceIds.Any()) return;
 
         var activeSessions = await authDbContext.DeviceSessions
-            .Where(s => userDeviceIds.Contains(s.DeviceId) && !s.IsRevoked)
+            .Where(s => userDeviceIds.Contains(s.DeviceId) && !s.IsRevoked && s.AccessTokenId != currentJti.ToString())
             .OrderBy(s => s.CreatedAt) 
             .ToListAsync();
 
@@ -63,13 +64,7 @@ public class DeviceManagementService(AuthDbContext authDbContext) : IDeviceManag
             int sessionsToRevokeCount = activeSessions.Count - allowedLimit;
             var sessionsToRevoke = activeSessions.Take(sessionsToRevokeCount);
 
-            foreach (var session in sessionsToRevoke)
-            {
-                session.IsRevoked = true;
-                session.RevokedAt = DateTimeOffset.UtcNow;
-            }
-
-            await authDbContext.SaveChangesAsync();
+            await tokenRevocationService.RevokeSessionsAsync(sessionsToRevoke);
         }
     }
 

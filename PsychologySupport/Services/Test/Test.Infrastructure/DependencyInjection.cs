@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Data.Interceptors;
+using BuildingBlocks.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -32,6 +33,8 @@ public static class DependencyInjection
             options.UseSnakeCaseNamingConvention();
             options.AddInterceptors(serviceProvider.GetServices<ISaveChangesInterceptor>());
         });
+        
+        services.AddRedisCache(config);
 
         services.AddScoped<ITestDbContext, TestDbContext>();
         services.AddScoped<IAIClient, GeminiClient>();

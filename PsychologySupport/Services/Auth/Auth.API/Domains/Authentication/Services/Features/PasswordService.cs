@@ -1,8 +1,8 @@
 ﻿using Auth.API.Domains.Authentication.Exceptions;
-using Auth.API.Domains.Authentication.ServiceContracts.Features.v4;
+using Auth.API.Domains.Authentication.ServiceContracts.Features;
 using Auth.API.Domains.Authentication.ServiceContracts.Shared;
 
-namespace Auth.API.Domains.Authentication.Services.Features.v4;
+namespace Auth.API.Domains.Authentication.Services.Features;
 
 public class PasswordService(UserManager<User> userManager, IEmailService emailService) : IPasswordService
 {

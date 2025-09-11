@@ -1,6 +1,6 @@
 ﻿using Auth.API.Data;
 using Auth.API.Domains.Authentication.Exceptions;
-using Auth.API.Domains.Authentication.ServiceContracts.Features.v4;
+using Auth.API.Domains.Authentication.ServiceContracts.Features;
 using Auth.API.Domains.Authentication.ServiceContracts.Shared;
 using Auth.API.Domains.Encryption.Dtos;
 using Auth.API.Domains.Encryption.ServiceContracts;
@@ -10,7 +10,7 @@ using BuildingBlocks.Messaging.Events.IntegrationEvents.Auth;
 using Mapster;
 using MassTransit;
 
-namespace Auth.API.Domains.Authentication.Services.Features.v4;
+namespace Auth.API.Domains.Authentication.Services.Features;
 
 public class UserRegistrationService(
     UserManager<User> userManager,

@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Identity;
+﻿using BuildingBlocks.Extensions;
 
 namespace DigitalGoods.API.Extensions
 {

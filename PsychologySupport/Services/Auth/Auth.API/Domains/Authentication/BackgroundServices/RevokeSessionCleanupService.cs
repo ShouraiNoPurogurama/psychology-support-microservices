@@ -7,7 +7,6 @@ namespace Auth.API.Domains.Authentication.BackgroundServices
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<RevokeSessionCleanupService> _logger;
         private static readonly TimeSpan CleanupInterval = TimeSpan.FromHours(24);
-        //private static readonly TimeSpan CleanupInterval = TimeSpan.FromMinutes(2);
 
         public RevokeSessionCleanupService(IServiceProvider serviceProvider, ILogger<RevokeSessionCleanupService> logger)
         {
@@ -26,7 +25,7 @@ namespace Auth.API.Domains.Authentication.BackgroundServices
                     using var scope = _serviceProvider.CreateScope();
                     var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
 
-                    var cutoff = DateTimeOffset.UtcNow.AddMonths(-1);
+                    var cutoff = DateTimeOffset.UtcNow.AddDays(-7);
                     var oldSessions = await dbContext.DeviceSessions
                      .Where(s =>
                          (s.IsRevoked && s.RevokedAt < cutoff) ||

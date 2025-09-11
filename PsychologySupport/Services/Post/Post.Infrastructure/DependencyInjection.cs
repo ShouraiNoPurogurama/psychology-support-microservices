@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Data.Interceptors;
+using BuildingBlocks.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +17,8 @@ public static class DependencyInjection
     {
         var connectionString = config.GetConnectionString("PostDb");
 
+        services.AddRedisCache(config);
+        
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
         services.AddScoped<IPublicDbContext, PublicDbContext>();

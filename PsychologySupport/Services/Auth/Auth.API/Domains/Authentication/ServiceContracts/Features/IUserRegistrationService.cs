@@ -1,4 +1,4 @@
-﻿namespace Auth.API.Domains.Authentication.ServiceContracts.Features.v4;
+﻿namespace Auth.API.Domains.Authentication.ServiceContracts.Features;
 
 public interface IUserRegistrationService
 {

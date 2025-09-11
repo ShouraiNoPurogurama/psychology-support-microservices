@@ -19,7 +19,8 @@ namespace Profile.API.Domains.Public.MentalDisorders.Features.GetAllMentalDisord
 
                 return Results.Ok(response);
             })
-            .RequireAuthorization(policy => policy.RequireRole("User", "Admin","Doctor"))
+            // .RequireAuthorization(policy => policy.RequireRole("User", "Admin","Doctor"))
+            .RequireAuthorization()
             .WithName("GetAllMentalDisorders")
             .WithTags("MentalDisorders")
             .Produces<GetAllMentalDisordersResponse>()

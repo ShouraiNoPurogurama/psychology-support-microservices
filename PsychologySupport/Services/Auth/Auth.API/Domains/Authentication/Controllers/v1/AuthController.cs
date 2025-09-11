@@ -1,4 +1,4 @@
-﻿using Auth.API.Domains.Authentication.ServiceContracts.Features.v3;
+﻿using Auth.API.Domains.Authentication.ServiceContracts;
 using Auth.API.Domains.Authentication.ServiceContracts.Shared;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +10,7 @@ public class AuthController(
     UserManager<User> userManager,
     RoleManager<Role> roleManager,
     IConfiguration configuration,
-    IAuthService authService,
+    IAuthFacade authService,
     IFirebaseAuthService firebaseAuthService) : ControllerBase
 {
     // [Authorize(AuthenticationSchemes = "LocalAuth")]

@@ -2,16 +2,17 @@
 using Auth.API.Data;
 using Auth.API.Domains.Authentication.Dtos.Responses;
 using Auth.API.Domains.Authentication.Exceptions;
-using Auth.API.Domains.Authentication.ServiceContracts.Features.v4;
+using Auth.API.Domains.Authentication.ServiceContracts.Features;
 using Auth.API.Domains.Authentication.ServiceContracts.Shared;
 using BuildingBlocks.Exceptions;
 
-namespace Auth.API.Domains.Authentication.Services.Features.v4;
+namespace Auth.API.Domains.Authentication.Services.Features;
 
 public class SessionService(
     UserManager<User> userManager,
     AuthDbContext authDbContext,
     ITokenService tokenService,
+    ITokenRevocationService tokenRevocationService,
     IDeviceManagementService deviceManagementService,
     IAuthenticationService authenticationService
 )
@@ -32,7 +33,7 @@ public class SessionService(
         await deviceManagementService.CreateDeviceSessionAsync(device.Id, jti, refreshToken);
 
         //4. KIỂM TRA và thu hồi session CŨ NHẤT nếu vượt giới hạn
-        await deviceManagementService.RevokeOldestSessionIfLimitExceededAsync(user.Id, loginRequest.DeviceType.Value, device.Id);
+        await deviceManagementService.RevokeOldestSessionIfLimitExceededAsync(user.Id, loginRequest.DeviceType.Value, device.Id, jti);
 
         //5. Trả về token
         return new LoginResponse(accessToken, refreshToken);
@@ -46,13 +47,13 @@ public class SessionService(
         var device = await deviceManagementService.GetOrUpsertDeviceAsync(user.Id, request.ClientDeviceId!,
             request.DeviceType!.Value,
             request.DeviceToken);
-        await deviceManagementService.RevokeOldestSessionIfLimitExceededAsync(user.Id, request.DeviceType!.Value, device.Id);
-
+        
         //2. Tạo token
         var (accessToken, jti, refreshToken) = await GenerateTokensAsync(user, device.Id);
-
-        await authDbContext.SaveChangesAsync();
-
+        await deviceManagementService.CreateDeviceSessionAsync(device.Id, jti, refreshToken);
+        
+        await deviceManagementService.RevokeOldestSessionIfLimitExceededAsync(user.Id, request.DeviceType!.Value, device.Id, jti);
+        
         return new LoginResponse(accessToken, refreshToken);
     }
 
@@ -108,19 +109,18 @@ public class SessionService(
                          .FirstOrDefaultAsync(d => d.ClientDeviceId == request.ClientDeviceId && d.UserId == user.Id)
                      ?? throw new NotFoundException("Thiết bị không hợp lệ");
 
-        var session = await authDbContext.DeviceSessions
-            .FirstOrDefaultAsync(s =>
+        var sessions = await authDbContext.DeviceSessions
+            .Where(s =>
                 s.DeviceId == device.Id &&
                 s.AccessTokenId == jti &&
-                s.RefreshToken == request.RefreshToken);
+                s.RefreshToken == request.RefreshToken)
+            .ToListAsync();
 
-        if (session == null)
+        if (sessions.Count == 0)
             throw new NotFoundException("Session không tồn tại hoặc đã bị thu hồi");
 
-        session.IsRevoked = true;
-        session.RevokedAt = DateTimeOffset.UtcNow;
+        await tokenRevocationService.RevokeSessionsAsync(sessions);
 
-        await authDbContext.SaveChangesAsync();
         return true;
     }
 
@@ -129,7 +129,6 @@ public class SessionService(
     {
         var accessToken = await tokenService.GenerateJWTToken(user);
         var refreshToken = tokenService.GenerateRefreshToken();
-        
 
         return (accessToken.Token, accessToken.Jti, refreshToken);
     }

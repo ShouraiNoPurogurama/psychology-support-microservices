@@ -1,18 +1,17 @@
 ﻿using Auth.API.Data;
 using Auth.API.Domains.Authentication.BackgroundServices;
 using Auth.API.Domains.Authentication.ServiceContracts;
-using Auth.API.Domains.Authentication.ServiceContracts.Features.v3;
-using Auth.API.Domains.Authentication.ServiceContracts.Features.v4;
+using Auth.API.Domains.Authentication.ServiceContracts.Features;
 using Auth.API.Domains.Authentication.ServiceContracts.Shared;
 using Auth.API.Domains.Authentication.Services;
-using Auth.API.Domains.Authentication.Services.Features.v3;
-using Auth.API.Domains.Authentication.Services.Features.v4;
+using Auth.API.Domains.Authentication.Services.Features;
 using Auth.API.Domains.Authentication.Services.Shared;
 using Auth.API.Domains.Authentication.Validators;
 using Auth.API.Domains.Encryption.ServiceContracts;
 using Auth.API.Domains.Encryption.Services;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
+using BuildingBlocks.Extensions;
 using BuildingBlocks.Filters;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
@@ -24,6 +23,7 @@ using Microsoft.OpenApi.Models;
 using Notification.API.Protos;
 using Pii.API.Protos;
 using Profile.API.Protos;
+using StackExchange.Redis;
 using EmailService = Auth.API.Domains.Authentication.Services.Shared.EmailService;
 
 namespace Auth.API.Extensions;
@@ -52,6 +52,8 @@ public static class ApplicationServiceExtensions
         AddDatabase(services, config);
 
         AddServiceDependencies(services);
+
+        services.AddRedisCache(config);
 
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
@@ -106,7 +108,7 @@ public static class ApplicationServiceExtensions
             });
         });
     }
-
+    
     private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
@@ -132,7 +134,6 @@ public static class ApplicationServiceExtensions
     private static void AddServiceDependencies(IServiceCollection services)
     {
         services.AddScoped<LoggingActionFilter>();
-        services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IPayloadProtector, PayloadProtector>();
         
         //Facade
@@ -152,6 +153,8 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ITokenService, TokenService>(); 
         services.AddScoped<IPayloadProtector, PayloadProtector>();
         services.AddScoped<IUserProvisioningService, UserProvisioningService>();
+        services.AddScoped<ITokenRevocationService, TokenRevocationService>();
+        services.Decorate<ITokenRevocationService, CachedTokenRevocationService>();
         
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();

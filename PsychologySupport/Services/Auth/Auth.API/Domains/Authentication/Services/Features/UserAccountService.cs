@@ -1,7 +1,7 @@
 ﻿using Auth.API.Domains.Authentication.Exceptions;
-using Auth.API.Domains.Authentication.ServiceContracts.Features.v4;
+using Auth.API.Domains.Authentication.ServiceContracts.Features;
 
-namespace Auth.API.Domains.Authentication.Services.Features.v4;
+namespace Auth.API.Domains.Authentication.Services.Features;
 
 public class UserAccountService(UserManager<User> userManager) : IUserAccountService
 {

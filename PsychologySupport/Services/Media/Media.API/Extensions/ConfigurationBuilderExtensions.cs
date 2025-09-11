@@ -1,6 +1,4 @@
-﻿using BuildingBlocks.Identity;
-
-namespace Media.API.Extensions
+﻿namespace Media.API.Extensions
 {
     public static class ConfigurationBuilderExtensions
     {
