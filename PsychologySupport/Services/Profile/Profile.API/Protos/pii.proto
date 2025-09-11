@@ -18,6 +18,10 @@ service PiiService {
   rpc ResolveAliasIdBySubjectRef (ResolveAliasIdBySubjectRefRequest)
       returns (ResolveAliasIdBySubjectRefResponse);
 
+  //Tra patient_id từ subject_ref 
+  rpc ResolvePatientIdBySubjectRef (ResolvePatientIdBySubjectRefRequest)
+      returns (ResolvePatientIdBySubjectRefResponse);
+  
   //Tra subject_ref từ alias_id (UUID string)
   rpc ResolveSubjectRefByAliasId (ResolveSubjectRefByAliasIdRequest)
       returns (ResolveSubjectRefByAliasIdResponse);
@@ -30,9 +34,10 @@ service PiiService {
   rpc ResolveUserIdBySubjectRef (ResolveUserIdBySubjectRefRequest)
       returns (ResolveUserIdBySubjectRefResponse);
 
-  //Tra patient_id từ alias_id (public domain ở Profile, nhưng PII có thể facade nếu cần)
+  //Tra patient_id từ alias_id
   rpc ResolvePatientIdByAliasId (ResolvePatientIdByAliasIdRequest)
       returns (ResolvePatientIdByAliasIdResponse);
+  
 
   rpc EnsureSubjectRef (EnsureSubjectRefRequest) returns (EnsureSubjectRefResponse);
 }
@@ -59,12 +64,20 @@ message ResolveAliasIdBySubjectRefResponse {
 }
 
 
+message ResolvePatientIdBySubjectRefRequest {
+  string subject_ref = 1; //UUID string
+}
+
+message ResolvePatientIdBySubjectRefResponse {
+  string patientId = 1; //UUID string
+}
+
 message ResolveSubjectRefByUserIdRequest {
   string user_id = 1; //UUID string
 }
 
 message ResolveSubjectRefByUserIdResponse  {
-  optional string subject_ref = 1; //UUID string; empty nếu không tìm thấy
+  string subject_ref = 1; //UUID string;
 }
 
 //----- UserId <-> SubjectRef (internal) -----
@@ -82,7 +95,7 @@ message ResolvePatientIdByAliasIdRequest {
 }
 
 message ResolvePatientIdByAliasIdResponse {
-  optional string patient_id = 1; //UUID string; empty nếu không tìm thấy
+  string patient_id = 1; //UUID string; empty nếu không tìm thấy
 }
 
 //----- PersonInfo theo SubjectRef -----

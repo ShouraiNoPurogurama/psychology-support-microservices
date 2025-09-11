@@ -3,7 +3,7 @@ using Profile.API.Domains.Public.PatientProfiles.Exceptions;
 
 namespace Profile.API.Domains.Public.PatientProfiles.Features.PatchPatientProfile;
 
-public record PatchPatientProfileCommand(Guid SubjectRef, PatchPatientProfileDto PatientProfileUpdate)
+public record PatchPatientProfileCommand(Guid PatientProfileId, PatchPatientProfileDto PatientProfileUpdate)
     : ICommand<PatchPatientProfileResult>;
 
 public record PatchPatientProfileResult(bool IsSuccess);
@@ -20,7 +20,7 @@ public class PatchPatientProfileHandler : ICommandHandler<PatchPatientProfileCom
     public async Task<PatchPatientProfileResult> Handle(PatchPatientProfileCommand request, CancellationToken cancellationToken)
     {
         var patientProfile = await _context.PatientProfiles
-                                 .FirstOrDefaultAsync(p => p.SubjectRef == request.SubjectRef, cancellationToken: cancellationToken)
+                                 .FirstOrDefaultAsync(p => p.Id == request.PatientProfileId, cancellationToken: cancellationToken)
                              ?? throw new ProfileNotFoundException();
 
         var dto = request.PatientProfileUpdate;

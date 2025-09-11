@@ -23,7 +23,6 @@ public class PatientProfile : AggregateRoot<Guid>
         IsProfileCompleted = CheckProfileCompleted();
     }
 
-    public Guid SubjectRef { get; private set; }
     public string? Allergies { get; private set; }
     public PersonalityTrait PersonalityTraits { get; private set; }
 
@@ -81,7 +80,7 @@ public class PatientProfile : AggregateRoot<Guid>
         JobId = jobId;
 
         if (updated)
-            AddDomainEvent(new PatientProfileUpdatedEvent(SubjectRef, allergies, personalityTraits, jobId));
+            AddDomainEvent(new PatientProfileUpdatedEvent(Id, allergies, personalityTraits, jobId));
     }
 
     public void UpdateAllergies(string? allergies)
@@ -95,7 +94,7 @@ public class PatientProfile : AggregateRoot<Guid>
         if (Allergies != allergies)
         {
             Allergies = allergies;
-            AddDomainEvent(new PatientAllergiesUpdatedEvent(SubjectRef, allergies));
+            AddDomainEvent(new PatientAllergiesUpdatedEvent(Id, allergies));
         }
     }
 
@@ -104,7 +103,7 @@ public class PatientProfile : AggregateRoot<Guid>
         if (PersonalityTraits != personalityTraits)
         {
             PersonalityTraits = personalityTraits;
-            AddDomainEvent(new PatientPersonalityUpdatedEvent(SubjectRef, personalityTraits));
+            AddDomainEvent(new PatientPersonalityUpdatedEvent(Id, personalityTraits));
         }
     }
 
@@ -113,7 +112,7 @@ public class PatientProfile : AggregateRoot<Guid>
         if (JobId != jobId)
         {
             JobId = jobId;
-            AddDomainEvent(new PatientJobUpdatedEvent(SubjectRef, jobId));
+            AddDomainEvent(new PatientJobUpdatedEvent(Id, jobId));
         }
     }
 

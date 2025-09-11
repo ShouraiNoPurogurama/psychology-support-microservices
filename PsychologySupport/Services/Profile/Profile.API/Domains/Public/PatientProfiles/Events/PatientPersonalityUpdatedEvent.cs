@@ -2,4 +2,4 @@
 
 namespace Profile.API.Domains.Public.PatientProfiles.Events;
 
-public record PatientPersonalityUpdatedEvent(Guid SubjectRef, PersonalityTrait PersonalityTraits) : IDomainEvent;
+public record PatientPersonalityUpdatedEvent(Guid PatientProfileId, PersonalityTrait PersonalityTraits) : IDomainEvent;
