@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
-using StackExchange.Redis;
 using YarpApiGateway.Features.TokenExchange;
 
 namespace YarpApiGateway.Infrastructure;
@@ -50,7 +49,7 @@ public class CachingPiiLookupService : IPiiLookupService
             }
             return realValue;
         }
-        catch (RedisConnectionException ex)
+        catch (Exception ex)
         {
             _logger.LogWarning(ex, "Redis connection failed for key: {Key}. Falling back to factory.", key);
             return await factory();

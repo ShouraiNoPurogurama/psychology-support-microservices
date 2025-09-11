@@ -45,4 +45,7 @@
     <ItemGroup>
         <Folder Include="Protos\"/>
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
+    </ItemGroup>
 </Project>

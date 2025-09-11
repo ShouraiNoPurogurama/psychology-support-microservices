@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Billing.API.Models;
+﻿using Billing.API.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Billing.API.Data;
