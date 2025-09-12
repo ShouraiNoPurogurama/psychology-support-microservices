@@ -14,9 +14,9 @@ public class UpdatePatientJobEndpoint : ICarterModule
                 async ([FromBody] Guid jobId, ClaimsPrincipal user,
                     ISender sender) =>
                 {
-                    var subjectRef = user.GetSubjectRef();
+                    var patientId = user.GetPatientId();
                     
-                    var command = new UpdatePatientJobCommand(subjectRef, jobId);
+                    var command = new UpdatePatientJobCommand(patientId, jobId);
                     var result = await sender.Send(command);
                     var response = result.Adapt<UpdatePatientJobResponse>();
 

@@ -21,7 +21,7 @@ namespace Profile.API.Common.Helpers
         public static bool CanModifyPatientProfile(Guid patientProfileId, ClaimsPrincipal user)
         {
             var role = user.FindFirstValue(ClaimTypes.Role);
-            var profileIdStr = user.FindFirstValue("profileId");
+            var profileIdStr = user.FindFirstValue("patientId");
 
             if (!Guid.TryParse(profileIdStr, out var profileId))
                 return false;

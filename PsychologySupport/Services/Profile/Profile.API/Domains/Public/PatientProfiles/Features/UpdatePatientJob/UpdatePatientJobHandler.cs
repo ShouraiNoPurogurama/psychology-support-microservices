@@ -2,9 +2,9 @@
 
 namespace Profile.API.Domains.Public.PatientProfiles.Features.UpdatePatientJob;
 
-public record UpdatePatientJobCommand(Guid PatientProfileId, Guid JobId) : ICommand<UpdatePatientProfileResult>;
+public record UpdatePatientJobCommand(Guid PatientId, Guid JobId) : ICommand<UpdatePatientProfileResult>;
 
-public record UpdatePatientProfileResult(Guid PatientProfileId);
+public record UpdatePatientProfileResult(Guid PatientId);
 
 public class UpdatePatientJobHandler(ProfileDbContext dbContext)
     : ICommandHandler<UpdatePatientJobCommand, UpdatePatientProfileResult>
@@ -12,7 +12,7 @@ public class UpdatePatientJobHandler(ProfileDbContext dbContext)
     public async Task<UpdatePatientProfileResult> Handle(UpdatePatientJobCommand request, CancellationToken cancellationToken)
     {
         var patientProfile = await dbContext.PatientProfiles
-                                 .FirstOrDefaultAsync(p => p.Id == request.PatientProfileId,
+                                 .FirstOrDefaultAsync(p => p.Id == request.PatientId,
                                      cancellationToken: cancellationToken)
                              ?? throw new ProfileNotFoundException();
 

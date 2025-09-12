@@ -56,8 +56,5 @@
 			<Link>Protos\notification.proto</Link>
 		</Protobuf>
 	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Domains\Public\" />
-	</ItemGroup>
 
 </Project>

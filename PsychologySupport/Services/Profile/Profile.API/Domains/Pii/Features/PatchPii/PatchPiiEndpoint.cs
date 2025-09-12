@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Profile.API.Domains.Pii.Dtos;
-using Profile.API.Extensions;
+using Profile.API.Domains.Pii.Extensions;
 
 namespace Profile.API.Domains.Pii.Features.PatchPii;
 

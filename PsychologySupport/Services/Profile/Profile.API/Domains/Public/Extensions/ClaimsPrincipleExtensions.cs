@@ -1,7 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace Profile.API.Extensions;
+namespace Profile.API.Domains.Public.Extensions;
 
 public static class ClaimsPrincipalExtensions
 {

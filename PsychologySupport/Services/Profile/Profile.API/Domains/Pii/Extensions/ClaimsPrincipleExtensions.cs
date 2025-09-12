@@ -1,17 +1,18 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace Profile.API.Extensions;
+namespace Profile.API.Domains.Pii.Extensions;
 
 public static class ClaimsPrincipalExtensions
 {
-    public static Guid GetPatientId(this ClaimsPrincipal user)
+    public static Guid GetSubjectRef(this ClaimsPrincipal user)
     {
-        var result = user.Claims.FirstOrDefault(c => c.Type == "patientId")?.Value ??
-                     throw new UnauthorizedAccessException("Token không hợp lệ.");
+        var result = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ??
+                                                             throw new UnauthorizedAccessException("Token không hợp lệ.");
         
         return Guid.Parse(result);
     }
+
     
     public static IEnumerable<Claim> GetAllClaims(this ClaimsPrincipal user)
     {
