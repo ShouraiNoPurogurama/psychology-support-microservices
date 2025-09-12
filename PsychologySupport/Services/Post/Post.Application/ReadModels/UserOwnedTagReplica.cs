@@ -1,4 +1,4 @@
-﻿namespace Post.Domain.Models.Query;
+﻿namespace Post.Application.ReadModels;
 
 public class UserOwnedTagReplica
 {

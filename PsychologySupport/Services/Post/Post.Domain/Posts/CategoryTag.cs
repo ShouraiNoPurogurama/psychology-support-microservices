@@ -1,4 +1,4 @@
-﻿namespace Post.Domain.Models.Public;
+﻿namespace Post.Domain.Posts;
 
 public partial class CategoryTag : AuditableEntity<Guid>
 {

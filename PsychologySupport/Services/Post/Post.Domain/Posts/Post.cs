@@ -2,7 +2,7 @@
 using Post.Domain.Events;
 using Post.Domain.Exceptions;
 
-namespace Post.Domain.Models.Public;
+namespace Post.Domain.Posts;
 
 public partial class Post : AggregateRoot<Guid>, ISoftDeletable
 {

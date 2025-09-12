@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Post.Domain.Models.Query;
+using Post.Application.ReadModels;
 
 namespace Post.Application.Data;
 

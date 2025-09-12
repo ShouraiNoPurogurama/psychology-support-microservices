@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Post.Application.Data;
-using Post.Domain.Models.Query;
+using Post.Application.ReadModels;
 
 namespace Post.Infrastructure.Data.Query;
 

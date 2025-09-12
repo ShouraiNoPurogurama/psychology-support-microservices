@@ -1,4 +1,6 @@
-﻿namespace Post.Domain.Models.Query;
+﻿using Post.Domain.Abstractions;
+
+namespace Post.Application.ReadModels;
 
 public class EmotionTagReplica : Entity<Guid>
 {

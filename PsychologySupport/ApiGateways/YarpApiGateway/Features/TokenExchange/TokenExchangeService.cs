@@ -1,56 +1,48 @@
-﻿using YarpApiGateway.Features.TokenExchange.Contracts;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using YarpApiGateway.Features.TokenExchange.Contracts;
+using YarpApiGateway.Features.TokenExchange.Rules;
 
 namespace YarpApiGateway.Features.TokenExchange;
 
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-
 public class TokenExchangeService : ITokenExchangeService
 {
-    private readonly IPiiLookupService _piiLookupService;
+    private readonly TokenExchangeRuleRegistry _ruleRegistry;
     private readonly IInternalTokenMintingService _tokenMintingService;
     private readonly JwtSecurityTokenHandler _tokenHandler = new();
 
-    public TokenExchangeService(IPiiLookupService piiLookupService, IInternalTokenMintingService tokenMintingService)
+    public TokenExchangeService(TokenExchangeRuleRegistry ruleRegistry, IInternalTokenMintingService tokenMintingService)
     {
-        _piiLookupService = piiLookupService;
+        _ruleRegistry = ruleRegistry;
         _tokenMintingService = tokenMintingService;
     }
 
     public async Task<string?> ExchangeTokenAsync(string originalToken, string destinationAudience)
     {
         var jwtToken = _tokenHandler.ReadJwtToken(originalToken);
-
         var subjectRef = jwtToken.Subject;
 
         if (string.IsNullOrEmpty(subjectRef)) return null;
 
-        // Đây là nơi quyết định xem cần tra cứu ID nào dựa vào audience
-        // Ví dụ: nếu destinationAudience là "social-service", ta tra cứu aliasId
-        List<Claim> newClaims = new();
+        var rules = _ruleRegistry.GetRules(subjectRef);
+        foreach (var rule in rules)
+        {
+            //Kiểm tra xem destinationAudience có chứa bất kỳ từ khóa nào trong Keywords không
+            if (rule.Keywords.Any(destinationAudience.Contains))
+            {
+                var newId = await rule.LookupFunction(subjectRef);
+                if (string.IsNullOrEmpty(newId)) return null;
 
-        if (destinationAudience.Contains("alias") || destinationAudience.Contains("post") || destinationAudience.Contains("feed"))
-        {
-            var aliasId = await _piiLookupService.ResolveAliasIdBySubjectRefAsync(subjectRef);
-            if (string.IsNullOrEmpty(aliasId)) return null;
-            newClaims.Add(new Claim("aliasId", aliasId));
-        }
-        else if (destinationAudience.Contains("profile"))
-        {
-            var patientId = await _piiLookupService.ResolvePatientIdBySubjectRefAsync(subjectRef);
-            if (string.IsNullOrEmpty(patientId)) return null;
-            newClaims.Add(new Claim("patientId", patientId));
-        }
-        else
-        {
-            //Không có quy tắc nào khớp, không exchange
-            return originalToken;
+                var newClaims = new List<Claim> { new Claim(rule.ClaimType, newId) };
+
+                return _tokenMintingService.MintScopedToken(
+                    new ClaimsPrincipal(new ClaimsIdentity(jwtToken.Claims)),
+                    newClaims, destinationAudience
+                );
+            }
         }
 
-        return _tokenMintingService.MintScopedToken
-        (
-            new ClaimsPrincipal(new ClaimsIdentity(jwtToken.Claims)),
-            newClaims, destinationAudience
-        );
+        //Không tìm thấy quy tắc nào khớp
+        return originalToken;
     }
 }
