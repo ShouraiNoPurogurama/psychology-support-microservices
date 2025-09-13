@@ -1,5 +1,9 @@
-﻿using Billing.API.Models;
+using Billing.API.Data.Common;
+using Billing.API.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System;
+using System.Collections.Generic;
 
 namespace Billing.API.Data;
 
@@ -93,8 +97,8 @@ public partial class BillingDbContext : DbContext
             entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
             entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.Status)
-                .HasMaxLength(20)
-                .HasDefaultValueSql("'Issued'::character varying")
+                .HasConversion(new EnumToStringConverter<InvoiceStatus>())
+                .HasColumnType("VARCHAR(20)")
                 .HasColumnName("status");
 
             entity.HasOne(d => d.Order).WithMany(p => p.Invoices)
@@ -236,8 +240,8 @@ public partial class BillingDbContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("promo_code");
             entity.Property(e => e.Status)
-                .HasMaxLength(20)
-                .HasDefaultValueSql("'Pending'::character varying")
+                .HasConversion(new EnumToStringConverter<OrderStatus>())
+                .HasColumnType("VARCHAR(20)")
                 .HasColumnName("status");
 
             entity.HasOne(d => d.IdempotencyKey).WithMany(p => p.Orders)

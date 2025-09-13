@@ -1,9 +1,10 @@
 
 using BuildingBlocks.Behaviors;
-using Carter;
-using HealthChecks.UI.Client;
-using Media.API.Extensions;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Media.API;
+using Media.Application;
+using Media.Infrastructure;
+using Media.Application.Extensions;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,45 +12,17 @@ builder.Configuration.LoadConfiguration(builder.Environment);
 
 builder.Host.UseCustomSerilog(builder.Configuration, "Media");
 
-var services = builder.Services;
+// Add services to the container.
 
-services.AddApplicationServices(builder.Configuration, builder.Environment);
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services
+    .AddApplicationServices(builder.Configuration)
+    .AddInfrastructureServices(builder.Configuration)
+    .AddApiServices(builder.Configuration, builder.Environment)
+    .RegisterMapsterConfiguration();
 
-// Configure the HTTP request pipeline
 var app = builder.Build();
 
-app.UseExceptionHandler(options => { });
-
-app.UseCors("CorsPolicy");
-
-app.UseStaticFiles();
-
-app.MapCarter();
-
-app.UseSwagger();
-if (app.Environment.IsDevelopment())
-{
-    //app.InitializeDatabaseAsync();
-    app.UseSwaggerUI();
-}
-else
-{
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/media-service/swagger/v1/swagger.json", "Media API v1");
-    });
-}
-
-app.UseHealthChecks("/health",
-    new HealthCheckOptions
-    {
-        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-    }
-);
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.UseRouting();
+app.UseApiServices();
 
 app.Run();

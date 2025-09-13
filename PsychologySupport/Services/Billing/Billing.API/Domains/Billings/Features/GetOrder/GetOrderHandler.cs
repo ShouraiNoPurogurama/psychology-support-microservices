@@ -1,4 +1,5 @@
 ﻿using Billing.API.Data;
+using Billing.API.Data.Common;
 using Billing.API.Domains.Billings.Dtos;
 using Billing.API.Domains.Billings.Features.GetOrders;
 using BuildingBlocks.CQRS;
@@ -15,7 +16,7 @@ public record GetOrderResult(
     string OrderType,
     decimal Amount,
     string Currency,
-    string Status,
+    OrderStatus Status,
     string? PromoCode,
     DateTimeOffset? CreatedAt,
     InvoiceDto Invoice

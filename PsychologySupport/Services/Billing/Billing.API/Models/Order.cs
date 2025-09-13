@@ -1,7 +1,4 @@
-﻿using BuildingBlocks.DDD;
-using BuildingBlocks.Exceptions;
-using System;
-using System.Collections.Generic;
+﻿using Billing.API.Data.Common;
 
 namespace Billing.API.Models;
 
@@ -13,31 +10,31 @@ public partial class Order : AggregateRoot<Guid>
     public decimal Amount { get; private set; }
     public string Currency { get; private set; } = null!;
     public string? PromoCode { get; private set; }
-    public string Status { get; set; } = null!;
-    public Guid? PaymentId { get; set; }
-    public Guid? InvoiceId { get; set; }
+    public OrderStatus Status { get; private set; }
+    public Guid? PaymentId { get; private set; }
+    public Guid? InvoiceId { get; private set; }
     public Guid? IdempotencyKeyId { get; private set; }
 
-    public virtual IdempotencyKey? IdempotencyKey { get; set; }
-    public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+    public virtual IdempotencyKey? IdempotencyKey { get; private set; }
+    public virtual ICollection<Invoice> Invoices { get; private set; } = new List<Invoice>();
 
     private Order() { } 
 
     private Order(
         Guid id,
-        Guid subject_ref,
+        Guid subjectRef,
         string orderType,
         string productCode,
         decimal amount,
         string currency,
         string? promoCode,
-        string status,
+        OrderStatus status,
         Guid? idempotencyKeyId,
         string createdBy,
         string lastModifiedBy)
     {
         Id = id;
-        SubjectRef = subject_ref;
+        SubjectRef = subjectRef;
         OrderType = orderType;
         ProductCode = productCode;
         Amount = amount;
@@ -52,7 +49,7 @@ public partial class Order : AggregateRoot<Guid>
     }
 
     public static Order Create(
-        Guid subject_ref,
+        Guid subjectRef,
         string orderType,
         string productCode,
         decimal amount,
@@ -62,35 +59,33 @@ public partial class Order : AggregateRoot<Guid>
         string createdBy)
     {
         // Validations
-
-        if (subject_ref == Guid.Empty)
-            throw new ArgumentException("SubjectRef is required.", nameof(subject_ref));
+        if (subjectRef == Guid.Empty)
+            throw new InvalidDataException("SubjectRef không được để trống.");
 
         if (string.IsNullOrWhiteSpace(orderType))
-            throw new ArgumentException("OrderType is required.", nameof(orderType));
+            throw new InvalidDataException("OrderType không được để trống.");
 
         if (string.IsNullOrWhiteSpace(productCode))
-            throw new ArgumentException("ProductCode is required.", nameof(productCode));
+            throw new InvalidDataException("ProductCode không được để trống.");
 
         if (amount < 0)
-            throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative.");
+            throw new InvalidDataException("Số tiền không thể âm.");
 
         if (string.IsNullOrWhiteSpace(currency))
-            throw new ArgumentException("Currency is required.", nameof(currency));
+            throw new InvalidDataException("Currency không được để trống.");
 
         if (!new[] { "BuySubscription", "BuyPoint" }.Contains(orderType))
-            throw new ArgumentException("Invalid OrderType. Must be 'BuySubscription' or 'BuyPoint'.", nameof(orderType));
-
+            throw new InvalidDataException("OrderType không hợp lệ. Chỉ chấp nhận 'BuySubscription' hoặc 'BuyPoint'.");
 
         return new Order(
             id: Guid.NewGuid(),
-            subject_ref: subject_ref,
+            subjectRef: subjectRef,
             orderType: orderType,
             productCode: productCode,
             amount: amount,
             currency: currency,
             promoCode: promoCode,
-            status: "AwaitPayment",
+            status: OrderStatus.Pending,
             idempotencyKeyId: idempotencyKeyId,
             createdBy: createdBy,
             lastModifiedBy: createdBy

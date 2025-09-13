@@ -1,4 +1,5 @@
 ﻿using Billing.API.Data;
+using Billing.API.Data.Common;
 using Billing.API.Domains.Billings.Dtos;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
@@ -14,7 +15,7 @@ public record GetOrdersQuery(
     string? SortBy = "CreatedAt",       // field sort
     string? SortOrder = "desc",         // asc/desc
     string? OrderType = null,           // filter BuyPoint/BuySubscription
-    string? Status = null               // filter Status
+    OrderStatus? Status = null               // filter Status
 ) : IQuery<GetOrdersResult>;
 
 public record GetOrdersResult(PaginatedResult<OrderDto> Orders);
@@ -41,14 +42,13 @@ public class GetOrdersHandler : IQueryHandler<GetOrdersQuery, GetOrdersResult>
         if (!string.IsNullOrEmpty(request.OrderType))
             query = query.Where(o => o.OrderType == request.OrderType);
 
-        if (!string.IsNullOrEmpty(request.Status))
-            query = query.Where(o => o.Status == request.Status);
+        if (request.Status.HasValue)
+            query = query.Where(o => o.Status == request.Status.Value);
 
         // Searching
         if (!string.IsNullOrEmpty(request.Search))
             query = query.Where(o =>
-                o.ProductCode.Contains(request.Search) ||
-                o.Status.Contains(request.Search));
+                o.ProductCode.Contains(request.Search));
 
         // Sorting
         query = (request.SortBy, request.SortOrder.ToLower()) switch

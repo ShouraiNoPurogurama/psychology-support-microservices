@@ -22,7 +22,6 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\Common\" />
     <Folder Include="Domains\Billings\Features\GetInvoice\" />
   </ItemGroup>
 

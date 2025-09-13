@@ -113,11 +113,8 @@ namespace Billing.API.Data.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("status")
-                        .HasDefaultValueSql("'Issued'::character varying");
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
 
                     b.Property<Guid>("SubjectRef")
                         .HasColumnType("uuid")
@@ -366,11 +363,8 @@ namespace Billing.API.Data.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("status")
-                        .HasDefaultValueSql("'Pending'::character varying");
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
 
                     b.Property<Guid>("SubjectRef")
                         .HasColumnType("uuid")
