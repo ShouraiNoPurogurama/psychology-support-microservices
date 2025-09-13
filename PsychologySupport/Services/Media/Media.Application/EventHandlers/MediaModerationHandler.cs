@@ -57,7 +57,10 @@ namespace Media.Application.EventHandlers
 
             // Gửi file qua Sightengine
             var sightengineResult = await _sightengineService.CheckImageWithWorkflowAsync(file);
-            moderationAudit.RawJson = JsonSerializer.Serialize(sightengineResult); 
+
+            moderationAudit.RawJson = sightengineResult.RawJson;
+            moderationAudit.PolicyVersion = sightengineResult.WorkflowId;
+            moderationAudit.Score = (decimal?)sightengineResult.Score;
             moderationAudit.CheckedAt = DateTime.UtcNow;
 
             if (sightengineResult.IsSafe)
@@ -70,7 +73,6 @@ namespace Media.Application.EventHandlers
                 moderationAudit.Status = MediaModerationStatus.Rejected;
                 mediaAsset.State = MediaState.Blocked;
             }
-
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }

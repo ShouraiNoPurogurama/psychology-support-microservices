@@ -1,8 +1,8 @@
-﻿using Media.Application.ServiceContracts;
+﻿using Media.Application.Dtos;
+using Media.Application.ServiceContracts;
+using Media.Infrastructure.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Media.Infrastructure.Options;
-using System.Text;
 using System.Text.Json;
 
 namespace Media.Infrastructure.Services
@@ -23,36 +23,7 @@ namespace Media.Infrastructure.Services
             }
         }
 
-        public async Task<(bool IsSafe, List<string> Violations)> CheckImageAsync(IFormFile file)
-        {
-            var content = new MultipartFormDataContent
-            {
-                { new StreamContent(file.OpenReadStream()), "media", file.FileName }
-            };
-
-            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("multipart/form-data");
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
-                "Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_options.ApiUser}:{_options.ApiSecret}")));
-
-            var response = await _httpClient.PostAsync("1.0/check.json?models=properties,discrimination,offensive", content);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception($"Lỗi khi kiểm tra nội dung với Sightengine API: {response.ReasonPhrase}");
-            }
-
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<SightengineResponse>(jsonResponse) ?? new SightengineResponse();
-
-            var violations = new List<string>();
-            if (result.Offensive?.Probability > 0.5) violations.Add("Nội dung nhạy cảm");
-            if (result.Discrimination?.Probability > 0.5) violations.Add("Nội dung phân biệt đối xử");
-            if (result.Properties?.IsBlurry == true) violations.Add("Ảnh mờ");
-
-            return (violations.Count == 0, violations);
-        }
-
-        public async Task<(bool IsSafe, List<string> Violations)> CheckImageWithWorkflowAsync(IFormFile file)
+        public async Task<SightengineResult> CheckImageWithWorkflowAsync(IFormFile file)
         {
             if (string.IsNullOrWhiteSpace(_options.ApiUser) ||
                 string.IsNullOrWhiteSpace(_options.ApiSecret) ||
@@ -63,20 +34,14 @@ namespace Media.Infrastructure.Services
             }
 
             var content = new MultipartFormDataContent
-            {   
+            {
                 { new StreamContent(file.OpenReadStream()), "media", file.FileName },
                 { new StringContent(_options.ApiUser), "api_user" },
-                { new StringContent(_options.ApiSecret), "api_secret" },    
-                { new StringContent(_options.WorkflowId), "workflow" } 
+                { new StringContent(_options.ApiSecret), "api_secret" },
+                { new StringContent(_options.WorkflowId), "workflow" }
             };
 
-            //content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("multipart/form-data");
-            ////_httpClient.DefaultRequestHeaders.Clear(); 
-            //_httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-
-            //var endpoint = _options.BaseUrl;
-
-            var response = await _httpClient.PostAsync("check-workflow.json", content);
+            var response = await _httpClient.PostAsync($"{_options.BaseUrl}/check-workflow.json", content);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -85,36 +50,33 @@ namespace Media.Infrastructure.Services
             }
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<SightengineResponse>(jsonResponse) ?? new SightengineResponse();
 
-            var violations = new List<string>();
-            if (result.Offensive?.Probability > 0.5) violations.Add("Nội dung nhạy cảm");
-            if (result.Discrimination?.Probability > 0.5) violations.Add("Nội dung phân biệt đối xử");
-            if (result.Properties?.IsBlurry == true) violations.Add("Ảnh mờ");
+            var parsed = JsonSerializer.Deserialize<SightengineResponse>(jsonResponse,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            return (violations.Count == 0, violations);
+            if (parsed == null || parsed.Status != "success")
+            {
+                throw new Exception("Sightengine API trả về dữ liệu không hợp lệ.");
+            }
+
+            // Nếu 1 cao là thấp hẳn 
+            var safeScores = new List<double>
+{
+                parsed.Nudity?.Safe ?? 1.0,
+                1 - (parsed.Weapon?.Prob ?? 0.0),
+                1 - (parsed.Alcohol?.Prob ?? 0.0),
+                1 - (parsed.Drugs?.Prob ?? 0.0)
+            };
+
+            var score = safeScores.Min();
+            var isSafe = score > 0.8; // tùy chỉnh
+
+            return new SightengineResult(
+                IsSafe: isSafe,
+                RawJson: jsonResponse,
+                WorkflowId: _options.WorkflowId,
+                Score: (double)score
+            );
         }
-    }
-
-    public class SightengineResponse
-    {
-        public OffenseData? Offensive { get; set; }
-        public DiscriminationData? Discrimination { get; set; }
-        public PropertiesData? Properties { get; set; }
-    }
-
-    public class OffenseData
-    {
-        public double Probability { get; set; }
-    }
-
-    public class DiscriminationData
-    {
-        public double Probability { get; set; }
-    }
-
-    public class PropertiesData
-    {
-        public bool IsBlurry { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Media.Application.Dtos;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,6 @@ namespace Media.Application.ServiceContracts
 {
     public interface ISightengineService
     {
-        Task<(bool IsSafe, List<string> Violations)> CheckImageAsync(IFormFile file);
-        Task<(bool IsSafe, List<string> Violations)> CheckImageWithWorkflowAsync(IFormFile file);
+        Task<SightengineResult> CheckImageWithWorkflowAsync(IFormFile file);
     }
 }
