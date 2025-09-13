@@ -14,7 +14,7 @@ public partial class Post : AggregateRoot<Guid>, ISoftDeletable
 
     public Guid AuthorAliasId { get; private set; }
 
-    public Guid AuthorAliasVersionId { get; private set; }
+    public Guid? AuthorAliasVersionId { get; private set; }
 
     public ModerationStatus ModerationStatus { get; private set; } = ModerationStatus.Pending;
 
@@ -40,15 +40,20 @@ public partial class Post : AggregateRoot<Guid>, ISoftDeletable
     /// Factory Method để tạo một bài viết mới, đảm bảo nó luôn ở trạng thái hợp lệ ban đầu.
     /// </summary>
     public static Post Create(Guid authorAliasId,
-        Guid authorAliasVersionId,
+        Guid? authorAliasVersionId,
         string content,
-        string? title = null,
-        PostVisibility visibility = PostVisibility.Public
+        string? title,
+        string visibility
     )
     {
         if (string.IsNullOrWhiteSpace(content))
         {
             throw new InvalidPostDataException("Nội dung bài viết không được để trống.");
+        }
+        
+        if(!Enum.TryParse<PostVisibility>(visibility, true, out var vis))
+        {
+            throw new InvalidPostDataException("Đối tượng hiển thị của bài viết không hợp lệ.");
         }
 
         var post = new Post
@@ -58,7 +63,7 @@ public partial class Post : AggregateRoot<Guid>, ISoftDeletable
             AuthorAliasVersionId = authorAliasVersionId,
             Content = content,
             Title = title,
-            Visibility = visibility,
+            Visibility = vis,
             ModerationStatus = ModerationStatus.Pending, 
             ReactionCount = 0,
             CommentCount = 0
@@ -84,6 +89,19 @@ public partial class Post : AggregateRoot<Guid>, ISoftDeletable
 
         Content = newContent;
         Title = newTitle;
+    }
+    
+    public void UpdateAuthorAliasVersion(Guid newAuthorAliasVersionId, Guid editorAliasId)
+    {
+        if (editorAliasId != AuthorAliasId)
+            throw new PostAuthorMismatchException();
+        
+        if (newAuthorAliasVersionId == Guid.Empty)
+        {
+            throw new InvalidPostDataException("Phiên bản của người sở hữu bài viết không hợp lệ.");
+        }
+
+        AuthorAliasVersionId = newAuthorAliasVersionId;
     }
     
     /// <summary>

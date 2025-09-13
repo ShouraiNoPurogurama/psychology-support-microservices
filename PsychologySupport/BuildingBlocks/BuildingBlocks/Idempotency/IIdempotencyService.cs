@@ -1,4 +1,4 @@
-﻿namespace BuildingBlocks.Services;
+﻿namespace BuildingBlocks.Idempotency;
 
 public interface IIdempotencyService
 {
@@ -8,4 +8,5 @@ public interface IIdempotencyService
 
         Task SaveResponseAsync<T>(Guid requestKey, T response, CancellationToken cancellationToken = default);
    
+        Task<(bool Found, T? Response)> TryGetResponseAsync<T>(Guid requestKey, CancellationToken cancellationToken = default);
 }

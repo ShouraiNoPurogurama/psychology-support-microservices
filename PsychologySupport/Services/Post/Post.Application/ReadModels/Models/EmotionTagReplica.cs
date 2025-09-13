@@ -1,9 +1,8 @@
-﻿using Post.Domain.Abstractions;
+﻿namespace Post.Application.ReadModels.Models;
 
-namespace Post.Application.ReadModels;
-
-public class EmotionTagReplica : Entity<Guid>
+public class EmotionTagReplica
 {
+    public Guid Id { get; set; }
     public string Code { get; set; } = string.Empty;
     
     public string DisplayName { get; set; } = string.Empty;

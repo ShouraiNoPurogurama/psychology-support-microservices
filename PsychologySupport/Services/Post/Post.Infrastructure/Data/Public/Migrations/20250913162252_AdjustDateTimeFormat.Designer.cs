@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Post.Infrastructure.Data.Public;
@@ -12,9 +13,11 @@ using Post.Infrastructure.Data.Public;
 namespace Post.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(PublicDbContext))]
-    partial class PostDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250913162252_AdjustDateTimeFormat")]
+    partial class AdjustDateTimeFormat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

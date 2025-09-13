@@ -3,12 +3,15 @@ using Post.Domain.Enums;
 
 namespace Post.Application.Posts.Commands.CreatePost;
 
-public record CreatePostCommand(
+public sealed record CreatePostCommand(
+    Guid RequestKey,                          //từ header "Idempotency-Key"
+    string? Title,
     string Content,
-    PostVisibility Visibility,
-    IEnumerable<Guid>? MediaIds) : ICommand<CreatePostResult>;
+    string Visibility,
+    IEnumerable<Guid>? MediaIds
+) : IdempotentCommand<CreatePostResult>(RequestKey);
 
-public record CreatePostResult(
+public sealed record CreatePostResult(
     Guid Id,
     string ModerationStatus,
     DateTimeOffset CreatedAt);
