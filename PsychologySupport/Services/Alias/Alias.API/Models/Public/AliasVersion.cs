@@ -17,9 +17,9 @@ public partial class AliasVersion : Entity<Guid>, IHasCreationAudit
 
     public NicknameSource NicknameSource { get; set; }
     
-    public DateTime ValidFrom { get; set; }
+    public DateTimeOffset ValidFrom { get; set; }
 
-    public DateTime? ValidTo { get; set; }
+    public DateTimeOffset? ValidTo { get; set; }
 
     public virtual Alias Alias { get; set; } = null!;
     
