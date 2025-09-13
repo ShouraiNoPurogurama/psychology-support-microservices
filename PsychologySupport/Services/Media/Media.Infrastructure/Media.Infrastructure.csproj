@@ -14,7 +14,9 @@
   </ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Azure.Storage.Blobs" />
 		<PackageReference Include="EFCore.NamingConventions" />
+		<PackageReference Include="StackExchange.Redis" />
 	</ItemGroup>
 
 	<ItemGroup>

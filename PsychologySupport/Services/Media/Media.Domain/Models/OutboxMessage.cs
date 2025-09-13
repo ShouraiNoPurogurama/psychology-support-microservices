@@ -4,8 +4,6 @@ namespace Media.API.Media.Models;
 
 public partial class OutboxMessage : AuditableEntity<Guid>
 {
-    public string AggregateType { get; set; } = null!;
-
     public Guid AggregateId { get; set; }
 
     public string EventType { get; set; } = null!;

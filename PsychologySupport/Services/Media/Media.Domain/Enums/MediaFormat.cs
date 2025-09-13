@@ -11,9 +11,9 @@ namespace Media.Domain.Enums
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum MediaFormat
     {
-        Jpeg,
-        Png,
-        Webp,
-        Avif
+        jpeg,
+        png,
+        webp,
+        avif
     }
 }

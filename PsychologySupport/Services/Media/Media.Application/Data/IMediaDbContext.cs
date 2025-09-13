@@ -19,5 +19,7 @@ namespace Media.Application.Data
         DbSet<MediaVariant> MediaVariants { get; set; }
 
         DbSet<OutboxMessage> OutboxMessages { get; set; }
+
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }
 }

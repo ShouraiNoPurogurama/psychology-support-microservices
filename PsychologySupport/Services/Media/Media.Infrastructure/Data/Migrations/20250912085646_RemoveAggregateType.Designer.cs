@@ -3,6 +3,7 @@ using System;
 using Media.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Media.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(MediaDbContext))]
-    partial class MediaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250912085646_RemoveAggregateType")]
+    partial class RemoveAggregateType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -155,7 +158,7 @@ namespace Media.Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset?>("CheckedAt")
+                    b.Property<DateTime>("CheckedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("checked_at");
 
@@ -180,10 +183,12 @@ namespace Media.Infrastructure.Data.Migrations
                         .HasColumnName("media_id");
 
                     b.Property<string>("PolicyVersion")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("policy_version");
 
                     b.Property<string>("RawJson")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("raw_json");
 

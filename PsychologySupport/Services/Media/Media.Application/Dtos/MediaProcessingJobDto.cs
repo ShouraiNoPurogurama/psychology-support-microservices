@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Media.Application.Dtos
 {
-    public record MediaOwnerDto
-    {
-        public MediaOwnerType MediaOwnerType { get; init; }
-        public Guid MediaOwnerId { get; init; }
-    }
+    public record MediaProcessingJobDto(
+       Guid JobId,
+       JobType JobType,
+       ProcessStatus Status
+   );
 }

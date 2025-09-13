@@ -13,11 +13,11 @@ public partial class MediaModerationAudit : AuditableEntity<Guid>
 
     public decimal? Score { get; set; }
 
-    public string PolicyVersion { get; set; } = null!;
+    public string? PolicyVersion { get; set; } = null!;
 
-    public string RawJson { get; set; } = null!;
+    public string? RawJson { get; set; } = null!;
 
-    public DateTime CheckedAt { get; set; }
+    public DateTimeOffset? CheckedAt { get; set; }
 
     public virtual MediaAsset Media { get; set; } = null!;
 }

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Media.API.Media.Models;
 
-public partial class MediaAsset : AuditableEntity<Guid>
+public partial class MediaAsset : AggregateRoot<Guid>
 {
     public MediaState State { get; set; }
 

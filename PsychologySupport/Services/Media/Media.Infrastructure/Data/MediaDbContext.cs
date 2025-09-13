@@ -3,8 +3,6 @@ using Media.Application.Data;
 using Media.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using System;
-using System.Collections.Generic;
 
 namespace Media.Infrastructure.Data;
 
@@ -32,6 +30,9 @@ public partial class MediaDbContext : DbContext, IMediaDbContext
     public virtual DbSet<MediaVariant> MediaVariants { get; set; }
 
     public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
+
+    public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+        => base.SaveChangesAsync(cancellationToken);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
