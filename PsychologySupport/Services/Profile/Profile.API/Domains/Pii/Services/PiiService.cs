@@ -17,6 +17,25 @@ public class PiiService(PiiDbContext piiDbContext, ISender sender, ILogger<PiiSe
         return base.ResolvePersonInfoBySubjectRef(request, context);
     }
 
+    public override async Task<ResolvePatientIdBySubjectRefResponse> ResolvePatientIdBySubjectRef(ResolvePatientIdBySubjectRefRequest request, ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.SubjectRef, out var subjectRef))
+            return new ResolvePatientIdBySubjectRefResponse
+            {
+                PatientId = null
+            };
+
+        var patientProfileId = await piiDbContext.PatientOwnerMaps.AsNoTracking()
+            .Where(a => a.SubjectRef == subjectRef)
+            .Select(a => a.PatientProfileId)
+            .FirstOrDefaultAsync();
+
+        return new ResolvePatientIdBySubjectRefResponse
+        {
+            PatientId = patientProfileId.ToString()
+        };
+    }
+
     public override async Task<ResolveAliasIdBySubjectRefResponse> ResolveAliasIdBySubjectRef(
         ResolveAliasIdBySubjectRefRequest request, ServerCallContext context)
     {
@@ -142,7 +161,10 @@ public class PiiService(PiiDbContext piiDbContext, ISender sender, ILogger<PiiSe
             }
             : new BuildingBlocks.Data.Common.ContactInfo();
 
+        
+        //TODO quay lại sửa
         return new PersonSeedDto(
+            Guid.NewGuid(),
             dto.FullName,
             gender,
             birthDate,

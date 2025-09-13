@@ -5,17 +5,9 @@ namespace Profile.API.Extensions;
 
 public static class ClaimsPrincipalExtensions
 {
-    public static Guid GetAliasId(this ClaimsPrincipal user)
+    public static Guid GetPatientId(this ClaimsPrincipal user)
     {
-        var result = user.Claims.FirstOrDefault(c => c.Type == "aliasId")?.Value ??
-                     throw new UnauthorizedAccessException("Token không hợp lệ.");
-        
-        return Guid.Parse(result);
-    }
-    
-    public static Guid GetSubjectRef(this ClaimsPrincipal user)
-    {
-        var result = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ??
+        var result = user.Claims.FirstOrDefault(c => c.Type == "patientId")?.Value ??
                      throw new UnauthorizedAccessException("Token không hợp lệ.");
         
         return Guid.Parse(result);

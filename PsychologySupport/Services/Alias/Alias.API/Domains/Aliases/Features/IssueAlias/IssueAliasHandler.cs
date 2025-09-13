@@ -29,9 +29,9 @@ public sealed class IssueAliasCommandValidator : AbstractValidator<IssueAliasCom
 
         RuleFor(x => x.Label)
             .NotEmpty()
-            .WithMessage("Tên bí danh không được để trống.")
+            .WithMessage("Bí danh không được để trống.")
             .MaximumLength(30)
-            .WithMessage("Tên bí danh tối đa 30 kí tự.");
+            .WithMessage("Bí danh tối đa 30 kí tự.");
     }
 }
 
@@ -126,7 +126,10 @@ public class IssueAliasHandler(
 
             var aliasIssuedIntegrationEvent = new AliasIssuedIntegrationEvent(
                 alias.Id,
-                command.SubjectRef
+                command.SubjectRef,
+                newVersion.Id,
+                newVersion.Label,
+                newVersion.ValidFrom
             );
             await publishEndpoint.Publish(aliasIssuedIntegrationEvent, ct);
             

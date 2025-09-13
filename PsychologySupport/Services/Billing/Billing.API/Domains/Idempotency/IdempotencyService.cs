@@ -1,9 +1,8 @@
 using Billing.API.Abstractions;
 using Billing.API.Models;
-using BuildingBlocks.Exceptions;
-using BuildingBlocks.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using BuildingBlocks.Idempotency;
 
 namespace Billing.API.Domains.Idempotency;
 
@@ -75,5 +74,10 @@ public sealed class IdempotencyService : IIdempotencyService
 
         var redisKey = $"idempotency:{requestKey}";
         await _redisCache.SetCacheDataAsync(redisKey, dbKey, TimeSpan.FromHours(12));
+    }
+
+    public Task<(bool Found, T? Response)> TryGetResponseAsync<T>(Guid requestKey, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
     }
 }

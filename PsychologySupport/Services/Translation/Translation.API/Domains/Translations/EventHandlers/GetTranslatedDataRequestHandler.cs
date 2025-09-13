@@ -21,6 +21,6 @@ public class GetTranslatedDataRequestHandler(ILogger<GetTranslatedDataRequestHan
         
         await context.RespondAsync(response);
         
-        logger.LogInformation("Translated data for {TargetLanguage} with {Count} keys", request.TargetLanguage, request.Originals.Count);
+        logger.LogInformation("Collected data for {TargetLanguage} with {Count} keys", request.TargetLanguage, request.Originals.Count);
     }
 }

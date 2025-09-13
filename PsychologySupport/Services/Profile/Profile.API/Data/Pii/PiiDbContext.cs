@@ -11,6 +11,7 @@ public partial class PiiDbContext : DbContext
     }
 
     public virtual DbSet<AliasOwnerMap> AliasOwnerMaps { get; set; }
+    public virtual DbSet<PatientOwnerMap> PatientOwnerMaps { get; set; }
 
     public virtual DbSet<PersonProfile> PersonProfiles { get; set; }
 
@@ -36,6 +37,23 @@ public partial class PiiDbContext : DbContext
                 .IsRequired();
         });
 
+        builder.Entity<PatientOwnerMap>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("patient_owner_map_pkey");
+            
+            entity.ToTable("patient_owner_map", "pii");
+            
+            entity.HasIndex(e => e.PatientProfileId, "ix_patient_owner_map_patient_profile_id").IsUnique();
+            
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever();
+            
+            entity.HasOne<PersonProfile>()
+                .WithOne()
+                .HasForeignKey<PatientOwnerMap>(e => e.SubjectRef)
+                .IsRequired();
+        });
+
         builder.Entity<PersonProfile>(entity =>
         {
             entity.HasKey(e => e.SubjectRef);
@@ -45,12 +63,12 @@ public partial class PiiDbContext : DbContext
             entity.Property(e => e.FullName)
                 .HasConversion(e => e.Value,
                     dbValue => PersonName.Of(dbValue));
-            
+
             entity.Property(e => e.UserId)
                 .ValueGeneratedNever();
-            
+
             entity.HasIndex(e => e.UserId).IsUnique();
-            
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()");
 

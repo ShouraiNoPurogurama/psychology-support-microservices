@@ -1,4 +1,4 @@
-﻿using Billing.API.Data.Common;
+using Billing.API.Data.Common;
 using Billing.API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;

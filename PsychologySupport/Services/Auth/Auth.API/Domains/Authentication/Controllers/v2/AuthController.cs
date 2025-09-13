@@ -1,17 +1,16 @@
-﻿using Auth.API.Domains.Authentication.ServiceContracts.Shared;
+﻿using Auth.API.Domains.Authentication.ServiceContracts;
+using Auth.API.Domains.Authentication.ServiceContracts.Shared;
 using Microsoft.AspNetCore.Mvc;
-using IAuthService = Auth.API.Domains.Authentication.ServiceContracts.Features.v3.IAuthService;
 
 namespace Auth.API.Domains.Authentication.Controllers.v2;
 
 [ApiController]
 [Route("[controller]")]
 public class AuthController(
-    IAuthService authService,
+    // IAuthService authService,
+    IAuthFacade authService,
     IFirebaseAuthService firebaseAuthService) : ControllerBase
 {
-    // Refactor  API
-
     [HttpPost("v2/login")]
     public async Task<IActionResult> Login2([FromBody] LoginRequest loginRequest)
     {
@@ -85,5 +84,4 @@ public class AuthController(
         var result = await authService.ChangePasswordAsync(request);
         return Ok(new { success = result, message = "Đổi mật khẩu thành công." });
     }
-
 }

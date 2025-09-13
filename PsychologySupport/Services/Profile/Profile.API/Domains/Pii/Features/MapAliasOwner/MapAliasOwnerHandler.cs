@@ -13,28 +13,8 @@ public class MapAliasOwnerHandler(PiiDbContext dbContext, ILogger<MapAliasOwnerH
 {
     public async Task<MapAliasOwnerResult> Handle(MapAliasOwnerCommand request, CancellationToken cancellationToken)
     {
-        // var existingOwner = await dbContext.AliasOwnerMaps.AsNoTracking()
-        //     .AnyAsync(x => x.AliasId == request.AliasId, cancellationToken);
-        //
-        // if (existingOwner) 
-        //     throw new ConflictException("Bí danh này đã tồn tại trong hệ thống.");
-        //
-        // var newMapping = new AliasOwnerMap
-        // {
-        //     Id = Guid.NewGuid(),
-        //     AliasId = request.AliasId,
-        //     SubjectRef = request.SubjectRef
-        // };
-        //
-        // dbContext.AliasOwnerMaps.Add(newMapping);
-        //
-        // await dbContext.SaveChangesAsync(cancellationToken);
-        //
-        // return new MapAliasOwnerResult(newMapping.Id);
-
-
         if (request.AliasId == Guid.Empty || request.SubjectRef == Guid.Empty)
-            throw new ArgumentException("Id bí danh hoặc reference không hợp lệ.");
+            throw new BadRequestException("Id bí danh hoặc reference không hợp lệ.");
 
         var existed = dbContext.AliasOwnerMaps
             .AsNoTracking()

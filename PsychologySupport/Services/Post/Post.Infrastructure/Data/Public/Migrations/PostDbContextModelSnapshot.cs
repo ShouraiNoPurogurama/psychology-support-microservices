@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Post.Infrastructure.Data;
 using Post.Infrastructure.Data.Public;
 
 #nullable disable
@@ -19,12 +18,100 @@ namespace Post.Infrastructure.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("public")
                 .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Post.Domain.Models.CategoryTag", b =>
+            modelBuilder.Entity("Post.Domain.Comments.Comment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AuthorAliasId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("author_alias_id");
+
+                    b.Property<Guid>("AuthorAliasVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("author_alias_version_id");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<DateTimeOffset?>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("CreatedByAliasId")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by_alias_id");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("DeletedByAliasId")
+                        .HasColumnType("text")
+                        .HasColumnName("deleted_by_alias_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<DateTimeOffset?>("LastModified")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("LastModifiedByAliasId")
+                        .HasColumnType("text")
+                        .HasColumnName("last_modified_by_alias_id");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer")
+                        .HasColumnName("level");
+
+                    b.Property<string>("ModerationStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasColumnName("moderation_status")
+                        .HasDefaultValueSql("'pending'::text");
+
+                    b.Property<Guid?>("ParentCommentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("parent_comment_id");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("path");
+
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("post_id");
+
+                    b.HasKey("Id")
+                        .HasName("comments_pkey");
+
+                    b.HasIndex(new[] { "PostId", "CreatedAt", "Id" }, "ix_comments_post_created")
+                        .IsDescending(false, true, true)
+                        .HasDatabaseName("ix_comments_post_id_created_at_id")
+                        .HasFilter("((deleted_at IS NULL) AND (moderation_status = 'approved'::text))");
+
+                    b.HasIndex(new[] { "PostId", "Path" }, "ix_comments_post_path")
+                        .HasDatabaseName("ix_comments_post_id_path");
+
+                    b.ToTable("comments", "public");
+                });
+
+            modelBuilder.Entity("Post.Domain.Posts.CategoryTag", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -85,27 +172,14 @@ namespace Post.Infrastructure.Data.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_category_tags_code");
 
-                    b.ToTable("category_tags", (string)null);
+                    b.ToTable("category_tags", "public");
                 });
 
-            modelBuilder.Entity("Post.Domain.Models.Comment", b =>
+            modelBuilder.Entity("Post.Domain.Posts.GiftsAttach", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
-
-                    b.Property<Guid>("AuthorAliasId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("author_alias_id");
-
-                    b.Property<Guid>("AuthorAliasVersionId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("author_alias_version_id");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content");
 
                     b.Property<DateTimeOffset?>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -125,151 +199,13 @@ namespace Post.Infrastructure.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("deleted_by_alias_id");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_deleted");
-
-                    b.Property<int>("Level")
-                        .HasColumnType("integer")
-                        .HasColumnName("level");
-
-                    b.Property<string>("ModerationStatus")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasColumnName("moderation_status")
-                        .HasDefaultValueSql("'pending'::text");
-
-                    b.Property<Guid?>("ParentCommentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("parent_comment_id");
-
-                    b.Property<string>("Path")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("path");
-
-                    b.Property<Guid>("PostId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("post_id");
-
-                    b.HasKey("Id")
-                        .HasName("comments_pkey");
-
-                    b.HasIndex(new[] { "PostId", "CreatedAt", "Id" }, "ix_comments_post_created")
-                        .IsDescending(false, true, true)
-                        .HasDatabaseName("ix_comments_post_id_created_at_id")
-                        .HasFilter("((deleted_at IS NULL) AND (moderation_status = 'approved'::text))");
-
-                    b.HasIndex(new[] { "PostId", "Path" }, "ix_comments_post_path")
-                        .HasDatabaseName("ix_comments_post_id_path");
-
-                    b.ToTable("comments", (string)null);
-                });
-
-            modelBuilder.Entity("Post.Domain.Models.EmotionTag", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("code");
-
-                    b.Property<string>("Color")
-                        .HasColumnType("text")
-                        .HasColumnName("color");
-
-                    b.Property<DateTimeOffset?>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<string>("CreatedByAliasId")
-                        .HasColumnType("text")
-                        .HasColumnName("created_by_alias_id");
-
-                    b.Property<Guid?>("DigitalGoodId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("digital_good_id");
-
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("display_name");
-
-                    b.Property<string>("Icon")
-                        .HasColumnType("text")
-                        .HasColumnName("icon");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_active");
-
-                    b.Property<DateTimeOffset?>("LastModified")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_modified");
-
-                    b.Property<string>("LastModifiedByAliasId")
-                        .HasColumnType("text")
-                        .HasColumnName("last_modified_by_alias_id");
-
-                    b.Property<Guid?>("MediaId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("media_id");
-
-                    b.Property<int>("SortOrder")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("sort_order");
-
-                    b.Property<string>("Topic")
-                        .HasColumnType("text")
-                        .HasColumnName("topic");
-
-                    b.Property<string>("UnicodeCodepoint")
-                        .HasColumnType("text")
-                        .HasColumnName("unicode_codepoint");
-
-                    b.HasKey("Id")
-                        .HasName("emotion_tags_pkey");
-
-                    b.HasIndex(new[] { "Code" }, "emotion_tags_code_key")
-                        .IsUnique()
-                        .HasDatabaseName("ix_emotion_tags_code");
-
-                    b.ToTable("emotion_tags", (string)null);
-                });
-
-            modelBuilder.Entity("Post.Domain.Models.GiftsAttach", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("created_by");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
                     b.Property<Guid>("GiftId")
                         .HasColumnType("uuid")
                         .HasColumnName("gift_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<string>("Message")
                         .HasColumnType("text")
@@ -300,99 +236,10 @@ namespace Post.Infrastructure.Data.Migrations
                         .HasDatabaseName("ix_gifts_attach_target_type_target_id_created_at")
                         .HasFilter("(deleted_at IS NULL)");
 
-                    b.ToTable("gifts_attach", (string)null);
+                    b.ToTable("gifts_attach", "public");
                 });
 
-            modelBuilder.Entity("Post.Domain.Models.IdempotencyKey", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset?>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<string>("CreatedByAliasId")
-                        .HasColumnType("text")
-                        .HasColumnName("created_by_alias_id");
-
-                    b.Property<Guid>("Key")
-                        .HasColumnType("uuid")
-                        .HasColumnName("key");
-
-                    b.Property<byte[]>("RequestFingerprint")
-                        .IsRequired()
-                        .HasColumnType("bytea")
-                        .HasColumnName("request_fingerprint");
-
-                    b.HasKey("Id")
-                        .HasName("idempotency_keys_pkey");
-
-                    b.HasIndex(new[] { "Key" }, "idempotency_keys_idempotency_key")
-                        .IsUnique()
-                        .HasDatabaseName("ix_idempotency_keys_key");
-
-                    b.ToTable("idempotency_keys", (string)null);
-                });
-
-            modelBuilder.Entity("Post.Domain.Models.OutboxMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content");
-
-                    b.Property<DateTimeOffset?>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("CreatedByAliasId")
-                        .HasColumnType("text")
-                        .HasColumnName("created_by_alias_id");
-
-                    b.Property<DateTimeOffset?>("LastModified")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_modified");
-
-                    b.Property<string>("LastModifiedByAliasId")
-                        .HasColumnType("text")
-                        .HasColumnName("last_modified_by_alias_id");
-
-                    b.Property<DateTime>("OccuredOn")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("occured_on");
-
-                    b.Property<DateTime?>("ProcessedOn")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("processed_on");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("type");
-
-                    b.HasKey("Id")
-                        .HasName("outbox_messages_pkey");
-
-                    b.HasIndex(new[] { "OccuredOn" }, "ix_outbox_pending")
-                        .HasDatabaseName("ix_outbox_messages_occured_on")
-                        .HasFilter("(processed_on IS NULL)");
-
-                    b.HasIndex(new[] { "ProcessedOn" }, "ix_outbox_processed")
-                        .HasDatabaseName("ix_outbox_messages_processed_on")
-                        .HasFilter("(processed_on IS NOT NULL)");
-
-                    b.ToTable("outbox_messages", (string)null);
-                });
-
-            modelBuilder.Entity("Post.Domain.Models.Post", b =>
+            modelBuilder.Entity("Post.Domain.Posts.Post", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -402,7 +249,7 @@ namespace Post.Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("author_alias_id");
 
-                    b.Property<Guid>("AuthorAliasVersionId")
+                    b.Property<Guid?>("AuthorAliasVersionId")
                         .HasColumnType("uuid")
                         .HasColumnName("author_alias_version_id");
 
@@ -438,6 +285,14 @@ namespace Post.Infrastructure.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
+
+                    b.Property<DateTimeOffset?>("LastModified")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("LastModifiedByAliasId")
+                        .HasColumnType("text")
+                        .HasColumnName("last_modified_by_alias_id");
 
                     b.Property<string>("ModerationPolicyVersion")
                         .HasColumnType("text")
@@ -483,12 +338,12 @@ namespace Post.Infrastructure.Data.Migrations
                     b.HasIndex(new[] { "CreatedAt", "Id" }, "ix_posts_list")
                         .IsDescending()
                         .HasDatabaseName("ix_posts_created_at_id")
-                        .HasFilter("((deleted_at IS NULL) AND (moderation_status = 'approved'::text))");
+                        .HasFilter("((deleted_at IS NULL) AND (moderation_status = 'Approved'::text))");
 
-                    b.ToTable("posts", (string)null);
+                    b.ToTable("posts", "public");
                 });
 
-            modelBuilder.Entity("Post.Domain.Models.PostCategory", b =>
+            modelBuilder.Entity("Post.Domain.Posts.PostCategory", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -540,10 +395,10 @@ namespace Post.Infrastructure.Data.Migrations
                         .HasDatabaseName("ix_post_categories_post_id_category_tag_id")
                         .HasFilter("(deleted_at IS NULL)");
 
-                    b.ToTable("post_categories", (string)null);
+                    b.ToTable("post_categories", "public");
                 });
 
-            modelBuilder.Entity("Post.Domain.Models.PostCounterDelta", b =>
+            modelBuilder.Entity("Post.Domain.Posts.PostCounterDelta", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -580,10 +435,10 @@ namespace Post.Infrastructure.Data.Migrations
                     b.HasIndex(new[] { "Processed", "OccuredAt" }, "ix_counter_deltas_unprocessed")
                         .HasDatabaseName("ix_post_counter_deltas_processed_occured_at");
 
-                    b.ToTable("post_counter_deltas", (string)null);
+                    b.ToTable("post_counter_deltas", "public");
                 });
 
-            modelBuilder.Entity("Post.Domain.Models.PostEmotion", b =>
+            modelBuilder.Entity("Post.Domain.Posts.PostEmotion", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -635,10 +490,10 @@ namespace Post.Infrastructure.Data.Migrations
                         .HasDatabaseName("ix_post_emotions_post_id_emotion_tag_id")
                         .HasFilter("(deleted_at IS NULL)");
 
-                    b.ToTable("post_emotions", (string)null);
+                    b.ToTable("post_emotions", "public");
                 });
 
-            modelBuilder.Entity("Post.Domain.Models.PostMedia", b =>
+            modelBuilder.Entity("Post.Domain.Posts.PostMedia", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -686,10 +541,10 @@ namespace Post.Infrastructure.Data.Migrations
                     b.HasIndex(new[] { "PostId", "Position" }, "ix_post_media_post")
                         .HasDatabaseName("ix_post_media_post_id_position");
 
-                    b.ToTable("post_media", (string)null);
+                    b.ToTable("post_media", "public");
                 });
 
-            modelBuilder.Entity("Post.Domain.Models.Reaction", b =>
+            modelBuilder.Entity("Post.Domain.Reactions.Reaction", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -725,6 +580,14 @@ namespace Post.Infrastructure.Data.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
 
+                    b.Property<DateTimeOffset?>("LastModified")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("LastModifiedByAliasId")
+                        .HasColumnType("text")
+                        .HasColumnName("last_modified_by_alias_id");
+
                     b.Property<string>("ReactionType")
                         .IsRequired()
                         .HasColumnType("text")
@@ -752,7 +615,88 @@ namespace Post.Infrastructure.Data.Migrations
                         .HasDatabaseName("ix_reactions_target_type_target_id_author_alias_id_reaction_ty")
                         .HasFilter("(deleted_at IS NULL)");
 
-                    b.ToTable("reactions", (string)null);
+                    b.ToTable("reactions", "public");
+                });
+
+            modelBuilder.Entity("Post.Infrastructure.Integration.Entities.OutboxMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("OccurredOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_on");
+
+                    b.Property<DateTime?>("ProcessedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_on");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("outbox_messages_pkey");
+
+                    b.HasIndex(new[] { "OccurredOn" }, "ix_outbox_pending")
+                        .HasDatabaseName("ix_outbox_messages_occurred_on")
+                        .HasFilter("(processed_on IS NULL)");
+
+                    b.HasIndex(new[] { "ProcessedOn" }, "ix_outbox_processed")
+                        .HasDatabaseName("ix_outbox_messages_processed_on")
+                        .HasFilter("(processed_on IS NOT NULL)");
+
+                    b.ToTable("outbox_messages", "public");
+                });
+
+            modelBuilder.Entity("Post.Infrastructure.Resilience.Entities.IdempotencyKey", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("CreatedByAliasId")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by_alias_id");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("Key")
+                        .HasColumnType("uuid")
+                        .HasColumnName("key");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("request_hash");
+
+                    b.Property<string>("ResponsePayload")
+                        .HasColumnType("text")
+                        .HasColumnName("response_payload");
+
+                    b.HasKey("Id")
+                        .HasName("idempotency_keys_pkey");
+
+                    b.HasIndex(new[] { "Key" }, "idempotency_keys_idempotency_key")
+                        .IsUnique()
+                        .HasDatabaseName("ix_idempotency_keys_key");
+
+                    b.ToTable("idempotency_keys", "public");
                 });
 #pragma warning restore 612, 618
         }

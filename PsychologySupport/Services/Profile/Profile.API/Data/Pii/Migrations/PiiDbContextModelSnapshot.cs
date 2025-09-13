@@ -61,6 +61,42 @@ namespace Profile.API.Data.Pii.Migrations
                     b.ToTable("alias_owner_map", "pii");
                 });
 
+            modelBuilder.Entity("Profile.API.Models.Pii.PatientOwnerMap", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("PatientProfileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_profile_id");
+
+                    b.Property<Guid>("SubjectRef")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_ref");
+
+                    b.HasKey("Id")
+                        .HasName("patient_owner_map_pkey");
+
+                    b.HasIndex("SubjectRef")
+                        .IsUnique()
+                        .HasDatabaseName("ix_patient_owner_map_subject_ref");
+
+                    b.HasIndex(new[] { "PatientProfileId" }, "ix_patient_owner_map_patient_profile_id")
+                        .IsUnique()
+                        .HasDatabaseName("ix_patient_owner_map_patient_profile_id");
+
+                    b.ToTable("patient_owner_map", "pii");
+                });
+
             modelBuilder.Entity("Profile.API.Models.Pii.PersonProfile", b =>
                 {
                     b.Property<Guid>("SubjectRef")
@@ -145,6 +181,16 @@ namespace Profile.API.Data.Pii.Migrations
                         .HasConstraintName("fk_alias_owner_map_person_profiles_subject_ref");
 
                     b.Navigation("PersonProfile");
+                });
+
+            modelBuilder.Entity("Profile.API.Models.Pii.PatientOwnerMap", b =>
+                {
+                    b.HasOne("Profile.API.Models.Pii.PersonProfile", null)
+                        .WithOne()
+                        .HasForeignKey("Profile.API.Models.Pii.PatientOwnerMap", "SubjectRef")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_patient_owner_map_person_profiles_subject_ref");
                 });
 
             modelBuilder.Entity("Profile.API.Models.Pii.PersonProfile", b =>

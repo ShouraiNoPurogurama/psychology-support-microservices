@@ -13,13 +13,14 @@ public class UserRegisteredIntegrationEventHandler(ISender sender, ILogger<UserR
         var userId = context.Message.UserId;
         
         var seed = new PersonSeedDto(
+            context.Message.SeedSubjectRef,
             context.Message.FullName,
             context.Message.Gender,
             context.Message.BirthDate,
             new ContactInfo(context.Message.Address, context.Message.Email, context.Message.PhoneNumber)
         );
 
-        var command = new EnsureSubjectRefCommand(userId, seed);
+        var command = new EnsureSubjectRefCommand(userId,  seed);
 
         await sender.Send(command);
     }

@@ -2,4 +2,4 @@
 
 namespace Profile.API.Domains.Public.PatientProfiles.Events;
 
-public record PatientAllergiesUpdatedEvent(Guid SubjectRef, string? Allergies) : IDomainEvent;
+public record PatientAllergiesUpdatedEvent(Guid PatientProfileId, string? Allergies) : IDomainEvent;

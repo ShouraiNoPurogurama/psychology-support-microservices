@@ -2,4 +2,4 @@
 
 namespace Profile.API.Domains.Public.PatientProfiles.Events;
 
-public record PatientJobUpdatedEvent(Guid SubjectRef, Guid? JobId) : IDomainEvent;
+public record PatientJobUpdatedEvent(Guid PatientProfileId, Guid? JobId) : IDomainEvent;

@@ -2,14 +2,11 @@
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
-using LifeStyles.API.Abstractions;
 using LifeStyles.API.Data;
-using LifeStyles.API.Data.Caching;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
-using System.Configuration;
 using Translation.API.Protos;
 
 namespace LifeStyles.API.Extensions;
@@ -54,8 +51,6 @@ public static class ApplicationServiceExtensions
     {
         services.AddSingleton<IConnectionMultiplexer>(x =>
             ConnectionMultiplexer.Connect(config.GetSection("Redis:RedisUrl").Value!));
-
-        var redisConnectionString = config.GetConnectionString("Redis");
     }
 
     private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)

@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.Messaging.MassTransit;
+﻿using BuildingBlocks.Extensions;
+using BuildingBlocks.Messaging.MassTransit;
 using FluentValidation;
 using Notification.API.Protos;
 using Profile.API.Data.Pii;
@@ -28,6 +29,8 @@ public static class ApplicationServiceExtensions
         AddDatabase(services, config);
 
         AddServiceDependencies(services);
+        
+        services.AddRedisCache(config);
 
         services.AddIdentityServices(config);
 

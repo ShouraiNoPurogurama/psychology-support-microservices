@@ -25,7 +25,7 @@ public class TokenService(
 
         var subjectRef = await ResolveSubjectRef(user);
         
-        var jti = Guid.NewGuid().ToString(); // JWT ID (JTI) for unique identification of the token
+        var jti = Guid.NewGuid().ToString();
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Jti, jti),

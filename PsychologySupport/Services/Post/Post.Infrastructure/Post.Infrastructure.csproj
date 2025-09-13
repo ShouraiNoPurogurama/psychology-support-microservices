@@ -15,6 +15,7 @@
 
     <ItemGroup>
       <PackageReference Include="EFCore.NamingConventions" />
+      <PackageReference Include="Scrutor" />
     </ItemGroup>
 
 </Project>

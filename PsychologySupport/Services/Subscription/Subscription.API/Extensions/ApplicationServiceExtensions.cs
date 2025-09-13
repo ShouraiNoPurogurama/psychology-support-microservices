@@ -1,9 +1,9 @@
 ﻿using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Exceptions.Handler;
+using BuildingBlocks.Extensions;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
@@ -34,6 +34,8 @@ public static class ApplicationServiceExtensions
         
         services.AddHttpContextAccessor();
 
+        services.AddRedisCache(config);
+        
         ConfigureSwagger(services, env);        
         ConfigureCORS(services);
         ConfigureMediatR(services);

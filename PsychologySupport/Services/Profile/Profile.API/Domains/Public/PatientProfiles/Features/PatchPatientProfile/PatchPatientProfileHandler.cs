@@ -3,12 +3,12 @@ using Profile.API.Domains.Public.PatientProfiles.Exceptions;
 
 namespace Profile.API.Domains.Public.PatientProfiles.Features.PatchPatientProfile;
 
-public record UpdatePatientProfileCommand(Guid SubjectRef, UpdatePatientProfileDto PatientProfileUpdate)
-    : ICommand<UpdatePatientProfileResult>;
+public record PatchPatientProfileCommand(Guid PatientProfileId, PatchPatientProfileDto PatientProfileUpdate)
+    : ICommand<PatchPatientProfileResult>;
 
-public record UpdatePatientProfileResult(bool IsSuccess);
+public record PatchPatientProfileResult(bool IsSuccess);
 
-public class PatchPatientProfileHandler : ICommandHandler<UpdatePatientProfileCommand, UpdatePatientProfileResult>
+public class PatchPatientProfileHandler : ICommandHandler<PatchPatientProfileCommand, PatchPatientProfileResult>
 {
     private readonly ProfileDbContext _context;
 
@@ -17,10 +17,10 @@ public class PatchPatientProfileHandler : ICommandHandler<UpdatePatientProfileCo
         _context = context;
     }
 
-    public async Task<UpdatePatientProfileResult> Handle(UpdatePatientProfileCommand request, CancellationToken cancellationToken)
+    public async Task<PatchPatientProfileResult> Handle(PatchPatientProfileCommand request, CancellationToken cancellationToken)
     {
         var patientProfile = await _context.PatientProfiles
-                                 .FirstOrDefaultAsync(p => p.SubjectRef == request.SubjectRef, cancellationToken: cancellationToken)
+                                 .FirstOrDefaultAsync(p => p.Id == request.PatientProfileId, cancellationToken: cancellationToken)
                              ?? throw new ProfileNotFoundException();
 
         var dto = request.PatientProfileUpdate;
@@ -33,6 +33,6 @@ public class PatchPatientProfileHandler : ICommandHandler<UpdatePatientProfileCo
 
         var result = await _context.SaveChangesAsync(cancellationToken) > 0;
         
-        return new UpdatePatientProfileResult(result);
+        return new PatchPatientProfileResult(result);
     }
 }

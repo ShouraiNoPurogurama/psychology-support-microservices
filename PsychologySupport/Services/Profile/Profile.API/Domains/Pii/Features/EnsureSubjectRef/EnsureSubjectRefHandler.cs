@@ -36,10 +36,10 @@ public class EnsureSubjectRefHandler(PiiDbContext dbContext, IPublishEndpoint pu
         }
 
         //Nếu chưa có person profile thì tạo mới
-        var subjectRef = Guid.NewGuid();
+        var subjectRef = seed?.SubjectRef;
 
         var personProfile = PersonProfile.Create(
-            subjectRef: subjectRef,
+            subjectRef: subjectRef!.Value,
             userId: userId,
             fullName: seed?.FullName,
             gender: seed?.Gender,
@@ -55,7 +55,7 @@ public class EnsureSubjectRefHandler(PiiDbContext dbContext, IPublishEndpoint pu
             var piiCreatedIntegrationEvent = new PiiCreatedIntegrationEvent(personProfile.SubjectRef);
             await publishEndpoint.Publish(piiCreatedIntegrationEvent, cancellationToken);
             
-            return new EnsureSubjectRefResult(subjectRef);
+            return new EnsureSubjectRefResult(subjectRef.Value);
         }
         catch (DbUpdateException ex) when (IsUniqueViolation(ex))
         {

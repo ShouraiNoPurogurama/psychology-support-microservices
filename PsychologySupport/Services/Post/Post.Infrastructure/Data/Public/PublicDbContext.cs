@@ -1,7 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Post.Application.Data;
-using Post.Domain.Models;
-using Post.Domain.Models.Public;
+using Post.Domain.Comments;
+using Post.Domain.Enums;
+using Post.Domain.Posts;
+using Post.Domain.Reactions;
+using Post.Infrastructure.Integration.Entities;
+using Post.Infrastructure.Resilience.Entities;
 
 namespace Post.Infrastructure.Data.Public;
 
@@ -24,7 +28,7 @@ public partial class PublicDbContext : DbContext, IPublicDbContext
 
     public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 
-    public virtual DbSet<Domain.Models.Public.Post> Posts { get; set; }
+    public virtual DbSet<Domain.Posts.Post> Posts { get; set; }
 
     public virtual DbSet<PostCategory> PostCategories { get; set; }
 
@@ -111,7 +115,7 @@ public partial class PublicDbContext : DbContext, IPublicDbContext
             entity.HasKey(e => e.Id).HasName("outbox_messages_pkey");
             entity.ToTable("outbox_messages");
 
-            entity.HasIndex(e => e.OccuredOn, "ix_outbox_pending")
+            entity.HasIndex(e => e.OccurredOn, "ix_outbox_pending")
                 .HasFilter("(processed_on IS NULL)");
             entity.HasIndex(e => e.ProcessedOn, "ix_outbox_processed")
                 .HasFilter("(processed_on IS NOT NULL)");
@@ -119,7 +123,7 @@ public partial class PublicDbContext : DbContext, IPublicDbContext
             entity.Property(e => e.Id).ValueGeneratedNever();
         });
 
-        buidler.Entity<Domain.Models.Public.Post>(entity =>
+        buidler.Entity<Domain.Posts.Post>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("posts_pkey");
             entity.ToTable("posts");
@@ -127,11 +131,20 @@ public partial class PublicDbContext : DbContext, IPublicDbContext
             entity.HasIndex(e => new { e.AuthorAliasId, e.CreatedAt }, "ix_posts_author")
                 .IsDescending(false, true)
                 .HasFilter("(deleted_at IS NULL)");
-
+            
             entity.HasIndex(e => new { e.CreatedAt, e.Id }, "ix_posts_list")
                 .IsDescending()
-                .HasFilter("((deleted_at IS NULL) AND (moderation_status = 'approved'::text))");
+                .HasFilter($"((deleted_at IS NULL) AND (moderation_status = '{ModerationStatus.Approved.ToString()}'::text))");
 
+            entity.Property(e => e.Visibility)
+                .HasConversion(s => s.ToString(),
+                    dbStatus => (PostVisibility)Enum.Parse(typeof(PostVisibility), dbStatus));
+                
+            entity.Property(e => e.ModerationStatus)
+                .HasConversion(s => s.ToString(),
+                    dbStatus => (ModerationStatus)Enum.Parse(typeof(ModerationStatus), dbStatus))
+                .HasSentinel(ModerationStatus.Pending);
+            
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CommentCount).HasDefaultValue(0);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");

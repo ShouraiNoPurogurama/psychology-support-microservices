@@ -60,7 +60,8 @@
         "Transforms": [
           {
             "PathPattern": "/doctors/{**catch-all}"
-          }
+          },
+          { "TokenExchange": "true" }
         ],
         "RateLimiterPolicy": "fixed"
       },
@@ -87,7 +88,8 @@
         "Transforms": [
           {
             "PathPattern": "{**catch-all}"
-          }
+          },
+          { "TokenExchange": "true" }
         ],
         "RateLimiterPolicy": "fixed",
         "AuthorizationPolicy": "AuthenticatedUser"
@@ -97,7 +99,8 @@
       "profile-cluster": {
         "Destinations": {
           "destination1": {
-            "Address": "http://profile.api:8080/"
+//            "Address": "http://profile.api:8080/"
+            "Address": "https://localhost:5501/"
           }
         }
       }
