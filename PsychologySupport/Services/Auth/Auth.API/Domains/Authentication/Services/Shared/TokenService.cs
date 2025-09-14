@@ -27,7 +27,7 @@ public class TokenService(
         
         var subjectRef = await ResolveSubjectRef(user);
         
-        // var onboardingStatus = user.OnboardingStatus.ToString();
+        var onboardingStatus = user.OnboardingStatus.ToString();
         
         var jti = Guid.NewGuid().ToString();
         var claims = new[]
@@ -35,7 +35,7 @@ public class TokenService(
             new Claim(JwtRegisteredClaimNames.Jti, jti),
             new Claim(JwtRegisteredClaimNames.Sub, subjectRef),
             new Claim(ClaimTypes.Role, string.Join(",", roles)),
-            // new Claim(ClaimTypes.Authentication, onboardingStatus)
+            new Claim(ClaimTypes.Authentication, onboardingStatus)
         };
 
         var rsaSecurityKey = GetRsaSecurityKey();
