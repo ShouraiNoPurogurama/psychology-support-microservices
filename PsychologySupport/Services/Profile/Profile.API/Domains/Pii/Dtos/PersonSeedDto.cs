@@ -1,5 +1,3 @@
-﻿using BuildingBlocks.Data.Common;
+﻿namespace Profile.API.Domains.Pii.Dtos;
 
-namespace Profile.API.Domains.Pii.Dtos;
-
-public record PersonSeedDto(Guid SubjectRef, string FullName, UserGender Gender, DateOnly BirthDate, ContactInfo ContactInfo);
+public record PersonSeedDto(Guid SubjectRef, string FullName, string Email, string? PhoneNumber = null);

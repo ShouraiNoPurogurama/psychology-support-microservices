@@ -1,103 +1,180 @@
 ﻿using BuildingBlocks.Data.Common;
 using BuildingBlocks.DDD;
+using BuildingBlocks.Utils;
+using Profile.API.Domains.Pii.Events;
+using Profile.API.Enums.Pii;
 using Profile.API.ValueObjects.Pii;
 
 namespace Profile.API.Models.Pii;
 
-public partial class PersonProfile : IHasCreationAudit, IHasModificationAudit
+public partial class PersonProfile : AggregateRoot<Guid>
 {
-    public Guid SubjectRef { get; private set; }
-
+    public Guid SubjectRef => Id;
+    
     public Guid UserId { get; private set; }
 
-    public PersonName FullName { get; private set; }
-
-    public UserGender Gender { get; private set; }
+    public PersonName FullName { get; private set; } = PersonName.Empty;
+    public UserGender Gender { get; private set; } = UserGender.NotSet;
 
     public DateOnly? BirthDate { get; private set; }
+    public ContactInfo ContactInfo { get; private set; } = ContactInfo.Empty();
 
-    public ContactInfo ContactInfo { get; private set; }
-
-    public DateTimeOffset? CreatedAt { get; set; }
-
-    public string? CreatedBy { get; set; }
-
-    public DateTimeOffset? LastModified { get; set; }
-
-    public string? LastModifiedBy { get; set; }
+    public PersonProfileStatus Status { get; private set; } = PersonProfileStatus.Pending;
 
     public AliasOwnerMap? AliasOwnerMap { get; set; }
 
-    public static PersonProfile Create(
+    public static PersonProfile SeedPending(
         Guid subjectRef,
         Guid userId,
-        string? fullName,
-        UserGender? gender,
-        DateOnly? birthDate,
+        string fullName,
         ContactInfo contactInfo)
     {
-        if (userId == Guid.Empty) throw new ArgumentException("User Id không được để trống.", nameof(userId));
-        if (contactInfo is null) throw new ArgumentNullException(nameof(contactInfo));
+        ValidationBuilder.Create()
+            .When(() => userId == Guid.Empty)
+            .WithErrorCode("INVALID_USER_ID")
+            .WithMessage("User Id không được để trống.")
+            .ThrowIfInvalid();
 
         var entity = new PersonProfile
         {
-            SubjectRef = subjectRef,
-            UserId = userId,
-            FullName = PersonName.Of(fullName),
-            Gender = gender ?? UserGender.Else,
-            BirthDate = birthDate,
-            ContactInfo = contactInfo
+            Id = subjectRef,
+            UserId     = userId,
+            FullName   = PersonName.Of(fullName),
+            Gender     = UserGender.NotSet,
+            BirthDate  = null,
+            ContactInfo= contactInfo,
+            Status     = PersonProfileStatus.Pending
         };
 
-        //TODO Public 1 event để validate tên mới xem có vi phạm gì ko
-
+        // DomainEvent: PersonProfileSeeded
         return entity;
     }
 
-    public void Update(
-        string? fullName,
-        UserGender? gender,
+    public static PersonProfile CreateActive(
+        Guid subjectRef,
+        Guid userId,
+        string fullName,
+        UserGender gender,
         DateOnly? birthDate,
         ContactInfo contactInfo)
     {
-        if (contactInfo is null) throw new ArgumentNullException(nameof(contactInfo));
+        ValidationBuilder.Create()
+            .When(() => userId == Guid.Empty)
+                .WithErrorCode("INVALID_USER_ID")
+                .WithMessage("ID người dùng không được để trống.")
+            .When(() => !contactInfo.HasEnoughInfo())
+                .WithErrorCode("INVALID_CONTACT")
+                .WithMessage("Thông tin liên hệ chưa được điền đủ.")
+            .ThrowIfInvalid();
 
-        FullName = PersonName.Of(fullName);
-        Gender = gender ?? Gender;
-        BirthDate = birthDate;
+        var entity = new PersonProfile
+        {
+            Id = subjectRef,
+            UserId     = userId,
+            FullName   = PersonName.Of(fullName),
+            Gender     = gender,
+            BirthDate  = ValidateBirthDate(birthDate),
+            ContactInfo= contactInfo!,
+            Status     = PersonProfileStatus.Active
+        };
+
+        entity.EnsureActiveInvariants(); // dùng ValidationBuilder<T>
+        // DomainEvent: PersonProfileCreated
+        return entity;
+    }
+
+    public void CompleteOnboarding(
+        string fullName,
+        UserGender gender,
+        DateOnly birthDate,
+        ContactInfo contactInfo)
+    {
+        ValidationBuilder.Create()
+            .When(() => !contactInfo.HasEnoughInfo())
+                .WithErrorCode("INVALID_CONTACT")
+                .WithMessage("Thông tin liên hệ chưa được điền đủ.")
+            .ThrowIfInvalid();
+
+        Rename(fullName);
+        ChangeGender(gender);
+        ChangeBirthDate(birthDate);
+        UpdateContact(contactInfo);
+
+        EnsureActiveInvariants();
+        Status = PersonProfileStatus.Active;
+        
+        AddDomainEvent(new PersonProfileOnboardedEvent(SubjectRef));
+    }
+
+    public void Update(string? fullName, UserGender? gender, DateOnly? birthDate, ContactInfo contactInfo)
+    {
+        ValidationBuilder.Create()
+            .When(() => !contactInfo.HasEnoughInfo())
+                .WithErrorCode("INVALID_CONTACT")
+                .WithMessage("Thông tin liên hệ không được để trống.")
+            .ThrowIfInvalid();
+
+        FullName    = PersonName.Of(fullName) ;
+        Gender      = gender ?? Gender;
+        BirthDate   = ValidateBirthDate(birthDate);
         ContactInfo = contactInfo;
 
-        //TODO Public 1 event để validate tên mới xem có vi phạm gì ko
+        if (Status != PersonProfileStatus.Active && IsActiveReady())
+        {
+            EnsureActiveInvariants();
+            Status = PersonProfileStatus.Active;
+        }
+        // DomainEvent: PersonProfileUpdated
     }
 
-    public void Rename(string? fullName)
-    {
-        FullName = PersonName.Of(fullName);
-    }
-
-    public void ChangeGender(UserGender gender)
-    {
-        Gender = gender;
-    }
-
-    public void ChangeBirthDate(DateOnly birthDate)
-    {
-        BirthDate = ValidateBirthDate(birthDate);
-    }
-
+    public void Rename(string? fullName) => FullName = PersonName.Of(fullName);
+    public void ChangeGender(UserGender gender) => Gender = gender;
+    public void ChangeBirthDate(DateOnly birthDate) => BirthDate = ValidateBirthDate(birthDate);
     public void UpdateContact(ContactInfo contactInfo)
     {
-        ContactInfo = contactInfo ?? throw new ArgumentNullException(nameof(contactInfo));
-    }
+        ValidationBuilder.Create()
+            .When(() => !contactInfo.HasEnoughInfo())
+                .WithErrorCode("INVALID_CONTACT")
+                .WithMessage("Thông tin liên hệ không được để trống.")
+            .ThrowIfInvalid();
 
+        ContactInfo = contactInfo!;
+    }
 
     private static DateOnly? ValidateBirthDate(DateOnly? birthDate)
     {
         if (birthDate is null) return null;
+
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        if (birthDate > today) throw new ArgumentOutOfRangeException(nameof(birthDate), "Ngày sinh nhật phải ở quá khứ.");
-        if (today.Year - birthDate.Value.Year > 100)
-            throw new ArgumentOutOfRangeException(nameof(birthDate), "Ngày sinh nhật quá xa so với hiện tại.");
+
+        ValidationBuilder.Create()
+            .When(() => birthDate > today.AddYears(-13))
+                .WithErrorCode("INVALID_BIRTHDATE")
+                .WithMessage("Người dùng phải ít nhất 13 tuổi.")
+            .When(() => today.Year - birthDate.Value.Year > 100)
+                .WithErrorCode("INVALID_BIRTHDATE")
+                .WithMessage("Ngày sinh nhật quá xa so với hiện tại.")
+            .ThrowIfInvalid();
+
         return birthDate;
+    }
+
+    private bool IsActiveReady()
+    {
+        var hasName      = !FullName.IsEmpty;
+        var hasAnyContact= ContactInfo.HasEnoughInfo();
+        return hasName && hasAnyContact;
+    }
+
+    private void EnsureActiveInvariants()
+    {
+        ValidationBuilder<PersonProfile>.Create(this)
+            .When(_ => FullName.IsEmpty)
+            .WithErrorCode("PROFILE_INCOMPLETE")
+            .WithMessage("Tên không được để trống khi kích hoạt hồ sơ.")
+            .When(_ => !ContactInfo.HasEnoughInfo())
+            .WithErrorCode("PROFILE_INCOMPLETE")
+            .WithMessage("Cần ít nhất một phương thức liên hệ hợp lệ để kích hoạt hồ sơ.")
+            .ThrowIfInvalid();
     }
 }

@@ -1,4 +1,5 @@
-﻿using Profile.API.Models.Pii;
+﻿using Profile.API.Enums.Pii;
+using Profile.API.Models.Pii;
 using Profile.API.ValueObjects.Pii;
 
 namespace Profile.API.Data.Pii;
@@ -40,14 +41,14 @@ public partial class PiiDbContext : DbContext
         builder.Entity<PatientOwnerMap>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("patient_owner_map_pkey");
-            
+
             entity.ToTable("patient_owner_map", "pii");
-            
+
             entity.HasIndex(e => e.PatientProfileId, "ix_patient_owner_map_patient_profile_id").IsUnique();
-            
+
             entity.Property(e => e.Id)
                 .ValueGeneratedNever();
-            
+
             entity.HasOne<PersonProfile>()
                 .WithOne()
                 .HasForeignKey<PatientOwnerMap>(e => e.SubjectRef)
@@ -56,13 +57,22 @@ public partial class PiiDbContext : DbContext
 
         builder.Entity<PersonProfile>(entity =>
         {
-            entity.HasKey(e => e.SubjectRef);
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("subject_ref");
 
             entity.ToTable("person_profiles", "pii");
 
             entity.Property(e => e.FullName)
                 .HasConversion(e => e.Value,
                     dbValue => PersonName.Of(dbValue));
+
+            entity.Property(e => e.Status)
+                .HasConversion(e => e.ToString(),
+                    dbStatus => (PersonProfileStatus)Enum.Parse(typeof(PersonProfileStatus), dbStatus))
+                .HasSentinel(PersonProfileStatus.Pending)
+                .HasDefaultValue(PersonProfileStatus.Pending)
+                ;
+
 
             entity.Property(e => e.UserId)
                 .ValueGeneratedNever();
