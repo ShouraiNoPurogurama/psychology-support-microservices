@@ -14,11 +14,11 @@ namespace Notification.API.Domains.Emails.Services;
 public class EmailService(
     IOptions<AppSettings> appsettingsOptions,
     NotificationDbContext dbContext
-    ) : IEmailService
+) : IEmailService
 {
     private readonly AppSettings _appSettings = appsettingsOptions.Value;
     private readonly EmailConfiguration _emailConfiguration = appsettingsOptions.Value.Features.Email;
-    
+
     public async Task<bool> HasSentEmailRecentlyAsync(string email, CancellationToken cancellationToken)
     {
         var recentEmail = await dbContext.EmailTraces
@@ -28,7 +28,7 @@ public class EmailService(
 
         return recentEmail is not null;
     }
-    
+
     public async Task SendEmailAsync(EmailMessageDto emailMessageDto, CancellationToken cancellationToken)
     {
         var trackId = await OnSendEmail(emailMessageDto);
@@ -40,17 +40,18 @@ public class EmailService(
 
     private async Task<string> OnSendEmail(EmailMessageDto emailMessageDto)
     {
-        if(!Regex.IsMatch(emailMessageDto.To, MyPatterns.Email))
+        if (!Regex.IsMatch(emailMessageDto.To, MyPatterns.Email))
         {
-            return "[ERR]" + GenerateUniqueTrackerId();;
+            return "[ERR]" + GenerateUniqueTrackerId();
+            ;
         }
-        
+
         var smtpClient = CreateSmtpClient();
 
         var trackId = GenerateUniqueTrackerId();
 
         var mailMessage = CreateMailMessage(emailMessageDto, trackId);
-        
+
         await smtpClient.SendMailAsync(mailMessage);
 
         return trackId;
@@ -74,56 +75,56 @@ public class EmailService(
     }
 
     private MailMessage CreateMailMessage(EmailMessageDto emailMessageDto, string trackerId)
-{
-    StringBuilder htmlBody = new StringBuilder();
-
-    htmlBody.Append("<html>");
-    htmlBody.Append("<head>");
-    htmlBody.Append("<style>");
-    htmlBody.Append("body { font-family: Arial, sans-serif; margin: 20px; }");
-    htmlBody.Append(".header { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 20px; }");
-    htmlBody.Append(".content { font-size: 14px; line-height: 1.5; color: #555; }");
-    htmlBody.Append(".footer { font-size: 12px; color: #999; margin-top: 30px; }");
-    htmlBody.Append("</style>");
-    htmlBody.Append("</head>");
-    htmlBody.Append("<body>");
-    htmlBody.Append($"<div class='header'>{emailMessageDto.Subject}</div>");
-    htmlBody.Append("<div class='content'>");
-    htmlBody.Append(emailMessageDto.Body);
-    htmlBody.Append("</div>");
-    htmlBody.Append("<div class='footer'>");
-    htmlBody.Append("If you have any questions, please contact us at support@example.com.");
-    htmlBody.Append("</div>");
-    htmlBody.Append(GenerateTrackingPixel(trackerId));
-    htmlBody.Append("</body>");
-    htmlBody.Append("</html>");
-
-    var mailMessage = new MailMessage(
-        _emailConfiguration.SenderEmail,
-        emailMessageDto.To,
-        emailMessageDto.Subject,
-        htmlBody.ToString()
-    )
     {
-        IsBodyHtml = true
-    };
+        StringBuilder htmlBody = new StringBuilder();
 
-    return mailMessage;
-}
+        htmlBody.Append("<html>");
+        htmlBody.Append("<head>");
+        htmlBody.Append("<style>");
+        htmlBody.Append("body { font-family: Arial, sans-serif; margin: 20px; }");
+        htmlBody.Append(".header { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 20px; }");
+        htmlBody.Append(".content { font-size: 14px; line-height: 1.5; color: #555; }");
+        htmlBody.Append(".footer { font-size: 12px; color: #999; margin-top: 30px; }");
+        htmlBody.Append("</style>");
+        htmlBody.Append("</head>");
+        htmlBody.Append("<body>");
+        htmlBody.Append($"<div class='header'>{emailMessageDto.Subject}</div>");
+        htmlBody.Append("<div class='content'>");
+        htmlBody.Append(emailMessageDto.Body);
+        htmlBody.Append("</div>");
+        htmlBody.Append("<div class='footer'>");
+        htmlBody.Append("If you have any questions, please contact us at support@example.com.");
+        htmlBody.Append("</div>");
+        htmlBody.Append(GenerateTrackingPixel(trackerId));
+        htmlBody.Append("</body>");
+        htmlBody.Append("</html>");
 
-private EmailTrace CreateEmailTrace(EmailMessageDto emailMessageDto, string trackerId)
-{
-    return EmailTrace.Create(emailMessageDto.To,
-        emailMessageDto.Subject,
-        emailMessageDto.Body,
-        emailMessageDto.MessageId,
-        trackerId);
-}
+        var mailMessage = new MailMessage(
+            _emailConfiguration.SenderEmail,
+            emailMessageDto.To,
+            emailMessageDto.Subject,
+            htmlBody.ToString()
+        )
+        {
+            IsBodyHtml = true
+        };
 
-private string GenerateTrackingPixel(string trackId)
-{
-    return $"<img width='1' height='1' src='{_appSettings.BaseUrl}/email/tracking/{trackId}' style='display:none;'>";
-}
+        return mailMessage;
+    }
+
+    private EmailTrace CreateEmailTrace(EmailMessageDto emailMessageDto, string trackerId)
+    {
+        return EmailTrace.Create(emailMessageDto.To,
+            emailMessageDto.Subject,
+            emailMessageDto.Body,
+            emailMessageDto.MessageId,
+            trackerId);
+    }
+
+    private string GenerateTrackingPixel(string trackId)
+    {
+        return $"<img width='1' height='1' src='{_appSettings.BaseUrl}/email/tracking/{trackId}' style='display:none;'>";
+    }
 
     private string GenerateUniqueTrackerId() => Guid.NewGuid().ToString();
 }
