@@ -6,8 +6,10 @@ using Alias.API.Domains.Aliases.Utils;
 using Alias.API.Models.Public;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Alias;
 using BuildingBlocks.Utils;
 using FluentValidation;
+using MassTransit;
 using Pii.API.Protos;
 
 namespace Alias.API.Domains.Aliases.Features.RenameAlias;
@@ -35,6 +37,7 @@ public record RenameAliasResult(string Label);
 public class RenameAliasHandler(
     AliasDbContext dbContext,
     PiiService.PiiServiceClient piiClient,
+    IPublishEndpoint publishEndpoint,
     ILogger<RenameAliasHandler> logger
 ) : ICommandHandler<RenameAliasCommand, RenameAliasResult>
 {
@@ -97,10 +100,17 @@ public class RenameAliasHandler(
         try
         {
             await dbContext.SaveChangesAsync(ct);
-
-            //TODO publish alias renamed integration event nếu sau này cần dùng
-
+            
             await tx.CommitAsync(ct);
+            
+            var aliasUpdatedIntegrationEvent = new AliasUpdatedIntegrationEvent(
+                alias.Id,
+                command.SubjectRef,
+                newVersion.Id,
+                newVersion.Label,
+                newVersion.ValidFrom);
+
+            await publishEndpoint.Publish(aliasUpdatedIntegrationEvent, ct);
         }
         catch (DbUpdateException ex) when (DbUtils.IsUniqueViolation(ex))
         {

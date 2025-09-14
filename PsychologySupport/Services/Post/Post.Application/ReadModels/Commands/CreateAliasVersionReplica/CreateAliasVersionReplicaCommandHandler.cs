@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Post.Application.Data;
 using Post.Application.ReadModels.Models;
 
-namespace Post.Application.ReadModels.Commands;
+namespace Post.Application.ReadModels.Commands.CreateAliasVersionReplica;
 
 public class CreateAliasVersionReplicaCommandHandler(
     IQueryDbContext dbContext,

@@ -9,7 +9,6 @@ using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Queries.Billing;
 using BuildingBlocks.Messaging.Events.Queries.Payment;
 using BuildingBlocks.Messaging.Events.Queries.Wallet;
-using BuildingBlocks.Services;
 using Mapster;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +17,7 @@ using System.Data;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using BuildingBlocks.Idempotency;
 
 namespace Billing.API.Domains.Billings.Features.CreateOrder;
 

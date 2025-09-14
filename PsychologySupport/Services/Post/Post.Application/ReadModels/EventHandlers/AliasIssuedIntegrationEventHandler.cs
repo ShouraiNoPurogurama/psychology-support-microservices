@@ -2,14 +2,15 @@
 using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Post.Application.ReadModels.Commands.CreateAliasVersionReplica;
 
-namespace Post.Application.Posts.EventHandlers;
+namespace Post.Application.ReadModels.EventHandlers;
 
 public class AliasIssuedIntegrationEventHandler(ISender sender, ILogger<AliasIssuedIntegrationEventHandler> logger) : IConsumer<AliasIssuedIntegrationEvent>
 {
     public async Task Consume(ConsumeContext<AliasIssuedIntegrationEvent> context)
     {
-        var command = new ReadModels.Commands.CreateAliasVersionReplicaCommand(
+        var command = new CreateAliasVersionReplicaCommand(
             context.Message.AliasId,
             context.Message.SubjectRef,
             context.Message.AliasVersionId,
@@ -21,7 +22,7 @@ public class AliasIssuedIntegrationEventHandler(ISender sender, ILogger<AliasIss
 
         if (!result.IsSuccess)
         {
-            logger.LogError("Failed to create AliasVersionReplica for AliasId: {AliasId}", context.Message.AliasId);
+            logger.LogError("Failed to create Alias Version Replica for AliasId: {AliasId}", context.Message.AliasId);
         }
     }
 }

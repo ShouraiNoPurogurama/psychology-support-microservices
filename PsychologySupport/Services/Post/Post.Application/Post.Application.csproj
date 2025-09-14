@@ -15,7 +15,7 @@
     <ItemGroup>
       <Folder Include="Dtos\" />
       <Folder Include="Exceptions\" />
-      <Folder Include="Extensions\" />
+      <Folder Include="Posts\EventHandlers\" />
       <Folder Include="Posts\Events\" />
       <Folder Include="Posts\Queries\" />
       <Folder Include="Reactions\" />

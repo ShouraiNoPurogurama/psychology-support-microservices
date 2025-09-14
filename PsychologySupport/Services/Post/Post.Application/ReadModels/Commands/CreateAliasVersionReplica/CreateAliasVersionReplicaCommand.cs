@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 
-namespace Post.Application.ReadModels.Commands;
+namespace Post.Application.ReadModels.Commands.CreateAliasVersionReplica;
 
 public record CreateAliasVersionReplicaCommand(
     Guid AliasId,
