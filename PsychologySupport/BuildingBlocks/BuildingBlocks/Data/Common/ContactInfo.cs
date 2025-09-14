@@ -1,44 +1,55 @@
-﻿namespace BuildingBlocks.Data.Common;
+﻿using BuildingBlocks.Utils;
+
+namespace BuildingBlocks.Data.Common;
 
 public record ContactInfo
 {
-    public string Address { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string? PhoneNumber { get; set; }
+    public string? Address { get; private set; }
+    public string Email { get; private set; } = string.Empty;
+    public string? PhoneNumber { get; private set; }
 
-    public ContactInfo()
+    private ContactInfo()
     {
     }
 
-    public ContactInfo(string address, string email, string? phoneNumber)
+    private ContactInfo(string? address, string email, string? phoneNumber)
     {
         Address = address;
         Email = email;
         PhoneNumber = phoneNumber;
     }
 
-    public static ContactInfo Of(string address, string email, string? phoneNumber = null)
+    public static ContactInfo Of(string? address, string email, string? phoneNumber = null)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(address, nameof(address));
-        ArgumentException.ThrowIfNullOrWhiteSpace(email, nameof(email));
+        ValidationBuilder.Create()
+            .When(() => string.IsNullOrWhiteSpace(email))
+            .WithErrorCode("INVALID_EMAIL")
+            .WithMessage("Email không được để trống.")
+            .ThrowIfInvalid();
 
         return new ContactInfo(address, email, phoneNumber);
     }
-    
-    public static ContactInfo UpdateWithFallback(ContactInfo current, string? address, string? email, string? phoneNumber)
+
+    public static ContactInfo UpdateWithFallback(ContactInfo current, 
+        string? address = null, 
+        string? email = null,
+        string? phoneNumber = null)
     {
         var finalAddress = address ?? current.Address;
         var finalEmail = email ?? current.Email;
+        var finalPhoneNumber = phoneNumber ?? current.PhoneNumber;
 
-        ArgumentException.ThrowIfNullOrWhiteSpace(finalAddress, nameof(finalAddress));
-        ArgumentException.ThrowIfNullOrWhiteSpace(finalEmail, nameof(finalEmail));
+        ValidationBuilder.Create()
+            .When(() => string.IsNullOrWhiteSpace(finalEmail))
+            .WithErrorCode("INVALID_EMAIL")
+            .WithMessage("Email không được để trống.")
+            .ThrowIfInvalid();
 
-        return new ContactInfo(finalAddress, finalEmail, phoneNumber ?? current.PhoneNumber);
+        return new ContactInfo(finalAddress, finalEmail, finalPhoneNumber);
     }
 
+    public static ContactInfo Empty() => new ContactInfo(null, string.Empty, null);
 
-    public static ContactInfo Empty() => new ContactInfo(string.Empty, string.Empty, null);
-
-    public bool HasEnoughInfo() => 
+    public bool HasEnoughInfo() =>
         !string.IsNullOrWhiteSpace(Email);
 }

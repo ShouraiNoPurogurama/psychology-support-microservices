@@ -1,9 +1,10 @@
-﻿using Auth.API.Domains.Authentication.Exceptions;
+﻿using Auth.API.Data;
+using Auth.API.Domains.Authentication.Exceptions;
 using Auth.API.Domains.Authentication.ServiceContracts.Features;
 
 namespace Auth.API.Domains.Authentication.Services.Features;
 
-public class UserAccountService(UserManager<User> userManager) : IUserAccountService
+public class UserAccountService(UserManager<User> userManager, AuthDbContext dbContext) : IUserAccountService
 {
     public async Task<bool> UnlockAccountAsync(string email)
     {

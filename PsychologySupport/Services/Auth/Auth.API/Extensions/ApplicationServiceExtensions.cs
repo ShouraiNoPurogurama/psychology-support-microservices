@@ -145,6 +145,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IUserAccountService, UserAccountService>();
+        services.AddScoped<IUserOnboardingService, UserOnboardingService>();
         
         //Shared
         services.AddScoped<IAuthenticationService, AuthenticationService>();

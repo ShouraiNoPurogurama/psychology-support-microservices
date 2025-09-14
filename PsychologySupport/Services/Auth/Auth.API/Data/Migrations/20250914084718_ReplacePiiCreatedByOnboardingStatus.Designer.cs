@@ -3,6 +3,7 @@ using System;
 using Auth.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Auth.API.Data.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
-    partial class AuthDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250914084718_ReplacePiiCreatedByOnboardingStatus")]
+    partial class ReplacePiiCreatedByOnboardingStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -268,65 +271,6 @@ namespace Auth.API.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Auth.API.Models.UserOnboarding", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset?>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("created_by");
-
-                    b.Property<DateTimeOffset?>("LastModified")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_modified");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("last_modified_by");
-
-                    b.Property<string>("Missing")
-                        .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("missing");
-
-                    b.Property<bool>("PatientProfileCompleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("patient_profile_completed");
-
-                    b.Property<bool>("PiiCompleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("pii_completed");
-
-                    b.Property<string>("ReasonCode")
-                        .HasColumnType("text")
-                        .HasColumnName("reason_code");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("status");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_user_onboardings");
-
-                    b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_user_onboardings_user_id");
-
-                    b.ToTable("user_onboardings", (string)null);
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.Property<int>("Id")
@@ -493,18 +437,6 @@ namespace Auth.API.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Auth.API.Models.UserOnboarding", b =>
-                {
-                    b.HasOne("Auth.API.Models.User", "User")
-                        .WithOne("Onboarding")
-                        .HasForeignKey("Auth.API.Models.UserOnboarding", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_user_onboardings_user_user_id");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Auth.API.Models.Role", null)
@@ -570,8 +502,6 @@ namespace Auth.API.Data.Migrations
             modelBuilder.Entity("Auth.API.Models.User", b =>
                 {
                     b.Navigation("Devices");
-
-                    b.Navigation("Onboarding");
                 });
 #pragma warning restore 612, 618
         }

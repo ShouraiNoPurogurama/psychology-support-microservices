@@ -1,8 +1,10 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using Auth.API.Data;
 using Auth.API.Domains.Authentication.ServiceContracts;
 using Auth.API.Domains.Authentication.ServiceContracts.Shared;
+using Auth.API.Enums;
 using BuildingBlocks.Exceptions;
 using Microsoft.IdentityModel.Tokens;
 using Pii.API.Protos;
@@ -18,19 +20,22 @@ public class TokenService(
 {
     private readonly PasswordHasher<User> _passwordHasher = new();
 
-    //TODO ensure subject ref when user registered
+    //TODO tí quay lại sửa
     public async Task<(string Token, string Jti)> GenerateJWTToken(User user)
     {
         var roles = await userManager.GetRolesAsync(user);
-
+        
         var subjectRef = await ResolveSubjectRef(user);
+        
+        // var onboardingStatus = user.OnboardingStatus.ToString();
         
         var jti = Guid.NewGuid().ToString();
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Jti, jti),
             new Claim(JwtRegisteredClaimNames.Sub, subjectRef),
-            new Claim(ClaimTypes.Role, string.Join(",", roles))
+            new Claim(ClaimTypes.Role, string.Join(",", roles)),
+            // new Claim(ClaimTypes.Authentication, onboardingStatus)
         };
 
         var rsaSecurityKey = GetRsaSecurityKey();
@@ -52,8 +57,10 @@ public class TokenService(
 
     private async Task<string> ResolveSubjectRef(User user)
     {
+        //TODO tí quay lại sửa
         string subjectRef;
-        if (!user.PiiCreated)
+        // if (user.OnboardingStatus != UserOnboardingStatus.Completed)
+        if (true)
         {
             var resolveSubjectRef = await piiClient.EnsureSubjectRefAsync(new EnsureSubjectRefRequest
             {

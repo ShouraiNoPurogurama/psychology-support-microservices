@@ -2,6 +2,7 @@
 using Auth.API.Domains.Authentication.Exceptions;
 using Auth.API.Domains.Authentication.ServiceContracts.Features;
 using Auth.API.Domains.Authentication.ServiceContracts.Shared;
+using Auth.API.Domains.Authentication.Utils;
 using Auth.API.Domains.Encryption.Dtos;
 using Auth.API.Domains.Encryption.ServiceContracts;
 using BuildingBlocks.Constants;
@@ -45,13 +46,10 @@ public class UserRegistrationService(
             UserId = user.Id
         };
 
-        var dto = new PendingSeedDto(registerRequest.FullName, registerRequest.Gender, registerRequest.BirthDate,
-            new BuildingBlocks.Data.Common.ContactInfo
-            {
-                Address = "None",
-                Email = registerRequest.Email,
-                PhoneNumber = registerRequest.PhoneNumber,
-            });
+        var dto = new PendingSeedDto(
+            registerRequest.FullName,
+            Email: registerRequest.Email,
+            PhoneNumber: registerRequest.PhoneNumber);
 
         pendingVerificationUser.PayloadProtected = payloadProtector.Protect(dto);
 
@@ -60,6 +58,7 @@ public class UserRegistrationService(
         await authDbContext.SaveChangesAsync();
 
         await AssignUserRoleAsync(user);
+
         await emailService.SendEmailConfirmationAsync(user);
 
         return true;
@@ -82,16 +81,18 @@ public class UserRegistrationService(
 
         if (result.Succeeded)
         {
-            user.EmailConfirmed = true;
-            await userManager.UpdateAsync(user);
+            CreateUserOnboarding(user);
 
             await RaiseUserRegisteredEventAsync(user);
+
+            await authDbContext.SaveChangesAsync();
 
             message = "Xác nhận email thành công.";
         }
         else
         {
-            logger.LogError($"*** Xác nhận email thất bại cho user {user.Id}. \n[Details] {string.Join("; ", result.Errors.Select(e => e.Description))}");
+            logger.LogError(
+                $"*** Xác nhận email thất bại cho user {user.Id}. \n[Details] {string.Join("; ", result.Errors.Select(e => e.Description))}");
             message = $"Xác nhận email thất bại.";
         }
 
@@ -100,7 +101,20 @@ public class UserRegistrationService(
 
         return redirectUrl;
     }
-    
+
+    private void CreateUserOnboarding(User user)
+    {
+        var onboardingRecord = new UserOnboarding
+        {
+            User = user,
+            PiiCompleted = false,
+            PatientProfileCompleted = false,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        authDbContext.UserOnboardings.Add(onboardingRecord);
+    }
+
     private async Task AssignUserRoleAsync(User user)
     {
         var roleResult = await userManager.AddToRoleAsync(user, Roles.UserRole);
@@ -118,20 +132,16 @@ public class UserRegistrationService(
         var pendingSeedDto = payloadProtector.Unprotect<PendingSeedDto>(pendingUser.PayloadProtected);
 
         var userRegisteredIntegrationEvent = new UserRegisteredIntegrationEvent(
-            SeedSubjectRef: Guid.NewGuid(),
+            SeedProfileId: DeterministicGuid.ProfileIdFromUserId(user.Id),
+            SeedSubjectRef: DeterministicGuid.SubjectRefFromUserId(user.Id),
             UserId: user.Id,
-            Email: pendingSeedDto.ContactInfo!.Email,
-            PhoneNumber: pendingSeedDto.ContactInfo.PhoneNumber,
-            Address: pendingSeedDto.ContactInfo.Address,
-            FullName: pendingSeedDto.FullName,
-            BirthDate: pendingSeedDto.BirthDate,
-            Gender: pendingSeedDto.Gender
+            Email: pendingSeedDto.Email,
+            PhoneNumber: pendingSeedDto.PhoneNumber,
+            FullName: pendingSeedDto.FullName
         );
 
         await publishEndpoint.Publish(userRegisteredIntegrationEvent);
 
         pendingUser.ProcessedAt = DateTimeOffset.UtcNow;
-        
-        await authDbContext.SaveChangesAsync();
     }
 }

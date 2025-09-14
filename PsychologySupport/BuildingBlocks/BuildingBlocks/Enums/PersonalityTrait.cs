@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
 namespace BuildingBlocks.Enums
 {
@@ -13,6 +8,7 @@ namespace BuildingBlocks.Enums
         None,
         Introversion,
         Extroversion,
-        Adaptability
+        Adaptability,
+        NotSet
     }
 }

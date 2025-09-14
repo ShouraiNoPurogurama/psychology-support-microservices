@@ -10,8 +10,8 @@ namespace Auth.API.Domains.Authentication.Services.Shared;
 public class AuthenticationService(
     UserManager<User> userManager,
     ITokenService tokenService,
-    IUserProvisioningService userProvisioningService,
-    IConfiguration configuration)
+    IUserProvisioningService userProvisioningService
+)
     : IAuthenticationService
 {
     private const int LockoutTimeInMinutes = 15;

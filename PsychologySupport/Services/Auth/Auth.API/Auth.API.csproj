@@ -77,7 +77,6 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Data\Migrations\" />
-	  <Folder Include="Domains\Authentication\" />
 	</ItemGroup>
 
 </Project>

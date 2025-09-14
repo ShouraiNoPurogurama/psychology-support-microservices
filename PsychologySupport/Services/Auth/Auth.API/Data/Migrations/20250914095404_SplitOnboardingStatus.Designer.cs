@@ -3,6 +3,7 @@ using System;
 using Auth.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Auth.API.Data.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
-    partial class AuthDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250914095404_SplitOnboardingStatus")]
+    partial class SplitOnboardingStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -223,13 +226,6 @@ namespace Auth.API.Data.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("normalized_user_name");
 
-                    b.Property<string>("OnboardingStatus")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasDefaultValue("Pending")
-                        .HasColumnName("onboarding_status");
-
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
@@ -296,13 +292,13 @@ namespace Auth.API.Data.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("missing");
 
-                    b.Property<bool>("PatientProfileCompleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("patient_profile_completed");
-
                     b.Property<bool>("PiiCompleted")
                         .HasColumnType("boolean")
                         .HasColumnName("pii_completed");
+
+                    b.Property<bool>("ProfileCompleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("profile_completed");
 
                     b.Property<string>("ReasonCode")
                         .HasColumnType("text")
@@ -318,13 +314,13 @@ namespace Auth.API.Data.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id")
-                        .HasName("pk_user_onboardings");
+                        .HasName("pk_user_onboarding");
 
                     b.HasIndex("UserId")
                         .IsUnique()
-                        .HasDatabaseName("ix_user_onboardings_user_id");
+                        .HasDatabaseName("ix_user_onboarding_user_id");
 
-                    b.ToTable("user_onboardings", (string)null);
+                    b.ToTable("user_onboarding", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -500,7 +496,7 @@ namespace Auth.API.Data.Migrations
                         .HasForeignKey("Auth.API.Models.UserOnboarding", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_user_onboardings_user_user_id");
+                        .HasConstraintName("fk_user_onboarding_user_user_id");
 
                     b.Navigation("User");
                 });

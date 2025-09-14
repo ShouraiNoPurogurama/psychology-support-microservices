@@ -1,7 +1,9 @@
 ﻿using Auth.API.Data;
+using Auth.API.Domains.Authentication.ServiceContracts.Features;
 using Auth.API.Domains.Authentication.ServiceContracts.Shared;
 using Auth.API.Domains.Encryption.Dtos;
 using Auth.API.Domains.Encryption.ServiceContracts;
+using Auth.API.Enums;
 using BuildingBlocks.Constants;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Auth;
@@ -14,6 +16,7 @@ public class UserProvisioningService(
     UserManager<User> userManager,
     AuthDbContext authDbContext,
     IPayloadProtector payloadProtector,
+    IUserOnboardingService userOnboardingService,
     IPublishEndpoint publishEndpoint)
     : IUserProvisioningService
 {
@@ -38,8 +41,20 @@ public class UserProvisioningService(
 
         await AssignUserRoleAsync(user);
 
-        await CreateUserProfileAsync(user);
+        await CreateUserProfileFromGoogleAsync(user, payload);
+        
+        var onboardingRecord = new UserOnboarding
+        {
+            User = user,
+            PiiCompleted = false,
+            PatientProfileCompleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        
+        authDbContext.UserOnboardings.Add(onboardingRecord);
 
+        await authDbContext.SaveChangesAsync();
+        
         return user;
     }
 
@@ -50,32 +65,17 @@ public class UserProvisioningService(
             throw new InvalidDataException("Gán vai trò thất bại");
     }
 
-    private async Task CreateUserProfileAsync(User user)
+    private async Task CreateUserProfileFromGoogleAsync(User user, GoogleJsonWebSignature.Payload payload)
     {
-        var pendingUser = await authDbContext.PendingVerificationUsers
-                              .FirstOrDefaultAsync(p => p.UserId == user.Id && p.ProcessedAt == null)
-                          ?? throw new NotFoundException("Không tìm thấy dữ liệu người đùng để tạo profile",
-                              nameof(PendingVerificationUser));
-
-        var pendingSeedDto = payloadProtector.Unprotect<PendingSeedDto>(pendingUser.PayloadProtected);
-
-        var seedSubjectRef = Guid.NewGuid();
-        
         var userRegisteredIntegrationEvent = new UserRegisteredIntegrationEvent(
-            SeedSubjectRef : seedSubjectRef,
+            SeedProfileId: Guid.NewGuid(),
+            SeedSubjectRef: Guid.NewGuid(),
             UserId: user.Id,
-            Email: pendingSeedDto.ContactInfo!.Email,
-            PhoneNumber: pendingSeedDto.ContactInfo.PhoneNumber,
-            Address: pendingSeedDto.ContactInfo.Address,
-            FullName: pendingSeedDto.FullName,
-            BirthDate: pendingSeedDto.BirthDate,
-            Gender: pendingSeedDto.Gender
+            Email: user.Email!,
+            PhoneNumber: user.PhoneNumber,
+            FullName: payload.Name
         );
 
         await publishEndpoint.Publish(userRegisteredIntegrationEvent);
-
-        pendingUser.ProcessedAt = DateTimeOffset.UtcNow;
-
-        await authDbContext.SaveChangesAsync();
     }
 }

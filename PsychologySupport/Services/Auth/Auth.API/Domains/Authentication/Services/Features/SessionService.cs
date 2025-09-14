@@ -67,7 +67,7 @@ public class SessionService(
 
         var user = await userManager.FindByIdAsync(userId)
                    ?? throw new UserNotFoundException(userId);
-
+        
         var device = await authDbContext.Devices
                          .FirstOrDefaultAsync(d => d.ClientDeviceId == request.ClientDeviceId && d.UserId == user.Id)
                      ?? throw new NotFoundException("Thiết bị không hợp lệ");
