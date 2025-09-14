@@ -15,20 +15,20 @@ namespace Auth.API.Domains.Authentication.Services.Shared;
 public class TokenService(
     UserManager<User> userManager,
     IConfiguration configuration,
+    ILogger<TokenService> logger,
     PiiService.PiiServiceClient piiClient
 ) : ITokenService
 {
     private readonly PasswordHasher<User> _passwordHasher = new();
 
-    //TODO tí quay lại sửa
     public async Task<(string Token, string Jti)> GenerateJWTToken(User user)
     {
         var roles = await userManager.GetRolesAsync(user);
-        
+
         var subjectRef = await ResolveSubjectRef(user);
-        
+
         var onboardingStatus = user.OnboardingStatus.ToString();
-        
+
         var jti = Guid.NewGuid().ToString();
         var claims = new[]
         {
@@ -57,29 +57,49 @@ public class TokenService(
 
     private async Task<string> ResolveSubjectRef(User user)
     {
-        //TODO tí quay lại sửa
-        string subjectRef;
-        // if (user.OnboardingStatus != UserOnboardingStatus.Completed)
-        if (true)
-        {
-            var resolveSubjectRef = await piiClient.EnsureSubjectRefAsync(new EnsureSubjectRefRequest
-            {
-                UserId = user.Id.ToString()
-            });
+        //Cấu hình retry: Thử tối đa 5 lần, mỗi lần cách nhau 300ms.
+        //Tổng cộng chờ tối đa ~1.5 giây. 
+        //Nếu sau 1.5s mà MQ vẫn chưa xử lý xong thì hệ thống đang có vấn đề nghiêm trọng.
+        int maxRetries = 5;
+        TimeSpan delayBetweenRetries = TimeSpan.FromMilliseconds(300);
 
-            subjectRef = resolveSubjectRef.SubjectRef;
-        }
-        else
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            var resolveSubjectRef = await piiClient.ResolveSubjectRefByUserIdAsync(new ResolveSubjectRefByUserIdRequest()
+            try
             {
-                UserId = user.Id.ToString()
-            });
-            
-            subjectRef = resolveSubjectRef.SubjectRef;
+                var resolveSubjectRef = await piiClient.ResolveSubjectRefByUserIdAsync(new ResolveSubjectRefByUserIdRequest()
+                {
+                    UserId = user.Id.ToString()
+                });
+
+                var subjectRef = resolveSubjectRef.SubjectRef;
+
+                if (!string.IsNullOrEmpty(subjectRef) && subjectRef != Guid.Empty.ToString())
+                {
+                    return subjectRef;
+                }
+
+                logger.LogWarning("Attempt {Attempt}: Profile not found for User {UserId}. Retrying...", attempt, user.Id);
+            }
+            catch (Grpc.Core.RpcException ex) when (ex.StatusCode == Grpc.Core.StatusCode.NotFound)
+            {
+                //Nếu gRPC service của bạn CHỦ ĐỘNG ném lỗi NotFound thay vì trả về rỗng, 
+                //chúng ta cũng bắt lỗi này và coi như "chưa sẵn sàng" để retry.
+                //logger.LogWarning(ex, "Attempt {Attempt}: gRPC NotFound for User {UserId}. Retrying...", attempt, user.Id);
+            }
+
+            // Nếu chưa phải lần thử cuối, đợi trước khi thử lại
+            if (attempt < maxRetries)
+            {
+                await Task.Delay(delayBetweenRetries);
+            }
         }
 
-        return subjectRef;
+        //Nếu đã chạy hết vòng lặp (hết 5 lần) mà vẫn KHÔNG TÌM THẤY,
+        //lúc này phải ném lỗi thật sự.
+        //Việc đăng nhập không thể tiếp tục nếu không có SubjectRef.
+        throw new NotReadyException(
+            $"Không thể khởi tạo hồ sơ cho người dùng sau {maxRetries} lần thử. Vui lòng thử lại sau.", "PROFILE_NOT_READY");
     }
 
     private RsaSecurityKey GetRsaSecurityKey()

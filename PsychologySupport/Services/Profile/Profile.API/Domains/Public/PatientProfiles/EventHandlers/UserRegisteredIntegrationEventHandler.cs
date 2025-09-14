@@ -1,9 +1,13 @@
 ﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Auth;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Profile;
 using Profile.API.Domains.Public.PatientProfiles.Features.SeedPatientProfile;
 
 namespace Profile.API.Domains.Public.PatientProfiles.EventHandlers;
 
-public class UserRegisteredIntegrationEventHandler(ISender sender, ILogger<UserRegisteredIntegrationEventHandler> logger)
+public class UserRegisteredIntegrationEventHandler(
+    ISender sender, 
+    IPublishEndpoint publishEndpoint,
+    ILogger<UserRegisteredIntegrationEventHandler> logger)
     : IConsumer<UserRegisteredIntegrationEvent>
 {
     public async Task Consume(ConsumeContext<UserRegisteredIntegrationEvent> context)
@@ -12,7 +16,7 @@ public class UserRegisteredIntegrationEventHandler(ISender sender, ILogger<UserR
 
         var command = new SeedPatientProfileCommand
         (
-            message.SeedProfileId
+            message.SeedPatientProfileId
         );
 
         var result = await sender.Send(command, context.CancellationToken);

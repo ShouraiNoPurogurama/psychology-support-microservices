@@ -2,7 +2,6 @@
 using Auth.API.Domains.Authentication.Exceptions;
 using Auth.API.Domains.Authentication.ServiceContracts.Features;
 using Auth.API.Domains.Authentication.ServiceContracts.Shared;
-using Auth.API.Domains.Authentication.Utils;
 using Auth.API.Domains.Encryption.Dtos;
 using Auth.API.Domains.Encryption.ServiceContracts;
 using BuildingBlocks.Constants;
@@ -74,6 +73,9 @@ public class UserRegistrationService(
         var user = await userManager.FindByEmailAsync(email)
                    ?? throw new UserNotFoundException(email);
 
+        if(user.EmailConfirmed) 
+            throw new ConflictException("Email của bạn đã được xác nhận trước đó.");
+        
         var result = await userManager.ConfirmEmailAsync(user, token);
 
         string status = result.Succeeded ? "success" : "failed";
@@ -132,8 +134,8 @@ public class UserRegistrationService(
         var pendingSeedDto = payloadProtector.Unprotect<PendingSeedDto>(pendingUser.PayloadProtected);
 
         var userRegisteredIntegrationEvent = new UserRegisteredIntegrationEvent(
-            SeedProfileId: DeterministicGuid.ProfileIdFromUserId(user.Id),
-            SeedSubjectRef: DeterministicGuid.SubjectRefFromUserId(user.Id),
+            SeedPatientProfileId: Guid.NewGuid(),
+            SeedSubjectRef: Guid.NewGuid(),
             UserId: user.Id,
             Email: pendingSeedDto.Email,
             PhoneNumber: pendingSeedDto.PhoneNumber,

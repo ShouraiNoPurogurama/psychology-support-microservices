@@ -1,7 +1,7 @@
 ﻿namespace BuildingBlocks.Messaging.Events.IntegrationEvents.Auth;
 
 public record UserRegisteredIntegrationEvent(
-    Guid SeedProfileId,
+    Guid SeedPatientProfileId,
     Guid SeedSubjectRef,
     Guid UserId,
     string Email,

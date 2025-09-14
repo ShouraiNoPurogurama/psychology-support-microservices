@@ -1,6 +1,6 @@
 ﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Auth;
 using Profile.API.Domains.Pii.Dtos;
-using Profile.API.Domains.Pii.Features.EnsureSubjectRef;
+using Profile.API.Domains.Pii.Features.SeedPersonProfile;
 
 namespace Profile.API.Domains.Pii.EventHandlers;
 
@@ -13,12 +13,13 @@ public class UserRegisteredIntegrationEventHandler(ISender sender, ILogger<UserR
         
         var seed = new PersonSeedDto(
             context.Message.SeedSubjectRef,
+            context.Message.SeedPatientProfileId,
             context.Message.FullName,
             context.Message.Email,
             context.Message.PhoneNumber
         );
 
-        var command = new SeedSubjectRefCommand(userId,  seed);
+        var command = new SeedPersonProfileAndPatientMappingCommand(userId, seed);
 
         await sender.Send(command);
     }

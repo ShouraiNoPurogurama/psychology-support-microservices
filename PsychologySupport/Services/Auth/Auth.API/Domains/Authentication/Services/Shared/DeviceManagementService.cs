@@ -20,16 +20,14 @@ public class DeviceManagementService(AuthDbContext authDbContext, ITokenRevocati
                 UserId = userId,
                 DeviceType = deviceType,
                 DeviceToken = deviceToken,
-                LastUsedAt = DateTime.UtcNow
+                ClientDeviceId = clientDeviceId,
+                LastUsedAt = DateTime.UtcNow,
             };
-            authDbContext.Devices.Add(device);
+            await authDbContext.Devices.AddAsync(device);
         }
         else
         {
-            device.ClientDeviceId = clientDeviceId;
-            device.DeviceToken = deviceToken;
             device.LastUsedAt = DateTime.UtcNow;
-            device.DeviceType = deviceType;
         }
 
         await authDbContext.SaveChangesAsync();

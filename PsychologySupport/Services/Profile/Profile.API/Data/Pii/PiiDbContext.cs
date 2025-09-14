@@ -13,7 +13,6 @@ public partial class PiiDbContext : DbContext
 
     public virtual DbSet<AliasOwnerMap> AliasOwnerMaps { get; set; }
     public virtual DbSet<PatientOwnerMap> PatientOwnerMaps { get; set; }
-
     public virtual DbSet<PersonProfile> PersonProfiles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -32,10 +31,10 @@ public partial class PiiDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever();
 
-            entity.HasOne(e => e.PersonProfile)
-                .WithOne(e => e.AliasOwnerMap)
-                .HasForeignKey<AliasOwnerMap>(e => e.SubjectRef)
-                .IsRequired();
+            entity.HasOne(map => map.PersonProfile)         
+                .WithMany()                            
+                .HasForeignKey(map => map.SubjectRef)    //Cột FK trong bảng NÀY là cột 'SubjectRef'
+                .HasPrincipalKey(person => person.Id);   //Cột FK này trỏ tới cột PK 'Id' của PersonProfile
         });
 
         builder.Entity<PatientOwnerMap>(entity =>
@@ -48,11 +47,12 @@ public partial class PiiDbContext : DbContext
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever();
+            
+            entity.HasOne(map => map.PersonProfile)         
+                .WithMany()                            
+                .HasForeignKey(map => map.SubjectRef)    //Cột FK trong bảng NÀY là cột 'SubjectRef'
+                .HasPrincipalKey(person => person.Id);   //Cột FK này trỏ tới cột PK 'Id' của PersonProfile 
 
-            entity.HasOne<PersonProfile>()
-                .WithOne()
-                .HasForeignKey<PatientOwnerMap>(e => e.SubjectRef)
-                .IsRequired();
         });
 
         builder.Entity<PersonProfile>(entity =>

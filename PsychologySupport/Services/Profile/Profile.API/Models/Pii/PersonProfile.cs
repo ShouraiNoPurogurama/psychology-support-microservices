@@ -10,7 +10,7 @@ namespace Profile.API.Models.Pii;
 public partial class PersonProfile : AggregateRoot<Guid>
 {
     public Guid SubjectRef => Id;
-    
+
     public Guid UserId { get; private set; }
 
     public PersonName FullName { get; private set; } = PersonName.Empty;
@@ -20,35 +20,6 @@ public partial class PersonProfile : AggregateRoot<Guid>
     public ContactInfo ContactInfo { get; private set; } = ContactInfo.Empty();
 
     public PersonProfileStatus Status { get; private set; } = PersonProfileStatus.Pending;
-
-    public AliasOwnerMap? AliasOwnerMap { get; set; }
-
-    public static PersonProfile SeedPending(
-        Guid subjectRef,
-        Guid userId,
-        string fullName,
-        ContactInfo contactInfo)
-    {
-        ValidationBuilder.Create()
-            .When(() => userId == Guid.Empty)
-            .WithErrorCode("INVALID_USER_ID")
-            .WithMessage("User Id không được để trống.")
-            .ThrowIfInvalid();
-
-        var entity = new PersonProfile
-        {
-            Id = subjectRef,
-            UserId     = userId,
-            FullName   = PersonName.Of(fullName),
-            Gender     = UserGender.NotSet,
-            BirthDate  = null,
-            ContactInfo= contactInfo,
-            Status     = PersonProfileStatus.Pending
-        };
-
-        // DomainEvent: PersonProfileSeeded
-        return entity;
-    }
 
     public static PersonProfile CreateActive(
         Guid subjectRef,
@@ -60,26 +31,53 @@ public partial class PersonProfile : AggregateRoot<Guid>
     {
         ValidationBuilder.Create()
             .When(() => userId == Guid.Empty)
-                .WithErrorCode("INVALID_USER_ID")
-                .WithMessage("ID người dùng không được để trống.")
+            .WithErrorCode("INVALID_USER_ID")
+            .WithMessage("ID người dùng không được để trống.")
             .When(() => !contactInfo.HasEnoughInfo())
-                .WithErrorCode("INVALID_CONTACT")
-                .WithMessage("Thông tin liên hệ chưa được điền đủ.")
+            .WithErrorCode("INVALID_CONTACT")
+            .WithMessage("Thông tin liên hệ chưa được điền đủ.")
             .ThrowIfInvalid();
 
         var entity = new PersonProfile
         {
             Id = subjectRef,
-            UserId     = userId,
-            FullName   = PersonName.Of(fullName),
-            Gender     = gender,
-            BirthDate  = ValidateBirthDate(birthDate),
-            ContactInfo= contactInfo!,
-            Status     = PersonProfileStatus.Active
+            UserId = userId,
+            FullName = PersonName.Of(fullName),
+            Gender = gender,
+            BirthDate = ValidateBirthDate(birthDate),
+            ContactInfo = contactInfo!,
+            Status = PersonProfileStatus.Active
         };
 
         entity.EnsureActiveInvariants(); // dùng ValidationBuilder<T>
         // DomainEvent: PersonProfileCreated
+        return entity;
+    }
+
+    public static PersonProfile SeedPending(
+        Guid subjectRef,
+        Guid userId,
+        string? fullName,
+        ContactInfo contactInfo)
+    {
+        ValidationBuilder.Create()
+            .When(() => userId == Guid.Empty)
+            .WithErrorCode("INVALID_USER_ID")
+            .WithMessage("User Id không được để trống.")
+            .ThrowIfInvalid();
+
+        var entity = new PersonProfile
+        {
+            Id = subjectRef,
+            UserId = userId,
+            FullName = PersonName.OfNullable(fullName),
+            Gender = UserGender.NotSet,
+            BirthDate = null,
+            ContactInfo = contactInfo,
+            Status = PersonProfileStatus.Pending
+        };
+
+        // DomainEvent: PersonProfileSeeded
         return entity;
     }
 
@@ -91,8 +89,8 @@ public partial class PersonProfile : AggregateRoot<Guid>
     {
         ValidationBuilder.Create()
             .When(() => !contactInfo.HasEnoughInfo())
-                .WithErrorCode("INVALID_CONTACT")
-                .WithMessage("Thông tin liên hệ chưa được điền đủ.")
+            .WithErrorCode("INVALID_CONTACT")
+            .WithMessage("Thông tin liên hệ chưa được điền đủ.")
             .ThrowIfInvalid();
 
         Rename(fullName);
@@ -102,7 +100,7 @@ public partial class PersonProfile : AggregateRoot<Guid>
 
         EnsureActiveInvariants();
         Status = PersonProfileStatus.Active;
-        
+
         AddDomainEvent(new PersonProfileOnboardedEvent(SubjectRef));
     }
 
@@ -110,13 +108,13 @@ public partial class PersonProfile : AggregateRoot<Guid>
     {
         ValidationBuilder.Create()
             .When(() => !contactInfo.HasEnoughInfo())
-                .WithErrorCode("INVALID_CONTACT")
-                .WithMessage("Thông tin liên hệ không được để trống.")
+            .WithErrorCode("INVALID_CONTACT")
+            .WithMessage("Thông tin liên hệ không được để trống.")
             .ThrowIfInvalid();
 
-        FullName    = PersonName.Of(fullName) ;
-        Gender      = gender ?? Gender;
-        BirthDate   = ValidateBirthDate(birthDate);
+        FullName = PersonName.Of(fullName);
+        Gender = gender ?? Gender;
+        BirthDate = ValidateBirthDate(birthDate);
         ContactInfo = contactInfo;
 
         if (Status != PersonProfileStatus.Active && IsActiveReady())
@@ -130,12 +128,13 @@ public partial class PersonProfile : AggregateRoot<Guid>
     public void Rename(string? fullName) => FullName = PersonName.Of(fullName);
     public void ChangeGender(UserGender gender) => Gender = gender;
     public void ChangeBirthDate(DateOnly birthDate) => BirthDate = ValidateBirthDate(birthDate);
+
     public void UpdateContact(ContactInfo contactInfo)
     {
         ValidationBuilder.Create()
             .When(() => !contactInfo.HasEnoughInfo())
-                .WithErrorCode("INVALID_CONTACT")
-                .WithMessage("Thông tin liên hệ không được để trống.")
+            .WithErrorCode("INVALID_CONTACT")
+            .WithMessage("Thông tin liên hệ không được để trống.")
             .ThrowIfInvalid();
 
         ContactInfo = contactInfo!;
@@ -149,11 +148,11 @@ public partial class PersonProfile : AggregateRoot<Guid>
 
         ValidationBuilder.Create()
             .When(() => birthDate > today.AddYears(-13))
-                .WithErrorCode("INVALID_BIRTHDATE")
-                .WithMessage("Người dùng phải ít nhất 13 tuổi.")
+            .WithErrorCode("INVALID_BIRTHDATE")
+            .WithMessage("Người dùng phải ít nhất 13 tuổi.")
             .When(() => today.Year - birthDate.Value.Year > 100)
-                .WithErrorCode("INVALID_BIRTHDATE")
-                .WithMessage("Ngày sinh nhật quá xa so với hiện tại.")
+            .WithErrorCode("INVALID_BIRTHDATE")
+            .WithMessage("Ngày sinh nhật quá xa so với hiện tại.")
             .ThrowIfInvalid();
 
         return birthDate;
@@ -161,8 +160,8 @@ public partial class PersonProfile : AggregateRoot<Guid>
 
     private bool IsActiveReady()
     {
-        var hasName      = !FullName.IsEmpty;
-        var hasAnyContact= ContactInfo.HasEnoughInfo();
+        var hasName = !FullName.IsEmpty;
+        var hasAnyContact = ContactInfo.HasEnoughInfo();
         return hasName && hasAnyContact;
     }
 

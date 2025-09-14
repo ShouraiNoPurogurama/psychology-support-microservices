@@ -68,7 +68,7 @@ public class UserProvisioningService(
     private async Task CreateUserProfileFromGoogleAsync(User user, GoogleJsonWebSignature.Payload payload)
     {
         var userRegisteredIntegrationEvent = new UserRegisteredIntegrationEvent(
-            SeedProfileId: Guid.NewGuid(),
+            SeedPatientProfileId: Guid.NewGuid(),
             SeedSubjectRef: Guid.NewGuid(),
             UserId: user.Id,
             Email: user.Email!,

@@ -24,7 +24,8 @@ public class SessionService(
         var user = await authenticationService.AuthenticateWithPasswordAsync(loginRequest);
 
         //2. Xử lý device và session
-        var device = await deviceManagementService.GetOrUpsertDeviceAsync(user.Id, loginRequest.ClientDeviceId!,
+        var device = await deviceManagementService.GetOrUpsertDeviceAsync(user.Id, 
+            loginRequest.ClientDeviceId!,
             loginRequest.DeviceType!.Value,
             loginRequest.DeviceToken);
         
