@@ -8,8 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Infrastructure.Authentication;
-using Post.Infrastructure.Data;
-using Post.Infrastructure.Data.Public;
+using Post.Infrastructure.Data.Post;
 using Post.Infrastructure.Data.Query;
 using Post.Infrastructure.Resilience.Decorators;
 using Post.Infrastructure.Resilience.Services;
@@ -26,7 +25,7 @@ public static class DependencyInjection
 
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
-        services.AddScoped<IPublicDbContext, PublicDbContext>();
+        // services.AddScoped<ILegacyPublicDbContext, LegacyPublicDbContext>();
         services.AddScoped<IQueryDbContext, QueryDbContext>();
 
         services.AddScoped<IIdempotencyHashAccessor, IdempotencyHashAccessor>();
@@ -38,11 +37,18 @@ public static class DependencyInjection
         services.AddScoped<IActorResolver, CurrentAliasContextResolver>();
             
         
-        services.AddDbContext<PublicDbContext>((serviceProvider, options) =>
+        // services.AddDbContext<LegacyPublicDbContext>((serviceProvider, options) =>
+        // {
+        //     options.AddInterceptors(serviceProvider.GetServices<ISaveChangesInterceptor>());
+        //     options.UseSnakeCaseNamingConvention();
+        //     options.UseNpgsql(connectionString);
+        // });
+        //
+        services.AddDbContext<PostDbContext>((serviceProvider, options) =>
         {
             options.AddInterceptors(serviceProvider.GetServices<ISaveChangesInterceptor>());
             options.UseSnakeCaseNamingConvention();
-            options.UseNpgsql(connectionString);
+            options.UseNpgsql(connectionString, x => x.MigrationsHistoryTable("__EFMigrationsHistory", "post"));
         });
 
         services.AddDbContext<QueryDbContext>((serviceProvider, options) =>

@@ -18,4 +18,8 @@
       <PackageReference Include="Scrutor" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Data\Post\Migrations\" />
+    </ItemGroup>
+
 </Project>

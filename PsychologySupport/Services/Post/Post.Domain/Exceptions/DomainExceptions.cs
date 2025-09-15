@@ -33,3 +33,35 @@ public class DeletedReactionActionException : PostDomainException
 {
     public DeletedReactionActionException(string message) : base(message) { }
 }
+
+// Gift Exceptions
+public class InvalidGiftDataException : PostDomainException
+{
+    public InvalidGiftDataException(string message) : base(message) { }
+}
+
+public class GiftAuthorMismatchException : PostDomainException
+{
+    public GiftAuthorMismatchException(string message = "Chỉ người gửi quà mới có thể chỉnh sửa.") : base(message) { }
+}
+
+public class DeletedGiftActionException : PostDomainException
+{
+    public DeletedGiftActionException(string message) : base(message) { }
+}
+
+// CategoryTag Exceptions
+public class InvalidCategoryTagDataException : PostDomainException
+{
+    public InvalidCategoryTagDataException(string message) : base(message) { }
+}
+
+public class CategoryTagNotFoundException : PostDomainException
+{
+    public CategoryTagNotFoundException(string message = "Danh mục không tồn tại.") : base(message) { }
+}
+
+public class CategoryTagConflictException : PostDomainException
+{
+    public CategoryTagConflictException(string message) : base(message) { }
+}

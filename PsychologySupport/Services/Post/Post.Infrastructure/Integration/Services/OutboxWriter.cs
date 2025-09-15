@@ -1,14 +1,14 @@
 ﻿using System.Text.Json;
 using Post.Application.Integration;
-using Post.Infrastructure.Data.Public;
+using Post.Infrastructure.Data.Post;
 using Post.Infrastructure.Integration.Entities;
 
 namespace Post.Infrastructure.Integration.Services;
 
 public sealed class EfOutboxWriter : IOutboxWriter
 {
-    private readonly PublicDbContext _db;
-    public EfOutboxWriter(PublicDbContext db) => _db = db;
+    private readonly PostDbContext _db;
+    public EfOutboxWriter(PostDbContext db) => _db = db;
 
     public Task EnqueueAsync(object evt, CancellationToken ct)
     {
