@@ -15,6 +15,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
 
     // Properties
     public PostVisibility Visibility { get; private set; } = PostVisibility.Draft;
+    public bool IsAbandonmentEventEmitted { get; private set; } = false;
     public DateTime PublishedAt { get; private set; }
     public DateTime? EditedAt   { get; private set; }
 
@@ -53,7 +54,14 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
             PublishedAt = DateTime.UtcNow
         };
 
-        post.AddDomainEvent(new PostCreatedEvent(post.Id, post.Author.AliasId));
+        post.AddDomainEvent(new PostCreatedEvent(
+            post.Id,
+            post.Author.AliasId,
+            post.Content.Value,
+            post.Content.Title,
+            post.Visibility.ToString(),
+            new List<string>(),
+            post.PublishedAt));
         return post;
     }
 
@@ -66,7 +74,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
         Content = PostContent.Create(newContent, newTitle);
         EditedAt = DateTime.UtcNow;
 
-        AddDomainEvent(new PostContentUpdatedEvent(Id, oldContent.Value, Content.Value));
+        AddDomainEvent(new PostContentUpdatedEvent(Id, oldContent.Value, Content.Value, editorAliasId));
     }
 
     public void ChangeVisibility(PostVisibility newVisibility, Guid editorAliasId)
@@ -185,7 +193,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
         AddDomainEvent(new PostViewedEvent(Id));
     }
 
-    public void SoftDelete(Guid deleterAliasId)
+    public void Delete(Guid deleterAliasId)
     {
         if (IsDeleted) return;
 
@@ -193,7 +201,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
         DeletedAt = DateTimeOffset.UtcNow;
         DeletedByAliasId = deleterAliasId.ToString();
 
-        AddDomainEvent(new PostDeletedEvent(Id));
+        AddDomainEvent(new PostDeletedEvent(Id, deleterAliasId));
     }
 
     public void Restore(Guid restorerAliasId)
@@ -208,6 +216,23 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
         DeletedByAliasId = null;
 
         AddDomainEvent(new PostRestoredEvent(Id, restorerAliasId));
+    }
+
+    public void SynchronizeCounters(int reactionCount, int commentCount)
+    {
+        Metrics = Metrics with { ReactionCount = reactionCount, CommentCount = commentCount };
+        AddDomainEvent(new PostMetricsUpdatedEvent(Id, "sync", 0));
+    }
+
+    public void MarkAbandonmentEventEmitted()
+    {
+        IsAbandonmentEventEmitted = true;
+    }
+
+    public void SoftDelete(Guid deleterAliasId)
+    {
+        ValidateEditPermission(deleterAliasId);
+        Delete(deleterAliasId);
     }
 
     public bool CanBePublished => Moderation.IsApproved && !IsDeleted;

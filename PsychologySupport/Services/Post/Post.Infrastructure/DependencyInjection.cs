@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.Data.Interceptors;
-using BuildingBlocks.Extensions;
+﻿using BuildingBlocks.Extensions;
 using BuildingBlocks.Idempotency;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -8,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Infrastructure.Authentication;
+using Post.Infrastructure.Data.Interceptors;
 using Post.Infrastructure.Data.Post;
 using Post.Infrastructure.Data.Query;
 using Post.Infrastructure.Resilience.Decorators;
@@ -33,8 +33,8 @@ public static class DependencyInjection
         services.Decorate<IIdempotencyService, LockingIdempotencyService>();     // single-flight
         services.Decorate<IIdempotencyService, CachingIdempotencyService>();
         
-        services.AddScoped<IAliasContextResolver, CurrentAliasContextResolver>(); 
-        services.AddScoped<IActorResolver, CurrentAliasContextResolver>();
+        services.AddScoped<IAliasVersionResolver, CurrentAliasVersionResolver>(); 
+        services.AddScoped<IActorResolver, CurrentAliasVersionResolver>();
             
         
         // services.AddDbContext<LegacyPublicDbContext>((serviceProvider, options) =>

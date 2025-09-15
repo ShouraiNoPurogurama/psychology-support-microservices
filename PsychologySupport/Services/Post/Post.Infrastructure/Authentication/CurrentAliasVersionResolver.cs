@@ -7,17 +7,17 @@ using Post.Infrastructure.Data.Query;
 
 namespace Post.Infrastructure.Authentication;
 
-internal sealed class CurrentAliasContextResolver : IActorResolver, IAliasContextResolver
+internal sealed class CurrentAliasVersionResolver : IActorResolver, IAliasVersionResolver
 {
     private readonly QueryDbContext _dbContext;
-    private readonly ILogger<CurrentAliasContextResolver> _logger;
+    private readonly ILogger<CurrentAliasVersionResolver> _logger;
 
     public Guid AliasId { get; }
 
-    public CurrentAliasContextResolver(
+    public CurrentAliasVersionResolver(
         IHttpContextAccessor httpContextAccessor,
         QueryDbContext dbContext,
-        ILogger<CurrentAliasContextResolver> logger)
+        ILogger<CurrentAliasVersionResolver> logger)
     {
         _dbContext = dbContext;
         _logger = logger;
@@ -33,7 +33,7 @@ internal sealed class CurrentAliasContextResolver : IActorResolver, IAliasContex
     public async Task<Guid> GetCurrentAliasVersionIdAsync(CancellationToken cancellationToken = default)
     {
         var replicaVersion = await _dbContext.AliasVersionReplica
-            .Where(a => a.AliasId == this.AliasId)
+            .Where(a => a.AliasId == AliasId)
             .Select(a => (Guid?)a.CurrentVersionId)
             .FirstOrDefaultAsync(cancellationToken);
 

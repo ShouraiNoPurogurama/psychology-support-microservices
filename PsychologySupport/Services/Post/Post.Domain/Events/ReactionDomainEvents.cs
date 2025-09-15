@@ -1,7 +1,47 @@
 ﻿namespace Post.Domain.Events;
 
-// Reaction Domain Events
-public record ReactionCreatedEvent(Guid ReactionId, string TargetType, Guid TargetId, string ReactionType, Guid AuthorAliasId) : IDomainEvent;
-public record ReactionTypeChangedEvent(Guid ReactionId, string TargetType, Guid TargetId, string OldType, string NewType) : IDomainEvent;
-public record ReactionRemovedEvent(Guid ReactionId, string TargetType, Guid TargetId, string ReactionType, Guid RemoverAliasId) : IDomainEvent;
-public record ReactionRestoredEvent(Guid ReactionId, string TargetType, Guid TargetId, string ReactionType, Guid RestorerAliasId) : IDomainEvent;
+public sealed record ReactionCreatedEvent(
+    Guid ReactionId,
+    string TargetType,
+    Guid TargetId,
+    string ReactionCode,
+    Guid AuthorAliasId
+) : DomainEvent;
+
+public sealed record ReactionTypeChangedEvent(
+    Guid ReactionId,
+    string TargetType,
+    Guid TargetId,
+    string OldReactionCode,
+    string NewReactionCode,
+    Guid EditorAliasId
+) : DomainEvent;
+
+public sealed record ReactionRemovedEvent(
+    Guid ReactionId,
+    string TargetType,
+    Guid TargetId,
+    string ReactionCode,
+    Guid AuthorAliasId) : DomainEvent(ReactionId);
+
+public sealed record ReactionRestoredEvent(
+    Guid ReactionId,
+    string TargetType,
+    Guid TargetId,
+    string ReactionCode,
+    Guid AuthorAliasId) : DomainEvent(ReactionId);
+
+public sealed record ReactionAddedEvent(
+    Guid ReactionId,
+    string RequestTargetType,
+    Guid RequestTargetId,
+    string RequestReactionCode,
+    Guid ActorResolverAliasId
+) : DomainEvent(ReactionId);
+
+public record ReactionUpdatedEvent(
+    Guid ExistingReactionId,
+    string RequestTargetType,
+    Guid RequestTargetId,
+    string RequestReactionCode,
+    Guid ActorResolverAliasId) : DomainEvent;

@@ -13,12 +13,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Dtos\" />
-      <Folder Include="Exceptions\" />
-      <Folder Include="Posts\EventHandlers\" />
-      <Folder Include="Posts\Events\" />
-      <Folder Include="Posts\Queries\" />
-      <Folder Include="Reactions\" />
+      <Folder Include="Aggregates\CategoryTags\Dtos\" />
+      <Folder Include="Aggregates\Comments\Dtos\" />
+      <Folder Include="Aggregates\Gifts\Dtos\" />
+      <Folder Include="Aggregates\Reactions\" />
     </ItemGroup>
 
 </Project>

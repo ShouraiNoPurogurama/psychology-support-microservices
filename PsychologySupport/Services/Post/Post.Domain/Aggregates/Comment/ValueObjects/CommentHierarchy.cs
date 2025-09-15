@@ -11,7 +11,9 @@ public sealed record CommentHierarchy
     public Guid? ParentCommentId { get; init; }
 
     // Cho EF Core materialize
-    private CommentHierarchy() { }
+    private CommentHierarchy()
+    {
+    }
 
     // Ctor kín để đảm bảo tạo qua factory
     private CommentHierarchy(Guid? parentCommentId, string path, int level)
@@ -21,28 +23,42 @@ public sealed record CommentHierarchy
         Level = level;
     }
 
-    public static CommentHierarchy Create(Guid? parentCommentId = null, string? parentPath = null)
+    /// <summary>
+    /// Factory method để tạo hierarchy cho một comment.
+    /// Nó tự xử lý tất cả logic về path và level.
+    /// </summary>
+    /// <param name="parentComment">Comment cha (nếu là reply) hoặc null (nếu là comment gốc).</param>
+    public static CommentHierarchy Create(Comment? parentComment)
     {
-        if (parentCommentId is null)
+        // 1. Nếu là comment gốc (không có cha)
+        if (parentComment is null)
         {
-            // Root comment
+            // Level 0, không có path, không có parentId
             return new CommentHierarchy(null, string.Empty, 0);
         }
 
-        if (string.IsNullOrWhiteSpace(parentPath))
-            throw new InvalidCommentDataException("Parent path is required when parent comment ID is provided.");
+        // 2. Nếu là comment trả lời (có cha)
+        var parentHierarchy = parentComment.Hierarchy;
+        var newLevel = parentHierarchy.Level + 1;
 
-        var currentLevel = parentPath.Split('/', StringSplitOptions.RemoveEmptyEntries).Length;
-        if (currentLevel >= MaxNestingLevel)
-            throw new InvalidCommentDataException("Bình luận chỉ có thể lồng tối đa 5 cấp.");
+        // 3. Kiểm tra logic lồng cấp
+        if (newLevel >= MaxNestingLevel)
+        {
+            // User của bạn check > 5 (trong handler) và >= 5 (trong domain)
+            // Thống nhất: >= 5 nghĩa là 0, 1, 2, 3, 4 là 5 cấp. Cấp 5 (newLevel=5) là không hợp lệ.
+            throw new InvalidCommentDataException($"Bình luận chỉ có thể lồng tối đa {MaxNestingLevel} cấp.");
+        }
 
-        var normalizedParentPath = parentPath.Trim().Trim('/');
-        var newPath = string.IsNullOrEmpty(normalizedParentPath)
-            ? parentCommentId.Value.ToString()
-            : $"{normalizedParentPath}/{parentCommentId}";
+        // 4. Tạo path mới
+        // Path mới là path của cha, cộng thêm ID của cha
+        var parentPath = parentHierarchy.Path.Trim().Trim('/');
+        var newPath = string.IsNullOrEmpty(parentPath)
+            ? parentComment.Id.ToString()
+            : $"{parentPath}/{parentComment.Id}";
 
-        return new CommentHierarchy(parentCommentId, newPath, currentLevel);
+        return new CommentHierarchy(parentComment.Id, newPath, newLevel);
     }
+
 
     public bool IsRootComment => !ParentCommentId.HasValue;
     public bool IsReply => ParentCommentId.HasValue;

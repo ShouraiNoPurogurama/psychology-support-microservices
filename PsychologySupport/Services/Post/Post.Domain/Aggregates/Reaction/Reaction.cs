@@ -13,8 +13,8 @@ public sealed class Reaction : AggregateRoot<Guid>, ISoftDeletable
     public AuthorInfo Author { get; private set; } = null!;
 
     // Properties
-    public DateTime ReactedAt { get; private set; }
-    public DateTime? ModifiedAt { get; private set; }
+    public DateTimeOffset ReactedAt { get; private set; }
+    public DateTimeOffset? ModifiedAt { get; private set; }
 
     // Soft Delete
     public bool IsDeleted { get; set; }
@@ -49,7 +49,7 @@ public sealed class Reaction : AggregateRoot<Guid>, ISoftDeletable
             Target = ReactionTarget.Create(targetType, targetId),
             Type = ReactionType.Create(reactionCode, emoji, weight, isEnabled),
             Author = AuthorInfo.Create(authorAliasId, authorAliasVersionId),
-            ReactedAt = DateTime.UtcNow
+            ReactedAt = DateTimeOffset.UtcNow
         };
 
         reaction.AddDomainEvent(new ReactionCreatedEvent(
@@ -77,20 +77,41 @@ public sealed class Reaction : AggregateRoot<Guid>, ISoftDeletable
 
         var oldCode = Type.Code;
         Type = ReactionType.Create(newReactionCode, emoji, weight, isEnabled);
-        ModifiedAt = DateTime.UtcNow;
+        ModifiedAt = DateTimeOffset.UtcNow;
 
         AddDomainEvent(new ReactionTypeChangedEvent(
             Id,
             Target.TargetType,
             Target.TargetId,
             oldCode,
-            Type.Code));
+            Type.Code,
+            editorAliasId));
+    }
+    
+    public void UpdateType(ReactionType newType, Guid editorAliasId)
+    {
+        ValidateEditPermission(editorAliasId);
+        ValidateNotDeleted();
+
+        if (Type.Code == newType.Code) return;
+
+        var oldCode = Type.Code;
+        Type = newType;
+        ModifiedAt = DateTimeOffset.UtcNow;
+
+        AddDomainEvent(new ReactionTypeChangedEvent(
+            Id,
+            Target.TargetType,
+            Target.TargetId,
+            oldCode,
+            newType.Code,
+            editorAliasId));
     }
 
     /// <summary>
     /// Xoá mềm tương tác.
     /// </summary>
-    public void Remove(Guid removerAliasId)
+    public void Delete(Guid removerAliasId)
     {
         ValidateEditPermission(removerAliasId);
         if (IsDeleted) return;

@@ -3,7 +3,7 @@ using Carter;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Post.Application.Posts.Commands.CreatePost;
+using Post.Application.Aggregates.Posts.Commands.CreatePost;
 
 namespace Post.API.Endpoints;
 

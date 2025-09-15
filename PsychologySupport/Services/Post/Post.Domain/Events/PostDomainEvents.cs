@@ -2,22 +2,43 @@
 
 namespace Post.Domain.Events;
 
-public record PostContentUpdatedEvent(Guid PostId, string OldContent, string NewContent) : IDomainEvent;
-public record PostVisibilityChangedEvent(Guid PostId, PostVisibility OldVisibility, PostVisibility NewVisibility) : IDomainEvent;
-public record PostRejectedEvent(Guid PostId, IReadOnlyList<string> Reasons, Guid ModeratorId) : IDomainEvent;
-public record PostMediaAddedEvent(Guid PostId, Guid MediaId) : IDomainEvent;
-public record PostMediaRemovedEvent(Guid PostId, Guid MediaId) : IDomainEvent;
-public record PostCategoryAddedEvent(Guid PostId, Guid CategoryTagId) : IDomainEvent;
-public record PostCategoryRemovedEvent(Guid PostId, Guid CategoryTagId) : IDomainEvent;
-public record PostMetricsUpdatedEvent(Guid PostId, string MetricType, int Delta) : IDomainEvent;
-public record PostViewedEvent(Guid PostId) : IDomainEvent;
-public record PostRestoredEvent(Guid PostId, Guid RestorerAliasId) : IDomainEvent;
+public sealed record PostCreatedEvent(
+    Guid PostId,
+    Guid AuthorAliasId,
+    string Content,
+    string? Title,
+    string Visibility,
+    List<string> CategoryCodes,
+    DateTimeOffset CreatedAt
+) : DomainEvent(PostId);
 
-// Gift Domain Events
-public record GiftSentEvent(Guid GiftId, string TargetType, Guid TargetId, Guid GiftItemId, Guid SenderAliasId) : IDomainEvent;
-public record GiftMessageUpdatedEvent(Guid GiftId, string? NewMessage) : IDomainEvent;
+public sealed record PostUpdatedEvent(Guid PostId, Guid AuthorAliasId) : DomainEvent(PostId);
 
-// CategoryTag Domain Events
-public record CategoryTagCreatedEvent(Guid CategoryTagId, string Code, string DisplayName) : IDomainEvent;
-public record CategoryTagUpdatedEvent(Guid CategoryTagId, string Code, string OldDisplayName, string NewDisplayName) : IDomainEvent;
-public record CategoryTagStatusChangedEvent(Guid CategoryTagId, string Code, bool IsActive) : IDomainEvent;
+public sealed record PostDeletedEvent(Guid PostId, Guid AuthorAliasId) : DomainEvent(PostId);
+
+public sealed record PostRestoredEvent(Guid PostId, Guid RestorerAliasId) : DomainEvent(PostId);
+
+public sealed record PostApprovedEvent(Guid PostId, Guid ModeratorAliasId) : DomainEvent(PostId);
+
+public sealed record PostRejectedEvent(Guid PostId, List<string> Reasons, Guid ModeratorAliasId) : DomainEvent(PostId);
+
+public sealed record PostMediaAddedEvent(Guid PostId, Guid MediaId) : DomainEvent(PostId);
+
+public sealed record PostMediaRemovedEvent(Guid PostId, Guid MediaId) : DomainEvent(PostId);
+
+public sealed record PostCategoryAddedEvent(Guid PostId, Guid CategoryTagId) : DomainEvent(PostId);
+
+public sealed record PostCategoryRemovedEvent(Guid PostId, Guid CategoryTagId) : DomainEvent(PostId);
+
+public sealed record PostMetricsUpdatedEvent(Guid PostId, string CounterType, int Delta) : DomainEvent(PostId);
+
+public sealed record PostViewedEvent(Guid PostId) : DomainEvent(PostId);
+
+public sealed record PostVisibilityChangedEvent(Guid Id, PostVisibility OldVisibility, PostVisibility NewVisibility)
+    : DomainEvent(Id);
+
+public sealed record PostAbandonedEvent(Guid PostId, Guid AuthorAliasId, DateTimeOffset PostCreatedAt, DateTimeOffset AbandonedAt)
+    : DomainEvent(PostId);
+
+public sealed record PostContentUpdatedEvent(Guid PostId, string OldContent, string NewContent, Guid EditorAliasId)
+    : DomainEvent(PostId);

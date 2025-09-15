@@ -6,7 +6,7 @@ namespace Post.Domain.Aggregates.Post.ValueObjects;
 public sealed record AuthorInfo
 {
     public Guid AliasId { get; init; }
-    public Guid? AliasVersionId { get; init; }
+    public Guid AliasVersionId { get; init; }
 
     // EF Core materialization
     private AuthorInfo() { }
@@ -15,7 +15,7 @@ public sealed record AuthorInfo
     private AuthorInfo(Guid aliasId, Guid? aliasVersionId)
     {
         AliasId = aliasId;
-        AliasVersionId = aliasVersionId;
+        AliasVersionId = aliasVersionId ?? Guid.Empty;
     }
 
     public static AuthorInfo Create(Guid aliasId, Guid? aliasVersionId = null)
@@ -26,7 +26,7 @@ public sealed record AuthorInfo
         return new AuthorInfo(aliasId, aliasVersionId);
     }
 
-    public bool HasVersionInfo => AliasVersionId.HasValue && AliasVersionId != Guid.Empty;
+    public bool HasVersionInfo => AliasVersionId != Guid.Empty;
 }
 
 public sealed record ModerationInfo

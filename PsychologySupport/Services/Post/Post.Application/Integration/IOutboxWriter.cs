@@ -2,5 +2,5 @@
 
 public interface IOutboxWriter
 {
-    Task EnqueueAsync(object evt, CancellationToken ct);
+    Task WriteAsync(object evt, CancellationToken ct);
 }

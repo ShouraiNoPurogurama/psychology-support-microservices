@@ -10,7 +10,7 @@ public sealed class EfOutboxWriter : IOutboxWriter
     private readonly PostDbContext _db;
     public EfOutboxWriter(PostDbContext db) => _db = db;
 
-    public Task EnqueueAsync(object evt, CancellationToken ct)
+    public Task WriteAsync(object evt, CancellationToken ct)
     {
         _db.OutboxMessages.Add(new OutboxMessage {
             Id = Guid.NewGuid(),

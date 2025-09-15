@@ -35,22 +35,21 @@ public sealed class Comment : AggregateRoot<Guid>, ISoftDeletable
         Guid authorAliasId,
         string content,
         Guid authorAliasVersionId,
-        Guid? parentCommentId = null,
-        string? parentPath = null)
+        CommentHierarchy hierarchy)
     {
         var comment = new Comment
         {
             Id = Guid.NewGuid(),
             PostId = postId,
             Content = CommentContent.Create(content),
-            Hierarchy = CommentHierarchy.Create(parentCommentId, parentPath),
+            Hierarchy = hierarchy,
             Author = AuthorInfo.Create(authorAliasId, (Guid?)authorAliasVersionId),
             Moderation = ModerationInfo.Pending(),
             ReactionCount = 0,
             ReplyCount = 0
         };
 
-        comment.AddDomainEvent(new CommentCreatedEvent(comment.Id, postId, parentCommentId, authorAliasId));
+        comment.AddDomainEvent(new CommentCreatedEvent(comment.Id, postId, hierarchy.ParentCommentId, authorAliasId));
         return comment;
     }
 

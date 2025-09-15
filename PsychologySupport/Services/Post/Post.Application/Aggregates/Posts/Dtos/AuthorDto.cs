@@ -1,0 +1,7 @@
+﻿namespace Post.Application.Aggregates.Posts.Dtos;
+
+public sealed record AuthorDto(
+    Guid AliasId,
+    string DisplayName,
+    string AvatarUrl
+);
