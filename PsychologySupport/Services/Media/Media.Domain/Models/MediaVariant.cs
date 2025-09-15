@@ -1,9 +1,7 @@
 ﻿using Media.Domain.Abstractions;
 using Media.Domain.Enums;
-using System;
-using System.Collections.Generic;
 
-namespace Media.API.Media.Models;
+namespace Media.Domain.Models;
 
 public partial class MediaVariant : AuditableEntity<Guid>
 {

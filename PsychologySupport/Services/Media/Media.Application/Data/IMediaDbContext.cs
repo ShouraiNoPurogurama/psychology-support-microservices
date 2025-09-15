@@ -1,4 +1,4 @@
-﻿using Media.API.Media.Models;
+﻿using Media.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 

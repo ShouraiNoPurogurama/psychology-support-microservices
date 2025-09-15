@@ -1,4 +1,4 @@
-﻿using Post.Domain.Aggregates.CommentAggregate.ValueObjects;
+﻿using Post.Domain.Aggregates.Comment.ValueObjects;
 using Post.Domain.Aggregates.Post.ValueObjects;
 using Post.Domain.Events;
 using Post.Domain.Exceptions;

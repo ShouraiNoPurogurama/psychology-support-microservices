@@ -1,6 +1,6 @@
-﻿using Media.API.Media.Models;
-using Media.Application.Data;
+﻿using Media.Application.Data;
 using Media.Domain.Enums;
+using Media.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 

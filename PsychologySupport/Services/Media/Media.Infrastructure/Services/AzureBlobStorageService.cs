@@ -8,6 +8,8 @@ using Media.Infrastructure.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
+namespace Media.Infrastructure.Services;
+
 public class AzureBlobStorageService : IStorageService
 {
     private readonly BlobServiceClient _blobServiceClient;

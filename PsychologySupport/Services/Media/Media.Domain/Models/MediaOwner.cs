@@ -1,8 +1,7 @@
 ﻿using Media.Domain.Abstractions;
 using Media.Domain.Enums;
 
-
-namespace Media.API.Media.Models;
+namespace Media.Domain.Models;
 
 public partial class MediaOwner : AuditableEntity<Guid>
 {

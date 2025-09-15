@@ -1,6 +1,6 @@
 ﻿using Post.Domain.Exceptions;
 
-namespace Post.Domain.Aggregates.CommentAggregate.ValueObjects;
+namespace Post.Domain.Aggregates.Comment.ValueObjects;
 
 public sealed record CommentHierarchy
 {

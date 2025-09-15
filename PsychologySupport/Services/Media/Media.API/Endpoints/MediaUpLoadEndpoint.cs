@@ -5,10 +5,9 @@ using Media.Application.Dtos;
 using Media.Application.Media.Commands;
 using Media.Domain.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Media.API.Media.Features.MediaUpload
+namespace Media.API.Endpoints
 {
     public record MediaUploadRequest(
         IFormFile File,
