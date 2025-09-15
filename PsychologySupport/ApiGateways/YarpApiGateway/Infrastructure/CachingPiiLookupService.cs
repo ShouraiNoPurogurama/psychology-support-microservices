@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
 using YarpApiGateway.Features.TokenExchange;
+using YarpApiGateway.Features.TokenExchange.Contracts;
 
 namespace YarpApiGateway.Infrastructure;
 

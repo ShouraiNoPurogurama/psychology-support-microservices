@@ -1,4 +1,6 @@
-﻿namespace YarpApiGateway.Features.TokenExchange.Rules;
+﻿using YarpApiGateway.Features.TokenExchange.Contracts;
+
+namespace YarpApiGateway.Features.TokenExchange.Rules;
 
 public class TokenExchangeRuleRegistry
 {

@@ -1,4 +1,4 @@
-﻿namespace YarpApiGateway.Features.TokenExchange;
+﻿namespace YarpApiGateway.Features.TokenExchange.Contracts;
 
 /// <summary>
 /// Định nghĩa contract cho một dịch vụ tra cứu thông tin định danh từ PII service.

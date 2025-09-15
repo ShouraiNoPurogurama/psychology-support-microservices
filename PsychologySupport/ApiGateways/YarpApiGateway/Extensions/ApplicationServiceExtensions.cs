@@ -4,6 +4,8 @@ using StackExchange.Redis;
 using Yarp.ReverseProxy.Transforms.Builder;
 using YarpApiGateway.Features.TokenExchange;
 using YarpApiGateway.Features.TokenExchange.Contracts;
+using YarpApiGateway.Features.TokenExchange.Decorators;
+using YarpApiGateway.Features.TokenExchange.Rules;
 using YarpApiGateway.Infrastructure;
 
 namespace YarpApiGateway.Extensions;
@@ -25,6 +27,11 @@ public static class ApplicationServiceExtensions
         AddGrpcServiceDependencies(services, configuration);
         
         AddRedisCache(services, configuration);
+        
+        services.AddMemoryCache(options =>
+        {
+            options.SizeLimit = 200_000; 
+        });
 
         return services;
     }
@@ -64,12 +71,13 @@ public static class ApplicationServiceExtensions
     {
         services.AddSingleton<ITransformFactory, TokenExchangeTransformFactory>();
         services.AddScoped<ITokenExchangeService, TokenExchangeService>();
+        
         services.AddScoped<IInternalTokenMintingService, InternalTokenMintingService>();
-        
-        
+        services.Decorate<IInternalTokenMintingService, CachedInternalTokenMintingService>();
+
+        services.AddScoped<TokenExchangeRuleRegistry>();
         services.AddScoped<IPiiLookupService, GrpcPiiLookupService>();
         services.Decorate<IPiiLookupService, CachingPiiLookupService>();
-
     }
     
     private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
