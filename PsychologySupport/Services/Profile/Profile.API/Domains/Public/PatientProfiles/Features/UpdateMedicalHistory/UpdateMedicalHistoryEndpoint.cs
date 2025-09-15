@@ -31,11 +31,11 @@ public class UpdateMedicalHistoryEndpoint : ICarterModule
             })
             .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("UpdateMedicalHistory")
-            .WithTags("PatientProfiles")
-            .Produces<UpdateMedicalHistoryResponse>()
+            .WithTags("MedicalHistory")
+            .Produces<UpdateMedicalHistoryResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .WithDescription("Update Medical History")
-            .WithSummary("Update Medical History");
+            .WithDescription("Updates the medical history for the specified patient profile. Requires 'User' or 'Admin' role. Returns success status.")
+            .WithSummary("Update patient medical history");
     }
 }

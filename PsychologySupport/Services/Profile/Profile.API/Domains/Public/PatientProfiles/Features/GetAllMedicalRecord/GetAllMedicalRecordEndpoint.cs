@@ -39,11 +39,11 @@ public class GetAllMedicalRecordsEndpoint : ICarterModule
         })
         .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
         .WithName("GetAllMedicalRecords")
-        .WithTags("PatientProfiles")
-        .Produces<GetAllMedicalRecordsResponse>()
+        .WithTags("MedicalRecords")
+        .Produces<GetAllMedicalRecordsResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status404NotFound)
-        .WithSummary("Get All Medical Records")
-        .WithDescription("Returns paginated list of medical records based on optional filters.");
+        .WithSummary("Get paginated medical records with optional filters.")
+        .WithDescription("Retrieves a paginated list of medical records filtered by patient, doctor, status, and search criteria. Requires 'User' or 'Admin' role.");
     }
 }

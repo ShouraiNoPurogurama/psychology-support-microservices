@@ -20,11 +20,11 @@ namespace Profile.API.Domains.Public.PatientProfiles.Features.GetAllPhysicalSymp
                 .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
                 .WithName("GetAllPhysicalSymptoms")
                 .WithTags("PhysicalSymptoms")
-                .Produces<GetAllPhysicalSymptomResponse>()
+                .Produces<GetAllPhysicalSymptomResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
-                .WithDescription("GetAllPhysicalSymptoms")
-                .WithSummary("GetAllPhysicalSymptoms");
+                .WithDescription("Retrieves a paginated list of all physical symptoms for the authenticated user. Requires 'User' or 'Admin' role.")
+                .WithSummary("Get paginated physical symptoms");
         }
     }
 }

@@ -16,13 +16,13 @@ public class GetAllIndustryEndpoint : ICarterModule
 
             return Results.Ok(response);
         })
-        .RequireAuthorization(policy => policy.RequireRole("User", "Admin","Manager"))
+        .RequireAuthorization(policy => policy.RequireRole("User", "Admin", "Manager"))
         .WithName("GetAllIndustries")
-        .WithTags("PatientProfiles")
-        .Produces<GetAllIndustryResponse>()
+        .WithTags("Industries")
+        .Produces<GetAllIndustryResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status404NotFound)
-        .WithDescription("Get all industries")
-        .WithSummary("Get all industries");
+        .WithDescription("Retrieves a paginated list of all industries. Requires 'User', 'Admin', or 'Manager' role.")
+        .WithSummary("Get paginated industries");
     }
 }

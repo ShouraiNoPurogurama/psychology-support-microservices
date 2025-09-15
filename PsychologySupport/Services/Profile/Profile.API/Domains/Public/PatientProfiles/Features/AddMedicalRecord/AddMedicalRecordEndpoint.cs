@@ -33,10 +33,10 @@ public class AddMedicalRecordEndpoint : ICarterModule
             })
             .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("AddMedicalRecord")
-            .WithTags("PatientProfiles")
-            .Produces<AddMedicalRecordResponse>()
+            .WithTags("MedicalRecords")
+            .Produces<AddMedicalRecordResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .WithDescription("Add Medical Record")
-            .WithSummary("Add Medical Record");
+            .WithDescription("Adds a new medical record for the specified patient profile. Requires 'User' or 'Admin' role. Returns success status.")
+            .WithSummary("Add medical record");
     }
 }

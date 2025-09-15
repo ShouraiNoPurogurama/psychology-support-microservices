@@ -24,11 +24,11 @@ public class UpdatePatientJobEndpoint : ICarterModule
                 })
             .RequireAuthorization()
             .WithName("UpdatePatientJob")
-            .WithTags("PatientProfiles")
-            .Produces<UpdatePatientJobResponse>()
+            .WithTags("Jobs")
+            .Produces<UpdatePatientJobResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .WithDescription("Update Patient Job")
-            .WithSummary("Update Patient Job");
+            .WithDescription("Updates the job for the authenticated patient. Requires authorization. Returns the updated job ID on success.")
+            .WithSummary("Update patient job");
     }
 }

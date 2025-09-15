@@ -14,7 +14,7 @@ public class OnboardingPatientProfileEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPut("patients/onboarding",
+        app.MapPut("patients/me/onboarding",
                 async ([FromBody] OnboardingPatientProfileRequest request,
                     ClaimsPrincipal user, ISender sender) =>
                 {
@@ -32,11 +32,11 @@ public class OnboardingPatientProfileEndpoint : ICarterModule
                 })
             .RequireAuthorization(policy => policy.RequireRole("User"))
             .WithName("OnboardingPatientProfile")
-            .WithTags("PatientProfiles")
-            .Produces<OnboardingProfileResponse>()
+            .WithTags("Onboarding")
+            .Produces<OnboardingProfileResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .WithDescription("Onboarding Patient Profile")
-            .WithSummary("Onboarding Patient Profile");
+            .WithDescription("Completes the onboarding process for the authenticated patient. Requires 'User' role authorization. Returns onboarding status on success.")
+            .WithSummary("Complete onboarding for patient profile");
     }
 }

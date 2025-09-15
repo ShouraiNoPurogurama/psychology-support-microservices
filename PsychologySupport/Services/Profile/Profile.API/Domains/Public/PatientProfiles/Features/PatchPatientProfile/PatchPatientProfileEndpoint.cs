@@ -29,10 +29,10 @@ public class PatchPatientProfileEndpoint : ICarterModule
         .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
         .WithName("PatchPatientProfile")
         .WithTags("PatientProfiles")
-        .Produces<PatchPatientProfileResponse>()
+        .Produces<PatchPatientProfileResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status404NotFound)
-        .WithDescription("Update Patient Profile")
-        .WithSummary("Update Patient Profile");
+        .WithDescription("Updates the patient profile with the provided data. Requires 'User' or 'Admin' role. Returns success status.")
+        .WithSummary("Patch patient profile");
     }
 }

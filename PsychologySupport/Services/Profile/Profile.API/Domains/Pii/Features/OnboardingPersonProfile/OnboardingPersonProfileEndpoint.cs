@@ -34,11 +34,11 @@ public class OnboardingPersonProfileEndpoint : ICarterModule
                 })
             .RequireAuthorization()
             .WithName("OnboardingPersonProfile")
-            .WithTags("Person Profiles")
-            .Produces<OnboardingPersonProfileResponse>()
+            .WithTags("PersonProfiles")
+            .Produces<OnboardingPersonProfileResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .WithDescription("Onboarding Person Profile")
-            .WithSummary("Onboarding Person Profile");
+            .WithDescription("Completes the onboarding process for the authenticated person profile. Requires authorization. Returns onboarding status on success.")
+            .WithSummary("Complete onboarding for person profile");
     }
 }

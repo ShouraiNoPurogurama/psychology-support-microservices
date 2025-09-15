@@ -23,13 +23,13 @@ namespace Profile.API.Domains.Public.PatientProfiles.Features.GetTotalPatientPro
                 var totalPatients = await sender.Send(query, cancellationToken);
                 return Results.Ok(new { TotalPatients = totalPatients });
             })
-            .RequireAuthorization(policy => policy.RequireRole("User", "Admin","Manager"))
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin", "Manager"))
             .WithName("GetTotalPatientProfile")
             .WithTags("PatientProfiles")
-            .Produces<int>()
+            .Produces<int>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .WithSummary("Get Total Patient Profiles")
-            .WithDescription("GetTotalPatientProfile");
+            .WithSummary("Get total number of patient profiles in the specified date range and gender.")
+            .WithDescription("Retrieves the total count of patient profiles filtered by date range and gender. Requires 'User', 'Admin', or 'Manager' role.");
         }
     }
 }

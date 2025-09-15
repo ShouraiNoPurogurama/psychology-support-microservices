@@ -24,10 +24,10 @@ public class GetMedicalHistoryEndpoint : ICarterModule
             })
             .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("GetMedicalHistoryByPatientId")
-            .WithTags("PatientProfiles")
-            .Produces<GetMedicalHistoryResponse>()
+            .WithTags("MedicalHistory")
+            .Produces<GetMedicalHistoryResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .WithDescription("Get MedicalHistory By PatientId")
-            .WithSummary("Get MedicalHistory By PatientId");
+            .WithDescription("Retrieves the medical history for the specified patient ID. Requires 'User' or 'Admin' role. Returns medical history details.")
+            .WithSummary("Get medical history by patient ID");
     }
 }

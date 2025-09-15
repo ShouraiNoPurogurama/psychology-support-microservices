@@ -33,11 +33,11 @@ public class UpdateMedicalRecordEndpoint : ICarterModule
             })
             .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
             .WithName("UpdateMedicalRecord")
-            .WithTags("PatientProfiles")
-            .Produces<UpdateMedicalRecordResponse>()
+            .WithTags("MedicalRecords")
+            .Produces<UpdateMedicalRecordResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .WithDescription("Update Medical Record")
-            .WithSummary("Update Medical Record");
+            .WithDescription("Updates the medical record for the specified patient profile. Requires 'User' or 'Admin' role. Returns success status.")
+            .WithSummary("Update patient medical record");
     }
 }

@@ -25,10 +25,10 @@ public class GetAllPatientProfilesEndpoint : ICarterModule
             .RequireAuthorization(policy => policy.RequireRole("Manager", "Admin"))
             .WithName("GetAllPatientProfiles")
             .WithTags("PatientProfiles")
-            .Produces<GetAllPatientProfilesResponse>()
+            .Produces<GetAllPatientProfilesResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .WithDescription("Get All Patient Profiles")
-            .WithSummary("Get All Patient Profiles");
+            .WithDescription("Retrieves a paginated list of all patient profiles. Requires 'Manager' or 'Admin' role. Returns paginated profile data.")
+            .WithSummary("Get paginated patient profiles");
     }
 }
