@@ -2,7 +2,7 @@
 using Post.Domain.Events;
 using Post.Domain.Exceptions;
 
-namespace Post.Domain.Posts;
+namespace Post.Domain.Legacy.Posts;
 
 public partial class Post : AggregateRoot<Guid>, ISoftDeletable
 {
@@ -124,7 +124,7 @@ public partial class Post : AggregateRoot<Guid>, ISoftDeletable
     /// <summary>
     /// Duyệt và cho phép hiển thị bài viết.
     /// </summary>
-    public void Approve(string policyVersion)
+    public void Approve(string policyVersion, Guid moderatorId)
     {
         if (ModerationStatus != ModerationStatus.Pending)
         {
@@ -135,13 +135,13 @@ public partial class Post : AggregateRoot<Guid>, ISoftDeletable
         ModerationPolicyVersion = policyVersion;
         ModerationReasons.Clear();
         
-        AddDomainEvent(new PostApprovedEvent(Id));
+        AddDomainEvent(new PostApprovedEvent(Id, moderatorId));
     }
 
     /// <summary>
     /// Từ chối bài viết.
     /// </summary>
-    public void Reject(List<string> reasons, string policyVersion)
+    public void Reject(List<string> reasons, string policyVersion, Guid moderatorId)
     {
         if (ModerationStatus != ModerationStatus.Pending)
         {
@@ -157,6 +157,6 @@ public partial class Post : AggregateRoot<Guid>, ISoftDeletable
         ModerationReasons = reasons;
         ModerationPolicyVersion = policyVersion;
 
-        AddDomainEvent(new PostRejectedEvent(Id, reasons));
+        AddDomainEvent(new PostRejectedEvent(Id, reasons, moderatorId));
     }
 }

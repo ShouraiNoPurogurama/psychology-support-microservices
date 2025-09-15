@@ -10,4 +10,8 @@
       <PackageReference Include="MediatR" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Legacy\" />
+    </ItemGroup>
+
 </Project>

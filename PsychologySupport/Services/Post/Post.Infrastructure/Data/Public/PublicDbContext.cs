@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Post.Application.Data;
-using Post.Domain.Comments;
 using Post.Domain.Enums;
-using Post.Domain.Posts;
-using Post.Domain.Reactions;
+using Post.Domain.Legacy.Comments;
+using Post.Domain.Legacy.Posts;
+using Post.Domain.Legacy.Reactions;
 using Post.Infrastructure.Integration.Entities;
 using Post.Infrastructure.Resilience.Entities;
 
@@ -28,7 +28,7 @@ public partial class PublicDbContext : DbContext, IPublicDbContext
 
     public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 
-    public virtual DbSet<Domain.Posts.Post> Posts { get; set; }
+    public virtual DbSet<Domain.Legacy.Posts.Post> Posts { get; set; }
 
     public virtual DbSet<PostCategory> PostCategories { get; set; }
 
@@ -123,7 +123,7 @@ public partial class PublicDbContext : DbContext, IPublicDbContext
             entity.Property(e => e.Id).ValueGeneratedNever();
         });
 
-        buidler.Entity<Domain.Posts.Post>(entity =>
+        buidler.Entity<Domain.Legacy.Posts.Post>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("posts_pkey");
             entity.ToTable("posts");

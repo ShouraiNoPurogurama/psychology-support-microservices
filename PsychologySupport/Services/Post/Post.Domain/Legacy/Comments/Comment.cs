@@ -1,4 +1,4 @@
-﻿namespace Post.Domain.Comments;
+﻿namespace Post.Domain.Legacy.Comments;
 
 public partial class Comment : AggregateRoot<Guid>, ISoftDeletable
 {

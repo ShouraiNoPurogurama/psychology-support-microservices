@@ -4,7 +4,7 @@ using Post.Application.Data;
 
 namespace Post.Application.Posts.Commands.CreatePost;
 
-using Post = Domain.Posts.Post;
+using Post = Domain.Legacy.Posts.Post;
 
 public class CreatePostHandler(
     IPublicDbContext dbContext,

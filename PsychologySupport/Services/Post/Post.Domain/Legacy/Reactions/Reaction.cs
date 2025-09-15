@@ -1,5 +1,5 @@
 ﻿
-namespace Post.Domain.Reactions;
+namespace Post.Domain.Legacy.Reactions;
 
 public sealed class Reaction : AggregateRoot<Guid>, ISoftDeletable
 {

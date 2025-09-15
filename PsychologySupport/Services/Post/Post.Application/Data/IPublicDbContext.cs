@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Post.Domain.Comments;
-using Post.Domain.Posts;
-using Post.Domain.Reactions;
+using Post.Domain.Legacy.Comments;
+using Post.Domain.Legacy.Posts;
+using Post.Domain.Legacy.Reactions;
 
 namespace Post.Application.Data;
 
@@ -15,7 +15,7 @@ public interface IPublicDbContext
 
     DbSet<GiftsAttach> GiftsAttaches { get; set; }
     
-    DbSet<Domain.Posts.Post> Posts { get; set; }
+    DbSet<Domain.Legacy.Posts.Post> Posts { get; set; }
 
     DbSet<PostCategory> PostCategories { get; set; }
 

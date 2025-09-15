@@ -1,3 +1,3 @@
-﻿namespace Post.Domain.Events;
+namespace Post.Domain.Events;
 
-public record PostRejectedEvent(Guid Id, List<string> RejectionReasons) : IDomainEvent;
+public record ostRejectedEvent(Guid Id, List<string> RejectionReasons) : IDomainEvent;
