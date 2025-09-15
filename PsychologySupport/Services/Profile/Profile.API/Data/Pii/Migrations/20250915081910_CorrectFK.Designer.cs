@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Profile.API.Data.Pii;
@@ -12,9 +13,11 @@ using Profile.API.Data.Pii;
 namespace Profile.API.Data.Pii.Migrations
 {
     [DbContext(typeof(PiiDbContext))]
-    partial class PiiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250915081910_CorrectFK")]
+    partial class CorrectFK
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -168,7 +171,7 @@ namespace Profile.API.Data.Pii.Migrations
                         });
 
                     b.HasKey("SubjectRef")
-                        .HasName("ak_person_profiles_subject_ref");
+                        .HasName("pk_person_profiles");
 
                     b.HasIndex("UserId")
                         .IsUnique()
@@ -184,7 +187,7 @@ namespace Profile.API.Data.Pii.Migrations
                         .HasForeignKey("Profile.API.Models.Pii.AliasOwnerMap", "SubjectRef")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_alias_owner_map_person_profile");
+                        .HasConstraintName("fk_alias_owner_map_person_profiles_subject_ref");
 
                     b.Navigation("PersonProfile");
                 });
@@ -196,7 +199,7 @@ namespace Profile.API.Data.Pii.Migrations
                         .HasForeignKey("Profile.API.Models.Pii.PatientOwnerMap", "SubjectRef")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_alias_owner_map_person_profile");
+                        .HasConstraintName("fk_patient_owner_map_person_profiles_subject_ref");
 
                     b.Navigation("PersonProfile");
                 });

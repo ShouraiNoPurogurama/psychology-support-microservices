@@ -34,26 +34,33 @@ public class OnboardingPersonProfileValidator : AbstractValidator<OnboardingPers
 public class OnboardingPersonProfileHandler(PiiDbContext dbContext, ILogger<OnboardingPersonProfileHandler> logger)
     : ICommandHandler<OnboardingPersonProfileCommand, OnboardingPersonProfileResult>
 {
-    public async Task<OnboardingPersonProfileResult> Handle(OnboardingPersonProfileCommand request, CancellationToken cancellationToken)
+    public async Task<OnboardingPersonProfileResult> Handle(OnboardingPersonProfileCommand request,
+        CancellationToken cancellationToken)
     {
         var existingProfile = await dbContext.PersonProfiles
             .FirstOrDefaultAsync(p => p.SubjectRef == request.SubjectRef, cancellationToken: cancellationToken);
 
         if (existingProfile == null)
         {
-            throw new NotFoundException("Không tìm thấy hồ sơ cá nhân để onboarding.","PERSON_PROFILE_NOT_FOUND");
+            throw new NotFoundException("Không tìm thấy hồ sơ cá nhân để onboarding.", "PERSON_PROFILE_NOT_FOUND");
         }
 
         if (existingProfile.Status == PersonProfileStatus.Active)
         {
-            throw new ConflictException("Hồ sơ cá nhân đã được kích hoạt và không thể onboarding lại.","PERSON_PROFILE_ALREADY_ACTIVE");
+            throw new ConflictException("Hồ sơ cá nhân đã được kích hoạt và không thể onboarding lại.",
+                "PERSON_PROFILE_ALREADY_ACTIVE");
         }
-        
+
         var currentContactInfo = ContactInfo.UpdateWithFallback(existingProfile.ContactInfo, request.Address);
 
-        existingProfile.UpdateContact(currentContactInfo);
-        
+        existingProfile.CompleteOnboarding(
+            gender: request.Gender,
+            birthDate: request.BirthDate,
+            contactInfo: currentContactInfo
+        );
+
         var result = await dbContext.SaveChangesAsync(cancellationToken) > 0;
+
 
         return new OnboardingPersonProfileResult(result);
     }

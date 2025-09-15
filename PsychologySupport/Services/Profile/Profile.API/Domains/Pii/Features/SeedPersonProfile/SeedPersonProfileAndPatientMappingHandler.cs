@@ -2,7 +2,6 @@
 using BuildingBlocks.Utils;
 using Profile.API.Data.Pii;
 using Profile.API.Domains.Pii.Dtos;
-using Profile.API.Enums.Pii;
 using Profile.API.Models.Pii;
 
 namespace Profile.API.Domains.Pii.Features.SeedPersonProfile;
@@ -54,16 +53,19 @@ public class SeedPersonProfileAndPatientMappingHandler(
         );
 
         dbContext.PersonProfiles.Add(personProfile);
-
-        //Gom vô đại vì lười làm outbox
+        
         var patientOwner = PatientOwnerMap.Create(subjectRef, seed.PatientProfileId);
+        
+        patientOwner.PersonProfile = personProfile;
 
         dbContext.PatientOwnerMaps.Add(patientOwner);
 
         try
         {
             await dbContext.SaveChangesAsync(cancellationToken);
-
+            
+            //Gom vô đại vì lười làm outbox
+            
             return new SeedPersonProfileAndPatientMappingResult(true);
         }
         catch (DbUpdateException ex) when (DbUtils.IsUniqueViolation(ex))

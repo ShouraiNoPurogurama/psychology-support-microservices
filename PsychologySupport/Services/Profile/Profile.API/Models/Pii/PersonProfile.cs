@@ -9,7 +9,7 @@ namespace Profile.API.Models.Pii;
 
 public partial class PersonProfile : AggregateRoot<Guid>
 {
-    public Guid SubjectRef => Id;
+    public Guid SubjectRef { get; private set; }
 
     public Guid UserId { get; private set; }
 
@@ -82,18 +82,20 @@ public partial class PersonProfile : AggregateRoot<Guid>
     }
 
     public void CompleteOnboarding(
-        string fullName,
         UserGender gender,
         DateOnly birthDate,
         ContactInfo contactInfo)
     {
+        if (Status == PersonProfileStatus.Active)
+            throw new BadRequestException("Hồ sơ cá nhân đã được kích hoạt và không thể onboarding lại.",
+                "PERSON_PROFILE_ALREADY_ACTIVE");
+
         ValidationBuilder.Create()
             .When(() => !contactInfo.HasEnoughInfo())
             .WithErrorCode("INVALID_CONTACT")
             .WithMessage("Thông tin liên hệ chưa được điền đủ.")
             .ThrowIfInvalid();
 
-        Rename(fullName);
         ChangeGender(gender);
         ChangeBirthDate(birthDate);
         UpdateContact(contactInfo);

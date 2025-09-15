@@ -150,7 +150,7 @@ public class PatientProfile : AggregateRoot<Guid>
         if (Allergies != allergies)
         {
             Allergies = allergies;
-            AddDomainEvent(new PatientAllergiesUpdatedEvent(Id, allergies));
+            // AddDomainEvent(new PatientAllergiesUpdatedEvent(Id, allergies));
             
             RecalculateCompletionStatus();
         }
@@ -170,7 +170,7 @@ public class PatientProfile : AggregateRoot<Guid>
         if (JobId != jobId)
         {
             JobId = jobId;
-            AddDomainEvent(new PatientJobUpdatedEvent(Id, jobId));
+            // AddDomainEvent(new PatientJobUpdatedEvent(Id, jobId));
             
             RecalculateCompletionStatus();
         }

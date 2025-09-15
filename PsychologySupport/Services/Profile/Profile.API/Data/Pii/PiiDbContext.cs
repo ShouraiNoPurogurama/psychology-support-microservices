@@ -31,10 +31,11 @@ public partial class PiiDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever();
 
-            entity.HasOne(map => map.PersonProfile)         
-                .WithMany()                            
-                .HasForeignKey(map => map.SubjectRef)    //Cột FK trong bảng NÀY là cột 'SubjectRef'
-                .HasPrincipalKey(person => person.Id);   //Cột FK này trỏ tới cột PK 'Id' của PersonProfile
+            entity.HasOne(map => map.PersonProfile)
+                .WithOne()   
+                .HasForeignKey<AliasOwnerMap>(map => map.SubjectRef)
+                .HasPrincipalKey<PersonProfile>(person => person.SubjectRef)
+                .HasConstraintName("fk_alias_owner_map_person_profile");
         });
 
         builder.Entity<PatientOwnerMap>(entity =>
@@ -48,17 +49,19 @@ public partial class PiiDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever();
             
-            entity.HasOne(map => map.PersonProfile)         
-                .WithMany()                            
-                .HasForeignKey(map => map.SubjectRef)    //Cột FK trong bảng NÀY là cột 'SubjectRef'
-                .HasPrincipalKey(person => person.Id);   //Cột FK này trỏ tới cột PK 'Id' của PersonProfile 
+            entity.HasOne(map => map.PersonProfile)
+                .WithOne()   // thay vì WithMany
+                .HasForeignKey<PatientOwnerMap>(map => map.SubjectRef)
+                .HasPrincipalKey<PersonProfile>(person => person.SubjectRef)
+                .HasConstraintName("fk_alias_owner_map_person_profile"); 
 
         });
 
         builder.Entity<PersonProfile>(entity =>
         {
-            entity.HasKey(x => x.Id);
-            entity.Property(x => x.Id).HasColumnName("subject_ref");
+            entity.HasKey(x => x.SubjectRef);
+            
+            entity.Ignore(x => x.Id);
 
             entity.ToTable("person_profiles", "pii");
 

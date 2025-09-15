@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Profile.API.Data.Pii;
@@ -12,9 +13,11 @@ using Profile.API.Data.Pii;
 namespace Profile.API.Data.Pii.Migrations
 {
     [DbContext(typeof(PiiDbContext))]
-    partial class PiiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250914202816_ReplaceIdBySubjectRef")]
+    partial class ReplaceIdBySubjectRef
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,7 +54,6 @@ namespace Profile.API.Data.Pii.Migrations
                         .HasName("alias_owner_map_pkey");
 
                     b.HasIndex("SubjectRef")
-                        .IsUnique()
                         .HasDatabaseName("ix_alias_owner_map_subject_ref");
 
                     b.HasIndex(new[] { "AliasId" }, "ix_alias_owner_map_alias_id")
@@ -87,7 +89,6 @@ namespace Profile.API.Data.Pii.Migrations
                         .HasName("patient_owner_map_pkey");
 
                     b.HasIndex("SubjectRef")
-                        .IsUnique()
                         .HasDatabaseName("ix_patient_owner_map_subject_ref");
 
                     b.HasIndex(new[] { "PatientProfileId" }, "ix_patient_owner_map_patient_profile_id")
@@ -180,11 +181,11 @@ namespace Profile.API.Data.Pii.Migrations
             modelBuilder.Entity("Profile.API.Models.Pii.AliasOwnerMap", b =>
                 {
                     b.HasOne("Profile.API.Models.Pii.PersonProfile", "PersonProfile")
-                        .WithOne()
-                        .HasForeignKey("Profile.API.Models.Pii.AliasOwnerMap", "SubjectRef")
+                        .WithMany()
+                        .HasForeignKey("SubjectRef")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_alias_owner_map_person_profile");
+                        .HasConstraintName("fk_alias_owner_map_person_profiles_subject_ref");
 
                     b.Navigation("PersonProfile");
                 });
@@ -192,11 +193,11 @@ namespace Profile.API.Data.Pii.Migrations
             modelBuilder.Entity("Profile.API.Models.Pii.PatientOwnerMap", b =>
                 {
                     b.HasOne("Profile.API.Models.Pii.PersonProfile", "PersonProfile")
-                        .WithOne()
-                        .HasForeignKey("Profile.API.Models.Pii.PatientOwnerMap", "SubjectRef")
+                        .WithMany()
+                        .HasForeignKey("SubjectRef")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_alias_owner_map_person_profile");
+                        .HasConstraintName("fk_patient_owner_map_person_profiles_subject_ref");
 
                     b.Navigation("PersonProfile");
                 });

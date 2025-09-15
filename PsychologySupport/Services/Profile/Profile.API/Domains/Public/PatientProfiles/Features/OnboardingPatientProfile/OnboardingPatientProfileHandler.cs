@@ -51,10 +51,10 @@ public class OnboardingPatientProfileHandler(ProfileDbContext dbContext, ILogger
             throw new BadRequestException("Công việc không hợp lệ.", "INVALID_JOB_ID");
         }
 
-        existingPatient.UpdateJob(request.JobId);
+        existingPatient.CompleteOnboarding(request.JobId);
 
         var result = await dbContext.SaveChangesAsync(cancellationToken) > 0;
-
+        
         return new OnboardingProfileResult(result);
     }
 }
