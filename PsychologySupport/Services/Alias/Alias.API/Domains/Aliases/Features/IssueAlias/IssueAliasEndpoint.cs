@@ -27,6 +27,13 @@ public class IssueAliasEndpoint : ICarterModule
                 
                 return Results.Ok(response);
             })
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithName("IssueAlias")
+            .WithTags("Aliases")
+            .Produces<IssueAliasResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .WithDescription("Issues a new alias for the authenticated user. Requires authorization. Returns alias details on success.")
+            .WithSummary("Issue a new alias");
     }
 }

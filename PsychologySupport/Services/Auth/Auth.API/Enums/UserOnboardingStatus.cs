@@ -1,5 +1,8 @@
-﻿namespace Auth.API.Enums;
+﻿using System.Text.Json.Serialization;
 
+namespace Auth.API.Enums;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum UserOnboardingStatus
 {
     Pending = 0,     //Đăng ký thành công nhưng chưa có profile

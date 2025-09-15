@@ -23,6 +23,13 @@ public class SuggestAliasesEndpoint : ICarterModule
             var response = result.Adapt<SuggestAliasesResponse>();
 
             return Results.Ok(response);
-        });
+        })
+        .WithName("SuggestAliases")
+        .WithTags("Aliases")
+        .Produces<SuggestAliasesResponse>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .WithDescription("Suggests a list of aliases based on the provided TTL and pagination. Returns suggested aliases and generation time.")
+        .WithSummary("Suggest aliases");
     }
 }

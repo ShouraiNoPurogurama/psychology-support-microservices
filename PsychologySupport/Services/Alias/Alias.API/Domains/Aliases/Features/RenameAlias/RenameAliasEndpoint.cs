@@ -30,6 +30,13 @@ public class RenameAliasEndpoint : ICarterModule
 
                 return Results.Ok(response);
             })
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithName("RenameAlias")
+            .WithTags("Aliases")
+            .Produces<RenameAliasResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .WithDescription("Renames an existing alias for the authenticated user. Requires authorization. Returns updated alias details on success.")
+            .WithSummary("Rename an alias");
     }
 }
