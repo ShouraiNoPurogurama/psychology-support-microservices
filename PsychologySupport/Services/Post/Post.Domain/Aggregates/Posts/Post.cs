@@ -1,6 +1,6 @@
-﻿using Post.Domain.Aggregates.Posts.ValueObjects;
-using Post.Domain.Enums;
-using Post.Domain.Events;
+﻿using Post.Domain.Aggregates.Posts.DomainEvents;
+using Post.Domain.Aggregates.Posts.Enums;
+using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Exceptions;
 
 namespace Post.Domain.Aggregates.Posts;

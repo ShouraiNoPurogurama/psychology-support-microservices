@@ -5,9 +5,9 @@ using Post.Application.Data;
 using Post.Application.Integration;
 using Microsoft.EntityFrameworkCore;
 using Post.Domain.Aggregates.Gifts;
+using Post.Domain.Aggregates.Gifts.DomainEvents;
 using Post.Domain.Aggregates.Gifts.ValueObjects;
 using Post.Domain.Aggregates.Posts.ValueObjects;
-using Post.Domain.Events;
 
 namespace Post.Application.Aggregates.Gifts.Commands.AttachGift;
 

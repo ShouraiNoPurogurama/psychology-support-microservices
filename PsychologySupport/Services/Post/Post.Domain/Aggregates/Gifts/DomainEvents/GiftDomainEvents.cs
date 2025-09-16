@@ -1,4 +1,4 @@
-﻿namespace Post.Domain.Events;
+﻿namespace Post.Domain.Aggregates.Gifts.DomainEvents;
 
 public sealed record GiftAttachedEvent(
     Guid PostId,

@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
+using Post.Application.Aggregates.CategoryTags.Dtos;
 
 namespace Post.Application.Aggregates.CategoryTags.Queries.GetCategoryTagsByPost;
 

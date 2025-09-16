@@ -1,4 +1,4 @@
-﻿namespace Post.Application.Aggregates.CategoryTags.Queries.GetPostsByCategoryTag;
+﻿namespace Post.Application.Aggregates.CategoryTags.Dtos;
 
 public record PostSummaryDto(
     Guid Id,

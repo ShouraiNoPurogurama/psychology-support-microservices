@@ -1,4 +1,4 @@
-﻿namespace Post.Domain.Events;
+﻿namespace Post.Domain.Aggregates.CategoryTags.DomainEvents;
 
 public sealed record CategoryTagCreatedEvent(Guid CategoryTagId, string Code, string DisplayName) : DomainEvent(CategoryTagId);
 

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Post.Domain.Enums;
+namespace Post.Domain.Aggregates.Posts.Enums;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PostVisibility

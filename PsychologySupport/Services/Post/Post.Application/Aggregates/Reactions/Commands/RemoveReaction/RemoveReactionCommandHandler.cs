@@ -2,8 +2,8 @@
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Integration;
-using Post.Domain.Events;
 using Microsoft.EntityFrameworkCore;
+using Post.Domain.Aggregates.Reaction.DomainEvents;
 
 namespace Post.Application.Aggregates.Reactions.Commands.RemoveReaction;
 

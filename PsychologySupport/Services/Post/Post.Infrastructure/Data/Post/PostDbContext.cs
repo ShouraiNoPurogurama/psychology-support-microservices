@@ -6,9 +6,9 @@ using Post.Domain.Aggregates.CategoryTags;
 using Post.Domain.Aggregates.Comments;
 using Post.Domain.Aggregates.Gifts;
 using Post.Domain.Aggregates.Posts;
+using Post.Domain.Aggregates.Posts.Enums;
 using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Aggregates.Reaction;
-using Post.Domain.Enums;
 using Post.Infrastructure.Integration.Entities;
 using Post.Infrastructure.Resilience.Entities;
 

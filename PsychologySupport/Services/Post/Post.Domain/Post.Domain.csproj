@@ -11,7 +11,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Legacy\" />
+      <Folder Include="Aggregates\CategoryTags\Enums\" />
+      <Folder Include="Aggregates\Comments\Enums\" />
+      <Folder Include="Aggregates\Gifts\Enums\" />
+      <Folder Include="Aggregates\Reaction\Enums\" />
     </ItemGroup>
 
 </Project>

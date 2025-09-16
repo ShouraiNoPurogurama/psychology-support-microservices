@@ -3,8 +3,8 @@ using BuildingBlocks.Exceptions;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Integration;
-using Post.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Aggregates.Posts.Commands.CreatePost;
 

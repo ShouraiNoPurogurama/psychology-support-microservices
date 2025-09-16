@@ -1,6 +1,6 @@
-﻿using Post.Domain.Enums;
+﻿using Post.Domain.Aggregates.Posts.Enums;
 
-namespace Post.Domain.Events;
+namespace Post.Domain.Aggregates.Posts.DomainEvents;
 
 public sealed record PostCreatedEvent(
     Guid PostId,

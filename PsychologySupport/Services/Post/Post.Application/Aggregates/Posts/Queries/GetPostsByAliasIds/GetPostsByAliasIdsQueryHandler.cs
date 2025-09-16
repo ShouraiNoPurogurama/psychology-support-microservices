@@ -2,6 +2,7 @@
 using BuildingBlocks.Pagination;
 using Post.Application.Data;
 using Microsoft.EntityFrameworkCore;
+using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Aggregates.Posts.Queries.GetPostsByAliasIds;
 
@@ -21,7 +22,7 @@ internal sealed class GetPostsByAliasIdsQueryHandler : IQueryHandler<GetPostsByA
             .AsNoTracking()
             .Where(p => request.AliasIds.Contains(p.Author.AliasId) && 
                        !p.IsDeleted && 
-                       p.Visibility == Domain.Enums.PostVisibility.Public)
+                       p.Visibility == PostVisibility.Public)
             .Select(p => new PostSummaryDto(
                 p.Id,
                 p.Content.Title,

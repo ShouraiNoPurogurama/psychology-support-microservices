@@ -1,4 +1,4 @@
-﻿using Post.Domain.Enums;
+﻿using Post.Domain.Aggregates.Posts.Enums;
 using Post.Domain.Exceptions;
 
 namespace Post.Domain.Aggregates.Posts.ValueObjects;

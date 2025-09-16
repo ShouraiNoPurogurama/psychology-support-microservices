@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
 using Post.Application.Data;
-using Post.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Aggregates.Posts.Queries.GetPosts;
 

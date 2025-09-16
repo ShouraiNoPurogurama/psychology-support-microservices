@@ -6,8 +6,8 @@ using Post.Application.Integration;
 using Post.Domain.Aggregates.Reaction;
 using Post.Domain.Aggregates.Reaction.ValueObjects;
 using Post.Domain.Aggregates.Posts.ValueObjects;
-using Post.Domain.Events;
 using Microsoft.EntityFrameworkCore;
+using Post.Domain.Aggregates.Reaction.DomainEvents;
 
 namespace Post.Application.Aggregates.Reactions.Commands.CreateReaction;
 

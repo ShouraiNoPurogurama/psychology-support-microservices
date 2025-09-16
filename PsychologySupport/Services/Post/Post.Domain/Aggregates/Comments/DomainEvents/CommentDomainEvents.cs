@@ -1,4 +1,4 @@
-﻿namespace Post.Domain.Events;
+﻿namespace Post.Domain.Aggregates.Comments.DomainEvents;
 
 // Comment events
 public sealed record CommentCreatedEvent(Guid CommentId, Guid PostId, Guid? ParentCommentId, Guid AuthorAliasId)

@@ -3,9 +3,9 @@ using BuildingBlocks.Exceptions;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Integration;
-using Post.Domain.Events;
 using Microsoft.EntityFrameworkCore;
 using Post.Domain.Aggregates.Comments;
+using Post.Domain.Aggregates.Comments.DomainEvents;
 using Post.Domain.Aggregates.Comments.ValueObjects;
 using Post.Domain.Aggregates.Posts.ValueObjects;
 

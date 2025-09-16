@@ -1,4 +1,4 @@
-﻿namespace Post.Domain.Enums;
+﻿namespace Post.Domain.Aggregates.Posts.Enums;
 
 public enum ModerationStatus
 {

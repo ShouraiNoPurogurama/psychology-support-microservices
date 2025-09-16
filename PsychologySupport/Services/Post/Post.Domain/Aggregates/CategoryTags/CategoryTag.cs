@@ -1,4 +1,4 @@
-﻿using Post.Domain.Events;
+﻿using Post.Domain.Aggregates.CategoryTags.DomainEvents;
 using Post.Domain.Exceptions;
 
 namespace Post.Domain.Aggregates.CategoryTags;

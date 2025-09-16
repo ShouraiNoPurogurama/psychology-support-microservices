@@ -1,4 +1,4 @@
-﻿namespace Post.Domain.Events;
+﻿namespace Post.Domain.Aggregates.Reaction.DomainEvents;
 
 public sealed record ReactionCreatedEvent(
     Guid ReactionId,
