@@ -7,7 +7,7 @@ public abstract class AuditableEntity<T> : IEntity<T>, IHasCreationAudit, IHasMo
     [Key]
     public T Id { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public Guid CreatedByAliasId { get; set; }
 

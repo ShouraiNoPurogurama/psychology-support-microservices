@@ -9,6 +9,7 @@ using Post.Domain.Aggregates.Posts;
 using Post.Domain.Aggregates.Posts.Enums;
 using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Aggregates.Reaction;
+using Post.Domain.Aggregates.Reactions.Enums;
 using Post.Infrastructure.Integration.Entities;
 using Post.Infrastructure.Resilience.Entities;
 
@@ -126,18 +127,6 @@ public class PostDbContext : DbContext, IPostDbContext
                     nameof(Post.CreatedAt)
                 )
                 .HasDatabaseName("ix_posts_feed_vis_created");
-
-            // index 2: moderation_status (owned) + created_at
-            // CHÚ Ý: đặt index trên owned builder, vì property thuộc owned type
-            entity.OwnsOne(p => p.Moderation, builder =>
-                {
-                    builder.Property(b => b.Status).HasColumnName("moderation_status").HasConversion<string>();
-                    builder.Property(b => b.ModeratedAt).HasColumnName("moderated_at");
-                    builder.Property(b => b.PolicyVersion).HasColumnName("policy_version");
-                    builder.Property(b => b.ModeratedAt).HasColumnName("moderated_at");
-                })
-                .HasIndex(nameof(ModerationInfo.Status), nameof(ModerationInfo.ModeratedAt)) // nếu muốn queue duyệt
-                .HasDatabaseName("ix_posts_feed_mod_status"); // hoặc chỉ Status, tùy use-case
         });
 
         // =========================
@@ -152,11 +141,8 @@ public class PostDbContext : DbContext, IPostDbContext
             entity.Property(pm => pm.Caption).HasMaxLength(500);
             entity.Property(pm => pm.AltText).HasMaxLength(500);
 
-            modelBuilder.Entity<PostMedia>(entity =>
-            {
-                entity.HasIndex(pm => pm.PostId)
-                    .HasDatabaseName("ix_post_media_post_id");
-            });
+            entity.HasIndex(pm => pm.PostId)
+                .HasDatabaseName("ix_post_media_post_id");
         });
 
         // =========================
@@ -236,7 +222,6 @@ public class PostDbContext : DbContext, IPostDbContext
             //List comment theo post (paging thời gian).
             entity.HasIndex(c => new { c.PostId, c.CreatedAt })
                 .HasDatabaseName("ix_comments_post_created");
-            
         });
 
         // =========================
@@ -250,7 +235,11 @@ public class PostDbContext : DbContext, IPostDbContext
             // ReactionTarget (owned)
             entity.OwnsOne(r => r.Target, target =>
             {
-                target.Property(t => t.TargetType).HasColumnName("target_type").IsRequired().HasMaxLength(50);
+                target.Property(t => t.TargetType)
+                    .HasColumnName("target_type")
+                    .HasConversion(t => t.ToString(), dbType => Enum.Parse<ReactionTargetType>(dbType))
+                    .IsRequired()
+                    .HasMaxLength(50);
                 target.Property(t => t.TargetId).HasColumnName("target_id").IsRequired();
             });
 
@@ -268,7 +257,6 @@ public class PostDbContext : DbContext, IPostDbContext
                 author.Property(a => a.AliasId).HasColumnName("author_alias_id").IsRequired();
                 author.Property(a => a.AliasVersionId).HasColumnName("author_alias_version_id");
             });
-            
         });
 
         // PostEmotion entity configuration
@@ -316,7 +304,6 @@ public class PostDbContext : DbContext, IPostDbContext
             entity.HasIndex(ct => ct.Code)
                 .IsUnique()
                 .HasDatabaseName("ux_category_tags_code");
-
         });
 
         modelBuilder.Entity<GiftAttach>(entity =>
@@ -331,10 +318,7 @@ public class PostDbContext : DbContext, IPostDbContext
                 target.Property(t => t.TargetId).HasColumnName("target_id").IsRequired();
             });
 
-            entity.OwnsOne(g => g.Info, info =>
-            {
-                info.Property(i => i.GiftId).HasColumnName("gift_id").IsRequired();
-            });
+            entity.OwnsOne(g => g.Info, info => { info.Property(i => i.GiftId).HasColumnName("gift_id").IsRequired(); });
 
             entity.OwnsOne(g => g.Sender, sender =>
             {

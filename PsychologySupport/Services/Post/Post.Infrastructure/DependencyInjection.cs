@@ -6,10 +6,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
+using Post.Application.Integration;
 using Post.Infrastructure.Authentication;
 using Post.Infrastructure.Data.Interceptors;
 using Post.Infrastructure.Data.Post;
 using Post.Infrastructure.Data.Query;
+using Post.Infrastructure.Integration.Services;
 using Post.Infrastructure.Resilience.Decorators;
 using Post.Infrastructure.Resilience.Services;
 
@@ -27,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
         // services.AddScoped<ILegacyPublicDbContext, LegacyPublicDbContext>();
         services.AddScoped<IQueryDbContext, QueryDbContext>();
+        services.AddScoped<IPostDbContext, PostDbContext>();
 
         services.AddScoped<IIdempotencyHashAccessor, IdempotencyHashAccessor>();
         services.AddScoped<IIdempotencyService, IdempotencyService>();           // store gốc (EF/Db)
@@ -35,6 +38,8 @@ public static class DependencyInjection
         
         services.AddScoped<IAliasVersionResolver, CurrentAliasVersionResolver>(); 
         services.AddScoped<IActorResolver, CurrentAliasVersionResolver>();
+
+        services.AddScoped<IOutboxWriter, EfOutboxWriter>();
             
         
         // services.AddDbContext<LegacyPublicDbContext>((serviceProvider, options) =>

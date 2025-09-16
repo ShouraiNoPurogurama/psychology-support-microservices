@@ -23,7 +23,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Post.Domain.Aggregates.CategoryTag.CategoryTag", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.CategoryTags.CategoryTag", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -38,12 +38,12 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .HasColumnType("text")
                         .HasColumnName("color");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("CreatedByAliasId")
-                        .HasColumnType("text")
+                    b.Property<Guid>("CreatedByAliasId")
+                        .HasColumnType("uuid")
                         .HasColumnName("created_by_alias_id");
 
                     b.Property<string>("DisplayName")
@@ -85,18 +85,18 @@ namespace Post.Infrastructure.Data.Post.Migrations
                     b.ToTable("category_tags", "post");
                 });
 
-            modelBuilder.Entity("Post.Domain.Aggregates.Comment.Comment", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.Comments.Comment", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("CreatedByAliasId")
-                        .HasColumnType("text")
+                    b.Property<Guid>("CreatedByAliasId")
+                        .HasColumnType("uuid")
                         .HasColumnName("created_by_alias_id");
 
                     b.Property<DateTimeOffset?>("DeletedAt")
@@ -107,7 +107,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .HasColumnType("text")
                         .HasColumnName("deleted_by_alias_id");
 
-                    b.Property<DateTime>("EditedAt")
+                    b.Property<DateTimeOffset>("EditedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("edited_at");
 
@@ -144,18 +144,22 @@ namespace Post.Infrastructure.Data.Post.Migrations
                     b.ToTable("comments", "post");
                 });
 
-            modelBuilder.Entity("Post.Domain.Aggregates.Gift.GiftAttach", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.Gifts.GiftAttach", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("CreatedByAliasId")
-                        .HasColumnType("text")
+                    b.Property<Guid>("CreatedByAliasId")
+                        .HasColumnType("uuid")
                         .HasColumnName("created_by_alias_id");
 
                     b.Property<DateTimeOffset?>("DeletedAt")
@@ -195,18 +199,18 @@ namespace Post.Infrastructure.Data.Post.Migrations
                     b.ToTable("gift_attaches", "post");
                 });
 
-            modelBuilder.Entity("Post.Domain.Aggregates.Post.Post", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.Posts.Post", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("CreatedByAliasId")
-                        .HasColumnType("text")
+                    b.Property<Guid>("CreatedByAliasId")
+                        .HasColumnType("uuid")
                         .HasColumnName("created_by_alias_id");
 
                     b.Property<DateTimeOffset?>("DeletedAt")
@@ -220,6 +224,14 @@ namespace Post.Infrastructure.Data.Post.Migrations
                     b.Property<DateTime?>("EditedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("edited_at");
+
+                    b.Property<bool>("IsAbandonmentEventEmitted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_abandonment_event_emitted");
+
+                    b.Property<bool>("IsCommentsLocked")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_comments_locked");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
@@ -251,13 +263,13 @@ namespace Post.Infrastructure.Data.Post.Migrations
                     b.ToTable("posts", "post");
                 });
 
-            modelBuilder.Entity("Post.Domain.Aggregates.Post.PostCategory", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.Posts.PostCategory", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTime>("AssignedAt")
+                    b.Property<DateTimeOffset>("AssignedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("assigned_at");
 
@@ -293,7 +305,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                     b.ToTable("post_categories", "post");
                 });
 
-            modelBuilder.Entity("Post.Domain.Aggregates.Post.PostCounterDelta", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.Posts.PostCounterDelta", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -335,7 +347,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                     b.ToTable("post_counter_delta", "post");
                 });
 
-            modelBuilder.Entity("Post.Domain.Aggregates.Post.PostEmotion", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.Posts.PostEmotion", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -383,7 +395,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                     b.ToTable("post_emotions", "post");
                 });
 
-            modelBuilder.Entity("Post.Domain.Aggregates.Post.PostMedia", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.Posts.PostMedia", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -406,6 +418,10 @@ namespace Post.Infrastructure.Data.Post.Migrations
                     b.Property<string>("DeletedByAliasId")
                         .HasColumnType("text")
                         .HasColumnName("deleted_by_alias_id");
+
+                    b.Property<bool>("IsCover")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_cover");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
@@ -438,12 +454,12 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("CreatedByAliasId")
-                        .HasColumnType("text")
+                    b.Property<Guid>("CreatedByAliasId")
+                        .HasColumnType("uuid")
                         .HasColumnName("created_by_alias_id");
 
                     b.Property<DateTimeOffset?>("DeletedAt")
@@ -466,11 +482,11 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .HasColumnType("text")
                         .HasColumnName("last_modified_by_alias_id");
 
-                    b.Property<DateTime?>("ModifiedAt")
+                    b.Property<DateTimeOffset?>("ModifiedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("modified_at");
 
-                    b.Property<DateTime>("ReactedAt")
+                    b.Property<DateTimeOffset>("ReactedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("reacted_at");
 
@@ -524,14 +540,14 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<string>("CreatedByAliasId")
-                        .HasColumnType("text")
+                    b.Property<Guid>("CreatedByAliasId")
+                        .HasColumnType("uuid")
                         .HasColumnName("created_by_alias_id");
 
                     b.Property<DateTimeOffset?>("ExpiresAt")
@@ -561,9 +577,9 @@ namespace Post.Infrastructure.Data.Post.Migrations
                     b.ToTable("idempotency_keys", "post");
                 });
 
-            modelBuilder.Entity("Post.Domain.Aggregates.Comment.Comment", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.Comments.Comment", b =>
                 {
-                    b.OwnsOne("Post.Domain.Aggregates.Post.ValueObjects.AuthorInfo", "Author", b1 =>
+                    b.OwnsOne("Post.Domain.Aggregates.Posts.ValueObjects.AuthorInfo", "Author", b1 =>
                         {
                             b1.Property<Guid>("CommentId")
                                 .HasColumnType("uuid")
@@ -573,7 +589,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasColumnType("uuid")
                                 .HasColumnName("author_alias_id");
 
-                            b1.Property<Guid?>("AliasVersionId")
+                            b1.Property<Guid>("AliasVersionId")
                                 .HasColumnType("uuid")
                                 .HasColumnName("author_alias_version_id");
 
@@ -586,7 +602,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasConstraintName("fk_comments_comments_id");
                         });
 
-                    b.OwnsOne("Post.Domain.Aggregates.Post.ValueObjects.ModerationInfo", "Moderation", b1 =>
+                    b.OwnsOne("Post.Domain.Aggregates.Posts.ValueObjects.ModerationInfo", "Moderation", b1 =>
                         {
                             b1.Property<Guid>("CommentId")
                                 .HasColumnType("uuid")
@@ -619,7 +635,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasConstraintName("fk_comments_comments_id");
                         });
 
-                    b.OwnsOne("Post.Domain.Aggregates.Comment.ValueObjects.CommentContent", "Content", b1 =>
+                    b.OwnsOne("Post.Domain.Aggregates.Comments.ValueObjects.CommentContent", "Content", b1 =>
                         {
                             b1.Property<Guid>("CommentId")
                                 .HasColumnType("uuid")
@@ -648,7 +664,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasConstraintName("fk_comments_comments_id");
                         });
 
-                    b.OwnsOne("Post.Domain.Aggregates.Comment.ValueObjects.CommentHierarchy", "Hierarchy", b1 =>
+                    b.OwnsOne("Post.Domain.Aggregates.Comments.ValueObjects.CommentHierarchy", "Hierarchy", b1 =>
                         {
                             b1.Property<Guid>("CommentId")
                                 .HasColumnType("uuid")
@@ -690,9 +706,9 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Post.Domain.Aggregates.Gift.GiftAttach", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.Gifts.GiftAttach", b =>
                 {
-                    b.OwnsOne("Post.Domain.Aggregates.Post.ValueObjects.AuthorInfo", "Sender", b1 =>
+                    b.OwnsOne("Post.Domain.Aggregates.Posts.ValueObjects.AuthorInfo", "Sender", b1 =>
                         {
                             b1.Property<Guid>("GiftAttachId")
                                 .HasColumnType("uuid")
@@ -702,7 +718,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasColumnType("uuid")
                                 .HasColumnName("sender_alias_id");
 
-                            b1.Property<Guid?>("AliasVersionId")
+                            b1.Property<Guid>("AliasVersionId")
                                 .HasColumnType("uuid")
                                 .HasColumnName("sender_alias_version_id");
 
@@ -715,7 +731,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasConstraintName("fk_gift_attaches_gift_attaches_id");
                         });
 
-                    b.OwnsOne("Post.Domain.Aggregates.Gift.ValueObjects.GiftInfo", "Info", b1 =>
+                    b.OwnsOne("Post.Domain.Aggregates.Gifts.ValueObjects.GiftInfo", "Info", b1 =>
                         {
                             b1.Property<Guid>("GiftAttachId")
                                 .HasColumnType("uuid")
@@ -723,7 +739,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
 
                             b1.Property<Guid>("GiftId")
                                 .HasColumnType("uuid")
-                                .HasColumnName("info_gift_id");
+                                .HasColumnName("gift_id");
 
                             b1.HasKey("GiftAttachId");
 
@@ -734,7 +750,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasConstraintName("fk_gift_attaches_gift_attaches_id");
                         });
 
-                    b.OwnsOne("Post.Domain.Aggregates.Gift.ValueObjects.GiftTarget", "Target", b1 =>
+                    b.OwnsOne("Post.Domain.Aggregates.Gifts.ValueObjects.GiftTarget", "Target", b1 =>
                         {
                             b1.Property<Guid>("GiftAttachId")
                                 .HasColumnType("uuid")
@@ -742,12 +758,13 @@ namespace Post.Infrastructure.Data.Post.Migrations
 
                             b1.Property<Guid>("TargetId")
                                 .HasColumnType("uuid")
-                                .HasColumnName("target_target_id");
+                                .HasColumnName("target_id");
 
                             b1.Property<string>("TargetType")
                                 .IsRequired()
-                                .HasColumnType("text")
-                                .HasColumnName("target_target_type");
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)")
+                                .HasColumnName("target_type");
 
                             b1.HasKey("GiftAttachId");
 
@@ -768,9 +785,9 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Post.Domain.Aggregates.Post.Post", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.Posts.Post", b =>
                 {
-                    b.OwnsOne("Post.Domain.Aggregates.Post.ValueObjects.AuthorInfo", "Author", b1 =>
+                    b.OwnsOne("Post.Domain.Aggregates.Posts.ValueObjects.AuthorInfo", "Author", b1 =>
                         {
                             b1.Property<Guid>("PostId")
                                 .HasColumnType("uuid")
@@ -780,7 +797,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasColumnType("uuid")
                                 .HasColumnName("author_alias_id");
 
-                            b1.Property<Guid?>("AliasVersionId")
+                            b1.Property<Guid>("AliasVersionId")
                                 .HasColumnType("uuid")
                                 .HasColumnName("author_alias_version_id");
 
@@ -793,7 +810,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasConstraintName("fk_posts_posts_id");
                         });
 
-                    b.OwnsOne("Post.Domain.Aggregates.Post.ValueObjects.ModerationInfo", "Moderation", b1 =>
+                    b.OwnsOne("Post.Domain.Aggregates.Posts.ValueObjects.ModerationInfo", "Moderation", b1 =>
                         {
                             b1.Property<Guid>("PostId")
                                 .HasColumnType("uuid")
@@ -819,9 +836,6 @@ namespace Post.Infrastructure.Data.Post.Migrations
 
                             b1.HasKey("PostId");
 
-                            b1.HasIndex("Status", "ModeratedAt")
-                                .HasDatabaseName("ix_posts_feed_mod_status");
-
                             b1.ToTable("posts", "post");
 
                             b1.WithOwner()
@@ -829,7 +843,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasConstraintName("fk_posts_posts_id");
                         });
 
-                    b.OwnsOne("Post.Domain.Aggregates.Post.ValueObjects.PostContent", "Content", b1 =>
+                    b.OwnsOne("Post.Domain.Aggregates.Posts.ValueObjects.PostContent", "Content", b1 =>
                         {
                             b1.Property<Guid>("PostId")
                                 .HasColumnType("uuid")
@@ -863,7 +877,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasConstraintName("fk_posts_posts_id");
                         });
 
-                    b.OwnsOne("Post.Domain.Aggregates.Post.ValueObjects.PostMetrics", "Metrics", b1 =>
+                    b.OwnsOne("Post.Domain.Aggregates.Posts.ValueObjects.PostMetrics", "Metrics", b1 =>
                         {
                             b1.Property<Guid>("PostId")
                                 .HasColumnType("uuid")
@@ -907,19 +921,28 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Post.Domain.Aggregates.Post.PostCategory", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.Posts.PostCategory", b =>
                 {
-                    b.HasOne("Post.Domain.Aggregates.Post.Post", null)
+                    b.HasOne("Post.Domain.Aggregates.CategoryTags.CategoryTag", "CategoryTag")
+                        .WithMany()
+                        .HasForeignKey("CategoryTagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_post_categories_category_tags_category_tag_id");
+
+                    b.HasOne("Post.Domain.Aggregates.Posts.Post", null)
                         .WithMany("Categories")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_post_categories_posts_post_id");
+
+                    b.Navigation("CategoryTag");
                 });
 
-            modelBuilder.Entity("Post.Domain.Aggregates.Post.PostEmotion", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.Posts.PostEmotion", b =>
                 {
-                    b.HasOne("Post.Domain.Aggregates.Post.Post", null)
+                    b.HasOne("Post.Domain.Aggregates.Posts.Post", null)
                         .WithMany("Emotions")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -927,9 +950,9 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .HasConstraintName("fk_post_emotions_posts_post_id");
                 });
 
-            modelBuilder.Entity("Post.Domain.Aggregates.Post.PostMedia", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.Posts.PostMedia", b =>
                 {
-                    b.HasOne("Post.Domain.Aggregates.Post.Post", null)
+                    b.HasOne("Post.Domain.Aggregates.Posts.Post", null)
                         .WithMany("Media")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -939,7 +962,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
 
             modelBuilder.Entity("Post.Domain.Aggregates.Reaction.Reaction", b =>
                 {
-                    b.OwnsOne("Post.Domain.Aggregates.Post.ValueObjects.AuthorInfo", "Author", b1 =>
+                    b.OwnsOne("Post.Domain.Aggregates.Posts.ValueObjects.AuthorInfo", "Author", b1 =>
                         {
                             b1.Property<Guid>("ReactionId")
                                 .HasColumnType("uuid")
@@ -949,7 +972,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasColumnType("uuid")
                                 .HasColumnName("author_alias_id");
 
-                            b1.Property<Guid?>("AliasVersionId")
+                            b1.Property<Guid>("AliasVersionId")
                                 .HasColumnType("uuid")
                                 .HasColumnName("author_alias_version_id");
 
@@ -1027,7 +1050,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Post.Domain.Aggregates.Post.Post", b =>
+            modelBuilder.Entity("Post.Domain.Aggregates.Posts.Post", b =>
                 {
                     b.Navigation("Categories");
 
