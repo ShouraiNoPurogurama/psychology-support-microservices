@@ -11,7 +11,7 @@ public partial class IdempotencyKey : Entity<Guid>, IHasCreationAudit
     public string? ResponsePayload { get; set; }
     public DateTimeOffset? ExpiresAt { get; set; }    
     
-    public DateTimeOffset? CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
     
-    public string? CreatedByAliasId { get; set; }
+    public Guid CreatedByAliasId { get; set; }
 }

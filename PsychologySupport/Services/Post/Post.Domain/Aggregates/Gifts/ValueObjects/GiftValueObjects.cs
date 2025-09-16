@@ -1,6 +1,6 @@
 ﻿using Post.Domain.Exceptions;
 
-namespace Post.Domain.Aggregates.Gift.ValueObjects;
+namespace Post.Domain.Aggregates.Gifts.ValueObjects;
 
 /// <summary>
 /// Mô tả mục tiêu nhận quà (post/comment).

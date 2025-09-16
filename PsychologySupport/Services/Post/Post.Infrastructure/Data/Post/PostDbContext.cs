@@ -2,11 +2,11 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 using Post.Application.Data;
-using Post.Domain.Aggregates.CategoryTag;
-using Post.Domain.Aggregates.Comment;
-using Post.Domain.Aggregates.Gift;
-using Post.Domain.Aggregates.Post;
-using Post.Domain.Aggregates.Post.ValueObjects;
+using Post.Domain.Aggregates.CategoryTags;
+using Post.Domain.Aggregates.Comments;
+using Post.Domain.Aggregates.Gifts;
+using Post.Domain.Aggregates.Posts;
+using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Aggregates.Reaction;
 using Post.Domain.Enums;
 using Post.Infrastructure.Integration.Entities;
@@ -14,7 +14,7 @@ using Post.Infrastructure.Resilience.Entities;
 
 namespace Post.Infrastructure.Data.Post;
 
-using Post = Domain.Aggregates.Post.Post;
+using Post = Domain.Aggregates.Posts.Post;
 
 public class PostDbContext : DbContext, IPostDbContext
 {

@@ -15,7 +15,6 @@
         <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.csproj" />
     </ItemGroup>
     <ItemGroup>
-      <Folder Include="Events\IntegrationEvents\Moderation\" />
       <Folder Include="Events\Queries\DigitalGoods\" />
     </ItemGroup>
 </Project>

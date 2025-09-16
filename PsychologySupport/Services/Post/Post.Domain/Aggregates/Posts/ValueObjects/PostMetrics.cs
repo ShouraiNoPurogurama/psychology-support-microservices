@@ -1,4 +1,4 @@
-﻿namespace Post.Domain.Aggregates.Post.ValueObjects;
+﻿namespace Post.Domain.Aggregates.Posts.ValueObjects;
 
 public sealed record PostMetrics
 {

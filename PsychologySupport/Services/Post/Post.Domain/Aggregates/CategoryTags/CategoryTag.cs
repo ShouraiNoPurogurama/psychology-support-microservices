@@ -1,7 +1,7 @@
 ﻿using Post.Domain.Events;
 using Post.Domain.Exceptions;
 
-namespace Post.Domain.Aggregates.CategoryTag;
+namespace Post.Domain.Aggregates.CategoryTags;
 
 /// <summary>
 /// CategoryTag aggregate root - represents master data for post categorization

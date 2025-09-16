@@ -1,8 +1,8 @@
-﻿using Post.Domain.Aggregates.Gift.ValueObjects;
-using Post.Domain.Aggregates.Post.ValueObjects;
+﻿using Post.Domain.Aggregates.Gifts.ValueObjects;
+using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Exceptions;
 
-namespace Post.Domain.Aggregates.Gift;
+namespace Post.Domain.Aggregates.Gifts;
 
 public sealed class GiftAttach : AggregateRoot<Guid>, ISoftDeletable
 {

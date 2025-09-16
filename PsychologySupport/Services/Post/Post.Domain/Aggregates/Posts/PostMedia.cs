@@ -1,4 +1,4 @@
-﻿namespace Post.Domain.Aggregates.Post;
+﻿namespace Post.Domain.Aggregates.Posts;
 
 public sealed class PostMedia : Entity<Guid>, ISoftDeletable
 {

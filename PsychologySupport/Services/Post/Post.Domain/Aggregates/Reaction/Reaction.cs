@@ -1,4 +1,4 @@
-﻿using Post.Domain.Aggregates.Post.ValueObjects;
+﻿using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Aggregates.Reaction.ValueObjects;
 using Post.Domain.Events;
 using Post.Domain.Exceptions;

@@ -1,9 +1,9 @@
-﻿using Post.Domain.Aggregates.Comment.ValueObjects;
-using Post.Domain.Aggregates.Post.ValueObjects;
+﻿using Post.Domain.Aggregates.Comments.ValueObjects;
+using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Events;
 using Post.Domain.Exceptions;
 
-namespace Post.Domain.Aggregates.Comment;
+namespace Post.Domain.Aggregates.Comments;
 
 public sealed class Comment : AggregateRoot<Guid>, ISoftDeletable
 {

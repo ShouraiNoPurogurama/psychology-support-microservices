@@ -1,9 +1,9 @@
-﻿using Post.Domain.Aggregates.Post.ValueObjects;
+﻿using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Enums;
 using Post.Domain.Events;
 using Post.Domain.Exceptions;
 
-namespace Post.Domain.Aggregates.Post;
+namespace Post.Domain.Aggregates.Posts;
 
 public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
 {

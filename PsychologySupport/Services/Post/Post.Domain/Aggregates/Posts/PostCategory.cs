@@ -1,4 +1,6 @@
-﻿namespace Post.Domain.Aggregates.Post;
+﻿using Post.Domain.Aggregates.CategoryTags;
+
+namespace Post.Domain.Aggregates.Posts;
 
 public sealed class PostCategory : Entity<Guid>, ISoftDeletable
 {
@@ -11,7 +13,7 @@ public sealed class PostCategory : Entity<Guid>, ISoftDeletable
     public DateTimeOffset? DeletedAt { get; set; }
     public string? DeletedByAliasId { get; set; }
 
-    public CategoryTag.CategoryTag CategoryTag { get; set; }
+    public CategoryTag CategoryTag { get; set; }
     
     private PostCategory()
     {
