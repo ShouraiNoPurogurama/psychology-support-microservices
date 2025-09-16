@@ -2,6 +2,8 @@
 using BuildingBlocks.Pagination;
 using Carter;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Post.Application.Aggregates.Posts.Dtos;
 
 namespace Post.API.Endpoints.Posts;
 
@@ -9,7 +11,7 @@ public record GetPostsRequest(
     int PageIndex = 0,
     int PageSize = 10,
     string? Visibility = null,
-    List<Guid>? CategoryTagIds = null,
+    [FromQuery] Guid[]? CategoryTagIds = null,
     string? SortBy = "CreatedAt",
     bool SortDescending = true);
 
@@ -30,7 +32,7 @@ public class GetPostsEndpoint : ICarterModule
                     request.PageIndex,
                     request.PageSize,
                     request.Visibility,
-                    request.CategoryTagIds,
+                    request.CategoryTagIds?.ToList(),
                     request.SortBy,
                     request.SortDescending
                 );

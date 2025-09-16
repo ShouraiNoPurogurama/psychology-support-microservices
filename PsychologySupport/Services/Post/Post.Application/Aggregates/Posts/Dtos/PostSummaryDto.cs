@@ -1,6 +1,6 @@
 ﻿using Post.Domain.Aggregates.Posts.Enums;
 
-namespace Post.Application.Aggregates.CategoryTags.Dtos;
+namespace Post.Application.Aggregates.Posts.Dtos;
 
 public record PostSummaryDto(
     Guid Id,
@@ -12,5 +12,6 @@ public record PostSummaryDto(
     DateTimeOffset? EditedAt,
     int ReactionCount,
     int CommentCount,
-    int ViewCount
+    int ViewCount,
+    bool HasMedia
 );

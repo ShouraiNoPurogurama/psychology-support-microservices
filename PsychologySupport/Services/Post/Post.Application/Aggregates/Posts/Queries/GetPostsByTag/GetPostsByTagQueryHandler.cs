@@ -3,6 +3,7 @@ using BuildingBlocks.Exceptions;
 using BuildingBlocks.Pagination;
 using Post.Application.Data;
 using Microsoft.EntityFrameworkCore;
+using Post.Application.Aggregates.Posts.Dtos;
 
 namespace Post.Application.Aggregates.Posts.Queries.GetPostsByTag;
 
@@ -60,16 +61,16 @@ internal sealed class GetPostsByTagQueryHandler : IQueryHandler<GetPostsByTagQue
             var author = authorAliases.FirstOrDefault(a => a.AliasId == p.Author.AliasId);
             return new PostSummaryDto(
                 p.Id,
-                p.Content.Value,
                 p.Content.Title,
+                p.Content.Value,
                 p.Author.AliasId,
-                author.Label,
-                p.Visibility.ToString(),
+                p.Visibility,
+                new DateTimeOffset(p.PublishedAt),
+                p.EditedAt.HasValue ? new DateTimeOffset(p.EditedAt.Value) : null,
                 p.Metrics.ReactionCount,
                 p.Metrics.CommentCount,
-                p.CreatedAt,
-                p.HasMedia
-            );
+                p.Metrics.ViewCount,
+                p.HasMedia);
         }).ToList();
 
         var paginatedResult = new PaginatedResult<PostSummaryDto>(

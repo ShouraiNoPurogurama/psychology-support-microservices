@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
+using Post.Application.Aggregates.Posts.Dtos;
 
 namespace Post.Application.Aggregates.Posts.Queries.GetPostsByTag;
 
@@ -11,17 +12,4 @@ public record GetPostsByTagQuery(
 
 public record GetPostsByTagResult(
     PaginatedResult<PostSummaryDto> Posts
-);
-
-public record PostSummaryDto(
-    Guid Id,
-    string Content,
-    string? Title,
-    Guid AuthorAliasId,
-    string AuthorDisplayName,
-    string Visibility,
-    int ReactionCount,
-    int CommentCount,
-    DateTimeOffset CreatedAt,
-    bool HasMedia
 );

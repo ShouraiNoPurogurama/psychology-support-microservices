@@ -1,9 +1,7 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
-using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Aggregates.Posts.Dtos;
-using Post.Domain.Aggregates.Posts.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Post.Application.Aggregates.Posts.Queries.GetPostById;

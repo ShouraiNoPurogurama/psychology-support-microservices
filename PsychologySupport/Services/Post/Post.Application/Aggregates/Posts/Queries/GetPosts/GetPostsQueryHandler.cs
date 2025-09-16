@@ -2,6 +2,7 @@
 using BuildingBlocks.Pagination;
 using Post.Application.Data;
 using Microsoft.EntityFrameworkCore;
+using Post.Application.Aggregates.Posts.Dtos;
 using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Aggregates.Posts.Queries.GetPosts;
@@ -22,7 +23,7 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, Pagina
             .AsQueryable();
 
         // Apply filters
-        if (!string.IsNullOrEmpty(request.Visibility) && 
+        if (!string.IsNullOrEmpty(request.Visibility) &&
             Enum.TryParse<PostVisibility>(request.Visibility, true, out var visibility))
         {
             query = query.Where(p => p.Visibility == visibility);
@@ -36,7 +37,7 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, Pagina
         // Apply sorting
         query = request.SortBy?.ToLower() switch
         {
-            "createdat" => request.SortDescending 
+            "createdat" => request.SortDescending
                 ? query.OrderByDescending(p => p.CreatedAt)
                 : query.OrderBy(p => p.CreatedAt),
             "reactioncount" => request.SortDescending
@@ -49,29 +50,25 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, Pagina
         };
 
         var totalCount = await query.CountAsync(cancellationToken);
-        
+
         var posts = await query
             .Skip((request.PageIndex - 1) * request.PageSize)
             .Take(request.PageSize)
             .Include(p => p.Media)
             .Include(p => p.Categories)
-                .ThenInclude(pc => pc.CategoryTag)
+            .ThenInclude(pc => pc.CategoryTag)
             .Select(p => new PostSummaryDto(
                 p.Id,
-                p.Content.Value.Length > 300 ? p.Content.Value.Substring(0, 300) + "..." : p.Content.Value,
                 p.Content.Title,
+                p.Content.Value,
+                p.Author.AliasId,
                 p.Visibility,
-                new AuthorSummaryDto(p.Author.AliasId, p.Author.AliasVersionId),
-                p.Moderation.Status,
-                new MetricsSummaryDto(
-                    p.Metrics.ReactionCount,
-                    p.Metrics.CommentCount,
-                    p.Metrics.ViewCount
-                ),
-                p.Media.Count,
-                p.Categories.Select(pc => pc.CategoryTag.Code).ToList(),
-                p.CreatedAt
-            ))
+                new DateTimeOffset(p.PublishedAt),
+                p.EditedAt.HasValue ? new DateTimeOffset(p.EditedAt.Value) : null,
+                p.Metrics.ReactionCount,
+                p.Metrics.CommentCount,
+                p.Metrics.ViewCount,
+                p.HasMedia))
             .ToListAsync(cancellationToken);
 
         return new PaginatedResult<PostSummaryDto>(

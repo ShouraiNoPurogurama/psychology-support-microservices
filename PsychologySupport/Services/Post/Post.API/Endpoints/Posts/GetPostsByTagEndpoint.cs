@@ -3,6 +3,7 @@ using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
 using MediatR;
+using Post.Application.Aggregates.Posts.Dtos;
 
 namespace Post.API.Endpoints.Posts;
 

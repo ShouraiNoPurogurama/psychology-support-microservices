@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
+using Post.Application.Aggregates.Posts.Dtos;
 using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Aggregates.Posts.Queries.GetPosts;
@@ -12,19 +13,6 @@ public record GetPostsQuery(
     string? SortBy = "CreatedAt",
     bool SortDescending = true
 ) : IQuery<PaginatedResult<PostSummaryDto>>;
-
-public record PostSummaryDto(
-    Guid Id,
-    string Content,
-    string? Title,
-    PostVisibility Visibility,
-    AuthorSummaryDto Author,
-    ModerationStatus ModerationStatus,
-    MetricsSummaryDto Metrics,
-    int MediaCount,
-    List<string> CategoryCodes,
-    DateTimeOffset CreatedAt
-);
 
 public record AuthorSummaryDto(
     Guid AliasId,

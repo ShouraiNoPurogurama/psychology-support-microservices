@@ -2,6 +2,7 @@
 using BuildingBlocks.Pagination;
 using Post.Application.Data;
 using Microsoft.EntityFrameworkCore;
+using Post.Application.Aggregates.Posts.Dtos;
 using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Aggregates.Posts.Queries.GetPostsByAliasIds;
@@ -34,7 +35,7 @@ internal sealed class GetPostsByAliasIdsQueryHandler : IQueryHandler<GetPostsByA
                 p.Metrics.ReactionCount,
                 p.Metrics.CommentCount,
                 p.Metrics.ViewCount,
-                p.Media.Any()
+                p.HasMedia
             ))
             .OrderByDescending(p => p.PublishedAt);
 
