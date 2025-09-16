@@ -1,10 +1,11 @@
-﻿using Post.Domain.Exceptions;
+﻿using Post.Domain.Aggregates.Reactions.Enums;
+using Post.Domain.Exceptions;
 
 namespace Post.Domain.Aggregates.Reaction.ValueObjects;
 
 public sealed record ReactionTarget
 {
-    public string TargetType { get; init; } = default!;
+    public ReactionTargetType TargetType { get; init; } = default!;
     public Guid TargetId { get; init; }
 
     // EF Core
@@ -12,7 +13,7 @@ public sealed record ReactionTarget
 
     private ReactionTarget(string targetType, Guid targetId)
     {
-        TargetType = targetType;
+        TargetType = Enum.Parse<ReactionTargetType>(targetType);
         TargetId = targetId;
     }
 
@@ -36,8 +37,8 @@ public sealed record ReactionTarget
         return new ReactionTarget(normalized, targetId);
     }
 
-    public bool IsPost => TargetType == "post";
-    public bool IsComment => TargetType == "comment";
+    public bool IsPost => TargetType == ReactionTargetType.Post;
+    public bool IsComment => TargetType == ReactionTargetType.Comment;
 }
 
 

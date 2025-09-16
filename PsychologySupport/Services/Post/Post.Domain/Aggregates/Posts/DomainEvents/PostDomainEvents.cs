@@ -42,3 +42,11 @@ public sealed record PostAbandonedEvent(Guid PostId, Guid AuthorAliasId, DateTim
 
 public sealed record PostContentUpdatedEvent(Guid PostId, string OldContent, string NewContent, Guid EditorAliasId)
     : DomainEvent(PostId);
+
+public sealed record PostCommentsLockToggledEvent(Guid PostId, bool IsLocked) : DomainEvent(PostId);
+
+public sealed record PostMediaReorderedEvent(Guid PostId, List<Guid> OrderedMediaIds) : DomainEvent(PostId);
+
+public sealed record PostCoverMediaSetEvent(Guid PostId, Guid MediaId) : DomainEvent(PostId);
+
+public sealed record PostMediaAltTextUpdatedEvent(Guid PostId, Guid MediaId, string AltText) : DomainEvent(PostId);

@@ -31,7 +31,7 @@ internal sealed class RemoveReactionCommandHandler : ICommandHandler<RemoveReact
         var aliasContext = await _aliasResolver.GetCurrentAliasVersionIdAsync(cancellationToken);
 
         var reaction = await _context.Reactions
-            .Where(r => r.Target.TargetType == request.TargetType.ToString() && 
+            .Where(r => r.Target.TargetType == request.TargetType && 
                        r.Target.TargetId == request.TargetId &&
                        r.Author.AliasId == _actorResolver.AliasId &&
                        !r.IsDeleted)
@@ -51,7 +51,7 @@ internal sealed class RemoveReactionCommandHandler : ICommandHandler<RemoveReact
         // Add domain event
         var reactionRemovedEvent = new ReactionRemovedEvent(
             reaction.Id,
-            request.TargetType.ToString().ToLower(),
+            request.TargetType,
             request.TargetId,
             reaction.Type.Code,
             _actorResolver.AliasId

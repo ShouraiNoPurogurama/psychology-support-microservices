@@ -5,11 +5,12 @@ namespace Post.Application.Aggregates.Posts.Commands.AttachMediaToPost;
 public record AttachMediaToPostCommand(
     Guid IdempotencyKey,
     Guid PostId,
-    IEnumerable<Guid> MediaIds
+    Guid MediaId,
+    int? Position = null
 ) : IdempotentCommand<AttachMediaToPostResult>(IdempotencyKey);
 
 public record AttachMediaToPostResult(
     Guid PostId,
-    IEnumerable<Guid> AttachedMediaIds,
+    Guid MediaId,
     DateTimeOffset AttachedAt
 );

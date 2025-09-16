@@ -8,25 +8,26 @@ namespace Post.Domain.Aggregates.Posts;
 public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
 {
     //VOs
-    public PostContent   Content    { get; private set; } = null!;
-    public AuthorInfo    Author     { get; private set; } = null!;
+    public PostContent Content { get; private set; } = null!;
+    public AuthorInfo Author { get; private set; } = null!;
     public ModerationInfo Moderation { get; private set; } = null!;
-    public PostMetrics   Metrics    { get; private set; } = null!;
+    public PostMetrics Metrics { get; private set; } = null!;
 
     //Properties
     public PostVisibility Visibility { get; private set; } = PostVisibility.Draft;
-    public bool IsAbandonmentEventEmitted { get; private set; } = false;
+    public bool IsAbandonmentEventEmitted { get; private set; }
+    public bool IsCommentsLocked { get; private set; } // added
     public DateTime PublishedAt { get; private set; }
-    public DateTime? EditedAt   { get; private set; }
+    public DateTime? EditedAt { get; private set; }
 
     //Collections
-    private readonly List<PostMedia>    _media      = new();
+    private readonly List<PostMedia> _media = new();
     private readonly List<PostCategory> _categories = new();
-    private readonly List<PostEmotion>  _emotions   = new();
+    private readonly List<PostEmotion> _emotions = new();
 
-    public IReadOnlyList<PostMedia>    Media      => _media.AsReadOnly();
+    public IReadOnlyList<PostMedia> Media => _media.AsReadOnly();
     public IReadOnlyList<PostCategory> Categories => _categories.AsReadOnly();
-    public IReadOnlyList<PostEmotion>  Emotions   => _emotions.AsReadOnly();
+    public IReadOnlyList<PostEmotion> Emotions => _emotions.AsReadOnly();
 
     // Soft Delete
     public bool IsDeleted { get; set; }
@@ -34,7 +35,9 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
     public string? DeletedByAliasId { get; set; }
 
     // EF Core materialization
-    private Post() { }
+    private Post()
+    {
+    }
 
     public static Post Create(
         Guid authorAliasId,
@@ -45,12 +48,12 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
     {
         var post = new Post
         {
-            Id          = Guid.NewGuid(),
-            Content     = PostContent.Create(content, title),
-            Author      = AuthorInfo.Create(authorAliasId, authorAliasVersionId),
-            Moderation  = ModerationInfo.Pending(),
-            Metrics     = PostMetrics.Create(),
-            Visibility  = visibility,
+            Id = Guid.NewGuid(),
+            Content = PostContent.Create(content, title),
+            Author = AuthorInfo.Create(authorAliasId, authorAliasVersionId),
+            Moderation = ModerationInfo.Pending(),
+            Metrics = PostMetrics.Create(),
+            Visibility = visibility,
             PublishedAt = DateTime.UtcNow
         };
 
@@ -235,13 +238,64 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
         Delete(deleterAliasId);
     }
 
-    public bool CanBePublished => Moderation.IsApproved && !IsDeleted;
-    public bool IsPublished    => Visibility == PostVisibility.Public && CanBePublished;
-    public bool IsEdited       => EditedAt.HasValue;
-    public bool IsPopular      => Metrics.IsPopular;
-    public bool IsTrending     => Metrics.IsTrending;
-    public bool HasMedia       => _media.Any();
-    public bool HasCategories  => _categories.Any();
+    public void ToggleCommentsLock(Guid editorAliasId)
+    {
+        ValidateEditPermission(editorAliasId);
+        ValidateNotDeleted();
+        IsCommentsLocked = !IsCommentsLocked;
+        AddDomainEvent(new PostCommentsLockToggledEvent(Id, IsCommentsLocked));
+    }
+
+    public void ReorderMedia(List<Guid> orderedMediaIds, Guid editorAliasId)
+    {
+        ValidateEditPermission(editorAliasId);
+        ValidateNotDeleted();
+
+        // Validate all media IDs belong to this post
+        var existingMediaIds = _media.Select(m => m.MediaId).ToHashSet();
+        if (!orderedMediaIds.All(id => existingMediaIds.Contains(id)))
+            throw new InvalidPostDataException("Some media IDs do not belong to this post.");
+
+        // Update positions
+        for (int i = 0; i < orderedMediaIds.Count; i++)
+        {
+            var media = _media.First(m => m.MediaId == orderedMediaIds[i]);
+            media.Position = i + 1;
+        }
+
+        AddDomainEvent(new PostMediaReorderedEvent(Id, orderedMediaIds));
+    }
+
+    public void SetCoverMedia(Guid mediaId, Guid editorAliasId)
+    {
+        ValidateEditPermission(editorAliasId);
+        ValidateNotDeleted();
+
+        var targetMedia = _media.FirstOrDefault(m => m.MediaId == mediaId);
+        if (targetMedia == null)
+            throw new InvalidPostDataException("Media not found in this post.");
+
+        // Unset all existing covers and set new one
+        foreach (var media in _media)
+        {
+            media.IsCover = media.MediaId == mediaId;
+        }
+
+        AddDomainEvent(new PostCoverMediaSetEvent(Id, mediaId));
+    }
+
+    public void UpdateMediaAltText(Guid mediaId, string altText, Guid editorAliasId)
+    {
+        ValidateEditPermission(editorAliasId);
+        ValidateNotDeleted();
+
+        var media = _media.FirstOrDefault(m => m.MediaId == mediaId);
+        if (media == null)
+            throw new InvalidPostDataException("Media not found in this post.");
+
+        media.AltText = altText;
+        AddDomainEvent(new PostMediaAltTextUpdatedEvent(Id, mediaId, altText));
+    }
 
     private void ValidateEditPermission(Guid editorAliasId)
     {
@@ -254,4 +308,12 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
         if (IsDeleted)
             throw new DeletedPostActionException("Không thể thực hiện hành động trên bài viết đã bị xóa.");
     }
+
+    public bool CanBePublished => Moderation.IsApproved && !IsDeleted;
+    public bool IsPublished => Visibility == PostVisibility.Public && CanBePublished;
+    public bool IsEdited => EditedAt.HasValue;
+    public bool IsPopular => Metrics.IsPopular;
+    public bool IsTrending => Metrics.IsTrending;
+    public bool HasMedia => _media.Any();
+    public bool HasCategories => _categories.Any();
 }

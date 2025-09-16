@@ -1,8 +1,10 @@
-﻿namespace Post.Domain.Aggregates.Reaction.DomainEvents;
+﻿using Post.Domain.Aggregates.Reactions.Enums;
+
+namespace Post.Domain.Aggregates.Reaction.DomainEvents;
 
 public sealed record ReactionCreatedEvent(
     Guid ReactionId,
-    string TargetType,
+    ReactionTargetType TargetType,
     Guid TargetId,
     string ReactionCode,
     Guid AuthorAliasId
@@ -10,7 +12,7 @@ public sealed record ReactionCreatedEvent(
 
 public sealed record ReactionTypeChangedEvent(
     Guid ReactionId,
-    string TargetType,
+    ReactionTargetType TargetType,
     Guid TargetId,
     string OldReactionCode,
     string NewReactionCode,
@@ -19,14 +21,14 @@ public sealed record ReactionTypeChangedEvent(
 
 public sealed record ReactionRemovedEvent(
     Guid ReactionId,
-    string TargetType,
+    ReactionTargetType TargetType,
     Guid TargetId,
     string ReactionCode,
     Guid AuthorAliasId) : DomainEvent(ReactionId);
 
 public sealed record ReactionRestoredEvent(
     Guid ReactionId,
-    string TargetType,
+    ReactionTargetType TargetType,
     Guid TargetId,
     string ReactionCode,
     Guid AuthorAliasId) : DomainEvent(ReactionId);

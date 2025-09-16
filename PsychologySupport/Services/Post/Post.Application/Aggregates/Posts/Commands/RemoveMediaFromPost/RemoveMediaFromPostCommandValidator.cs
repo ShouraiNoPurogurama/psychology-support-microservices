@@ -6,16 +6,16 @@ public sealed class RemoveMediaFromPostCommandValidator : AbstractValidator<Remo
 {
     public RemoveMediaFromPostCommandValidator()
     {
-        RuleFor(x => x.IdempotencyKey)
-            .NotEmpty()
-            .WithMessage("Vui lòng cung cấp mã định danh idempotency.");
-
         RuleFor(x => x.PostId)
             .NotEmpty()
-            .WithMessage("Vui lòng chọn bài viết hợp lệ.");
+            .WithMessage("PostId is required.");
 
         RuleFor(x => x.MediaId)
             .NotEmpty()
-            .WithMessage("Vui lòng chọn Media cần gỡ bỏ.");
+            .WithMessage("MediaId is required.");
+
+        RuleFor(x => x.IdempotencyKey)
+            .NotEmpty()
+            .WithMessage("IdempotencyKey is required.");
     }
 }

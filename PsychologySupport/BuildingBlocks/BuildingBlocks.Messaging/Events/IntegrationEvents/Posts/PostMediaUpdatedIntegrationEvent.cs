@@ -2,8 +2,6 @@
 
 public record PostMediaUpdatedIntegrationEvent(
     Guid PostId,
-    Guid ActorAliasId,
-    IEnumerable<Guid> MediaIds,
-    string Operation, // ATTACHED, REMOVED, UPDATED
-    DateTimeOffset OccurredAt
-) : IntegrationEvent;
+    Guid AuthorAliasId,
+    string PostMediaUpdateStatus,
+    DateTimeOffset UtcNow) : IntegrationEvent;

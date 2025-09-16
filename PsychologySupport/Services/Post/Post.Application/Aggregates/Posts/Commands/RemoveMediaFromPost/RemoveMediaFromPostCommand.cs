@@ -10,6 +10,6 @@ public record RemoveMediaFromPostCommand(
 
 public record RemoveMediaFromPostResult(
     Guid PostId,
-    Guid RemovedMediaId,
+    Guid MediaId,
     DateTimeOffset RemovedAt
 );

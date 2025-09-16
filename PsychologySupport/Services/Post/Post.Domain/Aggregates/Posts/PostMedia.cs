@@ -7,6 +7,7 @@ public sealed class PostMedia : Entity<Guid>, ISoftDeletable
     public int? Position { get; set; }
     public string? Caption { get; set; }
     public string? AltText { get; set; }
+    public bool IsCover { get; set; } = false;
 
     // Soft Delete
     public bool IsDeleted { get; set; }
@@ -26,7 +27,8 @@ public sealed class PostMedia : Entity<Guid>, ISoftDeletable
             MediaId = mediaId,
             Position = position,
             Caption = caption,
-            AltText = altText
+            AltText = altText,
+            IsCover = false
         };
     }
 

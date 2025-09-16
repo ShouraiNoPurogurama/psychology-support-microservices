@@ -39,7 +39,7 @@ internal sealed class CreateReactionCommandHandler : ICommandHandler<CreateReact
 
         // Check if user already has a reaction on this target
         var existingReaction = await _context.Reactions
-            .Where(r => r.Target.TargetType == request.TargetType.ToString() &&
+            .Where(r => r.Target.TargetType == request.TargetType &&
                         r.Target.TargetId == request.TargetId &&
                         r.Author.AliasId == _actorResolver.AliasId &&
                         !r.IsDeleted)

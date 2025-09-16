@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Post.Application.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.Application.Services;
 
@@ -44,7 +45,7 @@ public class CounterSynchronizationService : ICounterSynchronizationService
 
             // Calculate actual counts from database
             var reactionCount = await _context.Reactions
-                .Where(r => r.Target.TargetType == "post" && 
+                .Where(r => r.Target.TargetType == ReactionTargetType.Post && 
                            r.Target.TargetId == postId && 
                            !r.IsDeleted)
                 .CountAsync(cancellationToken);

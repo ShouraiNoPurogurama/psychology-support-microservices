@@ -5,6 +5,9 @@ namespace Post.Domain.Aggregates.Posts.Enums;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PostMediaUpdateStatus
 {
-    Attached = 0,
-    Removed = 1
+    Reordered = 0,
+    AltTextUpdated = 1,
+    Attached = 2,
+    Removed = 3,
+    CoverSet = 4
 }
