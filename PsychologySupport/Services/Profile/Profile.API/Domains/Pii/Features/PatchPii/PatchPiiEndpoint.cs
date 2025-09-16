@@ -13,7 +13,7 @@ public class PatchPiiEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPatch("pii",
+        app.MapPatch("users",
                 async (
                     [FromBody] PatchPiiRequest request,
                     ClaimsPrincipal user,

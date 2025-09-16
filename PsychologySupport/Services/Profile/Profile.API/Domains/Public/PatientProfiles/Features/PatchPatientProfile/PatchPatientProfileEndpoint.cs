@@ -26,7 +26,7 @@ public class PatchPatientProfileEndpoint : ICarterModule
 
                 return Results.Ok(response);
             })
-        .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
+        // .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
         .WithName("PatchPatientProfile")
         .WithTags("PatientProfiles")
         .Produces<PatchPatientProfileResponse>(StatusCodes.Status200OK)

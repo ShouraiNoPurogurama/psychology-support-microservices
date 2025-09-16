@@ -51,7 +51,7 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, Pagina
         var totalCount = await query.CountAsync(cancellationToken);
         
         var posts = await query
-            .Skip((request.Page - 1) * request.PageSize)
+            .Skip((request.PageIndex - 1) * request.PageSize)
             .Take(request.PageSize)
             .Include(p => p.Media)
             .Include(p => p.Categories)
@@ -75,7 +75,7 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, Pagina
             .ToListAsync(cancellationToken);
 
         return new PaginatedResult<PostSummaryDto>(
-            request.Page,
+            request.PageIndex,
             request.PageSize,
             totalCount,
             posts

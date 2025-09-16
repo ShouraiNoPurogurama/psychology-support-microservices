@@ -16,7 +16,7 @@ public class OnboardingPersonProfileEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPut("pii/me/onboarding",
+        app.MapPut("v1/users/me/onboarding",
                 async ([FromBody] OnboardingPersonProfileRequest onboardingRequest, ClaimsPrincipal user, ISender sender) =>
                 {
                     var subjectRef = user.GetSubjectRef();

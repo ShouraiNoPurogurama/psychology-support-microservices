@@ -5,7 +5,7 @@ using Post.Domain.Aggregates.Posts.Enums;
 namespace Post.Application.Aggregates.Posts.Queries.GetPosts;
 
 public record GetPostsQuery(
-    int Page = 1,
+    int PageIndex = 1,
     int PageSize = 20,
     string? Visibility = null,
     List<Guid>? CategoryTagIds = null,

@@ -129,7 +129,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Post.Tests.E2E", "Services\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Post.Tests.Integration", "Services\Post\Tests\Post.Tests.Integration\Post.Tests.Integration.csproj", "{1DFB48AF-0840-B50E-BDBF-6DAD9217ED3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Post.Tests.Unit", "Services\Post\Post.Application.UnitTests\Post.Tests.Unit.csproj", "{907A7CF5-CC53-4513-B9E9-0AF093220920}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Post.Tests.Application.Unit", "Services\Post\Post.Application.UnitTests\Post.Tests.Application.Unit.csproj", "{907A7CF5-CC53-4513-B9E9-0AF093220920}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
