@@ -3,12 +3,9 @@ using BuildingBlocks.Pagination;
 using Post.Application.Data;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Aggregates.Posts.Dtos;
-using Post.Application.ReadModels.Models; 
-using Post.Domain.Aggregates.Comment;    
+using Post.Application.ReadModels.Models;
+using Post.Domain.Aggregates.Comments;
 
-// Giả sử bạn có DTO này từ service khác, hoặc định nghĩa nó trong Post.Application
-// public record AliasReplicaDto(Guid AliasId, string DisplayName, string AvatarUrl);
-// Hoặc nếu AliasVersionReplica là một Entity, hãy đảm bảo nó có các trường này.
 
 namespace Post.Application.Aggregates.Comments.Queries.GetComments;
 
@@ -124,7 +121,7 @@ internal sealed class GetCommentsQueryHandler : IQueryHandler<GetCommentsQuery, 
                     comment.Hierarchy.Level
                 ),
                 comment.Moderation.Status.ToString(),
-                comment.CreatedAt!.Value,
+                comment.CreatedAt,
                 comment.LastModified,
                 replies
             ));
@@ -173,7 +170,7 @@ internal sealed class GetCommentsQueryHandler : IQueryHandler<GetCommentsQuery, 
                     reply.Hierarchy.Level
                 ),
                 reply.Moderation.Status.ToString(),
-                reply.CreatedAt!.Value,
+                reply.CreatedAt,
                 reply.LastModified,
                 nestedReplies
             ));

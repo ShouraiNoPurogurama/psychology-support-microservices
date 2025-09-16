@@ -3,11 +3,11 @@ using BuildingBlocks.Exceptions;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Integration;
-using Post.Domain.Aggregates.Comment;
-using Post.Domain.Aggregates.Comment.ValueObjects;
-using Post.Domain.Aggregates.Post.ValueObjects;
 using Post.Domain.Events;
 using Microsoft.EntityFrameworkCore;
+using Post.Domain.Aggregates.Comments;
+using Post.Domain.Aggregates.Comments.ValueObjects;
+using Post.Domain.Aggregates.Posts.ValueObjects;
 
 namespace Post.Application.Aggregates.Comments.Commands.CreateComment;
 
@@ -106,7 +106,7 @@ internal sealed class CreateCommentCommandHandler : ICommandHandler<CreateCommen
             request.Content,
             request.ParentCommentId,
             hierarchy.Level, // Lấy level chính xác từ object hierarchy vừa tạo
-            comment.CreatedAt.Value
+            comment.CreatedAt
         );
     }
 }

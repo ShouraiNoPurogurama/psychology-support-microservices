@@ -5,7 +5,7 @@ using Post.Application.Data;
 using Post.Application.Integration;
 using Post.Domain.Aggregates.Reaction;
 using Post.Domain.Aggregates.Reaction.ValueObjects;
-using Post.Domain.Aggregates.Post.ValueObjects;
+using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Events;
 using Microsoft.EntityFrameworkCore;
 
@@ -78,7 +78,7 @@ internal sealed class CreateReactionCommandHandler : ICommandHandler<CreateReact
                 request.TargetType,
                 request.TargetId,
                 request.ReactionCode,
-                existingReaction.CreatedAt.Value
+                existingReaction.CreatedAt
             );
         }
 
@@ -120,7 +120,7 @@ internal sealed class CreateReactionCommandHandler : ICommandHandler<CreateReact
             request.TargetType,
             request.TargetId,
             request.ReactionCode,
-            reaction.CreatedAt.Value
+            reaction.CreatedAt
         );
     }
 

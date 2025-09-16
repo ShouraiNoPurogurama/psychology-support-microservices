@@ -70,7 +70,7 @@ public class PostAbandonmentBackgroundService : BackgroundService
             var abandonedEvent = new PostAbandonedEvent(
                 post.Id,
                 post.Author.AliasId,
-                post.CreatedAt.Value,
+                post.CreatedAt,
                 DateTime.UtcNow
             );
 

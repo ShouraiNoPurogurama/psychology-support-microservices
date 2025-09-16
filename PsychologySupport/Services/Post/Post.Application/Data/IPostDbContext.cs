@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Post.Domain.Aggregates.CategoryTag;
-using Post.Domain.Aggregates.Comment;
-using Post.Domain.Aggregates.Gift;
-using Post.Domain.Aggregates.Post;
+using Post.Domain.Aggregates.CategoryTags;
+using Post.Domain.Aggregates.Comments;
+using Post.Domain.Aggregates.Gifts;
+using Post.Domain.Aggregates.Posts;
 using Post.Domain.Aggregates.Reaction;
 
 namespace Post.Application.Data;
@@ -14,7 +14,7 @@ namespace Post.Application.Data;
 public interface IPostDbContext
 {
     // Post Aggregate
-    DbSet<Domain.Aggregates.Post.Post> Posts { get; }
+    DbSet<Domain.Aggregates.Posts.Post> Posts { get; }
     DbSet<PostMedia> PostMedia { get; }
     DbSet<PostCategory> PostCategories { get; }
     DbSet<PostEmotion> PostEmotions { get; }

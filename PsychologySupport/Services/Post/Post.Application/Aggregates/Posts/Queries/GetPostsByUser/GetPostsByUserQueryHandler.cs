@@ -36,7 +36,7 @@ internal sealed class GetPostsByUserQueryHandler : IQueryHandler<GetPostsByUserQ
                 p.Metrics.ReactionCount,
                 p.Metrics.CommentCount,
                 p.Metrics.ViewCount,
-                p.CreatedAt.Value,
+                p.CreatedAt,
                 p.EditedAt,
                 p.PublishedAt,
                 p.Media.Select(m => m.MediaId.ToString()).ToList(),

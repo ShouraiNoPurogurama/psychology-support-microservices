@@ -3,10 +3,10 @@ using BuildingBlocks.Exceptions;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Integration;
-using Post.Domain.Aggregates.Gift;
-using Post.Domain.Aggregates.Gift.ValueObjects;
-using Post.Domain.Aggregates.Post.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Post.Domain.Aggregates.Gifts;
+using Post.Domain.Aggregates.Gifts.ValueObjects;
+using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Events;
 
 namespace Post.Application.Aggregates.Gifts.Commands.AttachGift;
@@ -72,7 +72,7 @@ internal sealed class AttachGiftCommandHandler : ICommandHandler<AttachGiftComma
             request.TargetId,
             request.GiftId,
             request.Message,
-            giftAttach.CreatedAt!.Value
+            giftAttach.CreatedAt
         );
     }
 

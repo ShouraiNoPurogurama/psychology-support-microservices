@@ -70,7 +70,7 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, Pagina
                 ),
                 p.Media.Count,
                 p.Categories.Select(pc => pc.CategoryTag.Code).ToList(),
-                p.CreatedAt.Value
+                p.CreatedAt
             ))
             .ToListAsync(cancellationToken);
 

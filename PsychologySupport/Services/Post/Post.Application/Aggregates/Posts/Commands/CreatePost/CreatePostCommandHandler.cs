@@ -38,7 +38,7 @@ internal sealed class CreatePostCommandHandler : ICommandHandler<CreatePostComma
         }
 
         // Create post aggregate
-        var post = Domain.Aggregates.Post.Post.Create(
+        var post = Domain.Aggregates.Posts.Post.Create(
             _actorResolver.AliasId,
             request.Content,
             request.Title,
@@ -61,7 +61,7 @@ internal sealed class CreatePostCommandHandler : ICommandHandler<CreatePostComma
         return new CreatePostResult(
             post.Id,
             post.Moderation.Status.ToString(),
-            post.CreatedAt.Value
+            post.CreatedAt
         );
     }
 }
