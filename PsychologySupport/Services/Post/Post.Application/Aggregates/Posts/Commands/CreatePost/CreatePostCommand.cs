@@ -8,7 +8,7 @@ public record CreatePostCommand(
     string Content,
     string Visibility,
     IEnumerable<Guid>? MediaIds
-) : ICommand<CreatePostResult>;
+) : IdempotentCommand<CreatePostResult>(IdempotencyKey);
 
 public record CreatePostResult(
     Guid Id,

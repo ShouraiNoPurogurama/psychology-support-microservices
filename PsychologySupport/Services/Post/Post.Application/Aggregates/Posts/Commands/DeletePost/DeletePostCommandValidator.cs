@@ -8,6 +8,6 @@ public class DeletePostCommandValidator : AbstractValidator<DeletePostCommand>
     {
         RuleFor(x => x.PostId)
             .NotEmpty()
-            .WithMessage("Post ID is required");
+            .WithMessage("Vui lòng chọn bài viết cần xóa.");
     }
 }

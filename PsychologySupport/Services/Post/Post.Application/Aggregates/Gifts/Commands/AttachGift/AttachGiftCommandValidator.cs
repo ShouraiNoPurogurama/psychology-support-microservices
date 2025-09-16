@@ -10,21 +10,21 @@ public class AttachGiftCommandValidator : AbstractValidator<AttachGiftCommand>
     {
         RuleFor(x => x.TargetType)
             .NotEmpty()
-            .WithMessage("Target type is required")
+            .WithMessage("Vui lòng chọn loại đối tượng nhận quà (Post hoặc Comment).")
             .Must(type => ValidTargetTypes.Contains(type.ToLower()))
-            .WithMessage($"Target type must be one of: {string.Join(", ", ValidTargetTypes)}");
+            .WithMessage($"Loại đối tượng chỉ được phép là: {string.Join(", ", ValidTargetTypes)}.");
 
         RuleFor(x => x.TargetId)
             .NotEmpty()
-            .WithMessage("Target ID is required");
+            .WithMessage("Vui lòng chọn đối tượng nhận quà.");
 
         RuleFor(x => x.GiftId)
             .NotEmpty()
-            .WithMessage("Gift ID is required");
+            .WithMessage("Vui lòng chọn loại quà tặng.");
 
         RuleFor(x => x.Message)
             .MaximumLength(500)
-            .WithMessage("Gift message cannot exceed 500 characters")
+            .WithMessage("Lời nhắn không được vượt quá 500 ký tự.")
             .When(x => !string.IsNullOrEmpty(x.Message));
     }
 }

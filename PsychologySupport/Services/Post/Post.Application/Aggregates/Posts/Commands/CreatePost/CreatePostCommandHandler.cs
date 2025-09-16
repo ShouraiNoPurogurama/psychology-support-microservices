@@ -34,7 +34,7 @@ internal sealed class CreatePostCommandHandler : ICommandHandler<CreatePostComma
         // Parse visibility
         if (!Enum.TryParse<PostVisibility>(request.Visibility, true, out var visibility))
         {
-            throw new BadRequestException("Invalid visibility value", "INVALID_VISIBILITY");
+            throw new BadRequestException("Đối tượng của bài viết không hợp lệ.", "INVALID_VISIBILITY");
         }
 
         // Create post aggregate

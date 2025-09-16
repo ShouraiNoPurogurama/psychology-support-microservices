@@ -13,37 +13,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Aggregates\CategoryTags\Commands\AttachTagsToPost\" />
-      <Folder Include="Aggregates\CategoryTags\Commands\DetachTagsFromPost\" />
-      <Folder Include="Aggregates\CategoryTags\Commands\UpdatePostTags\" />
-      <Folder Include="Aggregates\CategoryTags\Dtos\" />
-      <Folder Include="Aggregates\CategoryTags\Queries\GetCategoryTagsByPost\" />
-      <Folder Include="Aggregates\CategoryTags\Queries\GetPostsByCategoryTag\" />
-      <Folder Include="Aggregates\Comments\Commands\EditComment\" />
-      <Folder Include="Aggregates\Comments\Commands\ReportComment\" />
-      <Folder Include="Aggregates\Comments\Dtos\" />
       <Folder Include="Aggregates\Gifts\Dtos\" />
-      <Folder Include="Aggregates\Posts\Commands\AttachMediaToPost\" />
-      <Folder Include="Aggregates\Posts\Commands\RemoveMediaFromPost\" />
-      <Folder Include="Aggregates\Posts\Commands\ReportPost\" />
-      <Folder Include="Aggregates\Posts\Queries\GetPostsByAliasIds\" />
       <Folder Include="Aggregates\Reactions\" />
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Remove="Aggregates\Posts\Queries\GetPostsByAliasIds\GetPostsByAliasIdsQuery.cs" />
-      <Compile Remove="Aggregates\Posts\Commands\ReportPost\ReportPostCommandValidator.cs" />
-      <Compile Remove="Aggregates\Posts\Commands\ReportPost\ReportPostCommandHandler.cs" />
-      <Compile Remove="Aggregates\Posts\Commands\RemoveMediaFromPost\RemoveMediaFromPostCommandValidator.cs" />
-      <Compile Remove="Aggregates\Posts\Commands\RemoveMediaFromPost\RemoveMediaFromPostCommandHandler.cs" />
-      <Compile Remove="Aggregates\Posts\Commands\AttachMediaToPost\AttachMediaToPostCommandValidator.cs" />
-      <Compile Remove="Aggregates\Posts\Commands\AttachMediaToPost\AttachMediaToPostCommandHandler.cs" />
-      <Compile Remove="Aggregates\Comments\Commands\ReportComment\ReportCommentCommandValidator.cs" />
-      <Compile Remove="Aggregates\Comments\Commands\ReportComment\ReportCommentCommandHandler.cs" />
-      <Compile Remove="Aggregates\Comments\Commands\EditComment\EditCommentCommandValidator.cs" />
-      <Compile Remove="Aggregates\Comments\Commands\EditComment\EditCommentCommandHandler.cs" />
-      <Compile Remove="Aggregates\CategoryTags\Queries\GetPostsByCategoryTag\GetPostsByCategoryTagQueryHandler.cs" />
-      <Compile Remove="Aggregates\CategoryTags\Queries\GetCategoryTagsByPost\GetCategoryTagsByPostQueryHandler.cs" />
       <Compile Remove="Aggregates\CategoryTags\Commands\UpdatePostTags\UpdatePostCategoryTagsCommandValidator.cs" />
       <Compile Remove="Aggregates\CategoryTags\Commands\UpdatePostTags\UpdatePostCategoryTagsCommandHandler.cs" />
       <Compile Remove="Aggregates\CategoryTags\Commands\DetachTagsFromPost\DetachCategoryTagsFromPostCommandValidator.cs" />

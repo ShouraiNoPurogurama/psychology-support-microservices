@@ -10,12 +10,12 @@ public class RemoveReactionCommandValidator : AbstractValidator<RemoveReactionCo
     {
         RuleFor(x => x.TargetType)
             .NotEmpty()
-            .WithMessage("Target type is required")
+            .WithMessage("Vui lòng chọn loại đối tượng cần gỡ cảm xúc (Post hoặc Comment).")
             .Must(type => ValidTargetTypes.Contains(type.ToLower()))
-            .WithMessage($"Target type must be one of: {string.Join(", ", ValidTargetTypes)}");
+            .WithMessage($"Loại đối tượng chỉ được phép là: {string.Join(", ", ValidTargetTypes)}.");
 
         RuleFor(x => x.TargetId)
             .NotEmpty()
-            .WithMessage("Target ID is required");
+            .WithMessage("Vui lòng chọn đối tượng cần gỡ cảm xúc.");
     }
 }

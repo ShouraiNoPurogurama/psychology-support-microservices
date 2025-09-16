@@ -15,7 +15,7 @@ public sealed class Comment : AggregateRoot<Guid>, ISoftDeletable
 
     // Properties
     public Guid PostId { get; private set; }
-    public DateTime EditedAt { get; private set; }
+    public DateTimeOffset EditedAt { get; private set; }
     public int ReactionCount { get; private set; }
     public int ReplyCount { get; private set; }
 

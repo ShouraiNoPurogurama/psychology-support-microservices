@@ -11,18 +11,18 @@ public class CreateReactionCommandValidator : AbstractValidator<CreateReactionCo
     {
         RuleFor(x => x.TargetType)
             .NotEmpty()
-            .WithMessage("Target type is required")
+            .WithMessage("Vui lòng chọn loại đối tượng cần tương tác (Post hoặc Comment).")
             .Must(type => ValidTargetTypes.Contains(type.ToLower()))
-            .WithMessage($"Target type must be one of: {string.Join(", ", ValidTargetTypes)}");
+            .WithMessage($"Loại đối tượng chỉ được phép là: {string.Join(", ", ValidTargetTypes)}.");
 
         RuleFor(x => x.TargetId)
             .NotEmpty()
-            .WithMessage("Target ID is required");
+            .WithMessage("Vui lòng chọn đối tượng cần tương tác.");
 
         RuleFor(x => x.ReactionCode)
             .NotEmpty()
-            .WithMessage("Reaction code is required")
+            .WithMessage("Vui lòng chọn loại cảm xúc.")
             .Must(code => ValidReactionCodes.Contains(code.ToLower()))
-            .WithMessage($"Reaction code must be one of: {string.Join(", ", ValidReactionCodes)}");
+            .WithMessage($"Loại cảm xúc chỉ được phép là: {string.Join(", ", ValidReactionCodes)}.");
     }
 }

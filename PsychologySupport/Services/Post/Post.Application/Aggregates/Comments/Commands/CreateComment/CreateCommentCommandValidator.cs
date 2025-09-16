@@ -8,17 +8,17 @@ public class CreateCommentCommandValidator : AbstractValidator<CreateCommentComm
     {
         RuleFor(x => x.PostId)
             .NotEmpty()
-            .WithMessage("Post ID is required");
+            .WithMessage("Vui lòng chọn bài viết để bình luận.");
 
         RuleFor(x => x.Content)
             .NotEmpty()
-            .WithMessage("Comment content is required")
+            .WithMessage("Vui lòng nhập nội dung bình luận.")
             .MaximumLength(2000)
-            .WithMessage("Comment cannot exceed 2,000 characters");
+            .WithMessage("Nội dung bình luận không được vượt quá 2.000 ký tự.");
 
         RuleFor(x => x.ParentCommentId)
             .NotEqual(Guid.Empty)
-            .WithMessage("Parent comment ID cannot be empty GUID")
+            .WithMessage("Vui lòng chọn bình luận cha hợp lệ.")
             .When(x => x.ParentCommentId.HasValue);
     }
 }

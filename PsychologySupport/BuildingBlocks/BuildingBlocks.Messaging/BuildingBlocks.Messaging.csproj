@@ -16,10 +16,6 @@
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Events\IntegrationEvents\Moderation\" />
-      <Folder Include="Events\IntegrationEvents\Posts\" />
       <Folder Include="Events\Queries\DigitalGoods\" />
-    </ItemGroup>
-    <ItemGroup>
-      <Compile Remove="Events\IntegrationEvents\Posts\PostCategoryTagsUpdatedIntegrationEvent.cs" />
     </ItemGroup>
 </Project>
