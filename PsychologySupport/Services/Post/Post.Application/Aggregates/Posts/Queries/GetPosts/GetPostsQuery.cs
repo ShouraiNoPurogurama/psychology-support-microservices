@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
+using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Aggregates.Posts.Queries.GetPosts;
 
@@ -16,9 +17,9 @@ public record PostSummaryDto(
     Guid Id,
     string Content,
     string? Title,
-    string Visibility,
+    PostVisibility Visibility,
     AuthorSummaryDto Author,
-    string ModerationStatus,
+    ModerationStatus ModerationStatus,
     MetricsSummaryDto Metrics,
     int MediaCount,
     List<string> CategoryCodes,

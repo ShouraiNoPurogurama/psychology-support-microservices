@@ -8,6 +8,7 @@ using Post.Domain.Aggregates.Reaction.ValueObjects;
 using Post.Domain.Aggregates.Posts.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Post.Domain.Aggregates.Reaction.DomainEvents;
+using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.Application.Aggregates.Reactions.Commands.CreateReaction;
 
@@ -38,7 +39,7 @@ internal sealed class CreateReactionCommandHandler : ICommandHandler<CreateReact
 
         // Check if user already has a reaction on this target
         var existingReaction = await _context.Reactions
-            .Where(r => r.Target.TargetType == request.TargetType &&
+            .Where(r => r.Target.TargetType == request.TargetType.ToString() &&
                         r.Target.TargetId == request.TargetId &&
                         r.Author.AliasId == _actorResolver.AliasId &&
                         !r.IsDeleted)
@@ -47,16 +48,16 @@ internal sealed class CreateReactionCommandHandler : ICommandHandler<CreateReact
         if (existingReaction != null)
         {
             // Update existing reaction if different type
-            if (existingReaction.Type.Code != request.ReactionCode)
+            if (existingReaction.Type.Code != request.ReactionCode.ToString().ToLower())
             {
                 var newReactionType = CreateReactionType(request.ReactionCode);
                 existingReaction.UpdateType(newReactionType, _actorResolver.AliasId);
 
                 var reactionUpdatedEvent = new ReactionUpdatedEvent(
                     existingReaction.Id,
-                    request.TargetType,
+                    request.TargetType.ToString().ToLower(),
                     request.TargetId,
-                    request.ReactionCode,
+                    request.ReactionCode.ToString().ToLower(),
                     _actorResolver.AliasId
                 );
                 await _outboxWriter.WriteAsync(reactionUpdatedEvent, cancellationToken);
@@ -84,12 +85,12 @@ internal sealed class CreateReactionCommandHandler : ICommandHandler<CreateReact
 
         // Create new reaction
         var reactionId = Guid.NewGuid();
-        var target = ReactionTarget.Create(request.TargetType, request.TargetId);
+        var target = ReactionTarget.Create(request.TargetType.ToString().ToLower(), request.TargetId);
         var reactionType = CreateReactionType(request.ReactionCode);
         var author = AuthorInfo.Create(_actorResolver.AliasId, aliasVersionId);
 
         var reaction = Reaction.Create(
-            request.TargetType,
+            request.TargetType.ToString().ToLower(),
             request.TargetId,
             reactionType.Code,
             reactionType.Emoji,
@@ -106,9 +107,9 @@ internal sealed class CreateReactionCommandHandler : ICommandHandler<CreateReact
         // Add domain event
         var reactionAddedEvent = new ReactionAddedEvent(
             reaction.Id,
-            request.TargetType,
+            request.TargetType.ToString().ToLower(),
             request.TargetId,
-            request.ReactionCode,
+            request.ReactionCode.ToString().ToLower(),
             _actorResolver.AliasId
         );
         await _outboxWriter.WriteAsync(reactionAddedEvent, cancellationToken);
@@ -124,12 +125,12 @@ internal sealed class CreateReactionCommandHandler : ICommandHandler<CreateReact
         );
     }
 
-    private async Task ValidateTargetExists(string targetType, Guid targetId, CancellationToken cancellationToken)
+    private async Task ValidateTargetExists(ReactionTargetType targetType, Guid targetId, CancellationToken cancellationToken)
     {
-        bool exists = targetType.ToLower() switch
+        bool exists = targetType switch
         {
-            "post" => await _context.Posts.AnyAsync(p => p.Id == targetId && !p.IsDeleted, cancellationToken),
-            "comment" => await _context.Comments.AnyAsync(c => c.Id == targetId && !c.IsDeleted, cancellationToken),
+            ReactionTargetType.Post => await _context.Posts.AnyAsync(p => p.Id == targetId && !p.IsDeleted, cancellationToken),
+            ReactionTargetType.Comment => await _context.Comments.AnyAsync(c => c.Id == targetId && !c.IsDeleted, cancellationToken),
             _ => throw new BadRequestException($"Invalid target type: {targetType}")
         };
 
@@ -139,27 +140,27 @@ internal sealed class CreateReactionCommandHandler : ICommandHandler<CreateReact
         }
     }
 
-    private async Task UpdateTargetCounters(string targetType, Guid targetId, CancellationToken cancellationToken)
+    private async Task UpdateTargetCounters(ReactionTargetType targetType, Guid targetId, CancellationToken cancellationToken)
     {
-        switch (targetType.ToLower())
+        switch (targetType)
         {
-            case "post":
+            case ReactionTargetType.Post:
                 var post = await _context.Posts.FirstAsync(p => p.Id == targetId, cancellationToken);
                 post.IncrementReactionCount();
                 break;
         }
     }
 
-    private static ReactionType CreateReactionType(string code)
+    private static ReactionType CreateReactionType(ReactionCode code)
     {
-        return code.ToLower() switch
+        return code switch
         {
-            "like" => ReactionType.Create("like", "👍", 1),
-            "heart" => ReactionType.Create("heart", "❤️", 2),
-            "laugh" => ReactionType.Create("laugh", "😂", 1),
-            "wow" => ReactionType.Create("wow", "😮", 1),
-            "sad" => ReactionType.Create("sad", "😢", 1),
-            "angry" => ReactionType.Create("angry", "😠", 1),
+            ReactionCode.Like => ReactionType.Create("like", "👍", 1),
+            ReactionCode.Heart => ReactionType.Create("heart", "❤️", 2),
+            ReactionCode.Laugh => ReactionType.Create("laugh", "😂", 1),
+            ReactionCode.Wow => ReactionType.Create("wow", "😮", 1),
+            ReactionCode.Sad => ReactionType.Create("sad", "😢", 1),
+            ReactionCode.Angry => ReactionType.Create("angry", "😠", 1),
             _ => throw new BadRequestException($"Invalid reaction code: {code}")
         };
     }

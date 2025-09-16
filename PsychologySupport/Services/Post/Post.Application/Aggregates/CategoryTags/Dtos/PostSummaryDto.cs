@@ -1,11 +1,13 @@
-﻿namespace Post.Application.Aggregates.CategoryTags.Dtos;
+﻿using Post.Domain.Aggregates.Posts.Enums;
+
+namespace Post.Application.Aggregates.CategoryTags.Dtos;
 
 public record PostSummaryDto(
     Guid Id,
     string? Title,
     string Content,
     Guid AuthorAliasId,
-    string Visibility,
+    PostVisibility Visibility,
     DateTimeOffset PublishedAt,
     DateTimeOffset? EditedAt,
     int ReactionCount,

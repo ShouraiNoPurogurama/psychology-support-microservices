@@ -4,6 +4,7 @@ using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Integration;
+using Post.Domain.Aggregates.CategoryTags.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Post.Application.Aggregates.CategoryTags.Commands.DetachCategoryTagsFromPost;
@@ -63,7 +64,7 @@ internal sealed class DetachCategoryTagsFromPostCommandHandler : ICommandHandler
                 post.Id,
                 _actorResolver.AliasId,
                 detachedCategoryTagIds,
-                "DETACHED",
+                CategoryTagUpdateStatus.Detached.ToString(),
                 DateTimeOffset.UtcNow
             ), cancellationToken);
         }

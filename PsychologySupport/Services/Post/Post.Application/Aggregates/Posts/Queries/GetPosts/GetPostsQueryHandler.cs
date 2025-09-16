@@ -60,9 +60,9 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, Pagina
                 p.Id,
                 p.Content.Value.Length > 300 ? p.Content.Value.Substring(0, 300) + "..." : p.Content.Value,
                 p.Content.Title,
-                p.Visibility.ToString(),
+                p.Visibility,
                 new AuthorSummaryDto(p.Author.AliasId, p.Author.AliasVersionId),
-                p.Moderation.Status.ToString(),
+                p.Moderation.Status,
                 new MetricsSummaryDto(
                     p.Metrics.ReactionCount,
                     p.Metrics.CommentCount,

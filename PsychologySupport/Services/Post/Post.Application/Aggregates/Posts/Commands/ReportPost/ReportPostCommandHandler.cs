@@ -4,6 +4,7 @@ using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Integration;
+using Post.Domain.Aggregates.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Post.Application.Aggregates.Posts.Commands.ReportPost;
@@ -41,7 +42,7 @@ internal sealed class ReportPostCommandHandler : ICommandHandler<ReportPostComma
         // Emit ContentReportedIntegrationEvent to Moderation service via Outbox
         await _outboxWriter.WriteAsync(new ContentReportedIntegrationEvent(
             reportId,
-            "POST",
+            ReportedContentType.Post.ToString(),
             request.PostId,
             post.Author.AliasId,
             _actorResolver.AliasId,

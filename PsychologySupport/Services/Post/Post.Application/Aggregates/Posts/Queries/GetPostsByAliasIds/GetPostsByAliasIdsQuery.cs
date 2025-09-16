@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
+using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Aggregates.Posts.Queries.GetPostsByAliasIds;
 
@@ -18,7 +19,7 @@ public record PostSummaryDto(
     string? Title,
     string Content,
     Guid AuthorAliasId,
-    string Visibility,
+    PostVisibility Visibility,
     DateTimeOffset PublishedAt,
     DateTimeOffset? EditedAt,
     int ReactionCount,

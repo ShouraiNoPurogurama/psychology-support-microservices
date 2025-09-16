@@ -1,30 +1,31 @@
 ﻿using FluentValidation;
+using Post.Domain.Aggregates.Gifts.Enums;
 
 namespace Post.Application.Aggregates.Gifts.Commands.AttachGift;
 
-public class AttachGiftCommandValidator : AbstractValidator<AttachGiftCommand>
+public sealed class AttachGiftCommandValidator : AbstractValidator<AttachGiftCommand>
 {
-    private static readonly string[] ValidTargetTypes = { "post", "comment" };
-
     public AttachGiftCommandValidator()
     {
         RuleFor(x => x.TargetType)
-            .NotEmpty()
-            .WithMessage("Vui lòng chọn loại đối tượng nhận quà (Post hoặc Comment).")
-            .Must(type => ValidTargetTypes.Contains(type.ToLower()))
-            .WithMessage($"Loại đối tượng chỉ được phép là: {string.Join(", ", ValidTargetTypes)}.");
+            .IsInEnum()
+            .WithMessage("TargetType must be a valid GiftTargetType");
 
         RuleFor(x => x.TargetId)
             .NotEmpty()
-            .WithMessage("Vui lòng chọn đối tượng nhận quà.");
+            .WithMessage("TargetId cannot be empty");
 
         RuleFor(x => x.GiftId)
             .NotEmpty()
-            .WithMessage("Vui lòng chọn loại quà tặng.");
+            .WithMessage("GiftId cannot be empty");
+
+        RuleFor(x => x.Quantity)
+            .GreaterThan(0)
+            .WithMessage("Quantity must be greater than 0");
 
         RuleFor(x => x.Message)
             .MaximumLength(500)
-            .WithMessage("Lời nhắn không được vượt quá 500 ký tự.")
-            .When(x => !string.IsNullOrEmpty(x.Message));
+            .When(x => !string.IsNullOrEmpty(x.Message))
+            .WithMessage("Message cannot exceed 500 characters");
     }
 }

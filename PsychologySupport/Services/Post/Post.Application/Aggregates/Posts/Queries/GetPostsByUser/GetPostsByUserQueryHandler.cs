@@ -2,6 +2,7 @@
 using BuildingBlocks.Pagination;
 using Post.Application.Data;
 using Post.Application.Aggregates.Posts.Dtos;
+using Post.Domain.Aggregates.Posts.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Post.Application.Aggregates.Posts.Queries.GetPostsByUser;
@@ -31,8 +32,8 @@ internal sealed class GetPostsByUserQueryHandler : IQueryHandler<GetPostsByUserQ
                 p.Content.Value,
                 p.Content.Title,
                 new AuthorDto(p.Author.AliasId, "Anonymous", ""),
-                p.Visibility.ToString(),
-                p.Moderation.Status.ToString(),
+                p.Visibility,
+                p.Moderation.Status,
                 p.Metrics.ReactionCount,
                 p.Metrics.CommentCount,
                 p.Metrics.ViewCount,

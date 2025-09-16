@@ -9,10 +9,8 @@ public sealed record PostContent
     public int WordCount { get; init; }
     public int CharacterCount { get; init; }
 
-    // EF Core materialization
     private PostContent() { }
 
-    // Ctor kín – chỉ factory gọi
     private PostContent(string value, string? title, int wordCount, int charCount)
     {
         Value = value;

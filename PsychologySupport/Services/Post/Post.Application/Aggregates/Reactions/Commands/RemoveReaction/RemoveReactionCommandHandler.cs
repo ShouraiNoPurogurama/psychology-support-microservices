@@ -4,6 +4,7 @@ using Post.Application.Data;
 using Post.Application.Integration;
 using Microsoft.EntityFrameworkCore;
 using Post.Domain.Aggregates.Reaction.DomainEvents;
+using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.Application.Aggregates.Reactions.Commands.RemoveReaction;
 
@@ -30,7 +31,7 @@ internal sealed class RemoveReactionCommandHandler : ICommandHandler<RemoveReact
         var aliasContext = await _aliasResolver.GetCurrentAliasVersionIdAsync(cancellationToken);
 
         var reaction = await _context.Reactions
-            .Where(r => r.Target.TargetType == request.TargetType && 
+            .Where(r => r.Target.TargetType == request.TargetType.ToString() && 
                        r.Target.TargetId == request.TargetId &&
                        r.Author.AliasId == _actorResolver.AliasId &&
                        !r.IsDeleted)
@@ -50,7 +51,7 @@ internal sealed class RemoveReactionCommandHandler : ICommandHandler<RemoveReact
         // Add domain event
         var reactionRemovedEvent = new ReactionRemovedEvent(
             reaction.Id,
-            request.TargetType,
+            request.TargetType.ToString().ToLower(),
             request.TargetId,
             reaction.Type.Code,
             _actorResolver.AliasId
@@ -62,11 +63,11 @@ internal sealed class RemoveReactionCommandHandler : ICommandHandler<RemoveReact
         return new RemoveReactionResult(true, reaction.DeletedAt!.Value);
     }
 
-    private async Task UpdateTargetCounters(string targetType, Guid targetId, CancellationToken cancellationToken)
+    private async Task UpdateTargetCounters(ReactionTargetType targetType, Guid targetId, CancellationToken cancellationToken)
     {
-        switch (targetType.ToLower())
+        switch (targetType)
         {
-            case "post":
+            case ReactionTargetType.Post:
                 var post = await _context.Posts.FirstAsync(p => p.Id == targetId, cancellationToken);
                 post.DecrementReactionCount();
                 break;

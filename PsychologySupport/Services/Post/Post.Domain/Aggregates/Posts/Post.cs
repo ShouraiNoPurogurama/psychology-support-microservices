@@ -7,19 +7,19 @@ namespace Post.Domain.Aggregates.Posts;
 
 public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
 {
-    // Value Objects
+    //VOs
     public PostContent   Content    { get; private set; } = null!;
     public AuthorInfo    Author     { get; private set; } = null!;
     public ModerationInfo Moderation { get; private set; } = null!;
     public PostMetrics   Metrics    { get; private set; } = null!;
 
-    // Properties
+    //Properties
     public PostVisibility Visibility { get; private set; } = PostVisibility.Draft;
     public bool IsAbandonmentEventEmitted { get; private set; } = false;
     public DateTime PublishedAt { get; private set; }
     public DateTime? EditedAt   { get; private set; }
 
-    // Collections
+    //Collections
     private readonly List<PostMedia>    _media      = new();
     private readonly List<PostCategory> _categories = new();
     private readonly List<PostEmotion>  _emotions   = new();
@@ -60,7 +60,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
             post.Content.Value,
             post.Content.Title,
             post.Visibility.ToString(),
-            new List<string>(),
+            [],
             post.PublishedAt));
         return post;
     }

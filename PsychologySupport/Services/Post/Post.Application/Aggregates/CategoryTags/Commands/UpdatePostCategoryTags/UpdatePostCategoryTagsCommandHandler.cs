@@ -4,6 +4,7 @@ using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Integration;
+using Post.Domain.Aggregates.CategoryTags.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Post.Application.Aggregates.CategoryTags.Commands.UpdatePostCategoryTags;
@@ -92,7 +93,7 @@ internal sealed class UpdatePostCategoryTagsCommandHandler : ICommandHandler<Upd
                 post.Id,
                 _actorResolver.AliasId,
                 addedCategoryTagIds.Concat(removedCategoryTagIds),
-                "UPDATED",
+                CategoryTagUpdateStatus.Updated.ToString(),
                 DateTimeOffset.UtcNow
             ), cancellationToken);
         }

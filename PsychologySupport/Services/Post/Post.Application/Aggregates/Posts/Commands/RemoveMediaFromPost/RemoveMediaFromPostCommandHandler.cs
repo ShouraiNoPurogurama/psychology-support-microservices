@@ -4,6 +4,7 @@ using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Integration;
+using Post.Domain.Aggregates.Posts.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Post.Application.Aggregates.Posts.Commands.RemoveMediaFromPost;
@@ -51,7 +52,7 @@ internal sealed class RemoveMediaFromPostCommandHandler : ICommandHandler<Remove
             post.Id,
             _actorResolver.AliasId,
             new[] { request.MediaId },
-            "REMOVED",
+            PostMediaUpdateStatus.Removed.ToString(),
             DateTimeOffset.UtcNow
         ), cancellationToken);
 

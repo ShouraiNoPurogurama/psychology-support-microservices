@@ -1,9 +1,10 @@
 ﻿using BuildingBlocks.CQRS;
+using Post.Domain.Aggregates.Gifts.Enums;
 
 namespace Post.Application.Aggregates.Gifts.Commands.AttachGift;
 
 public record AttachGiftCommand(
-    string TargetType, // "post" or "comment"
+    GiftTargetType TargetType,
     Guid TargetId,
     Guid GiftId,
     int Quantity,
@@ -12,7 +13,7 @@ public record AttachGiftCommand(
 
 public record AttachGiftResult(
     Guid GiftAttachId,
-    string TargetType,
+    GiftTargetType TargetType,
     Guid TargetId,
     Guid GiftId,
     string? Message,

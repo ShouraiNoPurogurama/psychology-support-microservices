@@ -8,6 +8,7 @@ using Post.Domain.Aggregates.Gifts;
 using Post.Domain.Aggregates.Gifts.DomainEvents;
 using Post.Domain.Aggregates.Gifts.ValueObjects;
 using Post.Domain.Aggregates.Posts.ValueObjects;
+using Post.Domain.Aggregates.Gifts.Enums;
 
 namespace Post.Application.Aggregates.Gifts.Commands.AttachGift;
 
@@ -38,12 +39,12 @@ internal sealed class AttachGiftCommandHandler : ICommandHandler<AttachGiftComma
 
         // Create gift attachment
         var giftAttachId = Guid.NewGuid();
-        var target = GiftTarget.Create(request.TargetType, request.TargetId);
+        var target = GiftTarget.Create(request.TargetType.ToString(), request.TargetId);
         var sender = AuthorInfo.Create(_actorResolver.AliasId, aliasVersionId);
         var giftInfo = GiftInfo.Create(request.GiftId);
 
         var giftAttach = GiftAttach.Create(
-            request.TargetType,
+            request.TargetType.ToString(),
             request.TargetId,
             giftInfo.GiftId,
             sender.AliasId,
@@ -76,12 +77,12 @@ internal sealed class AttachGiftCommandHandler : ICommandHandler<AttachGiftComma
         );
     }
 
-    private async Task ValidateTargetExists(string targetType, Guid targetId, CancellationToken cancellationToken)
+    private async Task ValidateTargetExists(GiftTargetType targetType, Guid targetId, CancellationToken cancellationToken)
     {
-        bool exists = targetType.ToLower() switch
+        bool exists = targetType switch
         {
-            "post" => await _context.Posts.AnyAsync(p => p.Id == targetId && !p.IsDeleted, cancellationToken),
-            "comment" => await _context.Comments.AnyAsync(c => c.Id == targetId && !c.IsDeleted, cancellationToken),
+            GiftTargetType.Post => await _context.Posts.AnyAsync(p => p.Id == targetId && !p.IsDeleted, cancellationToken),
+            GiftTargetType.Comment => await _context.Comments.AnyAsync(c => c.Id == targetId && !c.IsDeleted, cancellationToken),
             _ => throw new BadRequestException($"Invalid target type: {targetType}")
         };
 

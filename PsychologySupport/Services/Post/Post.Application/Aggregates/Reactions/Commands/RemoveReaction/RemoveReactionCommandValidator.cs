@@ -1,21 +1,18 @@
 ﻿using FluentValidation;
+using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.Application.Aggregates.Reactions.Commands.RemoveReaction;
 
-public class RemoveReactionCommandValidator : AbstractValidator<RemoveReactionCommand>
+public sealed class RemoveReactionCommandValidator : AbstractValidator<RemoveReactionCommand>
 {
-    private static readonly string[] ValidTargetTypes = { "post", "comment" };
-
     public RemoveReactionCommandValidator()
     {
         RuleFor(x => x.TargetType)
-            .NotEmpty()
-            .WithMessage("Vui lòng chọn loại đối tượng cần gỡ cảm xúc (Post hoặc Comment).")
-            .Must(type => ValidTargetTypes.Contains(type.ToLower()))
-            .WithMessage($"Loại đối tượng chỉ được phép là: {string.Join(", ", ValidTargetTypes)}.");
+            .IsInEnum()
+            .WithMessage("TargetType must be a valid ReactionTargetType");
 
         RuleFor(x => x.TargetId)
             .NotEmpty()
-            .WithMessage("Vui lòng chọn đối tượng cần gỡ cảm xúc.");
+            .WithMessage("TargetId cannot be empty");
     }
 }

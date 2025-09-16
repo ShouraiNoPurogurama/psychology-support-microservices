@@ -1,12 +1,14 @@
-﻿namespace Post.Application.Aggregates.Posts.Dtos;
+﻿using Post.Domain.Aggregates.Posts.Enums;
+
+namespace Post.Application.Aggregates.Posts.Dtos;
 
 public sealed record PostDto(
     Guid Id,
     string Content,
     string? Title,
     AuthorDto Author,
-    string Visibility,
-    string ModerationStatus,
+    PostVisibility Visibility,
+    ModerationStatus ModerationStatus,
     int ReactionCount,
     int CommentCount,
     int ViewCount,

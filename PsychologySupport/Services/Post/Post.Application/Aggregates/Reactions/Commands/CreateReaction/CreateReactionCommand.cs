@@ -1,17 +1,18 @@
 ﻿using BuildingBlocks.CQRS;
+using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.Application.Aggregates.Reactions.Commands.CreateReaction;
 
 public record CreateReactionCommand(
-    string TargetType, // "post" or "comment"
+    ReactionTargetType TargetType,
     Guid TargetId,
-    string ReactionCode // "like", "heart", "laugh", etc.
+    ReactionCode ReactionCode
 ) : ICommand<CreateReactionResult>;
 
 public record CreateReactionResult(
     Guid ReactionId,
-    string TargetType,
+    ReactionTargetType TargetType,
     Guid TargetId,
-    string ReactionCode,
+    ReactionCode ReactionCode,
     DateTimeOffset CreatedAt
 );

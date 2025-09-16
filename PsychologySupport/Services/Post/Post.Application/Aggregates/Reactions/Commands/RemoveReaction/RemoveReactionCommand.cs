@@ -1,9 +1,10 @@
 ﻿using BuildingBlocks.CQRS;
+using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.Application.Aggregates.Reactions.Commands.RemoveReaction;
 
 public record RemoveReactionCommand(
-    string TargetType,
+    ReactionTargetType TargetType,
     Guid TargetId
 ) : ICommand<RemoveReactionResult>;
 

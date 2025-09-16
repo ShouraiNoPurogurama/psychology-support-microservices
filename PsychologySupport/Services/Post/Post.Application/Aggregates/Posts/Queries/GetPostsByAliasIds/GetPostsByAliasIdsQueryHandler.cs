@@ -28,7 +28,7 @@ internal sealed class GetPostsByAliasIdsQueryHandler : IQueryHandler<GetPostsByA
                 p.Content.Title,
                 p.Content.Value,
                 p.Author.AliasId,
-                p.Visibility.ToString(),
+                p.Visibility,
                 new DateTimeOffset(p.PublishedAt),
                 p.EditedAt.HasValue ? new DateTimeOffset(p.EditedAt.Value) : null,
                 p.Metrics.ReactionCount,
