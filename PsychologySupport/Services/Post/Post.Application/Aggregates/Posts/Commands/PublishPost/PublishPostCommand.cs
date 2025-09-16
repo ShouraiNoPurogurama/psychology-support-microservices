@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
+using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Aggregates.Posts.Commands.PublishPost;
 
@@ -9,6 +10,6 @@ public record PublishPostCommand(
 
 public record PublishPostResult(
     Guid PostId,
-    string Status,
+    PostVisibility Visibility,
     DateTimeOffset PublishedAt
 );

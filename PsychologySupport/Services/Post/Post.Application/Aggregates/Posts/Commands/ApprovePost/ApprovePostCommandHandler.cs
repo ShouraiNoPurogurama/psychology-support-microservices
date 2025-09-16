@@ -9,7 +9,7 @@ using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Aggregates.Posts.Commands.ApprovePost;
 
-internal sealed class ApprovePostCommandHandler : ICommandHandler<ApprovePostCommand, ApprovePostResult>
+public sealed class ApprovePostCommandHandler : ICommandHandler<ApprovePostCommand, ApprovePostResult>
 {
     private readonly IPostDbContext _context;
     private readonly IActorResolver _actorResolver;

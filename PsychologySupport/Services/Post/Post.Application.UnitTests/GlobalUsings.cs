@@ -1,0 +1,7 @@
+﻿// Global using directives
+
+global using Moq;
+global using Post.Application.Abstractions.Authentication;
+global using Post.Application.Data;
+global using Post.Application.Integration;
+global using Post.Domain.Exceptions;

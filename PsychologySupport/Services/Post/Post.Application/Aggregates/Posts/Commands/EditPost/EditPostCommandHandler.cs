@@ -9,7 +9,7 @@ using Post.Domain.Aggregates.Posts.DomainEvents;
 
 namespace Post.Application.Aggregates.Posts.Commands.EditPost;
 
-internal sealed class EditPostCommandHandler : ICommandHandler<EditPostCommand, EditPostResult>
+public sealed class EditPostCommandHandler : ICommandHandler<EditPostCommand, EditPostResult>
 {
     private readonly IPostDbContext _context;
     private readonly IAliasVersionResolver _aliasResolver;

@@ -12,7 +12,7 @@ using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.Application.Aggregates.Reactions.Commands.CreateReaction;
 
-internal sealed class CreateReactionCommandHandler : ICommandHandler<CreateReactionCommand, CreateReactionResult>
+public sealed class CreateReactionCommandHandler : ICommandHandler<CreateReactionCommand, CreateReactionResult>
 {
     private readonly IPostDbContext _context;
     private readonly IAliasVersionResolver _aliasResolver;

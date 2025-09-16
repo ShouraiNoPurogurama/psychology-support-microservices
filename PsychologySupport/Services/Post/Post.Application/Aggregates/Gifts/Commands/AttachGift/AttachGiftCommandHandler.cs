@@ -12,7 +12,7 @@ using Post.Domain.Aggregates.Gifts.Enums;
 
 namespace Post.Application.Aggregates.Gifts.Commands.AttachGift;
 
-internal sealed class AttachGiftCommandHandler : ICommandHandler<AttachGiftCommand, AttachGiftResult>
+public sealed class AttachGiftCommandHandler : ICommandHandler<AttachGiftCommand, AttachGiftResult>
 {
     private readonly IPostDbContext _context;
     private readonly IAliasVersionResolver _aliasResolver;

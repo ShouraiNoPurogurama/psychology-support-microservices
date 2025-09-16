@@ -9,7 +9,7 @@ using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Aggregates.Posts.Commands.AttachMediaToPost;
 
-internal sealed class AttachMediaToPostCommandHandler : ICommandHandler<AttachMediaToPostCommand, AttachMediaToPostResult>
+public sealed class AttachMediaToPostCommandHandler : ICommandHandler<AttachMediaToPostCommand, AttachMediaToPostResult>
 {
     private readonly IPostDbContext _context;
     private readonly IActorResolver _actorResolver;

@@ -1,15 +1,9 @@
 ﻿using FluentAssertions;
 using NSubstitute;
 using Post.Application.Aggregates.Reactions.Commands.CreateReaction;
-using Post.Application.Data;
-using Post.Application.Abstractions.Authentication;
-using Post.Application.Integration;
 using Post.Domain.Aggregates.Reactions.Enums;
-using Xunit;
-using BuildingBlocks.Exceptions;
-using Microsoft.EntityFrameworkCore;
 
-namespace Post.Application.UnitTests.Aggregates.Reactions.Commands;
+namespace Post.UnitTests.Aggregates.Reactions.Commands;
 
 public sealed class CreateReactionCommandHandlerTests
 {

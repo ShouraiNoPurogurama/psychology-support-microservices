@@ -9,7 +9,7 @@ using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Aggregates.Posts.Commands.PublishPost;
 
-internal sealed class PublishPostCommandHandler : ICommandHandler<PublishPostCommand, PublishPostResult>
+public sealed class PublishPostCommandHandler : ICommandHandler<PublishPostCommand, PublishPostResult>
 {
     private readonly IPostDbContext _context;
     private readonly IActorResolver _actorResolver;
@@ -51,7 +51,7 @@ internal sealed class PublishPostCommandHandler : ICommandHandler<PublishPostCom
 
         return new PublishPostResult(
             post.Id,
-            post.Visibility.ToString(),
+            post.Visibility,
             DateTimeOffset.UtcNow
         );
     }

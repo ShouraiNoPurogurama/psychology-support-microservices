@@ -1,14 +1,10 @@
-﻿using FluentAssertions;
+﻿using BuildingBlocks.Exceptions;
+using FluentAssertions;
 using NSubstitute;
 using Post.Application.Aggregates.Gifts.Commands.AttachGift;
-using Post.Application.Data;
-using Post.Application.Abstractions.Authentication;
-using Post.Application.Integration;
 using Post.Domain.Aggregates.Gifts.Enums;
-using Xunit;
-using BuildingBlocks.Exceptions;
 
-namespace Post.Application.UnitTests.Aggregates.Gifts.Commands;
+namespace Post.UnitTests.Aggregates.Gifts.Commands;
 
 public sealed class AttachGiftCommandHandlerTests
 {

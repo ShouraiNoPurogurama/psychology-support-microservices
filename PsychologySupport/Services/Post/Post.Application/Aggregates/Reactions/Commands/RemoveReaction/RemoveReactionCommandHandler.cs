@@ -8,7 +8,7 @@ using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.Application.Aggregates.Reactions.Commands.RemoveReaction;
 
-internal sealed class RemoveReactionCommandHandler : ICommandHandler<RemoveReactionCommand, RemoveReactionResult>
+public sealed class RemoveReactionCommandHandler : ICommandHandler<RemoveReactionCommand, RemoveReactionResult>
 {
     private readonly IPostDbContext _context;
     private readonly IAliasVersionResolver _aliasResolver;

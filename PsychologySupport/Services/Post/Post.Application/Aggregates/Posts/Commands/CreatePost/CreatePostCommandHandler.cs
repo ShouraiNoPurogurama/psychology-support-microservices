@@ -8,7 +8,7 @@ using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Aggregates.Posts.Commands.CreatePost;
 
-internal sealed class CreatePostCommandHandler : ICommandHandler<CreatePostCommand, CreatePostResult>
+public sealed class CreatePostCommandHandler : ICommandHandler<CreatePostCommand, CreatePostResult>
 {
     private readonly IPostDbContext _context;
     private readonly IAliasVersionResolver _aliasResolver;
