@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Post.Tests.Contract": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:1727;http://localhost:1728"
+    }
+  }
+}

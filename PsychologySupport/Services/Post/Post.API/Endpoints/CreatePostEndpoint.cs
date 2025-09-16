@@ -4,13 +4,14 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Post.Application.Aggregates.Posts.Commands.CreatePost;
+using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.API.Endpoints;
 
 public sealed record CreatePostRequest(
     string Content,
     string? Title,
-    string Visibility,
+    PostVisibility Visibility,
     IEnumerable<Guid>? MediaIds
 );
 

@@ -31,11 +31,6 @@ internal sealed class CreatePostCommandHandler : ICommandHandler<CreatePostComma
     {
         var aliasVersionId = await _aliasResolver.GetCurrentAliasVersionIdAsync(cancellationToken);
         
-        // Parse visibility
-        if (!Enum.TryParse<PostVisibility>(request.Visibility, true, out var visibility))
-        {
-            throw new BadRequestException("Đối tượng của bài viết không hợp lệ.", "INVALID_VISIBILITY");
-        }
 
         // Create post aggregate
         var post = Domain.Aggregates.Posts.Post.Create(
@@ -43,7 +38,7 @@ internal sealed class CreatePostCommandHandler : ICommandHandler<CreatePostComma
             request.Content,
             request.Title,
             aliasVersionId,
-            visibility
+            request.Visibility
         );
 
         // Add media if provided

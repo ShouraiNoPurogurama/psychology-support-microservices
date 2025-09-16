@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
+using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Aggregates.Posts.Commands.CreatePost;
 
@@ -6,7 +7,7 @@ public record CreatePostCommand(
     Guid IdempotencyKey,
     string? Title,
     string Content,
-    string Visibility,
+    PostVisibility Visibility,
     IEnumerable<Guid>? MediaIds
 ) : IdempotentCommand<CreatePostResult>(IdempotencyKey);
 
