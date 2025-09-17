@@ -1,7 +1,9 @@
-﻿using Alias.API.Domains.Aliases.Enums;
-using Alias.API.Models.Public;
+﻿using Alias.API.Aliases.Models;
+using Alias.API.Aliases.Models.Enums;
 
 namespace Alias.API.Data.Public;
+
+using Alias = Aliases.Models.Alias;
 
 public partial class AliasDbContext : DbContext
 {
@@ -10,7 +12,7 @@ public partial class AliasDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Models.Public.Alias> Aliases { get; set; }
+    public virtual DbSet<Alias> Aliases { get; set; }
 
     public virtual DbSet<AliasAudit> AliasAudits { get; set; }
 
@@ -23,7 +25,7 @@ public partial class AliasDbContext : DbContext
         //     .HasPostgresEnum<NicknameSource>("public", "nickname_source")
         //     .HasPostgresExtension("citext");
 
-        modelBuilder.Entity<Models.Public.Alias>(entity =>
+        modelBuilder.Entity<Alias>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("aliases_pkey");
 
@@ -38,7 +40,7 @@ public partial class AliasDbContext : DbContext
             entity.Property(e => e.LastModified).HasColumnName("last_modified");
             entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
 
-            entity.Property(e => e.AliasVisibility)
+            entity.Property(e => e.Visibility)
                 .HasDefaultValue(AliasVisibility.Public)
                 .HasSentinel(AliasVisibility.Public)
                 .HasConversion(s => s.ToString(),
@@ -114,10 +116,11 @@ public partial class AliasDbContext : DbContext
             entity.Property(e => e.ValidFrom).HasColumnName("valid_from");
             entity.Property(e => e.ValidTo).HasColumnName("valid_to");
 
-            entity.HasOne(d => d.Alias)
-                .WithMany(p => p.AliasVersions)
-                .HasForeignKey(d => d.AliasId)
-                .HasConstraintName("alias_versions_alias_id_fkey");
+            modelBuilder.Entity<Alias>()
+                .HasOne(a => a.CurrentVersion)
+                .WithOne()
+                .HasForeignKey<Alias>(a => a.CurrentVersionId)
+                .OnDelete(DeleteBehavior.SetNull); // Đảm bảo xử lý khi phiên bản bị xóa
 
             entity.HasIndex(e => e.AliasId, "ix_alias_versions_alias_id");
         });
