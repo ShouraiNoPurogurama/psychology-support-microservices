@@ -5,13 +5,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Post.API;
-using Post.Application.Aggregates.Posts.Commands.CreatePost;
-using Post.Application.Aggregates.Posts.Commands.AttachMediaToPost;
-using Post.Application.Aggregates.Posts.Commands.PublishPost;
-using Post.Application.Aggregates.Posts.Commands.ApprovePost;
 using Post.Domain.Aggregates.Posts.Enums;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Post.Application.Features.Posts.Commands.CreatePost;
 using Post.Infrastructure.Data.Post;
 
 namespace Post.Tests.Contract.Endpoints.Posts;

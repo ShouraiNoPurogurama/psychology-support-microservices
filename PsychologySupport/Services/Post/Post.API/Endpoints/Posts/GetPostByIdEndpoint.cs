@@ -1,8 +1,8 @@
-﻿using Post.Application.Aggregates.Posts.Queries.GetPostById;
-using Post.Application.Aggregates.Posts.Dtos;
-using Carter;
+﻿using Carter;
 using Mapster;
 using MediatR;
+using Post.Application.Features.Posts.Dtos;
+using Post.Application.Features.Posts.Queries.GetPostById;
 
 namespace Post.API.Endpoints.Posts;
 

@@ -1,13 +1,14 @@
 ﻿using BuildingBlocks.Exceptions;
-using Post.Application.Aggregates.Posts.Commands.EditPost;
+using Post.Application.Abstractions.Integration;
+using Post.Application.Features.Posts.Commands.EditPost;
 
 namespace Post.UnitTests.Aggregates.Posts.Commands.EditPost
 {
     public class EditPostCommandHandlerTests
     {
         private readonly Mock<IPostDbContext> _dbContextMock;
-        private readonly Mock<IAliasVersionResolver> _aliasVersionResolverMock;
-        private readonly Mock<IActorResolver> _actorResolverMock;
+        private readonly Mock<IAliasVersionAccessor> _aliasVersionResolverMock;
+        private readonly Mock<ICurrentActorAccessor> _actorResolverMock;
         private readonly Mock<IOutboxWriter> _outboxWriterMock;
         private readonly EditPostCommandHandler _handler;
         private readonly Guid _currentUserAliasId = Guid.NewGuid();
@@ -16,12 +17,12 @@ namespace Post.UnitTests.Aggregates.Posts.Commands.EditPost
         public EditPostCommandHandlerTests()
         {
             _dbContextMock = new Mock<IPostDbContext>();
-            _actorResolverMock = new Mock<IActorResolver>();
-            _aliasVersionResolverMock = new Mock<IAliasVersionResolver>();
+            _actorResolverMock = new Mock<ICurrentActorAccessor>();
+            _aliasVersionResolverMock = new Mock<IAliasVersionAccessor>();
             _outboxWriterMock = new Mock<IOutboxWriter>();
 
             // Common setup
-            _actorResolverMock.Setup(x => x.AliasId).Returns(_currentUserAliasId);
+            _actorResolverMock.Setup(x => x.GetRequiredAliasId()).Returns(_currentUserAliasId);
 
             _handler = new EditPostCommandHandler(
                 _dbContextMock.Object,

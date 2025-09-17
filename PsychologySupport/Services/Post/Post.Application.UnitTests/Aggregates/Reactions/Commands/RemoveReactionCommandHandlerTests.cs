@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using NSubstitute;
-using Post.Application.Aggregates.Reactions.Commands.RemoveReaction;
+using Post.Application.Abstractions.Integration;
+using Post.Application.Features.Reactions.Commands.RemoveReaction;
 using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.UnitTests.Aggregates.Reactions.Commands;
@@ -8,18 +9,18 @@ namespace Post.UnitTests.Aggregates.Reactions.Commands;
 public sealed class RemoveReactionCommandHandlerTests
 {
     private readonly IPostDbContext _context;
-    private readonly IAliasVersionResolver _aliasResolver;
-    private readonly IActorResolver _actorResolver;
+    private readonly IAliasVersionAccessor _aliasAccessor;
+    private readonly ICurrentActorAccessor _currentActorAccessor;
     private readonly IOutboxWriter _outboxWriter;
     private readonly RemoveReactionCommandHandler _handler;
 
     public RemoveReactionCommandHandlerTests()
     {
         _context = Substitute.For<IPostDbContext>();
-        _aliasResolver = Substitute.For<IAliasVersionResolver>();
-        _actorResolver = Substitute.For<IActorResolver>();
+        _aliasAccessor = Substitute.For<IAliasVersionAccessor>();
+        _currentActorAccessor = Substitute.For<ICurrentActorAccessor>();
         _outboxWriter = Substitute.For<IOutboxWriter>();
-        _handler = new RemoveReactionCommandHandler(_context, _aliasResolver, _outboxWriter, _actorResolver);
+        _handler = new RemoveReactionCommandHandler(_context, _aliasAccessor, _outboxWriter, _currentActorAccessor);
     }
 
     [Fact]
@@ -31,9 +32,9 @@ public sealed class RemoveReactionCommandHandlerTests
             Guid.NewGuid()
         );
 
-        _aliasResolver.GetCurrentAliasVersionIdAsync(Arg.Any<CancellationToken>())
+        _aliasAccessor.GetRequiredCurrentAliasVersionIdAsync(Arg.Any<CancellationToken>())
             .Returns(Guid.NewGuid());
-        _actorResolver.AliasId.Returns(Guid.NewGuid());
+        _currentActorAccessor.GetRequiredAliasId().Returns(Guid.NewGuid());
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -54,9 +55,9 @@ public sealed class RemoveReactionCommandHandlerTests
             Guid.NewGuid()
         );
 
-        _aliasResolver.GetCurrentAliasVersionIdAsync(Arg.Any<CancellationToken>())
+        _aliasAccessor.GetRequiredCurrentAliasVersionIdAsync(Arg.Any<CancellationToken>())
             .Returns(Guid.NewGuid());
-        _actorResolver.AliasId.Returns(Guid.NewGuid());
+        _currentActorAccessor.GetRequiredAliasId().Returns(Guid.NewGuid());
 
         // Act & Assert
         await FluentActions.Invoking(() => _handler.Handle(command, CancellationToken.None))

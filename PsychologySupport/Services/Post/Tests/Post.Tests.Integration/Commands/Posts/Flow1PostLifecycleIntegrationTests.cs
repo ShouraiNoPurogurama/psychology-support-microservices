@@ -1,18 +1,18 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using Post.Application.Aggregates.Posts.Commands.AttachMediaToPost;
-using Post.Application.Aggregates.Posts.Commands.PublishPost;
-using Post.Application.Aggregates.Posts.Commands.ApprovePost;
 using Post.Application.Data;
 using Post.Domain.Aggregates.Posts.Enums;
 using Testcontainers.PostgreSql;
 using Post.Infrastructure.Data.Post;
-using Post.Application.Integration;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using BuildingBlocks.Exceptions;
 using Post.Application.Abstractions.Authentication;
-using Post.Application.Aggregates.Posts.Commands.CreatePost;
+using Post.Application.Abstractions.Integration;
+using Post.Application.Features.Posts.Commands.ApprovePost;
+using Post.Application.Features.Posts.Commands.AttachMediaToPost;
+using Post.Application.Features.Posts.Commands.CreatePost;
+using Post.Application.Features.Posts.Commands.PublishPost;
 using Xunit;
 
 namespace Post.Tests.Integration.Commands.Posts;
@@ -42,8 +42,8 @@ public class Flow1PostLifecycleIntegrationTests : IAsyncLifetime
         services.AddScoped<IPostDbContext>(provider => provider.GetRequiredService<PostDbContext>());
         
         services.AddScoped<IOutboxWriter, TestOutboxWriter>();
-        services.AddScoped<IActorResolver, TestActorResolver>();
-        services.AddScoped<IAliasVersionResolver, TestAliasVersionResolver>();
+        services.AddScoped<ICurrentActorAccessor, TestCurrentActorAccessor>();
+        services.AddScoped<IAliasVersionAccessor, TestAliasVersionAccessor>();
         
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AttachMediaToPostCommandHandler).Assembly));
 

@@ -1,10 +1,10 @@
-﻿using Post.Application.Aggregates.Posts.Commands.CreatePost;
-using Post.Domain.Aggregates.Posts.Enums;
+﻿using Post.Domain.Aggregates.Posts.Enums;
 using Carter;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using BuildingBlocks.Exceptions;
+using Post.Application.Features.Posts.Commands.CreatePost;
 
 namespace Post.API.Endpoints.Posts;
 

@@ -1,13 +1,13 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using Post.Application.Aggregates.Posts.Commands.CreatePost;
 using Post.Application.Data;
 using Post.Domain.Aggregates.Posts.Enums;
 using Testcontainers.PostgreSql;
 using Post.Infrastructure.Data.Post;
-using Post.Application.Integration;
 using Post.Application.Abstractions.Authentication;
+using Post.Application.Abstractions.Integration;
+using Post.Application.Features.Posts.Commands.CreatePost;
 using Xunit;
 
 namespace Post.Tests.Integration.Commands.Posts;
@@ -38,8 +38,8 @@ public class CreatePostCommandIntegrationTests : IAsyncLifetime
         
         // Mock dependencies
         services.AddScoped<IOutboxWriter, TestOutboxWriter>();
-        services.AddScoped<IActorResolver, TestActorResolver>();
-        services.AddScoped<IAliasVersionResolver, TestAliasVersionResolver>();
+        services.AddScoped<ICurrentActorAccessor, TestCurrentActorAccessor>();
+        services.AddScoped<IAliasVersionAccessor, TestAliasVersionAccessor>();
         
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreatePostCommandHandler).Assembly));
 
@@ -164,15 +164,43 @@ public class TestOutboxWriter : IOutboxWriter
     }
 }
 
-public class TestActorResolver : IActorResolver
+internal static class TestGuids
 {
-    public Guid AliasId { get; } = Guid.NewGuid();
+    public static readonly Guid AliasId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    public static readonly Guid AliasVersionId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
 }
 
-public class TestAliasVersionResolver : IAliasVersionResolver
+
+public class TestCurrentActorAccessor : ICurrentActorAccessor
 {
-    public Task<Guid> GetCurrentAliasVersionIdAsync(CancellationToken cancellationToken = default)
+    private readonly Guid _aliasId;
+    public TestCurrentActorAccessor(Guid? aliasId = null)
     {
-        return Task.FromResult(Guid.NewGuid());
+        _aliasId = aliasId ?? TestGuids.AliasId;
     }
+
+    public bool TryGetAliasId(out Guid aliasId)
+    {
+        aliasId = _aliasId;
+        return true;
+    }
+
+    public Guid GetRequiredAliasId() => _aliasId;
 }
+
+
+public class TestAliasVersionAccessor : IAliasVersionAccessor
+{
+    private readonly Guid _aliasVersionId;
+    public TestAliasVersionAccessor(Guid? aliasVersionId = null)
+    {
+        _aliasVersionId = aliasVersionId ?? TestGuids.AliasVersionId;
+    }
+
+    public Task<(bool ok, Guid aliasVersionId)> TryGetCurrentAliasVersionIdAsync(CancellationToken ct = default)
+        => Task.FromResult((true, _aliasVersionId));
+
+    public Task<Guid> GetRequiredCurrentAliasVersionIdAsync(CancellationToken ct = default)
+        => Task.FromResult(_aliasVersionId);
+}
+

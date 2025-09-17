@@ -1,7 +1,7 @@
 ﻿using Carter;
 using Mapster;
 using MediatR;
-using Post.Application.Aggregates.Gifts.Commands.AttachGift;
+using Post.Application.Features.Gifts.Commands.AttachGift;
 using Post.Domain.Aggregates.Gifts.Enums;
 
 namespace Post.API.Endpoints.Gifts;

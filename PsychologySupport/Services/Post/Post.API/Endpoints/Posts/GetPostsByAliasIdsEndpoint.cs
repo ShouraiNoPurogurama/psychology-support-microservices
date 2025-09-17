@@ -1,9 +1,9 @@
-﻿using Post.Application.Aggregates.Posts.Queries.GetPostsByAliasIds;
-using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
 using MediatR;
-using Post.Application.Aggregates.Posts.Dtos;
+using Post.Application.Features.Posts.Dtos;
+using Post.Application.Features.Posts.Queries.GetPostsByAliasIds;
 
 namespace Post.API.Endpoints.Posts;
 

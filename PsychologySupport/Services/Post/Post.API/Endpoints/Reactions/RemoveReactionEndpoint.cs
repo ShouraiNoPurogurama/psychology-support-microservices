@@ -1,7 +1,7 @@
 ﻿using Carter;
 using Mapster;
 using MediatR;
-using Post.Application.Aggregates.Reactions.Commands.RemoveReaction;
+using Post.Application.Features.Reactions.Commands.RemoveReaction;
 using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.API.Endpoints.Reactions;

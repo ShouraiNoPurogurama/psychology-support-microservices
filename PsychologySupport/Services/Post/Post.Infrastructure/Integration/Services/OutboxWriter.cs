@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using Post.Application.Integration;
+using Post.Application.Abstractions.Integration;
 using Post.Infrastructure.Data.Post;
 using Post.Infrastructure.Integration.Entities;
 

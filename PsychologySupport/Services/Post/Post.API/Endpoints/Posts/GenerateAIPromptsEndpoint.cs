@@ -1,7 +1,7 @@
-﻿using Post.Application.Aggregates.Posts.Queries.GenerateAIPrompts;
-using Carter;
+﻿using Carter;
 using Mapster;
 using MediatR;
+using Post.Application.Features.Posts.Queries.GenerateAIPrompts;
 
 namespace Post.API.Endpoints.Posts;
 

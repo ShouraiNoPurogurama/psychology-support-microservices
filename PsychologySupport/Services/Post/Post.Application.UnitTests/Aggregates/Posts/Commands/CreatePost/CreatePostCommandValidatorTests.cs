@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
 using FluentValidation.TestHelper;
-using Post.Application.Aggregates.Posts.Commands.CreatePost;
+using Post.Application.Features.Posts.Commands.CreatePost;
 using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.UnitTests.Aggregates.Posts.Commands.CreatePost;

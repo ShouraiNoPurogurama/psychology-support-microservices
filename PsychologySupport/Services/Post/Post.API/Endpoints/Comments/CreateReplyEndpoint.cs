@@ -1,7 +1,7 @@
-﻿using Post.Application.Aggregates.Comments.Commands.CreateComment;
-using Carter;
+﻿using Carter;
 using Mapster;
 using MediatR;
+using Post.Application.Features.Comments.Commands.CreateComment;
 
 namespace Post.API.Endpoints.Comments;
 
