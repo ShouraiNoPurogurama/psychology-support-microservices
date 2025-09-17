@@ -10,7 +10,7 @@ public interface IEntity;
 
 public interface IHasCreationAudit
 {
-    DateTimeOffset? CreatedAt { get; set; }
+    DateTimeOffset CreatedAt { get; set; }
     string? CreatedBy { get; set; }
 }
 

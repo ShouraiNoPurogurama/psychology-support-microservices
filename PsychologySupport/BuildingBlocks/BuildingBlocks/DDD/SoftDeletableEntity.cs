@@ -8,7 +8,7 @@ public abstract class SoftDeletableEntity<TId> : Entity<TId>, ISoftDeletable, IH
     
     public string? DeletedBy { get; set; }
 
-    public DateTimeOffset? CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
     public string? CreatedBy { get; set; }
 
 
