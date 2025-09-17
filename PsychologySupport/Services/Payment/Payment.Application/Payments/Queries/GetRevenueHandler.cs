@@ -16,9 +16,8 @@ namespace Payment.Application.Payments.Queries
         {
             var totalRevenue = await dbContext.Payments
                 .Where(p => p.Status == PaymentStatus.Completed &&
-                            p.CreatedAt.HasValue &&
-                            DateOnly.FromDateTime(p.CreatedAt.Value.UtcDateTime) >= request.StartTime &&
-                            DateOnly.FromDateTime(p.CreatedAt.Value.UtcDateTime) <= request.EndTime)
+                            DateOnly.FromDateTime(p.CreatedAt.UtcDateTime) >= request.StartTime &&
+                            DateOnly.FromDateTime(p.CreatedAt.UtcDateTime) <= request.EndTime)
                 .SumAsync(p => p.TotalAmount, cancellationToken);
 
             return new GetRevenueResult(totalRevenue);

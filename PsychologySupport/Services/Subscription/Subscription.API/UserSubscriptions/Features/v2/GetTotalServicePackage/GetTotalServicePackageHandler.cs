@@ -29,9 +29,8 @@ namespace Subscription.API.UserSubscriptions.Features.v2.GetTotalServicePackage
             var subscriptionCounts = await _context.UserSubscriptions
                 .Where(us =>
                     us.Status == SubscriptionStatus.Active &&
-                    us.CreatedAt.HasValue &&
-                    DateOnly.FromDateTime(us.CreatedAt.Value.UtcDateTime) >= request.StartDate &&
-                    DateOnly.FromDateTime(us.CreatedAt.Value.UtcDateTime) <= request.EndDate)
+                    DateOnly.FromDateTime(us.CreatedAt.UtcDateTime) >= request.StartDate &&
+                    DateOnly.FromDateTime(us.CreatedAt.UtcDateTime) <= request.EndDate)
                 .GroupBy(us => us.ServicePackageId)
                 .Select(g => new { ServicePackageId = g.Key, Count = g.Count() })
                 .ToListAsync(cancellationToken);
