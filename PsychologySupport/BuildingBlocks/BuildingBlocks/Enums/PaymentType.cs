@@ -7,5 +7,7 @@ public enum PaymentType
 {
     BuySubscription,
     Booking,
-    UpgradeSubscription
+    UpgradeSubscription,
+    Order,
+    BuyPointPackage
 }

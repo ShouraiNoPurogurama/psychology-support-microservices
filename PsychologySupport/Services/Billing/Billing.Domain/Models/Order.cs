@@ -4,6 +4,7 @@ namespace Billing.Domain.Models;
 
 public partial class Order : AggregateRoot<Guid>
 {
+    public long OrderCode { get; private set; }
     public Guid SubjectRef { get; private set; }
     public string OrderType { get; private set; } = null!;
     public string ProductCode { get; private set; } = null!;
@@ -19,6 +20,7 @@ public partial class Order : AggregateRoot<Guid>
 
     private Order(
         Guid id,
+        long orderCode,
         Guid subjectRef,
         string orderType,
         string productCode,
@@ -30,6 +32,7 @@ public partial class Order : AggregateRoot<Guid>
         string lastModifiedBy)
     {
         Id = id;
+        OrderCode = orderCode;
         SubjectRef = subjectRef;
         OrderType = orderType;
         ProductCode = productCode;
@@ -44,6 +47,7 @@ public partial class Order : AggregateRoot<Guid>
     }
 
     public static Order Create(
+        long OrderCode, 
         Guid subjectRef,
         string orderType,
         string productCode,
@@ -73,6 +77,7 @@ public partial class Order : AggregateRoot<Guid>
 
         return new Order(
             id: Guid.NewGuid(),
+            orderCode: OrderCode,
             subjectRef: subjectRef,
             orderType: orderType,
             productCode: productCode,
