@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
 using MediatR;
+using Post.Application.Aggregates.Comments.Dtos;
 using Post.Application.Aggregates.Comments.Queries.GetComments;
 
 namespace Post.API.Endpoints.Comments;

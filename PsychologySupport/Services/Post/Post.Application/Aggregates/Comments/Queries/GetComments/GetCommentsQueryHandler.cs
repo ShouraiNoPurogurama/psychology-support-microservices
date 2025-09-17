@@ -2,6 +2,7 @@
 using BuildingBlocks.Pagination;
 using Post.Application.Data;
 using Microsoft.EntityFrameworkCore;
+using Post.Application.Aggregates.Comments.Dtos;
 using Post.Application.Aggregates.Posts.Dtos;
 using Post.Application.ReadModels.Models;
 using Post.Domain.Aggregates.Comments;
@@ -120,10 +121,11 @@ internal sealed class GetCommentsQueryHandler : IQueryHandler<GetCommentsQuery, 
                     comment.Hierarchy.Path,
                     comment.Hierarchy.Level
                 ),
-                comment.Moderation.Status.ToString(),
                 comment.CreatedAt,
-                comment.LastModified,
-                replies
+                comment.EditedAt,
+                comment.ReactionCount,
+                comment.ReplyCount,
+                comment.IsDeleted
             ));
         }
 
@@ -169,10 +171,11 @@ internal sealed class GetCommentsQueryHandler : IQueryHandler<GetCommentsQuery, 
                     reply.Hierarchy.Path,
                     reply.Hierarchy.Level
                 ),
-                reply.Moderation.Status.ToString(),
                 reply.CreatedAt,
-                reply.LastModified,
-                nestedReplies
+                reply.EditedAt,
+                reply.ReactionCount,
+                reply.ReplyCount,
+                reply.IsDeleted
             ));
         }
 

@@ -31,9 +31,4 @@
         <ProjectReference Include="..\..\Post.Infrastructure\Post.Infrastructure.csproj"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Api\Posts\"/>
-        <Folder Include="Infrastructure\"/>
-    </ItemGroup>
-
 </Project>

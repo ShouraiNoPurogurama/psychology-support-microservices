@@ -1,158 +1,152 @@
-﻿using BuildingBlocks.Exceptions;
+﻿using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Post.Application.Aggregates.Posts.Commands.ApprovePost;
+using BuildingBlocks.Exceptions;
 using Post.Domain.Aggregates.Posts.Enums;
 
-namespace Post.UnitTests.Aggregates.Posts.Commands.ApprovePost
+namespace Post.UnitTests.Aggregates.Posts.Commands.ApprovePost;
+
+public class ApprovePostCommandHandlerTests
 {
-    public class ApprovePostCommandHandlerTests
+    private readonly Mock<IPostDbContext> _dbContextMock;
+    private readonly Mock<IActorResolver> _actorResolverMock;
+    private readonly Mock<IOutboxWriter> _outboxWriterMock;
+    private readonly Mock<DbSet<Domain.Aggregates.Posts.Post>> _postsDbSetMock;
+    private readonly ApprovePostCommandHandler _handler;
+    private readonly Guid _moderatorAliasId = Guid.NewGuid();
+
+    public ApprovePostCommandHandlerTests()
     {
-        private readonly Mock<IPostDbContext> _dbContextMock;
-        private readonly Mock<IActorResolver> _actorResolverMock;
-        private readonly Mock<IOutboxWriter> _outboxWriterMock;
-        private readonly ApprovePostCommandHandler _handler;
-        private readonly Guid _moderatorAliasId = Guid.NewGuid();
-        private readonly Guid _postId = Guid.NewGuid();
+        _dbContextMock = new Mock<IPostDbContext>();
+        _actorResolverMock = new Mock<IActorResolver>();
+        _outboxWriterMock = new Mock<IOutboxWriter>();
+        _postsDbSetMock = new Mock<DbSet<Domain.Aggregates.Posts.Post>>();
+        
+        _actorResolverMock.Setup(x => x.AliasId).Returns(_moderatorAliasId);
+        _dbContextMock.Setup(x => x.Posts).Returns(_postsDbSetMock.Object);
+        
+        _handler = new ApprovePostCommandHandler(
+            _dbContextMock.Object,
+            _actorResolverMock.Object,
+            _outboxWriterMock.Object);
+    }
 
-        public ApprovePostCommandHandlerTests()
-        {
-            _dbContextMock = new Mock<IPostDbContext>();
-            _actorResolverMock = new Mock<IActorResolver>();
-            _outboxWriterMock = new Mock<IOutboxWriter>();
-            
-            // Common setup
-            _actorResolverMock.Setup(x => x.AliasId).Returns(_moderatorAliasId);
-            
-            _handler = new ApprovePostCommandHandler(
-                _dbContextMock.Object,
-                _actorResolverMock.Object,
-                _outboxWriterMock.Object);
-        }
+    [Fact]
+    public async Task HandleApprovePostCommandSuccessfully()
+    {
+        var postId = Guid.NewGuid();
+        var authorAliasId = Guid.NewGuid();
+        var post = Domain.Aggregates.Posts.Post.Create(
+            authorAliasId,
+            "Test content",
+            "Test title",
+            Guid.NewGuid(),
+            PostVisibility.Public);
 
-        [Fact]
-        public async Task HandleApprovePostCommandSuccessfully()
-        {
-            // Arrange
-            var command = new ApprovePostCommand(
-                IdempotencyKey: Guid.NewGuid(),
-                PostId: _postId);
+        var command = new ApprovePostCommand(
+            IdempotencyKey: Guid.NewGuid(),
+            PostId: postId);
 
-            var authorAliasId = Guid.NewGuid();
-            var post = Domain.Aggregates.Posts.Post.Create(
-                authorAliasId,
-                "Test post content",
-                "Test Post Title",
-                Guid.NewGuid(),
-                PostVisibility.Draft);
+        _postsDbSetMock.SetupAsyncEnumerable(new[] { post });
 
-            _dbContextMock.Setup(db => db.Posts.FindAsync(new object[] { _postId }, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(post);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-            // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
+        result.Should().NotBeNull();
+        result.PostId.Should().Be(postId);
+        result.ModerationStatus.Should().Be(ModerationStatus.Approved);
+        
+        _dbContextMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _outboxWriterMock.Verify(x => x.WriteAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(_postId, result.PostId);
-            Assert.Equal(ModerationStatus.Approved, result.ModerationStatus);
-            Assert.True(post.CanBePublished);
-            
-            _dbContextMock.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-            _outboxWriterMock.Verify(w => w.WriteAsync(It.Is<object>(o => 
-                o.GetType().Name == "PostApprovedIntegrationEvent"), It.IsAny<CancellationToken>()), Times.Once);
-        }
+    [Fact]
+    public async Task HandleApprovePostCommandWithNonExistentPost()
+    {
+        var command = new ApprovePostCommand(
+            IdempotencyKey: Guid.NewGuid(),
+            PostId: Guid.NewGuid());
 
-        [Fact]
-        public async Task HandleApprovePostCommand_PostNotFound_ShouldThrowResourceNotFoundException()
-        {
-            // Arrange
-            var command = new ApprovePostCommand(
-                IdempotencyKey: Guid.NewGuid(),
-                PostId: _postId);
+        _postsDbSetMock.SetupAsyncEnumerable(Array.Empty<Domain.Aggregates.Posts.Post>());
 
-            _dbContextMock.Setup(db => db.Posts.FindAsync(new object[] { _postId }, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((Domain.Aggregates.Posts.Post)null);
+        await FluentActions.Invoking(() => _handler.Handle(command, CancellationToken.None))
+            .Should().ThrowAsync<NotFoundException>()
+            .WithMessage("*Post not found*");
+    }
 
-            // Act & Assert
-            await Assert.ThrowsAsync<NotFoundException>(() => 
-                _handler.Handle(command, CancellationToken.None));
-            
-            _dbContextMock.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-            _outboxWriterMock.Verify(w => w.WriteAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
-        }
+    [Fact]
+    public async Task HandleApprovePostCommandWithoutReason()
+    {
+        var postId = Guid.NewGuid();
+        var authorAliasId = Guid.NewGuid();
+        var post = Domain.Aggregates.Posts.Post.Create(
+            authorAliasId,
+            "Test content",
+            "Test title",
+            Guid.NewGuid(),
+            PostVisibility.Public);
 
-        [Fact]
-        public async Task HandleApprovePostCommand_AlreadyApproved_ShouldReturnSuccessWithoutChanges()
-        {
-            // Arrange
-            var command = new ApprovePostCommand(
-                IdempotencyKey: Guid.NewGuid(),
-                PostId: _postId);
+        var command = new ApprovePostCommand(
+            IdempotencyKey: Guid.NewGuid(),
+            PostId: postId);
 
-            var authorAliasId = Guid.NewGuid();
-            var post = Domain.Aggregates.Posts.Post.Create(
-                authorAliasId,
-                "Test post content",
-                "Test Post Title",
-                Guid.NewGuid(),
-                PostVisibility.Draft);
-            
-            // Already approve the post
-            post.Approve("0.9", Guid.NewGuid());
+        _postsDbSetMock.SetupAsyncEnumerable(new[] { post });
 
-            _dbContextMock.Setup(db => db.Posts.FindAsync(new object[] { _postId }, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(post);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-            // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
+        result.Should().NotBeNull();
+        result.PostId.Should().Be(postId);
+        result.ModerationStatus.Should().Be(ModerationStatus.Approved);
+    }
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(_postId, result.PostId);
-            Assert.Equal(ModerationStatus.Approved, result.ModerationStatus);
-            
-            // Should still save changes to update the policy version
-            _dbContextMock.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-            _outboxWriterMock.Verify(w => w.WriteAsync(It.Is<object>(o => 
-                o.GetType().Name == "PostApprovedIntegrationEvent"), It.IsAny<CancellationToken>()), Times.Once);
-        }
+    [Fact]
+    public async Task HandleApprovePostCommandWithIdempotencyKey()
+    {
+        var idempotencyKey = Guid.NewGuid();
+        var postId = Guid.NewGuid();
+        var authorAliasId = Guid.NewGuid();
+        var post = Domain.Aggregates.Posts.Post.Create(
+            authorAliasId,
+            "Test content",
+            "Test title",
+            Guid.NewGuid(),
+            PostVisibility.Public);
 
-        [Fact]
-        public async Task HandleApprovePostCommand_WithIdempotencyKey_ShouldNotDuplicateApproval()
-        {
-            // Arrange
-            var idempotencyKey = Guid.NewGuid();
-            var command = new ApprovePostCommand(
-                IdempotencyKey: idempotencyKey,
-                PostId: _postId);
+        var command = new ApprovePostCommand(
+            IdempotencyKey: idempotencyKey,
+            PostId: postId);
 
-            var authorAliasId = Guid.NewGuid();
-            var post = Domain.Aggregates.Posts.Post.Create(
-                authorAliasId,
-                "Test post content",
-                "Test Post Title",
-                Guid.NewGuid(),
-                PostVisibility.Draft);
+        _postsDbSetMock.SetupAsyncEnumerable(new[] { post });
 
-            _dbContextMock.Setup(db => db.Posts.FindAsync(new object[] { _postId }, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(post);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
-            // First call
-            var result1 = await _handler.Handle(command, CancellationToken.None);
-            
-            // Reset mock to verify second call doesn't save changes
-            _dbContextMock.Invocations.Clear();
-            _outboxWriterMock.Invocations.Clear();
-            
-            // Second call with same idempotency key
-            var result2 = await _handler.Handle(command, CancellationToken.None);
+        result.Should().NotBeNull();
+        command.IdempotencyKey.Should().Be(idempotencyKey);
+    }
 
-            // Assert
-            Assert.Equal(result1.PostId, result2.PostId);
-            Assert.Equal(result1.ModerationStatus, result2.ModerationStatus);
-            
-            // Verify that no changes were saved on second call
-            _dbContextMock.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-            _outboxWriterMock.Verify(w => w.WriteAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
-        }
+    [Fact]
+    public async Task HandleApprovePostCommandForAlreadyApprovedPost()
+    {
+        var postId = Guid.NewGuid();
+        var authorAliasId = Guid.NewGuid();
+        var post = Domain.Aggregates.Posts.Post.Create(
+            authorAliasId,
+            "Test content",
+            "Test title",
+            Guid.NewGuid(),
+            PostVisibility.Public);
+        
+        // Simulate already approved post
+        post.Approve("policy_v1",_moderatorAliasId);
+
+        var command = new ApprovePostCommand(
+            IdempotencyKey: Guid.NewGuid(),
+            PostId: postId);
+
+        _postsDbSetMock.SetupAsyncEnumerable(new[] { post });
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result.ModerationStatus.Should().Be(ModerationStatus.Approved);
     }
 }

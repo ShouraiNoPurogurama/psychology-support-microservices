@@ -1,12 +1,7 @@
-﻿using Post.Domain.Aggregates.Posts;
-using Post.Domain.Aggregates.Posts.Enums;
+﻿using Post.Domain.Aggregates.Posts.Enums;
 using Post.Domain.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Xunit;
 
-namespace Post.Domain.UnitTests.Aggregates.Posts
+namespace Post.Tests.Domain.Unit.Aggregates.Posts
 {
     public class PostTests
     {
@@ -19,7 +14,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void CreatePost_ShouldCreateValidPost()
         {
             // Act
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -49,7 +44,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void UpdateContent_ShouldUpdatePostContent()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -72,7 +67,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void UpdateContent_WithDifferentUser_ShouldThrowPostAuthorMismatchException()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -89,7 +84,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void ChangeVisibility_ToPublicWithoutApproval_ShouldThrowInvalidPostDataException()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -105,7 +100,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void ChangeVisibility_SameVisibility_ShouldNotChangeAnything()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -123,7 +118,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void AddMedia_ShouldAddMediaToPost()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -144,7 +139,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void AddMedia_DuplicateMedia_ShouldThrowInvalidPostDataException()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -161,7 +156,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void AddMedia_ExceedingLimit_ShouldThrowInvalidPostDataException()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -181,7 +176,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void RemoveMedia_ShouldRemoveMediaFromPost()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -202,7 +197,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void RemoveMedia_NonExistentMedia_ShouldNotThrowException()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -224,7 +219,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void AddCategory_ShouldAddCategoryToPost()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -245,7 +240,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void AddCategory_DuplicateCategory_ShouldNotAddDuplicate()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -266,7 +261,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void AddCategory_ExceedingLimit_ShouldThrowInvalidPostDataException()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -286,7 +281,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void RemoveCategory_ShouldRemoveCategoryFromPost()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -307,7 +302,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void Approve_ShouldApprovePost()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -329,7 +324,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void Reject_ShouldRejectPost()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -345,7 +340,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
             // Assert
             Assert.Equal(ModerationStatus.Rejected, post.Moderation.Status);
             Assert.Equal(policyVersion, post.Moderation.PolicyVersion);
-            Assert.Equal(reasons, post.Moderation.RejectionReasons);
+            Assert.Equal(reasons, post.Moderation.Reasons);
             Assert.False(post.CanBePublished);
         }
 
@@ -353,7 +348,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void ToggleCommentsLock_ShouldToggleCommentsLockStatus()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -374,7 +369,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void Delete_ShouldMarkPostAsDeleted()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -394,7 +389,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void Restore_ByAuthor_ShouldRestoreDeletedPost()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -415,7 +410,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void Restore_ByDifferentUser_ShouldThrowPostAuthorMismatchException()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -432,7 +427,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void ActionOnDeletedPost_ShouldThrowDeletedPostActionException()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -455,7 +450,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void IncrementMetrics_ShouldUpdatePostMetrics()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -477,7 +472,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void DecrementMetrics_ShouldUpdatePostMetrics()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -499,7 +494,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void SynchronizeCounters_ShouldSetMetricsDirectly()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -517,7 +512,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void SetCoverMedia_ShouldMarkMediaAsCover()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,
@@ -542,7 +537,7 @@ namespace Post.Domain.UnitTests.Aggregates.Posts
         public void UpdateMediaAltText_ShouldUpdateAltText()
         {
             // Arrange
-            var post = Domain.Aggregates.Posts.Post.Create(
+            var post = Post.Domain.Aggregates.Posts.Post.Create(
                 _authorAliasId,
                 _content,
                 _title,

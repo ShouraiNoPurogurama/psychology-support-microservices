@@ -15,6 +15,7 @@
     <PackageVersion Include="CsvHelper" Version="33.1.0" />
     <PackageVersion Include="EFCore.NamingConventions" Version="9.0.0" />
     <PackageVersion Include="FirebaseAdmin" Version="3.2.0" />
+    <PackageVersion Include="FluentAssertions.Web" Version="1.9.5" />
     <PackageVersion Include="FluentValidation" Version="11.11.0" />
     <PackageVersion Include="FluentValidation.AspNetCore" Version="11.3.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />

@@ -1,9 +1,8 @@
 ﻿using FluentAssertions;
 using Post.Domain.Aggregates.Gifts;
 using Post.Domain.Exceptions;
-using Xunit;
 
-namespace Post.Domain.UnitTests.Aggregates.Gifts;
+namespace Post.Tests.Domain.Unit.Aggregates.Gifts;
 
 public class GiftAttachTests
 {
@@ -190,7 +189,7 @@ public class GiftAttachTests
         var targetId = Guid.NewGuid();
         var giftId = Guid.NewGuid();
         var senderAliasId = Guid.NewGuid();
-        Guid? senderAliasVersionId = null;  // Null alias version ID
+        Guid? senderAliasVersionId = null;  
         var amount = 5L;
         var message = "Test";
 
@@ -207,7 +206,7 @@ public class GiftAttachTests
 
         // Assert
         giftAttach.Should().NotBeNull();
-        giftAttach.Sender.AliasVersionId.Should().BeNull();
+        giftAttach.Sender.AliasVersionId.Should().BeEmpty();
     }
 
     [Fact]

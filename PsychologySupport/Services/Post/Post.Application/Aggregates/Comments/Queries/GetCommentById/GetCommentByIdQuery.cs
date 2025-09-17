@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
+using Post.Application.Aggregates.Comments.Dtos;
 
 namespace Post.Application.Aggregates.Comments.Queries.GetCommentById;
 
@@ -8,16 +9,4 @@ public record GetCommentByIdQuery(
 
 public record GetCommentByIdResult(
     CommentDto? Comment
-);
-
-public record CommentDto(
-    Guid Id,
-    Guid PostId,
-    Guid AuthorAliasId,
-    string AuthorDisplayName,
-    string Content,
-    int ReplyCount,
-    DateTimeOffset CreatedAt,
-    DateTimeOffset? EditedAt,
-    bool IsDeleted
 );
