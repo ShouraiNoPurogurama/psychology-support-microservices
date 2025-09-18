@@ -12,35 +12,34 @@ namespace YarpApiGateway.Extensions;
 
 public static class ApplicationServiceExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IWebHostEnvironment environment, IConfiguration configuration)
     {
         services.AddHealthChecks();
-        
+
         ConfigureCors(services);
-        
-        ConfigureReverseProxy(services);
-        
+
+        ConfigureReverseProxy(services, environment);
+
         ConfigureRateLimiter(services);
-        
+
         AddApplicationServiceDependencies(services);
 
         AddGrpcServiceDependencies(services, configuration);
-        
+
         AddRedisCache(services, configuration);
-        
-        services.AddMemoryCache(options =>
-        {
-            options.SizeLimit = 200_000; 
-        });
+
+        services.AddMemoryCache(options => { options.SizeLimit = 200_000; });
 
         return services;
     }
 
-    private static void ConfigureReverseProxy(IServiceCollection services)
+    private static void ConfigureReverseProxy(IServiceCollection services, IWebHostEnvironment environment)
     {
         var proxyBuilder = services.AddReverseProxy();
 
-        foreach (var file in Directory.GetFiles("ReverseProxies", "*.proxy.json"))
+        var envPrefix = environment.EnvironmentName;
+
+        foreach (var file in Directory.GetFiles($"{envPrefix}/ReverseProxies", "*.proxy.json"))
         {
             var config = new ConfigurationBuilder()
                 .AddJsonFile(file, optional: false, reloadOnChange: true)
@@ -66,12 +65,12 @@ public static class ApplicationServiceExtensions
             }); //A maximum of 5 requests per each 10 seconds window are allowed
         });
     }
-    
+
     private static void AddApplicationServiceDependencies(IServiceCollection services)
     {
         services.AddSingleton<ITransformFactory, TokenExchangeTransformFactory>();
         services.AddScoped<ITokenExchangeService, TokenExchangeService>();
-        
+
         services.AddScoped<IInternalTokenMintingService, InternalTokenMintingService>();
         services.Decorate<IInternalTokenMintingService, CachedInternalTokenMintingService>();
 
@@ -79,7 +78,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IPiiLookupService, GrpcPiiLookupService>();
         services.Decorate<IPiiLookupService, CachingPiiLookupService>();
     }
-    
+
     private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
     {
         services.AddGrpcClient<PiiService.PiiServiceClient>(options =>
@@ -109,16 +108,12 @@ public static class ApplicationServiceExtensions
             });
         });
     }
-    
+
     private static void AddRedisCache(IServiceCollection services, IConfiguration config)
     {
         services.AddSingleton<IConnectionMultiplexer>(x =>
             ConnectionMultiplexer.Connect(config.GetConnectionString("Redis")!));
-        
-        services.AddStackExchangeRedisCache(options =>
-        {
-            options.Configuration = config.GetConnectionString("Redis");
-        });
 
+        services.AddStackExchangeRedisCache(options => { options.Configuration = config.GetConnectionString("Redis"); });
     }
 }

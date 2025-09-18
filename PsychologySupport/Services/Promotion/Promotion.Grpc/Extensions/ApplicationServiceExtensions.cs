@@ -38,10 +38,13 @@ public static class ApplicationServiceExtensions
                 Title = "Promotion API",
                 Version = "v1"
             });
-            options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+            if (env.IsProduction())
             {
-                Url = "/promotion-service/"
-            });
+                options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+                {
+                    Url = "/promotion-service/"
+                });
+            }
         });
     }
 

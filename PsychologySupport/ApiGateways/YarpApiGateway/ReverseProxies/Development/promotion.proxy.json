@@ -1,0 +1,34 @@
+﻿{
+  "ReverseProxy": {
+    "RouteGroups": {
+      "promotion-group": {
+        "ClusterId": "promotion-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Routes": {
+          "promotion-health": {
+            "Match": { "Path": "/promotion-service/health" },
+            "Transforms": [ { "PathPattern": "/health" } ]
+          },
+          "promotion-swagger": {
+            "Match": { "Path": "/promotion-service/swagger/{**catch-all}" },
+            "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+          },
+          "promotion-route": {
+            "Match": { "Path": "/promotion-service/{**catch-all}" },
+            "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+          }
+        }
+      }
+    },
+    "Clusters": {
+      "promotion-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "https://localhost:5503/"
+          }
+        }
+      }
+    }
+  }
+}
+

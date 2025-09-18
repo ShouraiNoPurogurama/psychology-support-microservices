@@ -1,0 +1,34 @@
+﻿{
+  "ReverseProxy": {
+    "RouteGroups": {
+      "chatbox-group": {
+        "ClusterId": "chatbox-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Routes": {
+          "chatbox-health": {
+            "Match": { "Path": "/chatbox-service/health" },
+            "Transforms": [ { "PathPattern": "/health" } ]
+          },
+          "chatbox-swagger": {
+            "Match": { "Path": "/chatbox-service/swagger/{**catch-all}" },
+            "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+          },
+          "chatbox-route": {
+            "Match": { "Path": "/chatbox-service/{**catch-all}" },
+            "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+          }
+        }
+      }
+    },
+    "Clusters": {
+      "chatbox-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "https://localhost:5508/"
+          }
+        }
+      }
+    }
+  }
+}
+

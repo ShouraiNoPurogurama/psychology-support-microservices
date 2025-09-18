@@ -1,0 +1,33 @@
+﻿{
+  "ReverseProxy": {
+    "RouteGroups": {
+      "auth-group": {
+        "ClusterId": "auth-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Routes": {
+          "auth-health": {
+            "Match": { "Path": "/auth-service/health" },
+            "Transforms": [ { "PathPattern": "/health" } ]
+          },
+          "auth-swagger": {
+            "Match": { "Path": "/auth-service/swagger/{**catch-all}" },
+            "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+          },
+          "auth-route": {
+            "Match": { "Path": "/auth-service/{**catch-all}" },
+            "Transforms": [ { "PathPattern": "{**catch-all}" } ]
+          }
+        }
+      }
+    },
+    "Clusters": {
+      "auth-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "https://localhost:5500/"
+          }
+        }
+      }
+    }
+  }
+}

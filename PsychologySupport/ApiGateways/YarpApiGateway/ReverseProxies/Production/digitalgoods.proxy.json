@@ -1,0 +1,51 @@
+﻿{
+  "ReverseProxy": {
+    "RouteGroups": {
+      "digitalgoods-group": {
+        "ClusterId": "digitalgoods-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Routes": {
+          "digitalgoods-health": {
+            "Match": {
+              "Path": "/digitalgoods-service/health"
+            },
+            "Transforms": [
+              {
+                "PathPattern": "/health"
+              }
+            ]
+          },
+          "digitalgoods-swagger": {
+            "Match": {
+              "Path": "/digitalgoods-service/swagger/{**catch-all}"
+            },
+            "Transforms": [
+              {
+                "PathPattern": "/swagger/{**catch-all}"
+              }
+            ]
+          },
+          "digitalgoods-route": {
+            "Match": {
+              "Path": "/digitalgoods-service/{**catch-all}"
+            },
+            "Transforms": [
+              {
+                "PathPattern": "/{**catch-all}"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "Clusters": {
+      "digitalgoods-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://digitalgoods.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}
