@@ -93,9 +93,14 @@ public static class ApplicationServiceExtensions
                 Title = "Profile API",
                 Version = "v1"
             });
+
+            var url = env.IsProduction() 
+                ? "/profile-service/swagger/v1/swagger.json" 
+                : "https://localhost:5510/profile-service";
+            
             options.AddServer(new OpenApiServer
             {
-                Url = "/profile-service/"
+                Url = url
             });
             
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

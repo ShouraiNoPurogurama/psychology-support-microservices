@@ -154,14 +154,7 @@ namespace Alias.API.Data.Public.Migrations
                 oldClrType: typeof(DateTimeOffset),
                 oldType: "timestamp with time zone",
                 oldNullable: true);
-
-            migrationBuilder.AlterColumn<int>(
-                name: "action",
-                table: "alias_audits",
-                type: "integer",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
+            
 
             migrationBuilder.AddForeignKey(
                 name: "fk_alias_audits_aliases_alias_id",
@@ -280,14 +273,6 @@ namespace Alias.API.Data.Public.Migrations
                 nullable: true,
                 oldClrType: typeof(DateTimeOffset),
                 oldType: "timestamp with time zone");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "action",
-                table: "alias_audits",
-                type: "text",
-                nullable: false,
-                oldClrType: typeof(int),
-                oldType: "integer");
 
             migrationBuilder.CreateIndex(
                 name: "ix_aliases_current_version_id",

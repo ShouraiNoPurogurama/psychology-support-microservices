@@ -114,13 +114,14 @@ public static class ApplicationServiceExtensions
                 Version = "v1"
             });
 
-            // if (env.IsProduction())
-            // {
-                options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
-                {
-                    Url = "/alias-service/"
-                });
-            // }
+            var url = env.IsProduction() 
+                ? "/alias-service/swagger/v1/swagger.json" 
+                : "https://localhost:5510/alias-service";
+            
+            options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+            {
+                Url = url
+            });
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

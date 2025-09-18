@@ -32,7 +32,6 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
     public DateTimeOffset? DeletedAt { get; set; } = DateTimeOffset.UtcNow;
     
     public string? DeletedBy { get; set; }
-    public string? DeletedByAliasId { get; set; }
 
     // EF Core materialization
     private Alias() { }
@@ -307,7 +306,7 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
 
         IsDeleted = true;
         DeletedAt = DateTimeOffset.UtcNow;
-        DeletedByAliasId = deleterAliasId.ToString();
+        DeletedBy = deleterAliasId.ToString();
         Status = AliasStatus.Suspended;
         Visibility = AliasVisibility.Private;
 

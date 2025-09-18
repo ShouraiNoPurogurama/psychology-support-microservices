@@ -20,7 +20,7 @@ public sealed class CurrentActorAccessor : ICurrentActorAccessor
         
         var aliasIdStr = _http.HttpContext?.User.FindFirstValue("aliasId");
         
-        if (!Guid.TryParse(aliasIdStr, out var id))
+        if (!Guid.TryParse(aliasIdStr, out var id) || id == Guid.Empty)
         {
             _logger.LogWarning("Missing or invalid aliasId claim.");
             return false;

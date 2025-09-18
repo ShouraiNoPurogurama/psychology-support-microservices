@@ -54,13 +54,14 @@ public static class DependencyInjection
                 Version = "v1"
             });
 
-            if (env.IsProduction())
+            var url = env.IsProduction() 
+                ? "/post-service/swagger/v1/swagger.json" 
+                : "https://localhost:5510/post-service";
+            
+            options.AddServer(new OpenApiServer
             {
-                options.AddServer(new OpenApiServer
-                {
-                    Url = "/post-service/"
-                });
-            }
+                Url = url
+            });
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
@@ -111,7 +112,7 @@ public static class DependencyInjection
         {
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/alias-service/swagger/v1/swagger.json", "Alias API v1");
+                c.SwaggerEndpoint("/post-service/swagger/v1/swagger.json", "Post API v1");
             });
         }
 

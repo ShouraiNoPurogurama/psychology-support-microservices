@@ -52,13 +52,14 @@ public static class DependencyInjection
                 Version = "v1"
             });
 
-            if (env.IsProduction())
+            var url = env.IsProduction()
+                ? "/test-service/swagger/v1/swagger.json"
+                : "https://localhost:5510/test-service";
+
+            options.AddServer(new OpenApiServer
             {
-                options.AddServer(new OpenApiServer
-                {
-                    Url = "/test-service/"
-                });
-            }
+                Url = url
+            });
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

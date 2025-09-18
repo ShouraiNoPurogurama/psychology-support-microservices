@@ -112,9 +112,14 @@ namespace Scheduling.API.Extensions
                     Title = "Scheduling API",
                     Version = "v1"
                 });
+
+                var url = env.IsProduction() 
+                    ? "/scheduling-service/swagger/v1/swagger.json" 
+                    : "https://localhost:5510/scheduling-service";
+                
                 options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
                 {
-                    Url = "/scheduling-service/"
+                    Url = url
                 });
                 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

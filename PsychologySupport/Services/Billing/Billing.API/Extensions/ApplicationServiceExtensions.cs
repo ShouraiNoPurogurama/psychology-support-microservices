@@ -92,13 +92,15 @@ namespace Billing.API.Extensions
                     Title = "Billing API",
                     Version = "v1"
                 });
-                // if (env.IsProduction())
-                // {
+
+                var url = env.IsProduction() 
+                    ? "/billing-service/swagger/v1/swagger.json" 
+                    : "https://localhost:5510/billing-service";
+                
                 options.AddServer(new OpenApiServer
                 {
-                    Url = "/billing-service/"
+                    Url = url
                 });
-                // }
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

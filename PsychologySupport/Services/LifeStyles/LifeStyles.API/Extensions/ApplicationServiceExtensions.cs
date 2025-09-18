@@ -63,9 +63,14 @@ public static class ApplicationServiceExtensions
                 Title = "LifeStyles API",
                 Version = "v1"
             });
+
+            var url = env.IsProduction() 
+                ? "/lifestyle-service/swagger/v1/swagger.json" 
+                : "https://localhost:5510/lifestyle-service";
+            
             options.AddServer(new OpenApiServer
             {
-                Url = "/lifestyle-service/"
+                Url = url
             });
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

@@ -27,7 +27,7 @@ public class EmailService(
         var url = string.Format(baseUrl, Uri.EscapeDataString(emailConfirmationToken), Uri.EscapeDataString(user.Email));
 
 
-        var basePath = Path.Combine(env.ContentRootPath, "Domains", "Authentication", "EmailTemplates");
+        var basePath = Path.Combine(env.ContentRootPath, "Features", "Authentication", "EmailTemplates");
         var confirmTemplatePath = Path.Combine(basePath, configuration["EmailTemplates:ConfirmEmail"]!);
 
         var confirmBody = RenderTemplate(confirmTemplatePath, new Dictionary<string, string>

@@ -78,9 +78,13 @@ public static class ApplicationServiceExtensions
                 Version = "v1"
             });
             
+            var url = env.IsProduction() 
+                ? "/moderation-service/swagger/v1/swagger.json" 
+                : "https://localhost:5510/moderation-service";
+            
             options.AddServer(new OpenApiServer
             {
-                Url = "/moderation-service/"
+                Url = url
             });
             
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

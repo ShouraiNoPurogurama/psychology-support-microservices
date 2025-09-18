@@ -70,9 +70,14 @@ namespace DigitalGoods.API.Extensions
                     Title = "DigitalGoods API",
                     Version = "v1"
                 });
+
+                var url = env.IsProduction() 
+                    ? "/digitalgoods-service/swagger/v1/swagger.json" 
+                    : "https://localhost:5510/digitalgoods-service";
+                
                 options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
                 {
-                    Url = "/digitalgoods-service/"
+                    Url = url
                 });
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

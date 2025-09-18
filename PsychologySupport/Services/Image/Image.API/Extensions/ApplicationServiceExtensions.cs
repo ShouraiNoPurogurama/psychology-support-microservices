@@ -49,9 +49,14 @@ namespace Image.API.Extensions
                     Title = "Image API",
                     Version = "v1"
                 });
+
+                var url = env.IsProduction() 
+                    ? "/image-service/swagger/v1/swagger.json" 
+                    : "https://localhost:5510/image-service";
+                
                 options.AddServer(new OpenApiServer
                 {
-                    Url = "/image-service/"
+                    Url = url
                 });
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

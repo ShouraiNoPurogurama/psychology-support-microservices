@@ -18,7 +18,7 @@ public partial class AliasDbContext : DbContext
 
     public virtual DbSet<AliasVersion> AliasVersions { get; set; }
 
-  protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // modelBuilder
         //     .HasDefaultSchema("public")
@@ -33,18 +33,13 @@ public partial class AliasDbContext : DbContext
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever();
-            entity.Property(e => e.CreatedAt);
-            entity.Property(e => e.CreatedBy);
-            entity.Property(e => e.CurrentVersionId);
-            entity.Property(e => e.LastModified);
-            entity.Property(e => e.LastModifiedBy);
 
             entity.Property(e => e.Visibility)
                 .HasDefaultValue(AliasVisibility.Public)
                 .HasSentinel(AliasVisibility.Public)
                 .HasConversion(s => s.ToString(),
                     dbStatus => (AliasVisibility)Enum.Parse(typeof(AliasVisibility), dbStatus));
-            
+
             // Map the AliasLabel value object as an owned type with explicit column names
             entity.OwnsOne(a => a.Label, label =>
             {
@@ -77,9 +72,13 @@ public partial class AliasDbContext : DbContext
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever();
-            
+
             entity.Property(e => e.Details)
                 .HasColumnType("jsonb");
+
+            entity.Property(e => e.Action)
+                .HasConversion(a => a.ToString(),
+                    dbAction => (AliasAuditAction)Enum.Parse(typeof(AliasAuditAction), dbAction));
         });
 
         modelBuilder.Entity<AliasVersion>(entity =>
@@ -90,7 +89,7 @@ public partial class AliasDbContext : DbContext
 
             entity.HasIndex(e => e.SearchKey, "idx_search_key_current")
                 .HasFilter("(valid_to IS NULL)");
-            
+
             entity.HasIndex(e => e.UniqueKey, "uniq_unique_key_current")
                 .IsUnique()
                 .HasFilter("(valid_to IS NULL)");
@@ -106,12 +105,12 @@ public partial class AliasDbContext : DbContext
             entity.Property(e => e.NicknameSource)
                 .HasConversion(s => s.ToString(),
                     dbStatus => (NicknameSource)Enum.Parse(typeof(NicknameSource), dbStatus));
-            
+
             entity.Property(e => e.CreatedAt);
             entity.Property(e => e.CreatedBy);
             entity.Property(e => e.ValidFrom);
             entity.Property(e => e.ValidTo);
-            
+
 
             entity.HasIndex(e => e.AliasId, "ix_alias_versions_alias_id");
         });
