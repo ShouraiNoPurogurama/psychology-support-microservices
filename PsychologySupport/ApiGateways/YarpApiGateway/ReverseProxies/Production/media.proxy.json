@@ -1,23 +1,27 @@
 ﻿{
   "ReverseProxy": {
-    "RouteGroups": {
-      "media-group": {
+    "Routes": {
+      "media-health": {
+        "ClusterId": "media-cluster",
+        "Match": {
+          "Path": "/media-service/health"
+        },
+        "Transforms": [ { "PathPattern": "/health" } ]
+      },
+      "media-swagger": {
+        "ClusterId": "media-cluster",
+        "Match": {
+          "Path": "/media-service/swagger/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+      },
+      "media-route": {
         "ClusterId": "media-cluster",
         "RateLimiterPolicy": "fixed",
-        "Routes": {
-          "media-health": {
-            "Match": { "Path": "/media-service/health" },
-            "Transforms": [ { "PathPattern": "/health" } ]
-          },
-          "media-swagger": {
-            "Match": { "Path": "/media-service/swagger/{**catch-all}" },
-            "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
-          },
-          "media-route": {
-            "Match": { "Path": "/media-service/{**catch-all}" },
-            "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
-          }
-        }
+        "Match": {
+          "Path": "/media-service/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
       }
     },
     "Clusters": {
@@ -31,4 +35,3 @@
     }
   }
 }
-

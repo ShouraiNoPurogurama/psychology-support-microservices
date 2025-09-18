@@ -1,23 +1,27 @@
 ﻿{
   "ReverseProxy": {
-    "RouteGroups": {
-      "post-group": {
+    "Routes": {
+      "post-health": {
+        "ClusterId": "post-cluster",
+        "Match": {
+          "Path": "/post-service/health"
+        },
+        "Transforms": [ { "PathPattern": "/health" } ]
+      },
+      "post-swagger": {
+        "ClusterId": "post-cluster",
+        "Match": {
+          "Path": "/post-service/swagger/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+      },
+      "post-route": {
         "ClusterId": "post-cluster",
         "RateLimiterPolicy": "fixed",
-        "Routes": {
-          "post-health": {
-            "Match": { "Path": "/post-service/health" },
-            "Transforms": [ { "PathPattern": "/health" } ]
-          },
-          "post-swagger": {
-            "Match": { "Path": "/post-service/swagger/{**catch-all}" },
-            "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
-          },
-          "post-route": {
-            "Match": { "Path": "/post-service/{**catch-all}" },
-            "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
-          }
-        }
+        "Match": {
+          "Path": "/post-service/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
       }
     },
     "Clusters": {
@@ -31,5 +35,3 @@
     }
   }
 }
-
-

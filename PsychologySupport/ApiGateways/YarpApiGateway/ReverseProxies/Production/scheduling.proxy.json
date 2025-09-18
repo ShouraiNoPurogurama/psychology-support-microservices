@@ -1,42 +1,40 @@
 ﻿{
   "ReverseProxy": {
-    "RouteGroups": {
-      "scheduling-group": {
+    "Routes": {
+      "scheduling-health": {
+        "ClusterId": "scheduling-cluster",
+        "Match": {
+          "Path": "/scheduling-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ]
+      },
+      "scheduling-swagger": {
+        "ClusterId": "scheduling-cluster",
+        "Match": {
+          "Path": "/scheduling-service/swagger/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/{**catch-all}"
+          }
+        ]
+      },
+      "scheduling-route": {
         "ClusterId": "scheduling-cluster",
         "RateLimiterPolicy": "fixed",
-        "Routes": {
-          "scheduling-health": {
-            "Match": {
-              "Path": "/scheduling-service/health"
-            },
-            "Transforms": [
-              {
-                "PathPattern": "/health"
-              }
-            ]
-          },
-          "scheduling-swagger": {
-            "Match": {
-              "Path": "/scheduling-service/swagger/{**catch-all}"
-            },
-            "Transforms": [
-              {
-                "PathPattern": "/swagger/{**catch-all}"
-              }
-            ]
-          },
-          "scheduling-route": {
-            "Match": {
-              "Path": "/scheduling-service/{**catch-all}"
-            },
-            "Transforms": [
-              {
-                "PathPattern": "/{**catch-all}"
-              }
-            ],
-            "AuthorizationPolicy": "AuthenticatedUser"
+        "AuthorizationPolicy": "AuthenticatedUser",
+        "Match": {
+          "Path": "/scheduling-service/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/{**catch-all}"
           }
-        }
+        ]
       }
     },
     "Clusters": {

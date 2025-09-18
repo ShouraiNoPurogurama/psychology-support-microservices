@@ -1,41 +1,39 @@
 ﻿{
   "ReverseProxy": {
-    "RouteGroups": {
-      "subscription-group": {
+    "Routes": {
+      "subscription-health": {
+        "ClusterId": "subscription-cluster",
+        "Match": {
+          "Path": "/subscription-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ]
+      },
+      "subscription-swagger": {
+        "ClusterId": "subscription-cluster",
+        "Match": {
+          "Path": "/subscription-service/swagger/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/{**catch-all}"
+          }
+        ]
+      },
+      "subscription-route": {
         "ClusterId": "subscription-cluster",
         "RateLimiterPolicy": "fixed",
-        "Routes": {
-          "subscription-health": {
-            "Match": {
-              "Path": "/subscription-service/health"
-            },
-            "Transforms": [
-              {
-                "PathPattern": "/health"
-              }
-            ]
-          },
-          "subscription-swagger": {
-            "Match": {
-              "Path": "/subscription-service/swagger/{**catch-all}"
-            },
-            "Transforms": [
-              {
-                "PathPattern": "/swagger/{**catch-all}"
-              }
-            ]
-          },
-          "subscription-route": {
-            "Match": {
-              "Path": "/subscription-service/{**catch-all}"
-            },
-            "Transforms": [
-              {
-                "PathPattern": "/{**catch-all}"
-              }
-            ]
+        "Match": {
+          "Path": "/subscription-service/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/{**catch-all}"
           }
-        }
+        ]
       }
     },
     "Clusters": {

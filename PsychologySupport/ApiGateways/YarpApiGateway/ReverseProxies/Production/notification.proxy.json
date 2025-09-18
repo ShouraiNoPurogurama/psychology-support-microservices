@@ -1,41 +1,39 @@
 ﻿{
   "ReverseProxy": {
-    "RouteGroups": {
-      "notification-group": {
+    "Routes": {
+      "notification-health": {
+        "ClusterId": "notification-cluster",
+        "Match": {
+          "Path": "/notification-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ]
+      },
+      "notification-swagger": {
+        "ClusterId": "notification-cluster",
+        "Match": {
+          "Path": "/notification-service/swagger/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/{**catch-all}"
+          }
+        ]
+      },
+      "notification-route": {
         "ClusterId": "notification-cluster",
         "RateLimiterPolicy": "fixed",
-        "Routes": {
-          "notification-health": {
-            "Match": {
-              "Path": "/notification-service/health"
-            },
-            "Transforms": [
-              {
-                "PathPattern": "/health"
-              }
-            ]
-          },
-          "notification-swagger": {
-            "Match": {
-              "Path": "/notification-service/swagger/{**catch-all}"
-            },
-            "Transforms": [
-              {
-                "PathPattern": "/swagger/{**catch-all}"
-              }
-            ]
-          },
-          "notification-route": {
-            "Match": {
-              "Path": "/notification-service/{**catch-all}"
-            },
-            "Transforms": [
-              {
-                "PathPattern": "/{**catch-all}"
-              }
-            ]
+        "Match": {
+          "Path": "/notification-service/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/{**catch-all}"
           }
-        }
+        ]
       }
     },
     "Clusters": {

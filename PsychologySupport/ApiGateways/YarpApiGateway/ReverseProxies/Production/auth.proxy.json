@@ -1,23 +1,27 @@
 ﻿{
   "ReverseProxy": {
-    "RouteGroups": {
-      "auth-group": {
+    "Routes": {
+      "auth-health": {
+        "ClusterId": "auth-cluster",
+        "Match": {
+          "Path": "/auth-service/health"
+        },
+        "Transforms": [ { "PathPattern": "/health" } ]
+      },
+      "auth-swagger": {
+        "ClusterId": "auth-cluster",
+        "Match": {
+          "Path": "/auth-service/swagger/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+      },
+      "auth-route": {
         "ClusterId": "auth-cluster",
         "RateLimiterPolicy": "fixed",
-        "Routes": {
-          "auth-health": {
-            "Match": { "Path": "/auth-service/health" },
-            "Transforms": [ { "PathPattern": "/health" } ]
-          },
-          "auth-swagger": {
-            "Match": { "Path": "/auth-service/swagger/{**catch-all}" },
-            "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
-          },
-          "auth-route": {
-            "Match": { "Path": "/auth-service/{**catch-all}" },
-            "Transforms": [ { "PathPattern": "{**catch-all}" } ]
-          }
-        }
+        "Match": {
+          "Path": "/auth-service/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
       }
     },
     "Clusters": {
