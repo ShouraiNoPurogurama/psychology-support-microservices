@@ -1,4 +1,5 @@
-﻿using Alias.API.Aliases.Exceptions.DomainExceptions;
+﻿using System.Text.Json;
+using Alias.API.Aliases.Exceptions.DomainExceptions;
 using Alias.API.Aliases.Models.Enums;
 using BuildingBlocks.DDD;
 
@@ -15,7 +16,8 @@ public sealed class AliasAudit : Entity<Guid>, IHasCreationAudit
     {
     }
 
-    internal static AliasAudit Create(Guid aliasId, string action, string? details = null)
+    internal static AliasAudit Create<TDetails>(Guid aliasId, string action, TDetails? details = null)
+        where TDetails : class
     {
         if (!Enum.TryParse<AliasAuditAction>(action, out var parsedAction))
             throw new InvalidAliasAuditActionException();
@@ -25,7 +27,9 @@ public sealed class AliasAudit : Entity<Guid>, IHasCreationAudit
             Id = Guid.NewGuid(),
             AliasId = aliasId,
             Action = parsedAction,
-            Details = details,
+            Details = details is not null
+                ? JsonSerializer.Serialize(details, new JsonSerializerOptions { WriteIndented = false })
+                : null,
         };
     }
 

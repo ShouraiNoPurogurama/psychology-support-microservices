@@ -2,6 +2,7 @@
 using Alias.API.Aliases.Models.DomainEvents;
 using Alias.API.Aliases.Models.Enums;
 using Alias.API.Aliases.Models.ValueObjects;
+using Alias.API.Aliases.Utils;
 using BuildingBlocks.DDD;
 
 namespace Alias.API.Aliases.Models;
@@ -30,11 +31,13 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
     // Soft Delete implementation
     public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedAt { get; set; } = DateTimeOffset.UtcNow;
-    
+
     public string? DeletedBy { get; set; }
 
     // EF Core materialization
-    private Alias() { }
+    private Alias()
+    {
+    }
 
     public static Alias Create(
         string label,
@@ -51,27 +54,35 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
             Visibility = visibility,
             Status = AliasStatus.Active
         };
+        
+       (var uniqueKey, var searchKey) = AliasNormalizerUtils.BuildKeys(label);
 
         // Create initial version
         var initialVersion = AliasVersion.Create(
             alias.Id,
             aliasLabel.Value,
-            aliasLabel.SearchKey,
-            aliasLabel.UniqueKey,
+            searchKey,
+            uniqueKey,
             source);
 
         alias._versions.Add(initialVersion);
         alias.CurrentVersionId = initialVersion.Id;
 
         // Create audit record
-        var auditRecord = AliasAudit.Create(alias.Id, nameof(AliasAuditAction.Created), $"Initial alias created with label: {label}");
+        var auditRecord = AliasAudit.Create(
+            alias.Id,
+            nameof(AliasAuditAction.Created),
+            new Audit.CreatedDetails(
+                Source: source.ToString(),
+                Label: aliasLabel.Value)
+        );
+
         alias._auditRecords.Add(auditRecord);
 
-        // Emit domain events
         alias.AddDomainEvent(new AliasCreatedEvent(
             alias.Id,
             aliasLabel.Value,
-            aliasLabel.UniqueKey,
+            uniqueKey,
             source,
             visibility,
             alias.CreatedAt));
@@ -124,7 +135,7 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
         Metadata = Metadata.IncrementVersionCount().UpdateLastActive();
 
         // Create audit record
-        var auditRecord = AliasAudit.Create(Id, nameof(AliasAuditAction.LabelUpdated), 
+        var auditRecord = AliasAudit.Create(Id, nameof(AliasAuditAction.LabelUpdated),
             $"Label changed from '{oldLabel}' to '{newLabel}'");
         _auditRecords.Add(auditRecord);
 
@@ -231,7 +242,7 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
         }
 
         // Create audit record
-        var auditRecord = AliasAudit.Create(Id, nameof(AliasAuditAction.Suspended), 
+        var auditRecord = AliasAudit.Create(Id, nameof(AliasAuditAction.Suspended),
             $"Alias suspended. Reason: {reason}");
         _auditRecords.Add(auditRecord);
 

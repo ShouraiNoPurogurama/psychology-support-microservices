@@ -39,6 +39,7 @@ public class IssueAliasHandler(
         var nicknameSource = ExtractNicknameSourceFromToken(command.ReservationToken, command.Label);
 
         var normalizedUniqueKey = AliasNormalizerUtils.ToUniqueKey(command.Label);
+        
         var labelTaken = await dbContext.AliasVersions
             .AsNoTracking()
             .AnyAsync(v => v.UniqueKey == normalizedUniqueKey, cancellationToken);

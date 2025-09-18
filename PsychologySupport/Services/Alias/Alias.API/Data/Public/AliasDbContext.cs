@@ -40,7 +40,6 @@ public partial class AliasDbContext : DbContext
                 .HasConversion(s => s.ToString(),
                     dbStatus => (AliasVisibility)Enum.Parse(typeof(AliasVisibility), dbStatus));
 
-            // Map the AliasLabel value object as an owned type with explicit column names
             entity.OwnsOne(a => a.Label, label =>
             {
                 label.Property(l => l.Value).HasColumnName("value");

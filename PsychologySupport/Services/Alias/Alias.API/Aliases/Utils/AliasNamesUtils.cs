@@ -28,7 +28,7 @@ public static class AliasNamesUtils
             var animal = Animals[Random.Shared.Next(Animals.Length)];
             var number = Random.Shared.Next(100, 1000); //inclusive [100..999]
 
-            var label = $"{adjective} {animal} #{number}";
+            var label = $"{animal} {adjective} #{number}";
             var key = AliasNormalizerUtils.ToUniqueKey(label);
 
             if (seenKeys.Add(key))
