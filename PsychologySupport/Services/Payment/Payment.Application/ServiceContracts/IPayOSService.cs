@@ -8,6 +8,7 @@ public interface IPayOSService
     Task<string> CreatePayOSUrlForSubscriptionAsync(BuySubscriptionDto dto, Guid paymentId,long paymentCode);
     Task<string> CreatePayOSUrlForUpgradeSubscriptionAsync(UpgradeSubscriptionDto dto, Guid paymentId, long paymentCode);
     Task<string> CreatePayOSUrlForBookingAsync(BuyBookingDto dto, Guid paymentId, long paymentCode);
+    Task<string> CreatePayOSUrlForOrderAsync(OrderDto dto, Guid paymentId, long orderCode);
 
     Task<PaymentLinkInformation> GetPaymentLinkInformationAsync(long paymentCode);
     Task<PaymentLinkInformation> CancelPaymentLinkAsync(long paymentCode, string? cancellationReason = null);

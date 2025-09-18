@@ -1,5 +1,5 @@
-﻿using Billing.API.Data;
-using Billing.API.Domains.Idempotency;
+﻿using Billing.Application.Extensions;
+using Billing.Infrastructure.Data;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Exceptions.Handler;
@@ -155,7 +155,7 @@ namespace Billing.API.Extensions
         {
             services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
             services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
-            services.AddScoped<IIdempotencyService, IdempotencyService>();
+            //services.AddScoped<IIdempotencyService, IdempotencyService>();
         }
 
         private static void AddDatabase(IServiceCollection services, IConfiguration config)

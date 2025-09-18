@@ -58,6 +58,20 @@ public class PayOSService(
         );
     }
 
+    public async Task<string> CreatePayOSUrlForOrderAsync(OrderDto dto, Guid paymentId, long orderCode)
+    {
+        paymentValidatorService.ValidatePayOSMethod(dto.PaymentMethod);
+        await paymentValidatorService.ValidateOrderRequestAsync(dto);
+
+        return await payOSLibrary.CreatePaymentLinkAsync(
+            orderCode,
+            (int)(dto.FinalPrice),
+            dto.PointPackageName,
+            configuration["PayOS:ReturnUrl"]!,
+            configuration["PayOS:CancelUrl"]!
+        );
+    }
+
     public Task<PaymentLinkInformation> GetPaymentLinkInformationAsync(long paymentCode)
         => payOSLibrary.GetPaymentLinkInformationAsync(paymentCode);
 
@@ -69,5 +83,4 @@ public class PayOSService(
 
     public Task<WebhookData> VerifyWebhookDataAsync(string webhookJson)
         => payOSLibrary.VerifyWebhookDataAsync(webhookJson);
-
 }
