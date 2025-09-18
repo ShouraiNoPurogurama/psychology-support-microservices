@@ -1,7 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.DDD;
 using BuildingBlocks.Exceptions;
-using Media.API.Media.Models;
 using Media.Application.Data;
 using Media.Application.Dtos;
 using Media.Application.ServiceContracts;
@@ -9,6 +8,7 @@ using Media.Domain.Enums;
 using Media.Domain.Events;
 using Microsoft.AspNetCore.Http;
 using System.Security.Cryptography;
+using Media.Domain.Models;
 
 namespace Media.Application.Media.Commands
 {

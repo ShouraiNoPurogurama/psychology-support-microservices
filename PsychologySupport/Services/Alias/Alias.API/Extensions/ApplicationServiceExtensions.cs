@@ -1,6 +1,7 @@
-﻿using Alias.API.Data.Public;
-using Alias.API.Domains.Aliases.Common.Reservations;
-using Alias.API.Domains.Aliases.Common.Security;
+﻿using Alias.API.Common.Authentication;
+using Alias.API.Common.Reservations;
+using Alias.API.Common.Security;
+using Alias.API.Data.Public;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Exceptions.Handler;
@@ -71,6 +72,9 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
         services.AddSingleton<IAliasReservationStore, AliasReservationStore>();
         services.AddSingleton<IAliasTokenService, AliasTokenService>();
+
+        services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
+        services.AddScoped<IAliasVersionAccessor, AliasVersionAccessor>();
     }
 
     private static void ConfigureMediatR(IServiceCollection services)
@@ -109,13 +113,13 @@ public static class ApplicationServiceExtensions
                 Version = "v1"
             });
 
-            if (env.IsProduction())
-            {
+            // if (env.IsProduction())
+            // {
                 options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
                 {
                     Url = "/alias-service/"
                 });
-            }
+            // }
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

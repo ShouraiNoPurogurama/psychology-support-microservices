@@ -8,9 +8,9 @@ public abstract class SoftDeletableEntity<TId> : Entity<TId>, ISoftDeletable, IH
     
     public string? DeletedByAliasId { get; set; }
     
-    public DateTimeOffset? CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
     
-    public string? CreatedByAliasId { get; set; }
+    public Guid CreatedByAliasId { get; set; }
     
     public void MarkAsDeleted(string? deletedByAliasId = null)
     {

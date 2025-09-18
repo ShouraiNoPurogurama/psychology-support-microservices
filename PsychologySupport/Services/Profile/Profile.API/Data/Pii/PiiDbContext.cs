@@ -1,4 +1,5 @@
-﻿using Profile.API.Models.Pii;
+﻿using Profile.API.Enums.Pii;
+using Profile.API.Models.Pii;
 using Profile.API.ValueObjects.Pii;
 
 namespace Profile.API.Data.Pii;
@@ -12,7 +13,6 @@ public partial class PiiDbContext : DbContext
 
     public virtual DbSet<AliasOwnerMap> AliasOwnerMaps { get; set; }
     public virtual DbSet<PatientOwnerMap> PatientOwnerMaps { get; set; }
-
     public virtual DbSet<PersonProfile> PersonProfiles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -31,38 +31,51 @@ public partial class PiiDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever();
 
-            entity.HasOne(e => e.PersonProfile)
-                .WithOne(e => e.AliasOwnerMap)
-                .HasForeignKey<AliasOwnerMap>(e => e.SubjectRef)
-                .IsRequired();
+            entity.HasOne(map => map.PersonProfile)
+                .WithOne()   
+                .HasForeignKey<AliasOwnerMap>(map => map.SubjectRef)
+                .HasPrincipalKey<PersonProfile>(person => person.SubjectRef)
+                .HasConstraintName("fk_alias_owner_map_person_profile");
         });
 
         builder.Entity<PatientOwnerMap>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("patient_owner_map_pkey");
-            
+
             entity.ToTable("patient_owner_map", "pii");
-            
+
             entity.HasIndex(e => e.PatientProfileId, "ix_patient_owner_map_patient_profile_id").IsUnique();
-            
+
             entity.Property(e => e.Id)
                 .ValueGeneratedNever();
             
-            entity.HasOne<PersonProfile>()
-                .WithOne()
-                .HasForeignKey<PatientOwnerMap>(e => e.SubjectRef)
-                .IsRequired();
+            entity.HasOne(map => map.PersonProfile)
+                .WithOne()   // thay vì WithMany
+                .HasForeignKey<PatientOwnerMap>(map => map.SubjectRef)
+                .HasPrincipalKey<PersonProfile>(person => person.SubjectRef)
+                .HasConstraintName("fk_alias_owner_map_person_profile"); 
+
         });
 
         builder.Entity<PersonProfile>(entity =>
         {
-            entity.HasKey(e => e.SubjectRef);
+            entity.HasKey(x => x.SubjectRef);
+            
+            entity.Ignore(x => x.Id);
 
             entity.ToTable("person_profiles", "pii");
 
             entity.Property(e => e.FullName)
                 .HasConversion(e => e.Value,
                     dbValue => PersonName.Of(dbValue));
+
+            entity.Property(e => e.Status)
+                .HasConversion(e => e.ToString(),
+                    dbStatus => (PersonProfileStatus)Enum.Parse(typeof(PersonProfileStatus), dbStatus))
+                .HasSentinel(PersonProfileStatus.Pending)
+                .HasDefaultValue(PersonProfileStatus.Pending)
+                ;
+
 
             entity.Property(e => e.UserId)
                 .ValueGeneratedNever();

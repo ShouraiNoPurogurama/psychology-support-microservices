@@ -7,8 +7,8 @@ namespace YarpApiGateway.Features.TokenExchange;
 
 public class TokenExchangeService : ITokenExchangeService
 {
-    private readonly TokenExchangeRuleRegistry _ruleRegistry;
     private readonly IInternalTokenMintingService _tokenMintingService;
+    private readonly TokenExchangeRuleRegistry _ruleRegistry;
     private readonly JwtSecurityTokenHandler _tokenHandler = new();
 
     public TokenExchangeService(TokenExchangeRuleRegistry ruleRegistry, IInternalTokenMintingService tokenMintingService)

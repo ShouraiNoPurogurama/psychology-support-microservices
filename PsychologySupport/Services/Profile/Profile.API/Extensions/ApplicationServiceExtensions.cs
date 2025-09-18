@@ -3,6 +3,7 @@ using BuildingBlocks.Messaging.MassTransit;
 using FluentValidation;
 using Notification.API.Protos;
 using Profile.API.Data.Pii;
+using Profile.API.Domains.Pii.Services;
 using Profile.API.Domains.Public.DoctorProfiles.Validators;
 using Profile.API.Domains.Public.PatientProfiles.Validators;
 
@@ -55,6 +56,8 @@ public static class ApplicationServiceExtensions
     {
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+
+        services.AddScoped<PiiService>();
     }
 
     private static void ConfigureMediatR(IServiceCollection services)
@@ -90,14 +93,10 @@ public static class ApplicationServiceExtensions
                 Title = "Profile API",
                 Version = "v1"
             });
-            
-            if (env.IsProduction())
+            options.AddServer(new OpenApiServer
             {
-                options.AddServer(new OpenApiServer
-                {
-                    Url = "/profile-service/"
-                });
-            }
+                Url = "/profile-service/"
+            });
             
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

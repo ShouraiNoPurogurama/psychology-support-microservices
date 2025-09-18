@@ -23,11 +23,11 @@ namespace Profile.API.Domains.Public.PatientProfiles.Features.GetMedicalRecord
             })
                 .RequireAuthorization(policy => policy.RequireRole("Doctor", "Admin"))
                 .WithName("GetMedicalRecordById")
-                .WithTags("PatientProfiles")
-                .Produces<GetMedicalRecordResponse>()
+                .WithTags("MedicalRecords")
+                .Produces<GetMedicalRecordResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
-                .WithDescription("Get MedicalRecord")
-                .WithSummary("Get MedicalRecord");
+                .WithDescription("Retrieves the medical record for the specified ID. Requires 'Doctor' or 'Admin' role. Returns medical record details.")
+                .WithSummary("Get medical record by ID");
         }
     }
 }

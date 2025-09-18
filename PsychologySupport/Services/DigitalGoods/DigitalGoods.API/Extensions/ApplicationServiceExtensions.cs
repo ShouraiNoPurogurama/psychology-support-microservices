@@ -70,14 +70,10 @@ namespace DigitalGoods.API.Extensions
                     Title = "DigitalGoods API",
                     Version = "v1"
                 });
-
-                if (env.IsProduction())
+                options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
                 {
-                    options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
-                    {
-                        Url = "/digitalgoods-service/"
-                    });
-                }
+                    Url = "/digitalgoods-service/"
+                });
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

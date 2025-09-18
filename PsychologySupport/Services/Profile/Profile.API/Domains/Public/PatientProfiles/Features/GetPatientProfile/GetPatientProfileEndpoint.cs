@@ -21,12 +21,12 @@ public class GetPatientProfileEndpoint : ICarterModule
                 var response = result.Adapt<GetPatientProfileResponse>();
                 return Results.Ok(response);
             })
-            .RequireAuthorization(policy => policy.RequireRole("User", "Admin","Manager"))
+            .RequireAuthorization(policy => policy.RequireRole("User", "Admin", "Manager"))
             .WithName("GetPatientProfile")
             .WithTags("PatientProfiles")
-            .Produces<GetPatientProfileResponse>()
+            .Produces<GetPatientProfileResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .WithDescription("Get Patient Profile")
-            .WithSummary("Get Patient Profile");
+            .WithDescription("Retrieves the patient profile for the specified ID. Requires 'User', 'Admin', or 'Manager' role. Returns profile details.")
+            .WithSummary("Get patient profile by ID");
     }
 }

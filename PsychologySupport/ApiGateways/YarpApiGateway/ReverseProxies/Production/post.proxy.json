@@ -1,0 +1,35 @@
+﻿{
+  "ReverseProxy": {
+    "RouteGroups": {
+      "post-group": {
+        "ClusterId": "post-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Routes": {
+          "post-health": {
+            "Match": { "Path": "/post-service/health" },
+            "Transforms": [ { "PathPattern": "/health" } ]
+          },
+          "post-swagger": {
+            "Match": { "Path": "/post-service/swagger/{**catch-all}" },
+            "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+          },
+          "post-route": {
+            "Match": { "Path": "/post-service/{**catch-all}" },
+            "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+          }
+        }
+      }
+    },
+    "Clusters": {
+      "post-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://post.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}
+
+

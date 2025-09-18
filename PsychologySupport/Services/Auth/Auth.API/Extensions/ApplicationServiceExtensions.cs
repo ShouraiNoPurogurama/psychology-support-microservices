@@ -1,14 +1,14 @@
 ﻿using Auth.API.Data;
-using Auth.API.Domains.Authentication.BackgroundServices;
-using Auth.API.Domains.Authentication.ServiceContracts;
-using Auth.API.Domains.Authentication.ServiceContracts.Features;
-using Auth.API.Domains.Authentication.ServiceContracts.Shared;
-using Auth.API.Domains.Authentication.Services;
-using Auth.API.Domains.Authentication.Services.Features;
-using Auth.API.Domains.Authentication.Services.Shared;
-using Auth.API.Domains.Authentication.Validators;
-using Auth.API.Domains.Encryption.ServiceContracts;
-using Auth.API.Domains.Encryption.Services;
+using Auth.API.Features.Authentication.BackgroundServices;
+using Auth.API.Features.Authentication.ServiceContracts;
+using Auth.API.Features.Authentication.ServiceContracts.Features;
+using Auth.API.Features.Authentication.ServiceContracts.Shared;
+using Auth.API.Features.Authentication.Services;
+using Auth.API.Features.Authentication.Services.Features;
+using Auth.API.Features.Authentication.Services.Shared;
+using Auth.API.Features.Authentication.Validators;
+using Auth.API.Features.Encryption.ServiceContracts;
+using Auth.API.Features.Encryption.Services;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Extensions;
@@ -24,7 +24,7 @@ using Notification.API.Protos;
 using Pii.API.Protos;
 using Profile.API.Protos;
 using StackExchange.Redis;
-using EmailService = Auth.API.Domains.Authentication.Services.Shared.EmailService;
+using EmailService = Auth.API.Features.Authentication.Services.Shared.EmailService;
 
 namespace Auth.API.Extensions;
 
@@ -119,15 +119,10 @@ public static class ApplicationServiceExtensions
                 Title = "Auth API",
                 Version = "v1"
             });
-            
-            //Chỉ add server khi chạy Production
-            if (env.IsProduction())
+            options.AddServer(new OpenApiServer
             {
-                options.AddServer(new OpenApiServer
-                {
-                    Url = "/auth-service/"
-                });
-            }
+                Url = "/auth-service/"
+            });
         });
     }
 
@@ -145,6 +140,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IUserAccountService, UserAccountService>();
+        services.AddScoped<IUserOnboardingService, UserOnboardingService>();
         
         //Shared
         services.AddScoped<IAuthenticationService, AuthenticationService>();

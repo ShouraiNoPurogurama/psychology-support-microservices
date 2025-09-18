@@ -11,12 +11,21 @@ public class PatientProfile : AggregateRoot<Guid>
     {
     }
 
+    //Ctor cho seed
     private PatientProfile(
-        Guid subjectRef, 
+        Guid seedProfileId)
+    {
+        Id = seedProfileId;
+        Allergies = null;
+        PersonalityTraits = PersonalityTrait.None;
+        JobId = null;
+        IsProfileCompleted = false;
+    }
+
+    private PatientProfile(
         string? allergies,
         PersonalityTrait personalityTraits, Guid? jobId)
     {
-        // SubjectRef = subjectRef;
         Allergies = allergies;
         PersonalityTraits = personalityTraits;
         JobId = jobId;
@@ -39,13 +48,16 @@ public class PatientProfile : AggregateRoot<Guid>
     public IReadOnlyList<MedicalRecord> MedicalRecords => _medicalRecords.AsReadOnly();
 
     public static PatientProfile Create(Guid subjectRef, string? allergies,
-        PersonalityTrait personalityTraits, Guid? jobId)
+        PersonalityTrait personalityTraits, Guid jobId)
     {
         var errors = new Dictionary<string, string[]>();
-        
+
         if (subjectRef == Guid.Empty)
             errors.Add("INVALID_SUBJECT_REF", ["Reference người dùng không được để trống."]);
-        
+
+        if (jobId == Guid.Empty)
+            errors.Add("INVALID_JOB_ID", ["Công việc không được để trống."]);
+
         if (allergies != null && allergies.Length > 300)
         {
             errors.Add("INVALID_ALLERGIES", ["Thông tin dị ứng không được vượt quá 300 ký tự."]);
@@ -55,9 +67,28 @@ public class PatientProfile : AggregateRoot<Guid>
         {
             throw new CustomValidationException(errors);
         }
+
+        var profile = new PatientProfile(allergies, personalityTraits, jobId);
+
+        profile.AddDomainEvent(new PatientProfileCreatedEvent(profile.Id));
+
+        return profile;
+    }
+
+    public static PatientProfile CreateSeed(Guid seedProfileId)
+    {
+        var errors = new Dictionary<string, string[]>();
+
+        if (seedProfileId == Guid.Empty)
+            errors.Add("INVALID_PROFILE_ID", ["Profile Id không được để trống."]);
         
-        var profile = new PatientProfile(subjectRef, allergies, personalityTraits, jobId);
-        
+        if (errors.Count > 0)
+        {
+            throw new CustomValidationException(errors);
+        }
+
+        var profile = new PatientProfile(seedProfileId);
+
         profile.AddDomainEvent(new PatientProfileCreatedEvent(profile.Id));
 
         return profile;
@@ -70,18 +101,43 @@ public class PatientProfile : AggregateRoot<Guid>
             .WithErrorCode("INVALID_ALLERGIES")
             .WithMessage("Thông tin dị ứng không được vượt quá 300 ký tự.")
             .ThrowIfInvalid();
-        
+
         bool updated = allergies != Allergies || personalityTraits != PersonalityTraits || jobId != JobId;
-        
+
         Allergies = allergies;
 
         PersonalityTraits = personalityTraits;
 
         JobId = jobId;
 
+        RecalculateCompletionStatus();
+        
         if (updated)
             AddDomainEvent(new PatientProfileUpdatedEvent(Id, allergies, personalityTraits, jobId));
     }
+
+    public void CompleteOnboarding(Guid jobId)
+    {
+        if (IsProfileCompleted)
+            return;
+
+        var was = IsProfileCompleted;
+
+        if (JobId != jobId)
+        {
+            UpdateJob(jobId); 
+        }
+        else
+        {
+            RecalculateCompletionStatus();
+        }
+
+        if (!was && IsProfileCompleted)
+        {
+            AddDomainEvent(new PatientProfileOnboardedEvent(Id));
+        }
+    }
+
 
     public void UpdateAllergies(string? allergies)
     {
@@ -90,11 +146,13 @@ public class PatientProfile : AggregateRoot<Guid>
             .WithErrorCode("INVALID_ALLERGIES")
             .WithMessage("Thông tin dị ứng không được vượt quá 300 ký tự.")
             .ThrowIfInvalid();
-        
+
         if (Allergies != allergies)
         {
             Allergies = allergies;
-            AddDomainEvent(new PatientAllergiesUpdatedEvent(Id, allergies));
+            // AddDomainEvent(new PatientAllergiesUpdatedEvent(Id, allergies));
+            
+            RecalculateCompletionStatus();
         }
     }
 
@@ -112,7 +170,9 @@ public class PatientProfile : AggregateRoot<Guid>
         if (JobId != jobId)
         {
             JobId = jobId;
-            AddDomainEvent(new PatientJobUpdatedEvent(Id, jobId));
+            // AddDomainEvent(new PatientJobUpdatedEvent(Id, jobId));
+            
+            RecalculateCompletionStatus();
         }
     }
 
@@ -175,10 +235,25 @@ public class PatientProfile : AggregateRoot<Guid>
         MedicalHistoryId = null;
     }
 
+    private void RecalculateCompletionStatus()
+    {
+        var oldStatus = IsProfileCompleted;
+        var newStatus = CheckProfileCompleted(); 
+
+        if (!oldStatus && newStatus)
+        {
+            IsProfileCompleted = true;
+        }
+        else
+        {
+            IsProfileCompleted = newStatus;
+        }
+    }
+
+// Sửa lại hàm này cho đúng logic (bỏ cái "return true" đi)
     private bool CheckProfileCompleted()
     {
+        //Khi user đã chọn Job thì là xong
         return JobId.HasValue;
-        //TODO sửa lại logic này sau khi hoàn thiện phần Pii
-        return true;
     }
 }

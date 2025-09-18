@@ -112,14 +112,10 @@ namespace Scheduling.API.Extensions
                     Title = "Scheduling API",
                     Version = "v1"
                 });
-                
-                if (env.IsProduction())
+                options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
                 {
-                    options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
-                    {
-                        Url = "/scheduling-service/"
-                    });
-                }
+                    Url = "/scheduling-service/"
+                });
                 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

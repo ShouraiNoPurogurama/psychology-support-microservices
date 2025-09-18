@@ -1,0 +1,34 @@
+﻿{
+  "ReverseProxy": {
+    "RouteGroups": {
+      "aimoderation-group": {
+        "ClusterId": "aimoderation-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Routes": {
+          "aimoderation-health": {
+            "Match": { "Path": "/aimoderation-service/health" },
+            "Transforms": [ { "PathPattern": "/health" } ]
+          },
+          "aimoderation-swagger": {
+            "Match": { "Path": "/aimoderation-service/swagger/{**catch-all}" },
+            "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+          },
+          "aimoderation-route": {
+            "Match": { "Path": "/aimoderation-service/{**catch-all}" },
+            "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+          }
+        }
+      }
+    },
+    "Clusters": {
+      "aimoderation-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "https://localhost:5515/"
+          }
+        }
+      }
+    }
+  }
+}
+

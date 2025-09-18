@@ -63,13 +63,10 @@ public static class ApplicationServiceExtensions
                 Title = "LifeStyles API",
                 Version = "v1"
             });
-            if (env.IsProduction())
+            options.AddServer(new OpenApiServer
             {
-                options.AddServer(new OpenApiServer
-                {
-                    Url = "/lifestyle-service/"
-                });
-            }
+                Url = "/lifestyle-service/"
+            });
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",

@@ -1,16 +1,17 @@
-﻿using BuildingBlocks.Data.Interceptors;
-using BuildingBlocks.Extensions;
+﻿using BuildingBlocks.Extensions;
 using BuildingBlocks.Idempotency;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Post.Application.Abstractions.Authentication;
+using Post.Application.Abstractions.Integration;
 using Post.Application.Data;
 using Post.Infrastructure.Authentication;
-using Post.Infrastructure.Data;
-using Post.Infrastructure.Data.Public;
+using Post.Infrastructure.Data.Interceptors;
+using Post.Infrastructure.Data.Post;
 using Post.Infrastructure.Data.Query;
+using Post.Infrastructure.Integration.Services;
 using Post.Infrastructure.Resilience.Decorators;
 using Post.Infrastructure.Resilience.Services;
 
@@ -26,23 +27,33 @@ public static class DependencyInjection
 
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
-        services.AddScoped<IPublicDbContext, PublicDbContext>();
+        // services.AddScoped<ILegacyPublicDbContext, LegacyPublicDbContext>();
         services.AddScoped<IQueryDbContext, QueryDbContext>();
+        services.AddScoped<IPostDbContext, PostDbContext>();
 
         services.AddScoped<IIdempotencyHashAccessor, IdempotencyHashAccessor>();
         services.AddScoped<IIdempotencyService, IdempotencyService>();           // store gốc (EF/Db)
         services.Decorate<IIdempotencyService, LockingIdempotencyService>();     // single-flight
         services.Decorate<IIdempotencyService, CachingIdempotencyService>();
         
-        services.AddScoped<IAliasContextResolver, CurrentAliasContextResolver>(); 
-        services.AddScoped<IActorResolver, CurrentAliasContextResolver>();
+        services.AddScoped<IAliasVersionAccessor, AliasVersionAccessor>(); 
+        services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
+
+        services.AddScoped<IOutboxWriter, EfOutboxWriter>();
             
         
-        services.AddDbContext<PublicDbContext>((serviceProvider, options) =>
+        // services.AddDbContext<LegacyPublicDbContext>((serviceProvider, options) =>
+        // {
+        //     options.AddInterceptors(serviceProvider.GetServices<ISaveChangesInterceptor>());
+        //     options.UseSnakeCaseNamingConvention();
+        //     options.UseNpgsql(connectionString);
+        // });
+        //
+        services.AddDbContext<PostDbContext>((serviceProvider, options) =>
         {
             options.AddInterceptors(serviceProvider.GetServices<ISaveChangesInterceptor>());
             options.UseSnakeCaseNamingConvention();
-            options.UseNpgsql(connectionString);
+            options.UseNpgsql(connectionString, x => x.MigrationsHistoryTable("__EFMigrationsHistory", "post"));
         });
 
         services.AddDbContext<QueryDbContext>((serviceProvider, options) =>

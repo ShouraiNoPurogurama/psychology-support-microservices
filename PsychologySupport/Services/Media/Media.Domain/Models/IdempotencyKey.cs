@@ -1,6 +1,6 @@
 ﻿using Media.Domain.Abstractions;
 
-namespace Media.API.Media.Models;
+namespace Media.Domain.Models;
 
 public partial class IdempotencyKey : Entity<Guid>, IHasCreationAudit
 {

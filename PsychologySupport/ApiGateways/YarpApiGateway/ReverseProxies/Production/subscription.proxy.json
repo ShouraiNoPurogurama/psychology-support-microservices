@@ -1,0 +1,51 @@
+﻿{
+  "ReverseProxy": {
+    "RouteGroups": {
+      "subscription-group": {
+        "ClusterId": "subscription-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Routes": {
+          "subscription-health": {
+            "Match": {
+              "Path": "/subscription-service/health"
+            },
+            "Transforms": [
+              {
+                "PathPattern": "/health"
+              }
+            ]
+          },
+          "subscription-swagger": {
+            "Match": {
+              "Path": "/subscription-service/swagger/{**catch-all}"
+            },
+            "Transforms": [
+              {
+                "PathPattern": "/swagger/{**catch-all}"
+              }
+            ]
+          },
+          "subscription-route": {
+            "Match": {
+              "Path": "/subscription-service/{**catch-all}"
+            },
+            "Transforms": [
+              {
+                "PathPattern": "/{**catch-all}"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "Clusters": {
+      "subscription-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://subscription.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+﻿{
+  "ReverseProxy": {
+    "RouteGroups": {
+      "payment-group": {
+        "ClusterId": "payment-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Routes": {
+          "payment-health": {
+            "Match": { "Path": "/billing-service/health" },
+            "Transforms": [ { "PathPattern": "/health" } ]
+          },
+          "payment-swagger": {
+            "Match": { "Path": "/billing-service/swagger/{**catch-all}" },
+            "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+          },
+          "payment-route": {
+            "Match": { "Path": "/billing-service/{**catch-all}" },
+            "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+          }
+        }
+      }
+    },
+    "Clusters": {
+      "payment-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "https://localhost:5054/"
+          }
+        }
+      }
+    }
+  }
+}
+

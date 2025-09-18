@@ -162,7 +162,6 @@ namespace Profile.API.Data.Public.Migrations
                             b1.IsRequired();
 
                             b1.Property<string>("Address")
-                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("address");
 
@@ -455,10 +454,6 @@ namespace Profile.API.Data.Public.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("personality_traits");
-
-                    b.Property<Guid>("SubjectRef")
-                        .HasColumnType("uuid")
-                        .HasColumnName("subject_ref");
 
                     b.HasKey("Id")
                         .HasName("pk_patient_profiles");

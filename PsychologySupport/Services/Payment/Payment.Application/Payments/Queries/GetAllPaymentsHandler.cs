@@ -43,7 +43,7 @@ namespace Payment.Application.Payments.Queries
             if (request.CreatedAt.HasValue)
             {
                 var requestDate = request.CreatedAt.Value;
-                query = query.Where(p => DateOnly.FromDateTime(p.CreatedAt.Value.UtcDateTime) == requestDate);
+                query = query.Where(p => DateOnly.FromDateTime(p.CreatedAt.UtcDateTime) == requestDate);
             }
 
 

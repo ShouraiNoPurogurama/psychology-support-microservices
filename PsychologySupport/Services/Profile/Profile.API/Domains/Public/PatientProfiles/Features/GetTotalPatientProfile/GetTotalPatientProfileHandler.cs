@@ -17,9 +17,9 @@ namespace Profile.API.Domains.Public.PatientProfiles.Features.GetTotalPatientPro
         {
             IQueryable<PatientProfile> query = _context.PatientProfiles;
 
-            query = query.Where(p => p.CreatedAt.HasValue &&
-                DateOnly.FromDateTime(p.CreatedAt.Value.UtcDateTime) >= request.StartDate &&
-                DateOnly.FromDateTime(p.CreatedAt.Value.UtcDateTime) <= request.EndDate);
+            query = query.Where(p => 
+                DateOnly.FromDateTime(p.CreatedAt.UtcDateTime) >= request.StartDate &&
+                DateOnly.FromDateTime(p.CreatedAt.UtcDateTime) <= request.EndDate);
 
       
             //TODO quay lại sửa sau

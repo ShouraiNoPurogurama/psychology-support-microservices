@@ -87,14 +87,10 @@ public static class ApplicationServiceExtensions
                 Title = "Chatbox API",
                 Version = "v1"
             });
-            //Chỉ add server khi chạy Production
-            if (env.IsProduction())
+            options.AddServer(new OpenApiServer
             {
-                options.AddServer(new OpenApiServer
-                {
-                    Url = "/chatbox-service/"
-                });
-            }
+                Url = "/chatbox-service/"
+            });
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",

@@ -1,5 +1,4 @@
-﻿using Media.API.Media.Models;
-using Media.Application.ServiceContracts;
+﻿using Media.Application.ServiceContracts;
 using Media.Domain.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -8,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Media.Domain.Models;
 
 namespace Media.Infrastructure.Services
 {

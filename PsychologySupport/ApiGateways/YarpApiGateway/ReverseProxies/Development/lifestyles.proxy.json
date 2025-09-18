@@ -1,0 +1,34 @@
+﻿{
+  "ReverseProxy": {
+    "RouteGroups": {
+      "lifestyles-group": {
+        "ClusterId": "lifestyles-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Routes": {
+          "lifestyles-health": {
+            "Match": { "Path": "/lifestyle-service/health" },
+            "Transforms": [ { "PathPattern": "/health" } ]
+          },
+          "lifestyles-swagger": {
+            "Match": { "Path": "/lifestyle-service/swagger/{**catch-all}" },
+            "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+          },
+          "lifestyles-route": {
+            "Match": { "Path": "/lifestyle-service/{**catch-all}" },
+            "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+          }
+        }
+      }
+    },
+    "Clusters": {
+      "lifestyles-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "https://localhost:5507/"
+          }
+        }
+      }
+    }
+  }
+}
+

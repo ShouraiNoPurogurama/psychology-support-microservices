@@ -1,19 +1,19 @@
 ﻿using System.Text.Json;
 using BuildingBlocks.Idempotency;
 using Microsoft.EntityFrameworkCore;
-using Post.Infrastructure.Data.Public;
+using Post.Infrastructure.Data.Post;
 using Post.Infrastructure.Resilience.Entities;
 
 namespace Post.Infrastructure.Resilience.Services;
 
 public sealed class IdempotencyService : IIdempotencyService
 {
-    private readonly PublicDbContext _db;
+    private readonly PostDbContext _db;
 
     private readonly IIdempotencyHashAccessor _hashAccessor;
     private readonly TimeSpan _ttl = TimeSpan.FromHours(12);
 
-    public IdempotencyService(PublicDbContext db, IIdempotencyHashAccessor hashAccessor, Func<string>? getRequestHash = null)
+    public IdempotencyService(PostDbContext db, IIdempotencyHashAccessor hashAccessor, Func<string>? getRequestHash = null)
     {
         _db = db;
         _hashAccessor = hashAccessor;

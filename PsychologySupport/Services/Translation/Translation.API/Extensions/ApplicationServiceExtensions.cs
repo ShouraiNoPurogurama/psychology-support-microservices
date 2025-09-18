@@ -71,13 +71,6 @@ public static class ApplicationServiceExtensions
                 Version = "v1"
             });
 
-            if (env.IsProduction())
-            {
-                options.AddServer(new OpenApiServer
-                {
-                    Url = "/translation-service/"
-                });
-            }
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

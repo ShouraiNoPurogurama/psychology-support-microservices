@@ -17,11 +17,11 @@ namespace Profile.API.Domains.Public.PatientProfiles.Features.GetJobByIndustryId
             })
                 .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
                 .WithName("GetJobByIndustryId")
-                .WithTags("PatientProfiles")
-                .Produces<GetJobByIndustryIdResponse>()
+                .WithTags("Jobs")
+                .Produces<GetJobByIndustryIdResponse>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status404NotFound)
-                .WithDescription("Get all jobs by IndustryId")
-                .WithSummary("Get all jobs by IndustryId");
+                .WithDescription("Retrieves all jobs associated with the specified industry. Requires 'User' or 'Admin' role.")
+                .WithSummary("Get jobs by industry ID");
         }
     }
 

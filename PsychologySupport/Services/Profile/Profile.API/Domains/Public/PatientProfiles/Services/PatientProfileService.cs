@@ -4,6 +4,7 @@ using Profile.API.Data.Pii;
 using Profile.API.Models.Pii;
 using Profile.API.Models.Public;
 using Profile.API.Protos;
+using ContactInfo = BuildingBlocks.Data.Common.ContactInfo;
 
 namespace Profile.API.Domains.Public.PatientProfiles.Services
 {
@@ -50,12 +51,8 @@ namespace Profile.API.Domains.Public.PatientProfiles.Services
                 }
 
                 // Map Protos.ContactInfo to BuildingBlocks.Data.Common.ContactInfo
-                var contactInfo = new BuildingBlocks.Data.Common.ContactInfo
-                {
-                    Address = request.ContactInfo.Address,
-                    Email = request.ContactInfo.Email,
-                    PhoneNumber = request.ContactInfo.PhoneNumber
-                };
+                var contactInfo = ContactInfo.Of(request.ContactInfo.Address, request.ContactInfo.Email, request.ContactInfo.PhoneNumber);
+
 
                 // Check gender
                 BuildingBlocks.Enums.UserGender gender;
@@ -132,9 +129,9 @@ namespace Profile.API.Domains.Public.PatientProfiles.Services
                 }
 
                 // Create new profile
-                var newProfile = PatientProfile.Create(userId, request.Allergies, personalityTrait, Guid.Parse(request.JobId));
+                var newProfile = PatientProfile.Create(userId, "", personalityTrait, Guid.Parse(request.JobId));
 
-                var newPiiProfile = PersonProfile.Create(
+                var newPiiProfile = PersonProfile.CreateActive(
                     subjectRef: Guid.NewGuid(),
                     userId: userId,
                     fullName: request.FullName,

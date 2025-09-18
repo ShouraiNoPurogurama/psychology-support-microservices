@@ -138,6 +138,13 @@ namespace Profile.API.Data.Pii.Migrations
                         .HasColumnType("text")
                         .HasColumnName("last_modified_by");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Pending")
+                        .HasColumnName("status");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
@@ -147,7 +154,6 @@ namespace Profile.API.Data.Pii.Migrations
                             b1.IsRequired();
 
                             b1.Property<string>("Address")
-                                .IsRequired()
                                 .HasColumnType("text")
                                 .HasColumnName("address");
 
@@ -162,7 +168,7 @@ namespace Profile.API.Data.Pii.Migrations
                         });
 
                     b.HasKey("SubjectRef")
-                        .HasName("pk_person_profiles");
+                        .HasName("ak_person_profiles_subject_ref");
 
                     b.HasIndex("UserId")
                         .IsUnique()
@@ -174,28 +180,25 @@ namespace Profile.API.Data.Pii.Migrations
             modelBuilder.Entity("Profile.API.Models.Pii.AliasOwnerMap", b =>
                 {
                     b.HasOne("Profile.API.Models.Pii.PersonProfile", "PersonProfile")
-                        .WithOne("AliasOwnerMap")
+                        .WithOne()
                         .HasForeignKey("Profile.API.Models.Pii.AliasOwnerMap", "SubjectRef")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_alias_owner_map_person_profiles_subject_ref");
+                        .HasConstraintName("fk_alias_owner_map_person_profile");
 
                     b.Navigation("PersonProfile");
                 });
 
             modelBuilder.Entity("Profile.API.Models.Pii.PatientOwnerMap", b =>
                 {
-                    b.HasOne("Profile.API.Models.Pii.PersonProfile", null)
+                    b.HasOne("Profile.API.Models.Pii.PersonProfile", "PersonProfile")
                         .WithOne()
                         .HasForeignKey("Profile.API.Models.Pii.PatientOwnerMap", "SubjectRef")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_patient_owner_map_person_profiles_subject_ref");
-                });
+                        .HasConstraintName("fk_alias_owner_map_person_profile");
 
-            modelBuilder.Entity("Profile.API.Models.Pii.PersonProfile", b =>
-                {
-                    b.Navigation("AliasOwnerMap");
+                    b.Navigation("PersonProfile");
                 });
 #pragma warning restore 612, 618
         }

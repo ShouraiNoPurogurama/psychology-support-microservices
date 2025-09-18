@@ -7,6 +7,7 @@ namespace BuildingBlocks.Enums
     {
         Male = 1,
         Female = 2,
-        Else = 3
+        Else = 3,
+        NotSet = 4
     }
 }
