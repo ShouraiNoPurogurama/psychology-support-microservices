@@ -21,7 +21,10 @@
         "Match": {
           "Path": "/alias-service/{**catch-all}"
         },
-        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+        "Transforms": [
+          { "PathPattern": "/{**catch-all}" },
+          { "TokenExchange": "enabled" } 
+        ]
       }
     },
     "Clusters": {

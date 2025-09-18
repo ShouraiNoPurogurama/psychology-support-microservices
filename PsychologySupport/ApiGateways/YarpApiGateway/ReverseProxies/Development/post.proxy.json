@@ -22,7 +22,10 @@
       "post-route": {
         "ClusterId": "post-cluster",
         "Match": { "Path": "/post-service/{**catch-all}" },
-        "Transforms": [ { "PathPattern": "/{**catch-all}" } ],
+        "Transforms": [ 
+          { "PathPattern": "/{**catch-all}" },
+          { "TokenExchange": "enabled" }
+        ],
         "Metadata": {
           "RateLimiterPolicy": "fixed",
           "RouteGroup": "post-group"
