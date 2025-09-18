@@ -1,23 +1,27 @@
 ﻿{
   "ReverseProxy": {
-    "RouteGroups": {
-      "payment-group": {
+    "Routes": {
+      "payment-health": {
+        "ClusterId": "payment-cluster",
+        "Match": {
+          "Path": "/billing-service/health"
+        },
+        "Transforms": [ { "PathPattern": "/health" } ]
+      },
+      "payment-swagger": {
+        "ClusterId": "payment-cluster",
+        "Match": {
+          "Path": "/billing-service/swagger/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+      },
+      "payment-route": {
         "ClusterId": "payment-cluster",
         "RateLimiterPolicy": "fixed",
-        "Routes": {
-          "payment-health": {
-            "Match": { "Path": "/billing-service/health" },
-            "Transforms": [ { "PathPattern": "/health" } ]
-          },
-          "payment-swagger": {
-            "Match": { "Path": "/billing-service/swagger/{**catch-all}" },
-            "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
-          },
-          "payment-route": {
-            "Match": { "Path": "/billing-service/{**catch-all}" },
-            "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
-          }
-        }
+        "Match": {
+          "Path": "/billing-service/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
       }
     },
     "Clusters": {
@@ -29,6 +33,12 @@
         }
       }
     }
-  }
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
 }
-

@@ -1,23 +1,27 @@
 ﻿{
   "ReverseProxy": {
-    "RouteGroups": {
-      "feed-group": {
+    "Routes": {
+      "feed-health": {
+        "ClusterId": "feed-cluster",
+        "Match": {
+          "Path": "/feed-service/health"
+        },
+        "Transforms": [ { "PathPattern": "/health" } ]
+      },
+      "feed-swagger": {
+        "ClusterId": "feed-cluster",
+        "Match": {
+          "Path": "/feed-service/swagger/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+      },
+      "feed-route": {
         "ClusterId": "feed-cluster",
         "RateLimiterPolicy": "fixed",
-        "Routes": {
-          "feed-health": {
-            "Match": { "Path": "/feed-service/health" },
-            "Transforms": [ { "PathPattern": "/health" } ]
-          },
-          "feed-swagger": {
-            "Match": { "Path": "/feed-service/swagger/{**catch-all}" },
-            "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
-          },
-          "feed-route": {
-            "Match": { "Path": "/feed-service/{**catch-all}" },
-            "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
-          }
-        }
+        "Match": {
+          "Path": "/feed-service/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
       }
     },
     "Clusters": {
@@ -31,4 +35,3 @@
     }
   }
 }
-

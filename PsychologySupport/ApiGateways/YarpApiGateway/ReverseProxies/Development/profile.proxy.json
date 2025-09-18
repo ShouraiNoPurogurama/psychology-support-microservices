@@ -1,23 +1,27 @@
 ﻿{
   "ReverseProxy": {
-    "RouteGroups": {
-      "profile-group": {
+    "Routes": {
+      "profile-health": {
+        "ClusterId": "profile-cluster",
+        "Match": {
+          "Path": "/profile-service/health"
+        },
+        "Transforms": [ { "PathPattern": "/health" } ]
+      },
+      "profile-swagger": {
+        "ClusterId": "profile-cluster",
+        "Match": {
+          "Path": "/profile-service/swagger/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+      },
+      "profile-route": {
         "ClusterId": "profile-cluster",
         "RateLimiterPolicy": "fixed",
-        "Routes": {
-          "profile-health": {
-            "Match": { "Path": "/profile-service/health" },
-            "Transforms": [ { "PathPattern": "/health" } ]
-          },
-          "profile-swagger": {
-            "Match": { "Path": "/profile-service/swagger/{**catch-all}" },
-            "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
-          },
-          "profile-route": {
-            "Match": { "Path": "/profile-service/{**catch-all}" },
-            "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
-          }
-        }
+        "Match": {
+          "Path": "/profile-service/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
       }
     },
     "Clusters": {
@@ -31,4 +35,3 @@
     }
   }
 }
-
