@@ -76,7 +76,8 @@
         "Transforms": [
           {
             "PathPattern": "/doctors"
-          }
+          },
+          { "TokenExchange": "true" }
         ],
         "RateLimiterPolicy": "fixed"
       },

@@ -89,13 +89,10 @@ public static class ApplicationServiceExtensions
                 Version = "v1"
             });
 
-            if (env.IsProduction())
+            options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
             {
-                options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
-                {
-                    Url = "/subscription-service/"
-                });
-            }
+                Url = "/subscription-service/"
+            });
             
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

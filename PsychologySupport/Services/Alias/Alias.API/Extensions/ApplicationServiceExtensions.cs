@@ -113,13 +113,13 @@ public static class ApplicationServiceExtensions
                 Version = "v1"
             });
 
-            if (env.IsProduction())
-            {
+            // if (env.IsProduction())
+            // {
                 options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
                 {
                     Url = "/alias-service/"
                 });
-            }
+            // }
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

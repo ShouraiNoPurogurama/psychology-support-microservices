@@ -49,13 +49,10 @@ namespace Image.API.Extensions
                     Title = "Image API",
                     Version = "v1"
                 });
-                if (env.IsProduction())
+                options.AddServer(new OpenApiServer
                 {
-                    options.AddServer(new OpenApiServer
-                    {
-                        Url = "/image-service/"
-                    });
-                }
+                    Url = "/image-service/"
+                });
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",

@@ -12,13 +12,15 @@ using Microsoft.OpenApi.Models;
 using Promotion.Grpc;
 using StackExchange.Redis;
 using Translation.API.Protos;
+
 //using Billing.API.Domains.Idempotency;
 
 namespace Billing.API.Extensions
 {
     public static class ApplicationServiceExtensions
     {
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config,
+            IWebHostEnvironment env)
         {
             var connectionString = GetConnectionString(config)!;
             services.AddHealthChecks()
@@ -54,9 +56,9 @@ namespace Billing.API.Extensions
         private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
         {
             services.AddGrpcClient<PromotionService.PromotionServiceClient>(options =>
-            {
-                options.Address = new Uri(config["GrpcSettings:PromotionUrl"]!);
-            })
+                {
+                    options.Address = new Uri(config["GrpcSettings:PromotionUrl"]!);
+                })
                 .ConfigurePrimaryHttpMessageHandler(() =>
                 {
                     var handler = new HttpClientHandler
@@ -66,9 +68,9 @@ namespace Billing.API.Extensions
                     return handler;
                 });
             services.AddGrpcClient<TranslationService.TranslationServiceClient>(options =>
-            {
-                options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);
-            })
+                {
+                    options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);
+                })
                 .ConfigurePrimaryHttpMessageHandler(() =>
                 {
                     var handler = new HttpClientHandler
@@ -85,19 +87,18 @@ namespace Billing.API.Extensions
 
             services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                options.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = "Billing API",
                     Version = "v1"
                 });
-
-                if (env.IsProduction())
+                // if (env.IsProduction())
+                // {
+                options.AddServer(new OpenApiServer
                 {
-                    options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
-                    {
-                        Url = "/billing-service/"
-                    });
-                }
+                    Url = "/billing-service/"
+                });
+                // }
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
@@ -109,21 +110,20 @@ namespace Billing.API.Extensions
                     BearerFormat = "JWT"
                 });
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
                 {
-                    new OpenApiSecurityScheme
                     {
-                        Reference = new OpenApiReference
+                        new OpenApiSecurityScheme
                         {
-                            Id = "Bearer",
-                            Type = ReferenceType.SecurityScheme
-                        }
-                    },
-                    Array.Empty<string>()
-                }
+                            Reference = new OpenApiReference
+                            {
+                                Id = "Bearer",
+                                Type = ReferenceType.SecurityScheme
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
             });
-            });
-
         }
 
         private static void ConfigureCORS(IServiceCollection services)

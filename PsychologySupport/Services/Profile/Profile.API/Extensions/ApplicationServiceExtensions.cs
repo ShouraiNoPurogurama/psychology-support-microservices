@@ -93,14 +93,10 @@ public static class ApplicationServiceExtensions
                 Title = "Profile API",
                 Version = "v1"
             });
-            
-            if (env.IsProduction())
+            options.AddServer(new OpenApiServer
             {
-                options.AddServer(new OpenApiServer
-                {
-                    Url = "/profile-service/"
-                });
-            }
+                Url = "/profile-service/"
+            });
             
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
