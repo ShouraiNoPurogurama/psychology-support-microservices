@@ -39,7 +39,7 @@ public static class ApplicationServiceExtensions
 
         var envPrefix = environment.EnvironmentName;
 
-        foreach (var file in Directory.GetFiles($"{envPrefix}/ReverseProxies", "*.proxy.json"))
+        foreach (var file in Directory.GetFiles($"ReverseProxies/{envPrefix}", "*.proxy.json"))
         {
             var config = new ConfigurationBuilder()
                 .AddJsonFile(file, optional: false, reloadOnChange: true)

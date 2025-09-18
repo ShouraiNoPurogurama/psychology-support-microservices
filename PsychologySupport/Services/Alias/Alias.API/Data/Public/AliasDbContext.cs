@@ -18,7 +18,7 @@ public partial class AliasDbContext : DbContext
 
     public virtual DbSet<AliasVersion> AliasVersions { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+  protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // modelBuilder
         //     .HasDefaultSchema("public")
@@ -32,25 +32,39 @@ public partial class AliasDbContext : DbContext
             entity.ToTable("aliases");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
-            entity.Property(e => e.CurrentVersionId).HasColumnName("current_version_id");
-            entity.Property(e => e.LastModified).HasColumnName("last_modified");
-            entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
+                .ValueGeneratedNever();
+            entity.Property(e => e.CreatedAt);
+            entity.Property(e => e.CreatedBy);
+            entity.Property(e => e.CurrentVersionId);
+            entity.Property(e => e.LastModified);
+            entity.Property(e => e.LastModifiedBy);
 
             entity.Property(e => e.Visibility)
                 .HasDefaultValue(AliasVisibility.Public)
                 .HasSentinel(AliasVisibility.Public)
                 .HasConversion(s => s.ToString(),
                     dbStatus => (AliasVisibility)Enum.Parse(typeof(AliasVisibility), dbStatus));
+            
+            // Map the AliasLabel value object as an owned type with explicit column names
+            entity.OwnsOne(a => a.Label, label =>
+            {
+                label.Property(l => l.Value).HasColumnName("value");
+                label.Property(l => l.SearchKey).HasColumnName("search_key");
+                label.Property(l => l.UniqueKey).HasColumnName("unique_key");
+            });
 
-            entity.HasOne<AliasVersion>()
-                .WithMany()
-                .HasForeignKey(e => e.CurrentVersionId)
-                .OnDelete(DeleteBehavior.SetNull)
-                .HasConstraintName("aliases_current_version_id_fkey");
+            // Map the AliasMetadata value object as an owned type with explicit column names
+            entity.OwnsOne(a => a.Metadata, metadata =>
+            {
+                metadata.Property(m => m.IsSystemGenerated).HasColumnName("is_system_generated");
+                metadata.Property(m => m.LastActiveAt).HasColumnName("last_active_at");
+                metadata.Property(m => m.VersionCount).HasColumnName("version_count");
+            });
+
+            entity.HasMany(a => a.Versions)
+                .WithOne()
+                .HasForeignKey(av => av.AliasId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<AliasAudit>(entity =>
@@ -62,15 +76,10 @@ public partial class AliasDbContext : DbContext
             entity.HasIndex(e => e.AliasId, "ix_alias_audits_alias");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
-            entity.Property(e => e.Action).HasColumnName("action");
-            entity.Property(e => e.AliasId).HasColumnName("alias_id");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+                .ValueGeneratedNever();
+            
             entity.Property(e => e.Details)
-                .HasColumnType("jsonb")
-                .HasColumnName("details");
+                .HasColumnType("jsonb");
         });
 
         modelBuilder.Entity<AliasVersion>(entity =>
@@ -86,47 +95,30 @@ public partial class AliasDbContext : DbContext
                 .IsUnique()
                 .HasFilter("(valid_to IS NULL)");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
-
-            entity
-                .Property(e => e.AliasId)
-                .HasColumnName("alias_id");
-
             entity.Property(e => e.SearchKey)
                 .HasColumnType("citext");
 
             entity.Property(e => e.UniqueKey)
                 .HasColumnType("citext");
-            
-            entity.Property(e => e.Label).HasColumnName("alias_label");
+
+            entity.Property(e => e.DisplayName);
 
             entity.Property(e => e.NicknameSource)
-                .HasColumnName("nickname_source")
                 .HasConversion(s => s.ToString(),
                     dbStatus => (NicknameSource)Enum.Parse(typeof(NicknameSource), dbStatus));
-
-            // entity.Property(e => e.NicknameSource)
-            //     .HasColumnType("public.nickname_source")
-            //     .HasColumnName("nickname_source");
-
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
-            entity.Property(e => e.ValidFrom).HasColumnName("valid_from");
-            entity.Property(e => e.ValidTo).HasColumnName("valid_to");
-
-            modelBuilder.Entity<Alias>()
-                .HasOne(a => a.CurrentVersion)
-                .WithOne()
-                .HasForeignKey<Alias>(a => a.CurrentVersionId)
-                .OnDelete(DeleteBehavior.SetNull); // Đảm bảo xử lý khi phiên bản bị xóa
+            
+            entity.Property(e => e.CreatedAt);
+            entity.Property(e => e.CreatedBy);
+            entity.Property(e => e.ValidFrom);
+            entity.Property(e => e.ValidTo);
+            
 
             entity.HasIndex(e => e.AliasId, "ix_alias_versions_alias_id");
         });
 
         OnModelCreatingPartial(modelBuilder);
     }
+
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

@@ -78,7 +78,7 @@ public class IssueAliasHandler(
         return new IssueAliasResult(
             alias.Id,
             currentVersion.Id,
-            currentVersion.Label,
+            currentVersion.DisplayName,
             alias.Visibility.ToString(),
             alias.CreatedAt);
     }

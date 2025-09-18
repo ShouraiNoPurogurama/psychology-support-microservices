@@ -75,6 +75,7 @@ public static class ApplicationServiceExtensions
 
         services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
         services.AddScoped<IAliasVersionAccessor, AliasVersionAccessor>();
+        services.AddMemoryCache();
     }
 
     private static void ConfigureMediatR(IServiceCollection services)

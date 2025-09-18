@@ -134,8 +134,8 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
     ports:
-      - "5086:8080"
-      - "5586:8081"
+      - "5017:8080"
+      - "5517:8081"
     build:
       context: .
       dockerfile: Services/Feed/Feed.API/Dockerfile
@@ -234,7 +234,7 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
     ports:
       - "5004:8080"
-      - "5054:8081"
+      - "5504:8081"
     build:
       context: .
       dockerfile: Services/Payment/Payment.API/Dockerfile
@@ -408,7 +408,7 @@ services:
       #      - /etc/ssl/certs-anhtn:/certs:ro
       - /etc/ssl/api-cert:/certs:ro
       - ~/.aspnet/https:/https:ro
-  # Distributed Cache Service
+      
   distributedcache:
     container_name: distributedcache-msa
     image: redis

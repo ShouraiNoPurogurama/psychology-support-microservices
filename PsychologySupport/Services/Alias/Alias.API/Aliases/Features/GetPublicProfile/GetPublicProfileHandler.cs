@@ -41,7 +41,7 @@ public class GetPublicProfileHandler : IQueryHandler<GetPublicProfileQuery, GetP
 
         var dto = new PublicProfileDto(
             AliasId: alias.Id,
-            Label: lastVersion.Label,
+            Label: lastVersion.DisplayName,
             Followers: 0,
             Followings: 0,
             Posts: 0,

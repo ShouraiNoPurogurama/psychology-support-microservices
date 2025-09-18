@@ -77,7 +77,7 @@ public class RenameAliasHandler(
         return new RenameAliasResult(
             alias.Id,
             currentVersion.Id,
-            currentVersion.Label,
+            currentVersion.DisplayName,
             alias.Visibility.ToString(),
             DateTimeOffset.UtcNow);
     }

@@ -24,7 +24,7 @@
       "payment-cluster": {
         "Destinations": {
           "destination1": {
-            "Address": "https://localhost:5054/"
+            "Address": "https://localhost:5504/"
           }
         }
       }

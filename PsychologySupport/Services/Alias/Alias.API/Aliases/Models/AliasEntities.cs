@@ -6,7 +6,7 @@ namespace Alias.API.Aliases.Models;
 public sealed class AliasVersion : Entity<Guid>, IHasCreationAudit
 {
     public Guid AliasId { get; private set; }
-    public string Label { get; private set; } = null!;
+    public string DisplayName { get; private set; } = null!;
     public string SearchKey { get; private set; } = null!;
     public string UniqueKey { get; private set; } = null!;
     public NicknameSource NicknameSource { get; private set; }
@@ -29,7 +29,7 @@ public sealed class AliasVersion : Entity<Guid>, IHasCreationAudit
         {
             Id = Guid.NewGuid(),
             AliasId = aliasId,
-            Label = label,
+            DisplayName = label,
             SearchKey = searchKey,
             UniqueKey = uniqueKey,
             NicknameSource = source,
