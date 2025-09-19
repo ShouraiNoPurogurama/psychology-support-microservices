@@ -5,15 +5,21 @@ using Media.Domain.ValueObjects;
 
 namespace Media.Domain.Models;
 
-public sealed class MediaAsset : AggregateRoot<Guid>, ISoftDeletable
+public sealed class MediaAsset : AggregateRoot<Guid>
 {
     //VOs
     public MediaContent Content { get; private set; } = null!;
     public MediaChecksum Checksum { get; private set; } = null!;
     public MediaDimensions? Dimensions { get; private set; }
+    /// <summary>
+    /// Enum này trả lời câu hỏi: "Kết quả của việc kiểm duyệt là gì?". 
+    /// </summary>
     public MediaModerationInfo Moderation { get; private set; } = null!;
 
     //Properties
+    /// <summary>
+    /// Enum này trả lời câu hỏi: "Media asset này đang ở giai đoạn nào trong vòng đời của nó?"
+    /// </summary>
     public MediaState State { get; private set; }
     public bool ExifRemoved { get; private set; } = false;
     public bool HoldThumbUntilPass { get; private set; } = false;
@@ -32,6 +38,7 @@ public sealed class MediaAsset : AggregateRoot<Guid>, ISoftDeletable
     private MediaAsset() { }
 
     public static MediaAsset Create(
+        Guid? seedMediaId,
         string mimeType,
         long sizeInBytes,
         string checksumSha256,
@@ -39,14 +46,16 @@ public sealed class MediaAsset : AggregateRoot<Guid>, ISoftDeletable
         int? height = null,
         string? phash64 = null)
     {
+        var newId = seedMediaId ?? Guid.NewGuid();
+        
         var media = new MediaAsset
         {
-            Id = Guid.NewGuid(),
+            Id = newId,
             Content = MediaContent.Create(mimeType, sizeInBytes, phash64),
             Checksum = MediaChecksum.CreateSha256(checksumSha256),
             Dimensions = MediaDimensions.CreateOptional(width, height),
             Moderation = MediaModerationInfo.Pending(),
-            State = MediaState.Processing,
+            State = MediaState.Pending,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -79,6 +88,7 @@ public sealed class MediaAsset : AggregateRoot<Guid>, ISoftDeletable
     public void MarkAsReady()
     {
         ValidateNotDeleted();
+        
         ValidateCanTransitionToReady();
 
         var previousState = State;
@@ -107,12 +117,13 @@ public sealed class MediaAsset : AggregateRoot<Guid>, ISoftDeletable
         AddDomainEvent(new MediaStateChangedEvent(Id, previousState.ToString(), State.ToString(), reason));
     }
 
-    public void Delete(string reason)
+    public void Delete(string reason, string? deletedBy = null)
     {
         if (State == MediaState.Deleted) return;
 
         State = MediaState.Deleted;
         DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
 
         AddDomainEvent(new MediaDeletedEvent(Id, reason, DeletedAt.Value));
     }
@@ -121,8 +132,9 @@ public sealed class MediaAsset : AggregateRoot<Guid>, ISoftDeletable
     {
         ValidateNotDeleted();
 
-        if (!Moderation.IsPending)
-            throw new MediaModerationException("Media moderation has already been Succeeded.");
+        ValidateModerationIsPending();
+
+        State = MediaState.Moderating;
 
         AddDomainEvent(new MediaModerationRequestedEvent(Id));
     }
@@ -131,6 +143,8 @@ public sealed class MediaAsset : AggregateRoot<Guid>, ISoftDeletable
     {
         ValidateNotDeleted();
 
+        ValidateModerationIsPending();
+        
         Moderation = MediaModerationInfo.Approve(policyVersion, score, rawJson);
 
         var audit = MediaModerationAudit.Create(Id, MediaModerationStatus.Approved, score, policyVersion, rawJson);
@@ -143,8 +157,8 @@ public sealed class MediaAsset : AggregateRoot<Guid>, ISoftDeletable
             policyVersion, 
             DateTime.UtcNow));
 
-        // Auto-mark as ready if processing is complete and moderation is approved
-        if (State == MediaState.Processing && CanTransitionToReady())
+        //Auto-mark as ready if processing is complete and moderation is approved
+        if (State == MediaState.Moderating && CanTransitionToReady())
         {
             MarkAsReady();
         }
@@ -153,7 +167,9 @@ public sealed class MediaAsset : AggregateRoot<Guid>, ISoftDeletable
     public void RejectModeration(string policyVersion, decimal? score = null, string? rawJson = null)
     {
         ValidateNotDeleted();
-
+        
+        ValidateModerationIsPending();
+        
         Moderation = MediaModerationInfo.Reject(policyVersion, score, rawJson);
 
         var audit = MediaModerationAudit.Create(Id, MediaModerationStatus.Rejected, score, policyVersion, rawJson);
@@ -263,7 +279,11 @@ public sealed class MediaAsset : AggregateRoot<Guid>, ISoftDeletable
 
     private bool CanTransitionToReady()
         => Moderation.IsApproved;
-
-    bool ISoftDeletable.IsDeleted { get; set; }
+    
+    private void ValidateModerationIsPending()
+    {
+        if(!Moderation.IsPending) 
+            throw new MediaModerationException("Media moderation has already been completed.");
+    }
 }
 

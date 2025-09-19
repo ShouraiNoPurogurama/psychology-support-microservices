@@ -25,7 +25,7 @@ public class MediaDbContext : DbContext, IMediaDbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.HasDefaultSchema("media");
+        modelBuilder.HasDefaultSchema("public");
 
         ApplyEntityConfigurations(modelBuilder);
     }
@@ -88,6 +88,7 @@ public class MediaDbContext : DbContext, IMediaDbContext
             entity.Property(m => m.ExifRemoved).HasColumnName("exif_removed").HasDefaultValue(false);
             entity.Property(m => m.HoldThumbUntilPass).HasColumnName("hold_thumb_until_pass").HasDefaultValue(false);
 
+            
             entity.Property(m => m.DeletedAt).HasColumnName("deleted_at");
             entity.Property(m => m.DeletedBy).HasColumnName("deleted_by").HasMaxLength(255);
 
@@ -96,10 +97,6 @@ public class MediaDbContext : DbContext, IMediaDbContext
 
             entity.HasIndex(m => new { m.CreatedAt, m.State })
                 .HasDatabaseName("ix_media_assets_created_state");
-
-            entity.HasIndex("checksum_value", "checksum_algorithm")
-                .IsUnique()
-                .HasDatabaseName("ux_media_assets_checksum");
         });
 
 
@@ -189,7 +186,7 @@ public class MediaDbContext : DbContext, IMediaDbContext
 
             entity.HasIndex(mpj => new { mpj.Status, mpj.NextRetryAt })
                 .HasDatabaseName("ix_processing_jobs_queue")
-                .HasFilter("next_retry_at IS NULL OR next_retry_at <= NOW()");
+                .HasFilter($"status NOT IN ('{nameof(ProcessStatus.Succeeded)}', '{nameof(ProcessStatus.Failed)}', '{nameof(ProcessStatus.Cancelled)}')"); 
 
             entity.HasIndex(mpj => new { mpj.JobType, mpj.Status })
                 .HasDatabaseName("ix_processing_jobs_type_status");

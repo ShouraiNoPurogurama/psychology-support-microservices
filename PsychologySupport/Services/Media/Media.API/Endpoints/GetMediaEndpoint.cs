@@ -2,10 +2,10 @@
 using Carter;
 using Mapster;
 using MediatR;
-using Media.Application.Dtos;
-using Media.Application.Media.Queries;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using Media.Application.Features.Media.Dtos;
+using Media.Application.Features.Media.Queries;
 
 namespace Media.API.Endpoints;
 

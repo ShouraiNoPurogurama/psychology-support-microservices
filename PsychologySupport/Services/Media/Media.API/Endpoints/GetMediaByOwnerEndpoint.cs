@@ -2,8 +2,8 @@
 using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
-using Media.Application.Dtos;
-using Media.Application.Media.Queries;
+using Media.Application.Features.Media.Dtos;
+using Media.Application.Features.Media.Queries;
 using Media.Domain.Enums;
 using MediatR;
 

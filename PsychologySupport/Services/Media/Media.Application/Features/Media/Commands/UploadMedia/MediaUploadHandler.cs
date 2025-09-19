@@ -1,15 +1,14 @@
-﻿using BuildingBlocks.CQRS;
-using BuildingBlocks.DDD;
+﻿using System.Security.Cryptography;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using Media.Application.Data;
-using Media.Application.Dtos;
+using Media.Application.Features.Media.Dtos;
 using Media.Application.ServiceContracts;
 using Media.Domain.Enums;
 using Media.Domain.Models;
 using Microsoft.AspNetCore.Http;
-using System.Security.Cryptography;
 
-namespace Media.Application.Media.Commands
+namespace Media.Application.Features.Media.Commands.UploadMedia
 {
     public record MediaUploadCommand(
         Guid IdempotencyKey,
@@ -40,48 +39,55 @@ namespace Media.Application.Media.Commands
 
         public async Task<MediaUploadResult> Handle(MediaUploadCommand request, CancellationToken cancellationToken)
         {
-            // Validation
             ValidateFile(request.File);
-            
-            // Extract image dimensions if it's an image
-            var (width, height) = await ExtractImageDimensionsAsync(request.File);
-            
-            // Calculate checksum
-            var checksumSha256 = await CalculateChecksumAsync(request.File);
 
-            // Create domain aggregate using factory method
+
+            //Buffer file vào MemoryStream để có thể đọc nhiều lần
+            await using var memoryStream = new MemoryStream();
+            await request.File.CopyToAsync(memoryStream, cancellationToken);
+            memoryStream.Position = 0; //reset vị trí stream về đầu
+
+            var extractDimensionsTask = ExtractImageDimensionsAsync(request.File.ContentType, memoryStream);
+            var calculateChecksumTask = CalculateChecksumAsync(memoryStream);
+
+            var mediaId = Guid.NewGuid(); //Tạo ID trước để dùng trong blobKey
+            var blobKey = GenerateBlobKey(request.MediaOwnerType, mediaId, request.File.FileName);
+            var uploadTask = _storageService.UploadFileAsync(request.File, blobKey, request.File.ContentType, cancellationToken);
+
+            await Task.WhenAll(extractDimensionsTask, calculateChecksumTask, uploadTask);
+
+            var (width, height) = await extractDimensionsTask;
+            var checksumSha256 = await calculateChecksumTask;
+            var cdnUrl = await uploadTask;
+
+
+            //dùng media id đã tạo ở trên
             var mediaAsset = MediaAsset.Create(
+                mediaId,
                 request.File.ContentType,
                 request.File.Length,
                 checksumSha256,
                 width,
                 height);
 
-            // Assign ownership
-            mediaAsset.AssignOwnership(request.MediaOwnerType, request.MediaOwnerId);
 
-            // Upload file to storage
-            var blobKey = GenerateBlobKey(request.MediaOwnerType, mediaAsset.Id, request.File.FileName);
-            var cdnUrl = await _storageService.UploadFileAsync(request.File, blobKey, request.File.ContentType, cancellationToken);
-
-            // Create original variant
             var format = DetermineMediaFormat(request.File.ContentType);
             mediaAsset.AddVariant(VariantType.Original, format, width ?? 0, height ?? 0, request.File.Length, blobKey, cdnUrl);
 
-            // Add processing job
+            //Add processing job
             if (mediaAsset.IsImage)
             {
                 mediaAsset.AddProcessingJob(JobType.Thumbnail);
             }
 
-            // Request moderation
+            //Request moderation
             mediaAsset.RequestModeration();
 
-            // Persist to database
+            //Persist to database
             _dbContext.MediaAssets.Add(mediaAsset);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            // Build response
+            //Build response
             var originalVariant = mediaAsset.GetOriginalVariant()!;
             var processingJobs = mediaAsset.ProcessingJobs
                 .Where(j => !j.IsFinished)
@@ -116,14 +122,13 @@ namespace Media.Application.Media.Commands
                 });
         }
 
-        private static async Task<(int? width, int? height)> ExtractImageDimensionsAsync(IFormFile file)
+        private static async Task<(int? width, int? height)> ExtractImageDimensionsAsync(string contentType, MemoryStream stream)
         {
-            if (!file.ContentType.StartsWith("image/"))
-                return (null, null);
-
+            if (!contentType.StartsWith("image/")) return (null, null);
             try
             {
-                using var image = await SixLabors.ImageSharp.Image.LoadAsync(file.OpenReadStream());
+                stream.Position = 0; //reset vị trí stream
+                using var image = await SixLabors.ImageSharp.Image.LoadAsync(stream);
                 return (image.Width, image.Height);
             }
             catch
@@ -135,9 +140,9 @@ namespace Media.Application.Media.Commands
             }
         }
 
-        private static async Task<string> CalculateChecksumAsync(IFormFile file)
+        private static async Task<string> CalculateChecksumAsync(MemoryStream stream)
         {
-            using var stream = file.OpenReadStream();
+            stream.Position = 0; //reset vị trí stream
             using var sha256 = SHA256.Create();
             var hash = await sha256.ComputeHashAsync(stream);
             return Convert.ToBase64String(hash);

@@ -2,11 +2,11 @@
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Pagination;
 using Media.Application.Data;
-using Media.Application.Dtos;
+using Media.Application.Features.Media.Dtos;
 using Media.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
-namespace Media.Application.Media.Queries;
+namespace Media.Application.Features.Media.Queries;
 
 public record GetMediaByOwnerQuery(
     MediaOwnerType OwnerType,

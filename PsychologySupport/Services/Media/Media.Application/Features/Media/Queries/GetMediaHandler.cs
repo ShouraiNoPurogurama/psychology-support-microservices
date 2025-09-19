@@ -1,12 +1,10 @@
 ﻿using BuildingBlocks.CQRS;
-using BuildingBlocks.Exceptions;
 using Media.Application.Data;
-using Media.Application.Dtos;
 using Media.Application.Exceptions;
+using Media.Application.Features.Media.Dtos;
 using Microsoft.EntityFrameworkCore;
 
-
-namespace Media.Application.Media.Queries;
+namespace Media.Application.Features.Media.Queries;
 
 public record GetMediaQuery(Guid MediaId) : IQuery<GetMediaResult>;
 

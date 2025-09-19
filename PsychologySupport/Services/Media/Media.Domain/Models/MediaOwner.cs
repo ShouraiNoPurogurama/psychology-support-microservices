@@ -7,7 +7,6 @@ public sealed class MediaOwner : AuditableEntity<Guid>
     public Guid MediaId { get; private set; }
     public MediaOwnerType MediaOwnerType { get; private set; }
     public Guid MediaOwnerId { get; private set; }
-
     public MediaAsset Media { get; private set; } = null!;
 
     // EF Core constructor

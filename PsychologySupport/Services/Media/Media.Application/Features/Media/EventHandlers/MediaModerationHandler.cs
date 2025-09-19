@@ -6,7 +6,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
-namespace Media.Application.EventHandlers
+namespace Media.Application.Features.Media.EventHandlers
 {
     public class MediaModerationHandler : INotificationHandler<MediaModerationRequestedEvent>
     {

@@ -1,9 +1,9 @@
-﻿using Media.Application.Dtos;
-using Media.Application.ServiceContracts;
+﻿using Media.Application.ServiceContracts;
 using Media.Infrastructure.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using Media.Application.Features.Media.Dtos;
 
 namespace Media.Infrastructure.Services
 {
