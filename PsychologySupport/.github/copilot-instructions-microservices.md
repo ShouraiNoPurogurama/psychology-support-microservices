@@ -1,4 +1,4 @@
-# Psychology Support Platform - Microservices Architecture Instructions
+﻿# Psychology Support Platform - Microservices Architecture Instructions
 
 ## Overview
 This document defines the architectural patterns, conventions, and coding standards for the Psychology Support Platform microservices, with focus on **Post**, **Feed**, **Media**, and **Alias** services. All code must follow Domain-Driven Design (DDD) principles with Clean Architecture and CQRS patterns.
