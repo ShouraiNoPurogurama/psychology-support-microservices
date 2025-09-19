@@ -1,15 +1,28 @@
-﻿using Media.Domain.Abstractions;
-using Media.Domain.Enums;
+﻿using Media.Domain.Enums;
 
 namespace Media.Domain.Models;
 
-public partial class MediaOwner : AuditableEntity<Guid>
+public sealed class MediaOwner : AuditableEntity<Guid>
 {
-    public Guid MediaId { get; set; }
+    public Guid MediaId { get; private set; }
+    public MediaOwnerType MediaOwnerType { get; private set; }
+    public Guid MediaOwnerId { get; private set; }
 
-    public MediaOwnerType MediaOwnerType { get; set; }
+    public MediaAsset Media { get; private set; } = null!;
 
-    public Guid MediaOwnerId { get; set; }
+    // EF Core constructor
+    private MediaOwner() { }
 
-    public virtual MediaAsset Media { get; set; } = null!;
+    // Factory method
+    public static MediaOwner Create(Guid mediaId, MediaOwnerType ownerType, Guid ownerId)
+    {
+        return new MediaOwner
+        {
+            Id = Guid.NewGuid(),
+            MediaId = mediaId,
+            MediaOwnerType = ownerType,
+            MediaOwnerId = ownerId,
+            CreatedAt = DateTime.UtcNow
+        };
+    }
 }

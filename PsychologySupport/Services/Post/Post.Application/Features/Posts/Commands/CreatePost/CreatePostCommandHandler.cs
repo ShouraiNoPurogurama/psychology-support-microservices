@@ -29,7 +29,6 @@ public sealed class CreatePostCommandHandler : ICommandHandler<CreatePostCommand
         var aliasVersionId = await _aliasAccessor.GetRequiredCurrentAliasVersionIdAsync(cancellationToken);
         var aliasId = _currentActorAccessor.GetRequiredAliasId();
 
-        // Create post aggregate
         var post = Domain.Aggregates.Posts.Post.Create(
             _currentActorAccessor.GetRequiredAliasId(),
             request.Content,

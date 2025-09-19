@@ -30,9 +30,9 @@ public class GetMediaByOwnerHandler : IQueryHandler<GetMediaByOwnerQuery, GetMed
     {
         var query = _context.MediaAssets
             .AsNoTracking()
-            .Include(m => m.MediaOwners)
-            .Include(m => m.MediaVariants)
-            .Where(m => m.MediaOwners.Any(o => o.MediaOwnerType == request.OwnerType && o.MediaOwnerId == request.OwnerId));
+            .Include(m => m.Owners)
+            .Include(m => m.Variants)
+            .Where(m => m.Owners.Any(o => o.MediaOwnerType == request.OwnerType && o.MediaOwnerId == request.OwnerId));
 
         var totalCount = await query.CountAsync(cancellationToken);
 
@@ -47,7 +47,7 @@ public class GetMediaByOwnerHandler : IQueryHandler<GetMediaByOwnerQuery, GetMed
          .Select(m => new MediaByOwnerDto(
              m.Id,
              m.State,
-             m.MediaVariants.Select(v => new MediaVariantByOwnerDto(
+             m.Variants.Select(v => new MediaVariantByOwnerDto(
                  v.VariantType,
                  v.CdnUrl
              )).ToList()

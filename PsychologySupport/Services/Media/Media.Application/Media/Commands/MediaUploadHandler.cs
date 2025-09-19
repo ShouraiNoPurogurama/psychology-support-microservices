@@ -5,10 +5,9 @@ using Media.Application.Data;
 using Media.Application.Dtos;
 using Media.Application.ServiceContracts;
 using Media.Domain.Enums;
-using Media.Domain.Events;
+using Media.Domain.Models;
 using Microsoft.AspNetCore.Http;
 using System.Security.Cryptography;
-using Media.Domain.Models;
 
 namespace Media.Application.Media.Commands
 {
@@ -33,9 +32,6 @@ namespace Media.Application.Media.Commands
 
         private const long MaxFileSizeInBytes = 100 * 1024 * 1024;
 
-        private int width = 0;
-        private int height = 0;
-
         public MediaUploadHandler(IMediaDbContext dbContext, IStorageService storageService)
         {
             _dbContext = dbContext;
@@ -44,180 +40,127 @@ namespace Media.Application.Media.Commands
 
         public async Task<MediaUploadResult> Handle(MediaUploadCommand request, CancellationToken cancellationToken)
         {
-            // Idempotency check
-
             // Validation
-            long sourceBytes = request.File.Length;
+            ValidateFile(request.File);
+            
+            // Extract image dimensions if it's an image
+            var (width, height) = await ExtractImageDimensionsAsync(request.File);
+            
+            // Calculate checksum
+            var checksumSha256 = await CalculateChecksumAsync(request.File);
 
-            if (request.File == null || request.File.Length == 0)
+            // Create domain aggregate using factory method
+            var mediaAsset = MediaAsset.Create(
+                request.File.ContentType,
+                request.File.Length,
+                checksumSha256,
+                width,
+                height);
+
+            // Assign ownership
+            mediaAsset.AssignOwnership(request.MediaOwnerType, request.MediaOwnerId);
+
+            // Upload file to storage
+            var blobKey = GenerateBlobKey(request.MediaOwnerType, mediaAsset.Id, request.File.FileName);
+            var cdnUrl = await _storageService.UploadFileAsync(request.File, blobKey, request.File.ContentType, cancellationToken);
+
+            // Create original variant
+            var format = DetermineMediaFormat(request.File.ContentType);
+            mediaAsset.AddVariant(VariantType.Original, format, width ?? 0, height ?? 0, request.File.Length, blobKey, cdnUrl);
+
+            // Add processing job
+            if (mediaAsset.IsImage)
+            {
+                mediaAsset.AddProcessingJob(JobType.Thumbnail);
+            }
+
+            // Request moderation
+            mediaAsset.RequestModeration();
+
+            // Persist to database
+            _dbContext.MediaAssets.Add(mediaAsset);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            // Build response
+            var originalVariant = mediaAsset.GetOriginalVariant()!;
+            var processingJobs = mediaAsset.ProcessingJobs
+                .Where(j => !j.IsFinished)
+                .Select(j => new MediaProcessingJobDto(j.Id, j.JobType, j.Status))
+                .ToArray();
+
+            return new MediaUploadResult(
+                mediaAsset.Id,
+                mediaAsset.State,
+                new MediaVariantDto(
+                    originalVariant.Id,
+                    originalVariant.VariantType,
+                    originalVariant.Format,
+                    originalVariant.Width,
+                    originalVariant.Height,
+                    originalVariant.CdnUrl),
+                processingJobs);
+        }
+
+        private static void ValidateFile(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
                 throw new CustomValidationException(new Dictionary<string, string[]>
                 {
                     ["MEDIA_FILE_REQUIRED"] = new[] { "File is required." }
                 });
 
-            if (request.File.Length > MaxFileSizeInBytes)
+            if (file.Length > MaxFileSizeInBytes)
                 throw new CustomValidationException(new Dictionary<string, string[]>
                 {
-                    ["MEDIA_TOO_LARGE"] = new[] { "Vượt kích thước tối đa." }
+                    ["MEDIA_TOO_LARGE"] = new[] { "File exceeds maximum size limit." }
                 });
+        }
 
+        private static async Task<(int? width, int? height)> ExtractImageDimensionsAsync(IFormFile file)
+        {
+            if (!file.ContentType.StartsWith("image/"))
+                return (null, null);
 
-            // Validate image format 
-            string mimeType = request.File.ContentType;
-
-            if (mimeType.StartsWith("image/"))
+            try
             {
-                try
-                {
-                    using var image = SixLabors.ImageSharp.Image.Load(request.File.OpenReadStream());
-                    if (image == null)
-                        throw new CustomValidationException(new Dictionary<string, string[]>
-                        {
-                            ["MEDIA_VALIDATION_FAILED"] = new[] { "File ảnh không hợp lệ." }
-                        });
-
-                    width = image.Width;
-                    height = image.Height;
-                }
-                catch
-                {
-                    throw new CustomValidationException(new Dictionary<string, string[]>
-                    {
-                        ["MEDIA_VALIDATION_FAILED"] = new[] { "File ảnh không hợp lệ." }
-                    });
-                }
+                using var image = await SixLabors.ImageSharp.Image.LoadAsync(file.OpenReadStream());
+                return (image.Width, image.Height);
             }
-
-
-            // Tính checksum_sha256
-
-            string checksumSha256;
-            using (var stream = request.File.OpenReadStream())
+            catch
             {
-                using var sha256 = SHA256.Create();
-                var hash = await sha256.ComputeHashAsync(stream);
-                checksumSha256 = Convert.ToBase64String(hash);
-                stream.Position = 0;
-            }
-
-            #region Duplicate Check
-
-            // Kiểm tra trùng lặp
-            //var existingMedia = await _dbContext.MediaAssets
-            //    .FirstOrDefaultAsync(m => m.ChecksumSha256 == checksumSha256 && m.State == MediaState.Ready, cancellationToken);
-            //if (existingMedia != null)
-            //{
-            //    var existingVariant = await _dbContext.MediaVariants
-            //        .FirstOrDefaultAsync(v => v.MediaId == existingMedia.Id && v.VariantType == VariantType.Original, cancellationToken);
-            //    return new MediaUploadResult(
-            //        existingMedia.Id,
-            //        existingMedia.State,
-            //        new MediaVariantDto(
-            //            existingVariant.Id,
-            //            existingVariant.VariantType,
-            //            existingVariant.Format,
-            //            existingVariant.Width,
-            //            existingVariant.Height,
-            //            existingVariant.CdnUrl
-            //        ),
-            //        Array.Empty<MediaProcessingJobDto>()
-            //    );
-            //}
-
-            #endregion
-
-            // Tạo media asset
-            var mediaId = Guid.NewGuid();
-            var blobKey = $"{request.MediaOwnerType.ToString()}/{mediaId}/original/{request.File.FileName}";
-            var cdnUrl = await _storageService.UploadFileAsync(request.File, blobKey, mimeType, cancellationToken);
-
-            var mediaAsset = new MediaAsset
-            {
-                Id = mediaId,
-                State = MediaState.Processing,
-                SourceMime = mimeType,
-                SourceBytes = request.File.Length,
-                ChecksumSha256 = checksumSha256,
-                Width = width,
-                Height = height,
-                CreatedAt = DateTime.UtcNow
-            };
-            _dbContext.MediaAssets.Add(mediaAsset);
-
-            var moderationAudit = new MediaModerationAudit
-            {
-                Id = Guid.NewGuid(),
-                MediaId = mediaId,
-                Status = MediaModerationStatus.Pending
-            };
-            _dbContext.MediaModerationAudits.Add(moderationAudit);
-
-            // Tạo original variant
-            var variantId = Guid.NewGuid();
-            var variant = new MediaVariant
-            {
-                Id = variantId,
-                MediaId = mediaId,
-                VariantType = VariantType.Original,
-                Format = Enum.TryParse<MediaFormat>(mimeType.Split('/')[1], true, out var format)
-                    ? format
-                    : throw new CustomValidationException(new Dictionary<string, string[]>
-                    {
-                        ["MEDIA_UNSUPPORTED_FORMAT"] = new[] { "Unsupported media format." }
-                    }),
-                BucketKey = blobKey,
-                CdnUrl = cdnUrl,
-                Width = width,
-                Height = height
-            };
-            _dbContext.MediaVariants.Add(variant);
-
-
-            if (request.MediaOwnerType != null && request.MediaOwnerId != null)
-            {
-                _dbContext.MediaOwners.Add(new MediaOwner
+                throw new CustomValidationException(new Dictionary<string, string[]>
                 {
-                    Id = Guid.NewGuid(),
-                    MediaId = mediaId,
-                    MediaOwnerType = request.MediaOwnerType,
-                    MediaOwnerId = request.MediaOwnerId
+                    ["MEDIA_VALIDATION_FAILED"] = new[] { "Invalid image file." }
                 });
             }
+        }
 
-            // Thêm job xử lý nền
-            var jobId = Guid.NewGuid();
-            var processingJob = new MediaProcessingJob
+        private static async Task<string> CalculateChecksumAsync(IFormFile file)
+        {
+            using var stream = file.OpenReadStream();
+            using var sha256 = SHA256.Create();
+            var hash = await sha256.ComputeHashAsync(stream);
+            return Convert.ToBase64String(hash);
+        }
+
+        private static string GenerateBlobKey(MediaOwnerType ownerType, Guid mediaId, string fileName)
+        {
+            return $"{ownerType}/{mediaId}/original/{fileName}";
+        }
+
+        private static MediaFormat DetermineMediaFormat(string contentType)
+        {
+            return contentType.Split('/')[1].ToLowerInvariant() switch
             {
-                Id = jobId,
-                MediaId = mediaId,
-                JobType = JobType.Thumbnail,
-                Status = ProcessStatus.Queued
+                "jpeg" or "jpg" => MediaFormat.jpeg,
+                "png" => MediaFormat.png,
+                "webp" => MediaFormat.webp,
+                "avif" => MediaFormat.avif,
+                _ => throw new CustomValidationException(new Dictionary<string, string[]>
+                {
+                    ["MEDIA_UNSUPPORTED_FORMAT"] = new[] { "Unsupported media format." }
+                })
             };
-            _dbContext.MediaProcessingJobs.Add(processingJob);
-
-            var responseBody = new MediaUploadResult(
-                mediaId,
-                MediaState.Processing,
-                new MediaVariantDto(
-                    variantId,
-                    variant.VariantType,
-                    variant.Format,
-                    variant.Width,
-                    variant.Height,
-                    variant.CdnUrl
-                ),
-                new[] { new MediaProcessingJobDto(jobId, JobType.Thumbnail, ProcessStatus.Queued) }
-            );
-
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-
-            // Domain Event 
-            mediaAsset.AddDomainEvent(new MediaModerationRequestedEvent(mediaId));
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-
-            return responseBody;
         }
     }
 }

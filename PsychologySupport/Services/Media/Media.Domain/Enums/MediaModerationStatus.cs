@@ -13,7 +13,8 @@ namespace Media.Domain.Enums
         Pending,
         Approved,
         Rejected,
-        SoftBlocked
+        SoftBlocked,
+        Flagged
     }
 
 }

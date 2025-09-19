@@ -5,12 +5,6 @@ using Media.Domain.Events;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Media.Application.EventHandlers
 {
@@ -20,7 +14,8 @@ namespace Media.Application.EventHandlers
         private readonly IStorageService _storageService;
         private readonly ISightengineService _sightengineService;
 
-        public MediaModerationHandler(IMediaDbContext dbContext, IStorageService storageService, ISightengineService sightengineService)
+        public MediaModerationHandler(IMediaDbContext dbContext, IStorageService storageService,
+            ISightengineService sightengineService)
         {
             _dbContext = dbContext;
             _storageService = storageService;
@@ -30,15 +25,15 @@ namespace Media.Application.EventHandlers
         public async Task Handle(MediaModerationRequestedEvent notification, CancellationToken cancellationToken)
         {
             var mediaAsset = await _dbContext.MediaAssets
-                .Include(m => m.MediaModerationAudits)
-                .Include(m => m.MediaVariants)
+                .Include(m => m.ModerationAudits)
+                .Include(m => m.Variants)
                 .FirstOrDefaultAsync(m => m.Id == notification.MediaId, cancellationToken);
 
-            if (mediaAsset == null || !mediaAsset.MediaModerationAudits.Any(m => m.Status == MediaModerationStatus.Pending))
+            if (mediaAsset == null || mediaAsset.ModerationAudits.All(m => m.Status != MediaModerationStatus.Pending))
                 return;
 
-            var moderationAudit = mediaAsset.MediaModerationAudits.First(m => m.Status == MediaModerationStatus.Pending);
-            var originalVariant = mediaAsset.MediaVariants.FirstOrDefault(v => v.VariantType == VariantType.Original);
+            var moderationAudit = mediaAsset.ModerationAudits.First(m => m.Status == MediaModerationStatus.Pending);
+            var originalVariant = mediaAsset.Variants.FirstOrDefault(v => v.VariantType == VariantType.Original);
 
             if (originalVariant == null)
                 throw new Exception("Không tìm thấy variant gốc để kiểm tra moderation.");
@@ -52,27 +47,26 @@ namespace Media.Application.EventHandlers
             var file = new FormFile(fileStream, 0, fileStream.Length, "media", originalVariant.BucketKey.Split('/').Last())
             {
                 Headers = new HeaderDictionary(),
-                ContentType = mediaAsset.SourceMime
+                ContentType = mediaAsset.Content.MimeType
             };
 
             // Gửi file qua Sightengine
             var sightengineResult = await _sightengineService.CheckImageWithWorkflowAsync(file);
 
-            moderationAudit.RawJson = sightengineResult.RawJson;
-            moderationAudit.PolicyVersion = sightengineResult.WorkflowId;
-            moderationAudit.Score = (decimal?)sightengineResult.Score;
-            moderationAudit.CheckedAt = DateTime.UtcNow;
+            var auditStatus = sightengineResult.IsSafe ? MediaModerationStatus.Approved : MediaModerationStatus.Rejected;
+            
+            moderationAudit.UpdateStatus(auditStatus, (decimal?)sightengineResult.Score, sightengineResult.WorkflowId,
+                sightengineResult.RawJson);
 
             if (sightengineResult.IsSafe)
             {
-                moderationAudit.Status = MediaModerationStatus.Approved;
-                mediaAsset.State = MediaState.Ready;
+                mediaAsset.MarkAsReady();
             }
             else
             {
-                moderationAudit.Status = MediaModerationStatus.Rejected;
-                mediaAsset.State = MediaState.Blocked;
+                mediaAsset.Block("Bị chặn bởi hệ thống kiểm duyệt tự động do nội dung không phù hợp.");
             }
+
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }

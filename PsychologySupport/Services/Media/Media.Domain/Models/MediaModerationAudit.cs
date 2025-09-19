@@ -1,21 +1,48 @@
-﻿using Media.Domain.Abstractions;
-using Media.Domain.Enums;
+﻿using Media.Domain.Enums;
 
 namespace Media.Domain.Models;
 
-public partial class MediaModerationAudit : AuditableEntity<Guid>
+public sealed class MediaModerationAudit : AuditableEntity<Guid>
 {
-    public Guid MediaId { get; set; }
+    public Guid MediaId { get; private set; }
+    public MediaModerationStatus Status { get; private set; }
+    public decimal? Score { get; private set; }
+    public string? PolicyVersion { get; private set; }
+    public string? RawJson { get; private set; }
+    public DateTimeOffset? CheckedAt { get; private set; }
 
-    public MediaModerationStatus Status { get; set; }
+    public MediaAsset Media { get; private set; } = null!;
 
-    public decimal? Score { get; set; }
+    // EF Core constructor
+    private MediaModerationAudit() { }
 
-    public string? PolicyVersion { get; set; } = null!;
-
-    public string? RawJson { get; set; } = null!;
-
-    public DateTimeOffset? CheckedAt { get; set; }
-
-    public virtual MediaAsset Media { get; set; } = null!;
+    // Factory method
+    public static MediaModerationAudit Create(
+        Guid mediaId,
+        MediaModerationStatus status,
+        decimal? score = null,
+        string? policyVersion = null,
+        string? rawJson = null)
+    {
+        return new MediaModerationAudit
+        {
+            Id = Guid.NewGuid(),
+            MediaId = mediaId,
+            Status = status,
+            Score = score,
+            PolicyVersion = policyVersion,
+            RawJson = rawJson,
+            CheckedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
+        };
+    }
+    
+    public void UpdateStatus(MediaModerationStatus status, decimal? score = null, string? policyVersion = null, string? rawJson = null)
+    {
+        Status = status;
+        Score = score;
+        PolicyVersion = policyVersion;
+        RawJson = rawJson;
+        CheckedAt = DateTime.UtcNow;
+    }
 }

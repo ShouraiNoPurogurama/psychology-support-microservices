@@ -16,7 +16,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
     //Properties
     public PostVisibility Visibility { get; private set; } = PostVisibility.Draft;
     public bool IsAbandonmentEventEmitted { get; private set; }
-    public bool IsCommentsLocked { get; private set; } // added
+    public bool IsCommentsLocked { get; private set; } 
     public DateTime PublishedAt { get; private set; }
     public DateTime? EditedAt { get; private set; }
 

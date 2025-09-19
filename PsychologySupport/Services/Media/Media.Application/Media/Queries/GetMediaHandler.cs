@@ -25,15 +25,15 @@ public class GetMediaHandler : IQueryHandler<GetMediaQuery, GetMediaResult>
     {
         var media = await _context.MediaAssets
             .AsNoTracking()
-            .Include(m => m.MediaVariants) 
-            .Where(m => m.Id == request.MediaId && m.ExifRemoved == false)
+            .Include(m => m.Variants)
+            .Where(m => m.Id == request.MediaId && !m.IsDeleted)
             .Select(m => new MediaDto(
                 m.Id,
                 m.State,
-                m.SourceMime,
-                m.SourceBytes,
-                m.ChecksumSha256,
-                m.MediaVariants.Select(v => new MediaVariantDto(
+                m.Content.MimeType,
+                m.Content.SizeInBytes,
+                m.Checksum.Value,
+                m.Variants.Select(v => new MediaVariantDto(
                     v.Id,
                     v.VariantType,
                     v.Format,

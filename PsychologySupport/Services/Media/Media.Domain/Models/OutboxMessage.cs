@@ -1,6 +1,4 @@
-﻿using Media.Domain.Abstractions;
-
-namespace Media.Domain.Models;
+﻿namespace Media.Domain.Models;
 
 public partial class OutboxMessage : AuditableEntity<Guid>
 {
