@@ -152,10 +152,10 @@ namespace Media.Application.Media.Commands
         {
             return contentType.Split('/')[1].ToLowerInvariant() switch
             {
-                "jpeg" or "jpg" => MediaFormat.jpeg,
-                "png" => MediaFormat.png,
-                "webp" => MediaFormat.webp,
-                "avif" => MediaFormat.avif,
+                "jpeg" or "jpg" => MediaFormat.Jpeg,
+                "png" => MediaFormat.Png,
+                "webp" => MediaFormat.Webp,
+                "avif" => MediaFormat.Avif,
                 _ => throw new CustomValidationException(new Dictionary<string, string[]>
                 {
                     ["MEDIA_UNSUPPORTED_FORMAT"] = new[] { "Unsupported media format." }

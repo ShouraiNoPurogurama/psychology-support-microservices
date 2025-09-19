@@ -6,19 +6,19 @@ namespace Media.Application.Data
 {
     public interface IMediaDbContext
     {
-        DbSet<IdempotencyKey> IdempotencyKeys { get; set; }
+        DbSet<IdempotencyKey> IdempotencyKeys { get;}
 
-        DbSet<MediaAsset> MediaAssets { get; set; }
+        DbSet<MediaAsset> MediaAssets { get;}
 
-        DbSet<MediaModerationAudit> MediaModerationAudits { get; set; }
+        DbSet<MediaModerationAudit> MediaModerationAudits { get;}
 
-        DbSet<MediaOwner> MediaOwners { get; set; }
+        DbSet<MediaOwner> MediaOwners { get;}
 
-        DbSet<MediaProcessingJob> MediaProcessingJobs { get; set; }
+        DbSet<MediaProcessingJob> MediaProcessingJobs { get;}
 
-        DbSet<MediaVariant> MediaVariants { get; set; }
+        DbSet<MediaVariant> MediaVariants { get;}
 
-        DbSet<OutboxMessage> OutboxMessages { get; set; }
+        DbSet<OutboxMessage> OutboxMessages { get;}
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }
