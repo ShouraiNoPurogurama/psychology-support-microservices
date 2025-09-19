@@ -40,14 +40,14 @@ internal sealed class RemoveMediaFromPostCommandHandler : ICommandHandler<Remove
         await _context.SaveChangesAsync(cancellationToken);
 
         // Publish integration event via Outbox
-        await _outboxWriter.WriteAsync(
-            new PostMediaUpdatedIntegrationEvent(
-                post.Id,
-                post.Author.AliasId,
-                nameof(PostMediaUpdateStatus.Removed),
-                DateTimeOffset.UtcNow
-            ),
-            cancellationToken);
+        // await _outboxWriter.WriteAsync(
+        //     new PostMediaUpdatedIntegrationEvent(
+        //         post.Id,
+        //         post.Author.AliasId,
+        //         nameof(PostMediaUpdateStatus.Removed),
+        //         DateTimeOffset.UtcNow
+        //     ),
+        //     cancellationToken);
 
         return new RemoveMediaFromPostResult(
             post.Id,

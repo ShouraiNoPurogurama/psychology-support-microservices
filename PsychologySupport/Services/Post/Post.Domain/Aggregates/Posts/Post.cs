@@ -15,8 +15,9 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
 
     //Properties
     public PostVisibility Visibility { get; private set; } = PostVisibility.Draft;
+    public PostStatus Status { get; private set; } = PostStatus.Creating;
     public bool IsAbandonmentEventEmitted { get; private set; }
-    public bool IsCommentsLocked { get; private set; } 
+    public bool IsCommentsLocked { get; private set; }
     public DateTime PublishedAt { get; private set; }
     public DateTime? EditedAt { get; private set; }
 
@@ -50,6 +51,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
         {
             Id = Guid.NewGuid(),
             Content = PostContent.Create(content, title),
+            Status = PostStatus.Creating,
             Author = AuthorInfo.Create(authorAliasId, authorAliasVersionId),
             Moderation = ModerationInfo.Pending(),
             Metrics = PostMetrics.Create(),
@@ -68,6 +70,20 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
         return post;
     }
 
+    /// <summary>
+    /// Phương thức này được gọi khi tất cả các bước trong Saga khởi tạo đã thành công.
+    /// </summary>
+    public void FinalizeCreation()
+    {
+        if (Status != PostStatus.Creating)
+        {
+            throw new InvalidPostDataException("Trạng thái bài viết không hợp lệ. Không thể hoàn tất khởi tạo bài viết.");
+        }
+
+        Status = PostStatus.Finalized;
+        // AddDomainEvent(new PostCreationSucceededEvent(Id));
+    }
+
     public void UpdateContent(string newContent, string? newTitle, Guid editorAliasId)
     {
         ValidateEditPermission(editorAliasId);
@@ -79,7 +95,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
 
         AddDomainEvent(new PostContentUpdatedEvent(Id, oldContent.Value, Content.Value, editorAliasId));
     }
-    
+
     public void AddEmotionTag(Guid emotionTagId)
     {
         ValidateNotDeleted();
@@ -95,7 +111,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
 
         // AddDomainEvent(new PostEmotionAddedEvent(Id, emotionTagId));
     }
-    
+
     public void AddCategoryTag(Guid categoryTagId)
     {
         ValidateNotDeleted();
@@ -167,7 +183,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
         _media.Remove(media);
         AddDomainEvent(new PostMediaRemovedEvent(Id, mediaId));
     }
-    
+
 
     public void RemoveCategory(Guid categoryTagId, Guid editorAliasId)
     {
@@ -326,7 +342,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
             throw new DeletedPostActionException("Không thể thực hiện hành động trên bài viết đã bị xóa.");
     }
 
-    public bool CanBePublished => Moderation.IsApproved && !IsDeleted;
+    public bool CanBePublished => Moderation.IsApproved && !IsDeleted && Status == PostStatus.Finalized;
     public bool IsPublished => Visibility == PostVisibility.Public && CanBePublished;
     public bool IsEdited => EditedAt.HasValue;
     public bool IsPopular => Metrics.IsPopular;

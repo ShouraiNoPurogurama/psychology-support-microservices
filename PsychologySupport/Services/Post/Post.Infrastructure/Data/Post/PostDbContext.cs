@@ -119,7 +119,18 @@ public class PostDbContext : DbContext, IPostDbContext
             entity.Property(p => p.Visibility)
                 .HasConversion
                 (pv => pv.ToString(), str =>
-                    (PostVisibility)Enum.Parse(typeof(PostVisibility), str));
+                    (PostVisibility)Enum.Parse(typeof(PostVisibility), str))
+                .HasDefaultValue(PostVisibility.Draft)
+                .HasSentinel(PostVisibility.Draft)
+                ;
+            
+            entity.Property(p => p.Status)
+                .HasConversion
+                (ps => ps.ToString(), str =>
+                    (PostStatus)Enum.Parse(typeof(PostStatus), str))
+                .HasDefaultValue(PostStatus.Creating)
+                .HasSentinel(PostStatus.Creating)
+                ;
 
             // index 1: visibility + created_at
             entity.HasIndex(

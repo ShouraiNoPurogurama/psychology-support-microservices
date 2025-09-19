@@ -34,20 +34,18 @@ public sealed class AttachMediaToPostCommandHandler : ICommandHandler<AttachMedi
         if (post == null)
             throw new NotFoundException("Post not found or has been deleted.", "POST_NOT_FOUND");
 
-        // Use domain method to attach media
         post.AddMedia(request.MediaId, request.Position);
 
         await _context.SaveChangesAsync(cancellationToken);
-
-        // Publish integration event via Outbox
-        await _outboxWriter.WriteAsync(
-            new PostMediaUpdatedIntegrationEvent(
-                post.Id,
-                post.Author.AliasId,
-                nameof(PostMediaUpdateStatus.Attached),
-                DateTimeOffset.UtcNow
-            ),
-            cancellationToken);
+        //
+        // await _outboxWriter.WriteAsync(
+        //     new PostMediaUpdatedIntegrationEvent(
+        //         post.Id,
+        //         post.Author.AliasId,
+        //         nameof(PostMediaUpdateStatus.Attached),
+        //         DateTimeOffset.UtcNow
+        //     ),
+        //     cancellationToken);
 
         return new AttachMediaToPostResult(
             post.Id,

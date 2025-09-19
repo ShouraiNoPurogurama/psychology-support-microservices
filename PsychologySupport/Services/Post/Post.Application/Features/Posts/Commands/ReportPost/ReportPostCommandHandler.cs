@@ -42,7 +42,7 @@ internal sealed class ReportPostCommandHandler : ICommandHandler<ReportPostComma
         // Emit ContentReportedIntegrationEvent to Moderation service via Outbox
         await _outboxWriter.WriteAsync(new ContentReportedIntegrationEvent(
             reportId,
-            ReportedContentType.Post.ToString(),
+            nameof(ReportedContentType.Post),
             request.PostId,
             post.Author.AliasId,
             _currentActorAccessor.GetRequiredAliasId(),

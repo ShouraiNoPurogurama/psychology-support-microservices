@@ -39,15 +39,15 @@ public sealed class PublishPostCommandHandler : ICommandHandler<PublishPostComma
         await _context.SaveChangesAsync(cancellationToken);
 
         // Publish integration event via Outbox
-        await _outboxWriter.WriteAsync(
-            new PostPublishedIntegrationEvent(
-                post.Id,
-                post.Author.AliasId,
-                post.Content.Value,
-                post.Content.Title,
-                DateTimeOffset.UtcNow
-            ),
-            cancellationToken);
+        // await _outboxWriter.WriteAsync(
+        //     new PostPublishedIntegrationEvent(
+        //         post.Id,
+        //         post.Author.AliasId,
+        //         post.Content.Value,
+        //         post.Content.Title,
+        //         DateTimeOffset.UtcNow
+        //     ),
+        //     cancellationToken);
 
         return new PublishPostResult(
             post.Id,
