@@ -25,10 +25,8 @@ public class MediaDbContext : DbContext, IMediaDbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configure database schema following project standard
         modelBuilder.HasDefaultSchema("media");
 
-        // Apply entity configurations for all aggregates
         ApplyEntityConfigurations(modelBuilder);
     }
 
@@ -71,7 +69,8 @@ public class MediaDbContext : DbContext, IMediaDbContext
             {
                 moderation.Property(mod => mod.Status)
                     .HasColumnName("moderation_status")
-                    .HasConversion<string>()
+                    .HasConversion(s => s.ToString(),
+                        dbStatus => (MediaModerationStatus)Enum.Parse(typeof(MediaModerationStatus), dbStatus))
                     .IsRequired()
                     .HasMaxLength(50);
                 moderation.Property(mod => mod.Score).HasColumnName("moderation_score").HasPrecision(5, 4);
@@ -81,7 +80,8 @@ public class MediaDbContext : DbContext, IMediaDbContext
             });
 
             entity.Property(m => m.State)
-                .HasConversion<string>()
+                .HasConversion(s => s.ToString(),
+                    dbState => (MediaState)Enum.Parse(typeof(MediaState), dbState))
                 .IsRequired()
                 .HasMaxLength(50);
 
@@ -139,7 +139,8 @@ public class MediaDbContext : DbContext, IMediaDbContext
             entity.Property(mo => mo.Id).ValueGeneratedNever();
 
             entity.Property(mo => mo.MediaOwnerType)
-                .HasConversion<string>()
+                .HasConversion(mot => mot.ToString(),
+                    dbOwnerType => (MediaOwnerType)Enum.Parse(typeof(MediaOwnerType), dbOwnerType))
                 .IsRequired()
                 .HasMaxLength(50);
 
