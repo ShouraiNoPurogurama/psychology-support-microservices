@@ -75,7 +75,7 @@ internal sealed class UpdatePostCategoryTagsCommandHandler : ICommandHandler<Upd
         {
             try
             {
-                post.AddCategory(categoryTagId);
+                post.AddCategoryTag(categoryTagId);
                 addedCategoryTagIds.Add(categoryTagId);
             }
             catch (Domain.Exceptions.InvalidPostDataException ex)

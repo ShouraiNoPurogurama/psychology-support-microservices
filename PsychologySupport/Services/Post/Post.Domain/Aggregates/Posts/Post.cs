@@ -79,6 +79,38 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
 
         AddDomainEvent(new PostContentUpdatedEvent(Id, oldContent.Value, Content.Value, editorAliasId));
     }
+    
+    public void AddEmotionTag(Guid emotionTagId)
+    {
+        ValidateNotDeleted();
+
+        if (_emotions.Any(e => e.EmotionTagId == emotionTagId))
+            return;
+
+        if (_emotions.Count >= 1)
+            throw new InvalidPostDataException("Bài viết chỉ có thể có tối đa 1 thẻ cảm xúc.");
+
+        var postEmotion = PostEmotion.Create(Id, emotionTagId);
+        _emotions.Add(postEmotion);
+
+        // AddDomainEvent(new PostEmotionAddedEvent(Id, emotionTagId));
+    }
+    
+    public void AddCategoryTag(Guid categoryTagId)
+    {
+        ValidateNotDeleted();
+
+        if (_categories.Any(c => c.CategoryTagId == categoryTagId))
+            return;
+
+        if (_categories.Count >= 1)
+            throw new InvalidPostDataException("Bài viết chỉ có thể có tối đa 1 danh mục.");
+
+        var postCategory = PostCategory.Create(Id, categoryTagId);
+        _categories.Add(postCategory);
+
+        // AddDomainEvent(new PostCategoryAddedEvent(Id, categoryTagId));
+    }
 
     public void ChangeVisibility(PostVisibility newVisibility, Guid editorAliasId)
     {
@@ -135,22 +167,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
         _media.Remove(media);
         AddDomainEvent(new PostMediaRemovedEvent(Id, mediaId));
     }
-
-    public void AddCategory(Guid categoryTagId)
-    {
-        ValidateNotDeleted();
-
-        if (_categories.Any(c => c.CategoryTagId == categoryTagId))
-            return;
-
-        if (_categories.Count >= 5)
-            throw new InvalidPostDataException("Bài viết chỉ có thể có tối đa 5 danh mục.");
-
-        var postCategory = PostCategory.Create(Id, categoryTagId);
-        _categories.Add(postCategory);
-
-        AddDomainEvent(new PostCategoryAddedEvent(Id, categoryTagId));
-    }
+    
 
     public void RemoveCategory(Guid categoryTagId, Guid editorAliasId)
     {

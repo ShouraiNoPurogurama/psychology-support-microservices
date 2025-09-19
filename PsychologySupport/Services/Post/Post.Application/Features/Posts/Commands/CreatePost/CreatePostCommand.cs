@@ -8,7 +8,9 @@ public record CreatePostCommand(
     string? Title,
     string Content,
     PostVisibility Visibility,
-    IEnumerable<Guid>? MediaIds
+    IEnumerable<Guid>? MediaIds = null,
+    Guid? CategoryTagId = null,
+    Guid? EmotionId = null
 ) : IdempotentCommand<CreatePostResult>(IdempotencyKey);
 
 public record CreatePostResult(

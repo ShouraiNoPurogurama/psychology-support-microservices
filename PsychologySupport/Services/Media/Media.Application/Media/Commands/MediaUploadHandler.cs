@@ -25,6 +25,7 @@ namespace Media.Application.Media.Commands
         MediaVariantDto Original,
         MediaProcessingJobDto[] Jobs
     );
+
     public class MediaUploadHandler : ICommandHandler<MediaUploadCommand, MediaUploadResult>
     {
         private readonly IMediaDbContext _dbContext;
@@ -43,7 +44,6 @@ namespace Media.Application.Media.Commands
 
         public async Task<MediaUploadResult> Handle(MediaUploadCommand request, CancellationToken cancellationToken)
         {
-
             // Idempotency check
 
             // Validation
@@ -76,8 +76,8 @@ namespace Media.Application.Media.Commands
                             ["MEDIA_VALIDATION_FAILED"] = new[] { "File ảnh không hợp lệ." }
                         });
 
-                        width = image.Width;
-                        height = image.Height;
+                    width = image.Width;
+                    height = image.Height;
                 }
                 catch
                 {
@@ -86,11 +86,9 @@ namespace Media.Application.Media.Commands
                         ["MEDIA_VALIDATION_FAILED"] = new[] { "File ảnh không hợp lệ." }
                     });
                 }
-
-            
             }
 
-            
+
             // Tính checksum_sha256
 
             string checksumSha256;
@@ -103,6 +101,7 @@ namespace Media.Application.Media.Commands
             }
 
             #region Duplicate Check
+
             // Kiểm tra trùng lặp
             //var existingMedia = await _dbContext.MediaAssets
             //    .FirstOrDefaultAsync(m => m.ChecksumSha256 == checksumSha256 && m.State == MediaState.Ready, cancellationToken);
@@ -124,6 +123,7 @@ namespace Media.Application.Media.Commands
             //        Array.Empty<MediaProcessingJobDto>()
             //    );
             //}
+
             #endregion
 
             // Tạo media asset
@@ -173,7 +173,7 @@ namespace Media.Application.Media.Commands
             _dbContext.MediaVariants.Add(variant);
 
 
-            if (request.MediaOwnerType != null && request.MediaOwnerId !=null)
+            if (request.MediaOwnerType != null && request.MediaOwnerId != null)
             {
                 _dbContext.MediaOwners.Add(new MediaOwner
                 {
@@ -184,8 +184,8 @@ namespace Media.Application.Media.Commands
                 });
             }
 
-           // Thêm job xử lý nền
-           var jobId = Guid.NewGuid();
+            // Thêm job xử lý nền
+            var jobId = Guid.NewGuid();
             var processingJob = new MediaProcessingJob
             {
                 Id = jobId,
@@ -206,7 +206,7 @@ namespace Media.Application.Media.Commands
                     variant.Height,
                     variant.CdnUrl
                 ),
-                new[] { new MediaProcessingJobDto(jobId, JobType.Thumbnail, ProcessStatus.Queued)}
+                new[] { new MediaProcessingJobDto(jobId, JobType.Thumbnail, ProcessStatus.Queued) }
             );
 
 
@@ -219,6 +219,5 @@ namespace Media.Application.Media.Commands
 
             return responseBody;
         }
-
     }
 }
