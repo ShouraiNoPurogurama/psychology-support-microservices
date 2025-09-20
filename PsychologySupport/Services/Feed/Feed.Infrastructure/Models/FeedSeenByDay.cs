@@ -1,7 +1,6 @@
 ﻿using Cassandra;
-using Cassandra.Mapping.Attributes;
 
-namespace Feed.API.Models;
+namespace Feed.Infrastructure.Models;
 
 [Table("feed_seen_by_day")]
 public class FeedSeenByDay

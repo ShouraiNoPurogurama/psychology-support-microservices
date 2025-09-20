@@ -1,4 +1,4 @@
-﻿namespace Feed.API.Data.Options;
+﻿namespace Feed.Infrastructure.Data.Options;
 
 public sealed class CassandraOptions
 {

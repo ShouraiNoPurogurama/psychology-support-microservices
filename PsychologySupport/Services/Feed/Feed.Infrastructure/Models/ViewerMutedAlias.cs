@@ -1,6 +1,4 @@
-﻿using Cassandra.Mapping.Attributes;
-
-namespace Feed.API.Models;
+﻿namespace Feed.Infrastructure.Models;
 
 [Table("viewer_muted_alias")]
 public class ViewerMutedAlias

@@ -1,6 +1,4 @@
-﻿using Cassandra.Mapping.Attributes;
-
-namespace Feed.API.Models
+﻿namespace Feed.Infrastructure.Models
 {
     // Quy ước thời gian:
     // - LocalDate: trường *_ymd, *_ymd_bucket (ngày-tháng-năm, không giờ)

@@ -1,6 +1,4 @@
-﻿using Cassandra.Mapping.Attributes;
-
-namespace Feed.API.Models;
+﻿namespace Feed.Infrastructure.Models;
 
 [Table("followers_by_alias")]
 public class FollowersByAlias

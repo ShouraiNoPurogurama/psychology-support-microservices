@@ -1,7 +1,6 @@
 ﻿using Cassandra;
-using Cassandra.Mapping.Attributes;
 
-namespace Feed.API.Models;
+namespace Feed.Infrastructure.Models;
 
 [Table("user_feed_by_bucket")]
 public class UserFeedByBucket

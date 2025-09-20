@@ -4,7 +4,7 @@ using BuildingBlocks.Exceptions.Handler;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using Cassandra;
-using Feed.API.Data.Options;
+using Feed.Infrastructure.Data.Options;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
