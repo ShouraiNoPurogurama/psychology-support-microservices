@@ -1,11 +1,13 @@
 ﻿using BuildingBlocks.CQRS;
+using Feed.Application.Abstractions.CursorService;
 using Feed.Application.Abstractions.UserFeed;
 using Feed.Application.Abstractions.ViewerFollowing;
 using Feed.Application.Abstractions.UserPinning;
 using Feed.Application.Abstractions.ViewerBlocking;
 using Feed.Application.Abstractions.ViewerMuting;
 using Feed.Application.Abstractions.PostModeration;
-using Feed.Infrastructure.Data.Redis;
+using Feed.Application.Abstractions.RankingService;
+using Feed.Application.Abstractions.VipService;
 using Mapster;
 
 namespace Feed.Application.Features.UserFeed.Queries.GetFeed;
@@ -168,10 +170,3 @@ public sealed class GetFeedQueryHandler(
 }
 
 // Supporting types for regular feed
-public record RankedPost(
-    Guid PostId,
-    Guid AuthorAliasId,
-    sbyte RankBucket,
-    long RankI64,
-    DateTimeOffset CreatedAt
-);

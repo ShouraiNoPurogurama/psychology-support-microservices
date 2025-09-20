@@ -1,28 +1,21 @@
 ﻿using StackExchange.Redis;
-using System.Text.Json;
-using Feed.Application.Features.UserFeed.Queries.GetFeed;
+using Feed.Application.Abstractions.RankingService;
 
 namespace Feed.Infrastructure.Data.Redis;
-
-public interface IRankingService
-{
-    Task<IReadOnlyList<Guid>> GetTrendingPostsAsync(DateTime date, CancellationToken ct);
-    Task UpdatePostRankAsync(Guid postId, PostRankData rankData, CancellationToken ct);
-    Task<IReadOnlyList<RankedPost>> RankPostsAsync(IReadOnlyList<Guid> followedAliasIds, IReadOnlyList<Guid> trendingPostIds, int limit, CancellationToken ct);
-    Task AddToTrendingAsync(Guid postId, double score, DateTime date, CancellationToken ct);
-}
-
-public record PostRankData(
-    double Score,
-    int Reactions,
-    int Comments,
-    double Ctr,
-    DateTimeOffset UpdatedAt
-);
 
 public sealed class RankingService(IConnectionMultiplexer redis) : IRankingService
 {
     private readonly IDatabase _database = redis.GetDatabase();
+
+    // Redis hash field names as constants to avoid magic strings
+    private static class RankFields
+    {
+        public const string Score = "score";
+        public const string Reactions = "reactions";
+        public const string Comments = "comments";
+        public const string Ctr = "ctr";
+        public const string UpdatedAt = "updated_at";
+    }
 
     public async Task<IReadOnlyList<Guid>> GetTrendingPostsAsync(DateTime date, CancellationToken ct)
     {
@@ -40,11 +33,11 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
         var key = GetRankKey(postId);
         var hash = new HashEntry[]
         {
-            new("score", rankData.Score),
-            new("reactions", rankData.Reactions),
-            new("comments", rankData.Comments),
-            new("ctr", rankData.Ctr),
-            new("updated_at", rankData.UpdatedAt.ToUnixTimeSeconds())
+            new(RankFields.Score, rankData.Score),
+            new(RankFields.Reactions, rankData.Reactions),
+            new(RankFields.Comments, rankData.Comments),
+            new(RankFields.Ctr, rankData.Ctr),
+            new(RankFields.UpdatedAt, rankData.UpdatedAt.ToUnixTimeSeconds())
         };
 
         await _database.HashSetAsync(key, hash);
@@ -98,11 +91,11 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
         var hashDict = hash.ToDictionary(h => h.Name, h => h.Value);
 
         return new PostRankData(
-            hashDict.TryGetValue("score", out var score) ? (double)score : 0.0,
-            hashDict.TryGetValue("reactions", out var reactions) ? (int)reactions : 0,
-            hashDict.TryGetValue("comments", out var comments) ? (int)comments : 0,
-            hashDict.TryGetValue("ctr", out var ctr) ? (double)ctr : 0.0,
-            hashDict.TryGetValue("updated_at", out var updatedAt) 
+            hashDict.TryGetValue(RankFields.Score, out var score) ? (double)score : 0.0,
+            hashDict.TryGetValue(RankFields.Reactions, out var reactions) ? (int)reactions : 0,
+            hashDict.TryGetValue(RankFields.Comments, out var comments) ? (int)comments : 0,
+            hashDict.TryGetValue(RankFields.Ctr, out var ctr) ? (double)ctr : 0.0,
+            hashDict.TryGetValue(RankFields.UpdatedAt, out var updatedAt) 
                 ? DateTimeOffset.FromUnixTimeSeconds((long)updatedAt)
                 : DateTimeOffset.UtcNow
         );
