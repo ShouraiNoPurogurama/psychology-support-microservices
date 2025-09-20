@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Feed.Domain.UserActivity;
+﻿namespace Feed.Domain.UserActivity;
 
 public sealed class FeedSeenEntry
 {

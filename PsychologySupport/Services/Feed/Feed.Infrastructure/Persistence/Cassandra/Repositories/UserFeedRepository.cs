@@ -4,6 +4,7 @@ using Feed.Application.Abstractions.UserFeed;
 using Feed.Domain.UserFeed;
 using Feed.Infrastructure.Persistence.Cassandra.Mappings;
 using Feed.Infrastructure.Persistence.Cassandra.Models;
+using Feed.Infrastructure.Persistence.Cassandra.Utils;
 
 namespace Feed.Infrastructure.Persistence.Cassandra.Repositories;
 
@@ -35,13 +36,15 @@ public sealed class UserFeedRepository : IUserFeedRepository
         return true;
     }
 
-    public async Task<bool> RemoveFeedItemAsync(Guid aliasId, LocalDate ymdBucket, short shard, Guid postId, CancellationToken ct)
+    public async Task<bool> RemoveFeedItemAsync(Guid aliasId, DateOnly ymdBucket, short shard, Guid postId, CancellationToken ct)
     {
+        var cassandraYmdBucket = CassandraTypeMapper.ToLocalDate(ymdBucket);
+        
         // Need to find the clustering key values first since they're required for deletion
         var findCql = @"SELECT rank_bucket, rank_i64, ts_uuid FROM user_feed_by_bucket 
                         WHERE alias_id = ? AND ymd_bucket = ? AND shard = ? AND post_id = ? ALLOW FILTERING";
         var findPs = await _session.PrepareAsync(findCql).ConfigureAwait(false);
-        var findStmt = findPs.Bind(aliasId, ymdBucket, shard, postId).SetIdempotence(true);
+        var findStmt = findPs.Bind(aliasId, cassandraYmdBucket, shard, postId).SetIdempotence(true);
         var findRs = await _session.ExecuteAsync(findStmt).ConfigureAwait(false);
 
         var itemRow = findRs.FirstOrDefault();
@@ -55,20 +58,22 @@ public sealed class UserFeedRepository : IUserFeedRepository
                          WHERE alias_id = ? AND ymd_bucket = ? AND shard = ? 
                          AND rank_bucket = ? AND rank_i64 = ? AND ts_uuid = ? AND post_id = ?";
         var deletePs = await _session.PrepareAsync(deleteCql).ConfigureAwait(false);
-        var deleteStmt = deletePs.Bind(aliasId, ymdBucket, shard, rankBucket, rankI64, tsUuid, postId).SetIdempotence(true);
+        var deleteStmt = deletePs.Bind(aliasId, cassandraYmdBucket, shard, rankBucket, rankI64, tsUuid, postId).SetIdempotence(true);
         await _session.ExecuteAsync(deleteStmt).ConfigureAwait(false);
         return true;
     }
 
-    public async Task<IReadOnlyList<UserFeedItem>> GetFeedItemsAsync(Guid aliasId, LocalDate ymdBucket, short shard, int limit = 50, CancellationToken ct = default)
+    public async Task<IReadOnlyList<UserFeedItem>> GetFeedItemsAsync(Guid aliasId, DateOnly ymdBucket, short shard, int limit = 50, CancellationToken ct = default)
     {
+        var cassandraYmdBucket = CassandraTypeMapper.ToLocalDate(ymdBucket);
+        
         var cql = @"SELECT alias_id, ymd_bucket, shard, rank_bucket, rank_i64, ts_uuid, post_id, created_at 
                     FROM user_feed_by_bucket 
                     WHERE alias_id = ? AND ymd_bucket = ? AND shard = ? 
                     ORDER BY rank_bucket DESC, rank_i64 DESC, ts_uuid DESC 
                     LIMIT ?";
         var ps = await _session.PrepareAsync(cql).ConfigureAwait(false);
-        var stmt = ps.Bind(aliasId, ymdBucket, shard, limit).SetIdempotence(true);
+        var stmt = ps.Bind(aliasId, cassandraYmdBucket, shard, limit).SetIdempotence(true);
         var rs = await _session.ExecuteAsync(stmt).ConfigureAwait(false);
 
         var list = new List<UserFeedItem>();
@@ -94,7 +99,7 @@ public sealed class UserFeedRepository : IUserFeedRepository
     public async Task<IReadOnlyList<UserFeedItem>> GetUserFeedAsync(Guid aliasId, int days = 7, int limit = 100, CancellationToken ct = default)
     {
         var allItems = new List<UserFeedItem>();
-        var currentDate = LocalDate.FromDateTime(DateTime.UtcNow.Date);
+        var currentDate = DateOnly.FromDateTime(DateTime.UtcNow.Date);
 
         // Query each day and shard combination separately due to Cassandra's partitioning
         for (int day = 0; day < days && allItems.Count < limit; day++)

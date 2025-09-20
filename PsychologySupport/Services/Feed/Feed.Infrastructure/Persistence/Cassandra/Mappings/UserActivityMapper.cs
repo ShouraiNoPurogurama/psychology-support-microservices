@@ -1,5 +1,6 @@
 ﻿using Feed.Domain.UserActivity;
 using Feed.Infrastructure.Persistence.Cassandra.Models;
+using Feed.Infrastructure.Persistence.Cassandra.Utils;
 
 namespace Feed.Infrastructure.Persistence.Cassandra.Mappings;
 
@@ -8,8 +9,8 @@ public static class UserActivityMapper
     public static FeedSeenByDayRow ToRow(FeedSeenEntry domain) => new()
     {
         AliasId = domain.AliasId,
-        Ymd = domain.Ymd,
-        SeenAt = domain.SeenAt,
+        Ymd = CassandraTypeMapper.ToLocalDate(domain.Ymd),
+        SeenAt = CassandraTypeMapper.ToTimeUuid(domain.SeenAt),
         PostId = domain.PostId
     };
 
@@ -17,7 +18,7 @@ public static class UserActivityMapper
         => FeedSeenEntry.Create(
             row.AliasId,
             row.PostId,
-            row.Ymd,
-            row.SeenAt
+            CassandraTypeMapper.ToDateOnly(row.Ymd),
+            CassandraTypeMapper.ToGuid(row.SeenAt)
         );
 }

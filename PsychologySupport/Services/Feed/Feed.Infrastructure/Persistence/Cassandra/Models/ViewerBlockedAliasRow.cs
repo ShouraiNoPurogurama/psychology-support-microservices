@@ -1,6 +1,4 @@
-﻿using Cassandra.Mapping.Attributes;
-
-namespace Feed.Infrastructure.Persistence.Cassandra.Models;
+﻿namespace Feed.Infrastructure.Persistence.Cassandra.Models;
 
 [Table("viewer_blocked_alias")]
 public class ViewerBlockedAliasRow

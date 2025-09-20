@@ -1,14 +1,14 @@
-﻿using Cassandra;
+﻿using System;
 
 namespace Feed.Domain.UserPinning;
 
 public sealed class UserPinnedPost
 {
     public Guid AliasId { get; }
-    public TimeUuid PinnedAt { get; }
+    public Guid PinnedAt { get; }
     public Guid PostId { get; }
 
-    private UserPinnedPost(Guid aliasId, TimeUuid pinnedAt, Guid postId)
+    private UserPinnedPost(Guid aliasId, Guid pinnedAt, Guid postId)
     {
         if (aliasId == Guid.Empty)
             throw new ArgumentException("AliasId is required", nameof(aliasId));
@@ -20,9 +20,6 @@ public sealed class UserPinnedPost
         PostId = postId;
     }
 
-    public static UserPinnedPost Create(Guid aliasId, Guid postId, TimeUuid? pinnedAt = null)
-        => new(aliasId, pinnedAt ?? TimeUuid.NewId(), postId);
-
-    public DateTimeOffset GetPinnedAtDateTime()
-        => PinnedAt.GetDate();
+    public static UserPinnedPost Create(Guid aliasId, Guid postId, Guid? pinnedAt = null)
+        => new(aliasId, pinnedAt ?? Guid.NewGuid(), postId);
 }

@@ -1,5 +1,6 @@
 ﻿using Feed.Domain.UserPinning;
 using Feed.Infrastructure.Persistence.Cassandra.Models;
+using Feed.Infrastructure.Persistence.Cassandra.Utils;
 
 namespace Feed.Infrastructure.Persistence.Cassandra.Mappings;
 
@@ -8,7 +9,7 @@ public static class UserPinningMapper
     public static UserPinnedPostsRow ToRow(UserPinnedPost domain) => new()
     {
         AliasId = domain.AliasId,
-        PinnedAt = domain.PinnedAt,
+        PinnedAt = CassandraTypeMapper.ToTimeUuid(domain.PinnedAt),
         PostId = domain.PostId
     };
 
@@ -16,6 +17,6 @@ public static class UserPinningMapper
         => UserPinnedPost.Create(
             row.AliasId,
             row.PostId,
-            row.PinnedAt
+            CassandraTypeMapper.ToGuid(row.PinnedAt)
         );
 }

@@ -1,25 +1,23 @@
-﻿using Cassandra;
-
-namespace Feed.Domain.UserFeed;
+﻿namespace Feed.Domain.UserFeed;
 
 public sealed class UserFeedItem
 {
     public Guid AliasId { get; }
-    public LocalDate YmdBucket { get; }
+    public DateOnly YmdBucket { get; }
     public short Shard { get; }
     public sbyte RankBucket { get; }
     public long RankI64 { get; }
-    public TimeUuid TsUuid { get; }
+    public Guid TsUuid { get; }
     public Guid PostId { get; }
     public DateTimeOffset? CreatedAt { get; }
 
     private UserFeedItem(
         Guid aliasId, 
-        LocalDate ymdBucket, 
+        DateOnly ymdBucket, 
         short shard, 
         sbyte rankBucket, 
         long rankI64, 
-        TimeUuid tsUuid, 
+        Guid tsUuid, 
         Guid postId, 
         DateTimeOffset? createdAtUtc)
     {
@@ -35,21 +33,21 @@ public sealed class UserFeedItem
         RankI64 = rankI64;
         TsUuid = tsUuid;
         PostId = postId;
-        CreatedAt = createdAtUtc?.Kind != DateTimeKind.Utc ? createdAtUtc?.ToUniversalTime() : createdAtUtc;
+        CreatedAt = createdAtUtc?.ToUniversalTime();
     }
 
     public static UserFeedItem Create(
         Guid aliasId,
         Guid postId,
-        LocalDate? ymdBucket = null,
+        DateOnly? ymdBucket = null,
         short shard = 0,
         sbyte rankBucket = 0,
         long rankI64 = 0,
-        TimeUuid? tsUuid = null,
+        Guid? tsUuid = null,
         DateTimeOffset? createdAt = null)
     {
-        var tsUuidValue = tsUuid ?? TimeUuid.NewId();
-        var ymdBucketValue = ymdBucket ?? LocalDate.FromDateTime(DateTime.UtcNow.Date);
+        var tsUuidValue = tsUuid ?? Guid.NewGuid();
+        var ymdBucketValue = ymdBucket ?? DateOnly.FromDateTime(DateTime.UtcNow.Date);
         
         return new(
             aliasId,
@@ -61,7 +59,4 @@ public sealed class UserFeedItem
             postId,
             createdAt);
     }
-
-    public DateTimeOffset GetTimestampDateTime()
-        => TsUuid.GetDate();
 }
