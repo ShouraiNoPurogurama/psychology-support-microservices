@@ -1,4 +1,5 @@
 ﻿using Alias.API.Aliases.Models;
+using Alias.API.Aliases.Models.Aliases;
 using Alias.API.Data.Public;
 using BuildingBlocks.Exceptions;
 using Microsoft.Extensions.Caching.Memory;

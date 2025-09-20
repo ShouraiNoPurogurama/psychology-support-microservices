@@ -26,7 +26,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Aliases\Features\" />
         <Folder Include="Data\Public\"/>
     </ItemGroup>
 

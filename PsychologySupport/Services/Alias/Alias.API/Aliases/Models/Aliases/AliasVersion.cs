@@ -1,7 +1,7 @@
-﻿using Alias.API.Aliases.Models.Enums;
+﻿using Alias.API.Aliases.Models.Aliases.Enums;
 using BuildingBlocks.DDD;
 
-namespace Alias.API.Aliases.Models;
+namespace Alias.API.Aliases.Models.Aliases;
 
 public sealed class AliasVersion : Entity<Guid>, IHasCreationAudit
 {

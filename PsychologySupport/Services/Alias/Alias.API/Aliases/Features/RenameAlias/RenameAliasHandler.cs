@@ -1,5 +1,5 @@
 ﻿using Alias.API.Aliases.Exceptions;
-using Alias.API.Aliases.Models.Enums;
+using Alias.API.Aliases.Models.Aliases.Enums;
 using Alias.API.Aliases.Utils;
 using Alias.API.Common.Authentication;
 using Alias.API.Data.Public;

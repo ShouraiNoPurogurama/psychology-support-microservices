@@ -1,6 +1,5 @@
-﻿using Alias.API.Aliases.Enums;
-using Alias.API.Aliases.Exceptions;
-using Alias.API.Aliases.Models.Enums;
+﻿using Alias.API.Aliases.Exceptions;
+using Alias.API.Aliases.Models.Aliases.Enums;
 using Alias.API.Aliases.Utils;
 using Alias.API.Common.Authentication;
 using Alias.API.Common.Security;
@@ -48,7 +47,7 @@ public class IssueAliasHandler(
             throw new AliasConflictException("Label đã được sử dụng.");
 
         // Create alias using domain aggregate
-        var alias = Models.Alias.Create(
+        var alias = Models.Aliases.Alias.Create(
             label: command.Label,
             source: nicknameSource,
             visibility: AliasVisibility.Public,

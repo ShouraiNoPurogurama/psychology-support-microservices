@@ -1,6 +1,6 @@
 ﻿using Alias.API.Aliases.Exceptions.DomainExceptions;
 
-namespace Alias.API.Aliases.Models.ValueObjects;
+namespace Alias.API.Aliases.Models.Aliases.ValueObjects;
 
 public sealed record AliasLabel
 {
@@ -9,7 +9,9 @@ public sealed record AliasLabel
     public string UniqueKey { get; init; }
 
     // EF Core materialization
-    private AliasLabel() { }
+    private AliasLabel()
+    {
+    }
 
     private AliasLabel(string value, string searchKey, string uniqueKey)
     {
@@ -61,8 +63,14 @@ public sealed record AliasMetadata
     public int VersionCount { get; init; }
     public bool IsSystemGenerated { get; init; }
 
+    //Properties for social media tracking
+    public long FollowersCount { get; private init; }
+    public long FollowingCount { get; private init; }
+
     // EF Core materialization
-    private AliasMetadata() { }
+    private AliasMetadata()
+    {
+    }
 
     private AliasMetadata(DateTimeOffset createdAt, DateTimeOffset? lastActiveAt, int versionCount, bool isSystemGenerated)
     {
@@ -89,5 +97,26 @@ public sealed record AliasMetadata
     public AliasMetadata UpdateLastActive()
     {
         return this with { LastActiveAt = DateTimeOffset.UtcNow };
+    }
+
+    public AliasMetadata IncrementFollowersCount()
+    {
+        return this with { FollowersCount = FollowersCount + 1 };
+    }
+
+    public AliasMetadata DecrementFollowersCount()
+    {
+        // Đảm bảo số đếm không bao giờ âm
+        return this with { FollowersCount = FollowersCount > 0 ? FollowersCount - 1 : 0 };
+    }
+
+    public AliasMetadata IncrementFollowingCount()
+    {
+        return this with { FollowingCount = FollowingCount + 1 };
+    }
+
+    public AliasMetadata DecrementFollowingCount()
+    {
+        return this with { FollowingCount = FollowingCount > 0 ? FollowingCount - 1 : 0 };
     }
 }

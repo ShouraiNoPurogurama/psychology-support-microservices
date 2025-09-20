@@ -1,9 +1,9 @@
 ﻿using System.Text.Json;
 using Alias.API.Aliases.Exceptions.DomainExceptions;
-using Alias.API.Aliases.Models.Enums;
+using Alias.API.Aliases.Models.Aliases.Enums;
 using BuildingBlocks.DDD;
 
-namespace Alias.API.Aliases.Models;
+namespace Alias.API.Aliases.Models.Aliases;
 
 public sealed class AliasAudit : Entity<Guid>, IHasCreationAudit
 {

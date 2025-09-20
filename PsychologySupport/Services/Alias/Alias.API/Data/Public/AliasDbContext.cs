@@ -1,9 +1,11 @@
 ﻿using Alias.API.Aliases.Models;
-using Alias.API.Aliases.Models.Enums;
+using Alias.API.Aliases.Models.Aliases;
+using Alias.API.Aliases.Models.Aliases.Enums;
+using Alias.API.Aliases.Models.Follows;
 
 namespace Alias.API.Data.Public;
 
-using Alias = Aliases.Models.Alias;
+using Alias = Aliases.Models.Aliases.Alias;
 
 public partial class AliasDbContext : DbContext
 {
@@ -17,6 +19,8 @@ public partial class AliasDbContext : DbContext
     public virtual DbSet<AliasAudit> AliasAudits { get; set; }
 
     public virtual DbSet<AliasVersion> AliasVersions { get; set; }
+
+    public virtual DbSet<Follow> Follows { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -112,6 +116,47 @@ public partial class AliasDbContext : DbContext
 
 
             entity.HasIndex(e => e.AliasId, "ix_alias_versions_alias_id");
+        });
+
+        modelBuilder.Entity<Follow>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("follows_pkey");
+
+            entity.ToTable("follows");
+
+            // Composite unique index to prevent duplicate follow relationships
+            entity.HasIndex(e => new { e.FollowerAliasId, e.FollowedAliasId })
+                .IsUnique()
+                .HasDatabaseName("uix_follows_follower_followed");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever();
+
+            entity.Property(e => e.FollowedAt)
+                .HasColumnName("followed_at");
+
+            entity.Property(e => e.FollowerAliasId)
+                .HasColumnName("follower_alias_id");
+
+            entity.Property(e => e.FollowedAliasId)
+                .HasColumnName("followed_alias_id");
+
+            // Indexes for query performance
+            entity.HasIndex(e => e.FollowerAliasId, "ix_follows_follower_alias_id");
+            entity.HasIndex(e => e.FollowedAliasId, "ix_follows_followed_alias_id");
+
+            // Foreign key relationships with cascade delete
+            entity.HasOne<Alias>()
+                .WithMany()
+                .HasForeignKey(f => f.FollowerAliasId)
+                .HasConstraintName("fk_follows_follower_alias")
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne<Alias>()
+                .WithMany()
+                .HasForeignKey(f => f.FollowedAliasId)
+                .HasConstraintName("fk_follows_followed_alias")
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);

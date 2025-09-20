@@ -1,4 +1,4 @@
-namespace Alias.API.Aliases.Models.Enums;
+namespace Alias.API.Aliases.Models.Aliases.Enums;
 
 public enum AliasStatus
 {

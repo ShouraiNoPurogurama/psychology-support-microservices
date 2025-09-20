@@ -1,4 +1,4 @@
-﻿namespace Alias.API.Aliases.Models;
+﻿namespace Alias.API.Aliases.Models.Aliases;
 
 public class Audit
 {

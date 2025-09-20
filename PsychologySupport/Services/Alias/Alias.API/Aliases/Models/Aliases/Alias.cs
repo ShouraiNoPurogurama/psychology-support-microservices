@@ -1,11 +1,11 @@
 ﻿using Alias.API.Aliases.Exceptions.DomainExceptions;
-using Alias.API.Aliases.Models.DomainEvents;
-using Alias.API.Aliases.Models.Enums;
-using Alias.API.Aliases.Models.ValueObjects;
+using Alias.API.Aliases.Models.Aliases.DomainEvents;
+using Alias.API.Aliases.Models.Aliases.Enums;
+using Alias.API.Aliases.Models.Aliases.ValueObjects;
 using Alias.API.Aliases.Utils;
 using BuildingBlocks.DDD;
 
-namespace Alias.API.Aliases.Models;
+namespace Alias.API.Aliases.Models.Aliases;
 
 public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
 {
@@ -221,6 +221,30 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
             DateTimeOffset.UtcNow));
     }
 
+    public void IncrementFollowersCount()
+    {
+        ValidateCanBeModified();
+        Metadata = Metadata.IncrementFollowersCount();
+    }
+
+    public void DecrementFollowersCount()
+    {
+        ValidateCanBeModified();
+        Metadata = Metadata.DecrementFollowersCount();
+    }
+
+    public void IncrementFollowingCount()
+    {
+        ValidateCanBeModified();
+        Metadata = Metadata.IncrementFollowingCount().UpdateLastActive(); // Theo dõi ai đó là một hành động 'active'
+    }
+
+    public void DecrementFollowingCount()
+    {
+        ValidateCanBeModified();
+        Metadata = Metadata.DecrementFollowingCount().UpdateLastActive(); // Hủy theo dõi cũng là một hành động 'active'
+    }
+    
     public void Suspend(string reason, Guid suspendedBy)
     {
         if (Status == AliasStatus.Suspended) return;
@@ -302,7 +326,8 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
             auditRecord.Details,
             DateTimeOffset.UtcNow));
     }
-
+    
+    
     public void RecordActivity()
     {
         if (Status == AliasStatus.Active && !IsDeleted)

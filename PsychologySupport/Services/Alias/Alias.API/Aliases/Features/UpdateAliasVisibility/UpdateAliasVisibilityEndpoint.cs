@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using Alias.API.Aliases.Models.Enums;
+using Alias.API.Aliases.Models.Aliases.Enums;
 using Alias.API.Extensions;
 using Carter;
 using Mapster;

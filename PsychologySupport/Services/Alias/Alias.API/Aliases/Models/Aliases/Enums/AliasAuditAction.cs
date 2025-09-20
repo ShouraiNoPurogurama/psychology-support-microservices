@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Alias.API.Aliases.Models.Enums
+namespace Alias.API.Aliases.Models.Aliases.Enums
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum AliasAuditAction

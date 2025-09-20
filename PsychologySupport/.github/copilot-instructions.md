@@ -320,14 +320,22 @@ public record GetPostsResult(
 );
 
 [PaginatedResult already exists in BuildingBlocks/Pagination]
-public record PaginatedResult<T>(
-    IEnumerable<T> Items,
-    int TotalCount,
-    int PageNumber,
+namespace BuildingBlocks.Pagination;
+public record PaginatedResult<TEntity>(
+    int PageIndex,
     int PageSize,
-    bool HasNextPage,
-    bool HasPreviousPage
-);
+    long TotalCount,
+    IEnumerable<TEntity> Data)
+{
+    public PaginatedResult() : this(0, 0, 0, Enumerable.Empty<TEntity>())
+    {
+        PageIndex = 0;
+        PageSize = 0;
+        TotalCount = 0;
+        Data = new List<TEntity>();
+    }
+    public int TotalPages => PageSize > 0 ? (int)Math.Ceiling((double)TotalCount / PageSize) : 0;
+}
 ```
 
 ### Integration Events Pattern

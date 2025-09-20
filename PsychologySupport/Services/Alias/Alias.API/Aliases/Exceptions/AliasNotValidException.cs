@@ -1,4 +1,4 @@
-﻿using Alias.API.Aliases.Enums;
+﻿using Alias.API.Aliases.Models.Aliases.Enums;
 using BuildingBlocks.Exceptions;
 
 namespace Alias.API.Aliases.Exceptions;
