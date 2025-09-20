@@ -7,12 +7,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Feed.Application\Feed.Application.csproj" />
-      <ProjectReference Include="..\Feed.Domain\Feed.Domain.csproj" />
+        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks.Messaging\BuildingBlocks.Messaging.csproj"/>
+        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj"/>
+        
+        <ProjectReference Include="..\Feed.Application\Feed.Application.csproj"/>
+        <ProjectReference Include="..\Feed.Domain\Feed.Domain.csproj"/>
     </ItemGroup>
-    
+
     <ItemGroup>
-        <PackageReference Include="CassandraCSharpDriver" />
+        <PackageReference Include="CassandraCSharpDriver"/>
+        <PackageReference Include="Scrutor"/>
     </ItemGroup>
 
 </Project>
