@@ -9,6 +9,10 @@ public sealed class FeedConfiguration
     public int FeedShardCount { get; set; } = 4;
     public VipCriteria VipCriteria { get; set; } = new();
     public CacheSettings Cache { get; set; } = new();
+    /// <summary>
+    /// Ranking decay factor (hours) used in score = log(1+engagement) - (hours_since_creation / RankDecayFactor)
+    /// </summary>
+    public double RankDecayFactor { get; set; } = 24.0;
 }
 
 public sealed class VipCriteria

@@ -13,6 +13,8 @@ using Feed.Application.Abstractions.VipService;
 using Feed.Application.Configuration;
 using Microsoft.Extensions.Options;
 using Mapster;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
 
 namespace Feed.Application.Features.UserFeed.Queries.GetFeed;
 
@@ -26,7 +28,8 @@ public sealed class GetFeedQueryHandler(
     IVipService vipService,
     IRankingService rankingService,
     ICursorService cursorService,
-    IOptions<FeedConfiguration> feedConfig)
+    IOptions<FeedConfiguration> feedConfig,
+    IDistributedCache cache)
     : IQueryHandler<GetFeedQuery, GetFeedResult>
 {
     private readonly FeedConfiguration _config = feedConfig.Value;
@@ -36,10 +39,23 @@ public sealed class GetFeedQueryHandler(
         using var activity = FeedActivitySource.Instance.StartActivity("feed.get_feed");
         activity?.SetTag("alias_id", request.AliasId);
         activity?.SetTag("page_size", request.PageSize);
-        activity?.SetTag("page_index", request.PageIndex);
+        activity?.SetTag("cursor", request.Cursor ?? "");
 
         var sw = Stopwatch.StartNew();
         string feedType = "unknown";
+
+        // Check cache snapshot first
+        var cacheKey = BuildCacheKey(request.AliasId, request.PageSize, request.Cursor);
+        var cached = await cache.GetStringAsync(cacheKey, cancellationToken);
+        if (!string.IsNullOrEmpty(cached))
+        {
+            var hit = JsonSerializer.Deserialize<GetFeedResult>(cached);
+            if (hit is not null)
+            {
+                activity?.SetTag("cache_hit", true);
+                return hit;
+            }
+        }
 
         try
         {
@@ -47,9 +63,19 @@ public sealed class GetFeedQueryHandler(
             activity?.SetTag("is_vip", isVip);
             feedType = isVip ? "vip" : "regular";
 
+            // Decode cursor to (offset, snapshot); if invalid -> start fresh
+            var (offset, snapshot) = DecodeOrInitCursor(request.Cursor);
+
             var result = isVip
-                ? await GetVipFeedAsync(request, cancellationToken)
-                : await GetRegularFeedAsync(request, cancellationToken);
+                ? await GetVipFeedAsync(request, offset, snapshot, cancellationToken)
+                : await GetRegularFeedAsync(request, offset, snapshot, cancellationToken);
+
+            // Cache the response snapshot
+            var entryOptions = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = _config.Cache.SnapshotTtl
+            };
+            await cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(result), entryOptions, cancellationToken);
 
             FeedMetrics.FeedRequests.Add(1,
                 new KeyValuePair<string, object?>("feed_type", feedType),
@@ -75,138 +101,153 @@ public sealed class GetFeedQueryHandler(
         }
     }
 
+    private static string BuildCacheKey(Guid aliasId, int limit, string? cursor)
+        => $"feed:resp:{aliasId}:{limit}:{(cursor ?? "_")}";
 
-    private async Task<GetFeedResult> GetVipFeedAsync(GetFeedQuery request, CancellationToken cancellationToken)
+    private (int Offset, DateTime Snapshot) DecodeOrInitCursor(string? cursor)
+    {
+        if (!string.IsNullOrEmpty(cursor))
+        {
+            try
+            {
+                var (offset, snap) = cursorService.DecodeCursor(cursor);
+                return (offset, snap);
+            }
+            catch { /* ignore invalid cursor */ }
+        }
+        return (0, DateTime.UtcNow);
+    }
+
+    private async Task<GetFeedResult> GetVipFeedAsync(GetFeedQuery request, int offset, DateTime snapshot, CancellationToken cancellationToken)
     {
         using var activity = FeedActivitySource.Instance.StartActivity(FeedActivitySource.Operations.GetVipFeed);
         
-        // VIP flow: Query from pre-computed user_feed_by_bucket using config values
+        // VIP flow: pre-computed user_feed_by_bucket across recent days
         var feedItems = await feedRepository.GetUserFeedAsync(
             request.AliasId,
             days: _config.VipFeedDays,
-            limit: request.PageSize * 2, // Get extra for filtering
+            limit: request.PageSize * 3, // prefetch for filtering/pagination
             cancellationToken);
 
-        // Apply filters (blocked, muted, suppressed)
         var filteredItems = await ApplyFiltersAsync(request.AliasId, feedItems, cancellationToken);
 
-        // Get pinned posts and merge on top
-        var pinnedPosts = await pinningRepository.GetPinnedPostsAsync(request.AliasId, cancellationToken);
-        var pinnedDtos = pinnedPosts.Select(p => new UserFeedItemDto(
-            p.PostId,
-            DateOnly.FromDateTime(DateTime.UtcNow),
-            0,
-            100, // High rank for pinned posts
-            0,
-            p.PinnedAt,
-            null,
-            IsPinned: true
-        )).ToList();
+        // Only include pinned on first page (cursor == null)
+        var list = new List<UserFeedItemDto>();
+        if (request.Cursor is null)
+        {
+            var pinnedPosts = await pinningRepository.GetPinnedPostsAsync(request.AliasId, cancellationToken);
+            var pinnedDtos = pinnedPosts.Select(p => new UserFeedItemDto(
+                p.PostId,
+                DateOnly.FromDateTime(DateTime.UtcNow),
+                0,
+                100,
+                long.MaxValue - DateTime.UtcNow.Ticks,
+                p.PinnedAt,
+                DateTimeOffset.UtcNow,
+                IsPinned: true
+            ));
+            list.AddRange(pinnedDtos);
+        }
 
-        // Merge and paginate
-        var allItems = pinnedDtos.Concat(filteredItems.Adapt<List<UserFeedItemDto>>()).ToList();
-        var paginatedItems = allItems
-            .Skip(request.PageIndex * request.PageSize)
-            .Take(request.PageSize)
+        list.AddRange(filteredItems.Adapt<List<UserFeedItemDto>>());
+
+        // de-dup by PostId preserving order
+        var distinct = list
+            .GroupBy(x => x.PostId)
+            .Select(g => g.First())
             .ToList();
 
-        var nextCursor = paginatedItems.Count == request.PageSize 
-            ? cursorService.EncodeCursor(request.PageIndex + 1, DateTime.UtcNow)
-            : null;
+        var page = distinct.Skip(offset).Take(request.PageSize).ToList();
+        var hasMore = distinct.Count > offset + page.Count;
+        var nextCursor = hasMore ? cursorService.EncodeCursor(offset + page.Count, snapshot) : null;
 
-        return new GetFeedResult(
-            paginatedItems,
-            nextCursor,
-            paginatedItems.Count == request.PageSize,
-            allItems.Count
-        );
+        return new GetFeedResult(page, nextCursor, hasMore, distinct.Count);
     }
 
-    private async Task<GetFeedResult> GetRegularFeedAsync(GetFeedQuery request, CancellationToken cancellationToken)
+    private async Task<GetFeedResult> GetRegularFeedAsync(GetFeedQuery request, int offset, DateTime snapshot, CancellationToken cancellationToken)
     {
         using var activity = FeedActivitySource.Instance.StartActivity(FeedActivitySource.Operations.GetRegularFeed);
         
-        // Regular flow: Fan-in from follows + trending using config values
+        // Regular flow: fan-in from followed aliases + trending
         var follows = await followingRepository.GetAllByViewerAsync(request.AliasId, cancellationToken);
         var followedAliasIds = follows.Select(f => f.FollowedAliasId).ToList();
 
-        // Get trending posts from Redis using config
         var trendingPosts = await rankingService.GetTrendingPostsAsync(DateTime.UtcNow, cancellationToken);
 
-        // Combine and rank posts
         var combinedPosts = await rankingService.RankPostsAsync(
-            followedAliasIds, 
-            trendingPosts, 
-            request.PageSize * 2,
+            followedAliasIds,
+            trendingPosts,
+            request.PageSize * 3,
             cancellationToken);
 
-        // Apply filters
         var filteredPosts = await ApplyPostFiltersAsync(request.AliasId, combinedPosts, cancellationToken);
 
-        // Convert to DTOs
-        var feedItems = filteredPosts.Select(p => new UserFeedItemDto(
+        var items = new List<UserFeedItemDto>();
+        if (request.Cursor is null)
+        {
+            var pinnedPosts = await pinningRepository.GetPinnedPostsAsync(request.AliasId, cancellationToken);
+            var pinnedDtos = pinnedPosts.Select(p => new UserFeedItemDto(
+                p.PostId,
+                DateOnly.FromDateTime(DateTime.UtcNow),
+                0,
+                100,
+                long.MaxValue - DateTime.UtcNow.Ticks,
+                p.PinnedAt,
+                DateTimeOffset.UtcNow,
+                true
+            ));
+            items.AddRange(pinnedDtos);
+        }
+
+        items.AddRange(filteredPosts.Select(p => new UserFeedItemDto(
             p.PostId,
             DateOnly.FromDateTime(p.CreatedAt.Date),
             0,
             p.RankBucket,
             p.RankI64,
-            Guid.NewGuid(), // Generate for regular posts
+            Guid.NewGuid(),
             p.CreatedAt
-        )).ToList();
+        )));
 
-        var paginatedItems = feedItems
-            .Skip(request.PageIndex * request.PageSize)
-            .Take(request.PageSize)
-            .ToList();
+        var distinct = items.GroupBy(i => i.PostId).Select(g => g.First()).ToList();
+        var page = distinct.Skip(offset).Take(request.PageSize).ToList();
+        var hasMore = distinct.Count > offset + page.Count;
+        var nextCursor = hasMore ? cursorService.EncodeCursor(offset + page.Count, snapshot) : null;
 
-        var nextCursor = paginatedItems.Count == request.PageSize
-            ? cursorService.EncodeCursor(request.PageIndex + 1, DateTime.UtcNow)
-            : null;
-
-        return new GetFeedResult(
-            paginatedItems,
-            nextCursor,
-            paginatedItems.Count == request.PageSize,
-            feedItems.Count
-        );
+        return new GetFeedResult(page, nextCursor, hasMore, distinct.Count);
     }
 
     private async Task<IReadOnlyList<Domain.UserFeed.UserFeedItem>> ApplyFiltersAsync(
-        Guid aliasId, 
-        IReadOnlyList<Domain.UserFeed.UserFeedItem> items, 
+        Guid aliasId,
+        IReadOnlyList<Domain.UserFeed.UserFeedItem> items,
         CancellationToken cancellationToken)
     {
-        // Get filter sets
-        var blockedAliases = await blockingRepository.GetAllByViewerAsync(aliasId, cancellationToken);
-        var mutedAliases = await mutingRepository.GetAllByViewerAsync(aliasId, cancellationToken);
-        
-        var blockedSet = blockedAliases.Select(b => b.BlockedAliasId).ToHashSet();
-        var mutedSet = mutedAliases.Select(m => m.MutedAliasId).ToHashSet();
-
+        // TODO: When author alias is available on feed item, also filter by blocked/muted authors
         var filtered = new List<Domain.UserFeed.UserFeedItem>();
-
         foreach (var item in items)
         {
-            // Check if post is suppressed
             var suppression = await moderationRepository.GetSuppressionAsync(item.PostId, cancellationToken);
             if (suppression?.IsCurrentlySuppressed == true)
                 continue;
-
-            // Apply blocking/muting filters (would need post author info)
-            // For now, just add all non-suppressed posts
             filtered.Add(item);
         }
-
         return filtered;
     }
 
     private async Task<IReadOnlyList<RankedPost>> ApplyPostFiltersAsync(
-        Guid aliasId, 
-        IReadOnlyList<RankedPost> posts, 
+        Guid aliasId,
+        IReadOnlyList<RankedPost> posts,
         CancellationToken cancellationToken)
     {
-        // Similar filtering logic for regular feed posts
-        return posts; // Simplified for now
+        // TODO: Filter out posts from blocked/muted authors when AuthorAliasId is present
+        var list = new List<RankedPost>();
+        foreach (var p in posts)
+        {
+            var suppressed = await moderationRepository.IsCurrentlySuppressedAsync(p.PostId, cancellationToken);
+            if (!suppressed)
+                list.Add(p);
+        }
+        return list;
     }
 }
 
