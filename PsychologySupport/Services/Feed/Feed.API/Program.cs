@@ -1,8 +1,9 @@
 using BuildingBlocks.Behaviors;
 using Carter;
+using Feed.API;
 using Feed.API.Extensions;
-using HealthChecks.UI.Client;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Feed.Application;
+using Feed.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +13,10 @@ builder.Host.UseCustomSerilog(builder.Configuration, "Feed");
 
 var services = builder.Services;
 
-services.AddApplicationServices(builder.Configuration, builder.Environment);
+services
+    .AddApiServices(builder.Configuration, builder.Environment)
+    .AddApplicationServices(builder.Configuration)
+    .AddInfrastructureServices(builder.Configuration);
 
 // Configure the HTTP request pipeline
 var app = builder.Build();
@@ -30,10 +34,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/feed-service/swagger/v1/swagger.json", "Feed API v1");
-    });
+    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/feed-service/swagger/v1/swagger.json", "Feed API v1"); });
 }
 
 // app.UseHealthChecks("/health",

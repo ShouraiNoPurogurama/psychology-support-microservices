@@ -1,6 +1,4 @@
-﻿using Post.Domain.Abstractions;
-
-namespace Post.Infrastructure.Integration.Entities;
+﻿namespace Post.Domain.Aggregates.OutboxMessages;
 
 public partial class OutboxMessage: Entity<Guid>
 {

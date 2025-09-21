@@ -13,8 +13,11 @@ public static class DependencyInjection
         IWebHostEnvironment env)
     {
         services.AddCarter();
+        
         services.AddEndpointsApiExplorer();
+        
         services.AddExceptionHandler<CustomExceptionHandler>();
+        
         services.AddHealthChecks()
             .AddNpgSql(config.GetConnectionString("PostDb")!);
 

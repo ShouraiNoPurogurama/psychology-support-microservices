@@ -1,16 +1,10 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Feed.Application.Abstractions.CursorService;
 using Microsoft.Extensions.Configuration;
 
 namespace Feed.Infrastructure.Data.Redis;
-
-public interface ICursorService
-{
-    string EncodeCursor(int offset, DateTime snapshotTs);
-    (int Offset, DateTime SnapshotTs) DecodeCursor(string cursor);
-    bool ValidateCursor(string cursor);
-}
 
 public sealed class CursorService : ICursorService
 {

@@ -1,85 +1,41 @@
-﻿using BuildingBlocks.Behaviors;
-using BuildingBlocks.Data.Interceptors;
-using BuildingBlocks.Exceptions.Handler;
+﻿using BuildingBlocks.Exceptions.Handler;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using Cassandra;
+using Feed.API.Extensions;
 using Feed.Infrastructure.Data.Options;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
-using StackExchange.Redis;
 using ISession = Cassandra.ISession;
 
-namespace Feed.API.Extensions;
+namespace Feed.API;
 
-public static class ApplicationServiceExtensions
+public static class DependencyInjection
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config,
+    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration config,
         IWebHostEnvironment env)
     {
-        var connectionString = GetConnectionString(config)!;
-
-
         services.AddCarter();
-
-        // services.RegisterMapsterConfiguration();
-
+        
         services.AddExceptionHandler<CustomExceptionHandler>();
 
-        ConfigureSwagger(services, env);
-
-        ConfigureCors(services);
-
-        ConfigureMediatR(services);
-
+        services.AddHttpContextAccessor();
+        
         AddCassandra(services, config);
-
-        AddServiceDependencies(services);
-
-        AddRedisCache(services, config);
-
-        // AddGrpcServiceDependencies(services, config);
-
+        
         services.AddHttpContextAccessor();
 
         services.AddIdentityServices(config);
 
         services.AddAuthorization();
+        
+        ConfigureSwagger(services, env);
 
-        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
-
+        ConfigureCors(services);
+        
         return services;
     }
-
-    private static void AddRedisCache(IServiceCollection services, IConfiguration config)
-    {
-        var redisConnectionString = config.GetConnectionString("Redis");
-        services.AddStackExchangeRedisCache(options => { options.Configuration = redisConnectionString; });
-
-        services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConnectionString!));
-    }
-
-
-    private static void AddServiceDependencies(IServiceCollection services)
-    {
-        services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-        services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
-        // services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
-        // services.AddScoped<IFeedVersionAccessor, FeedVersionAccessor>();
-        services.AddMemoryCache();
-    }
-
-    private static void ConfigureMediatR(IServiceCollection services)
-    {
-        services.AddMediatR(configuration =>
-        {
-            configuration.RegisterServicesFromAssembly(typeof(Program).Assembly);
-            configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
-            configuration.AddOpenBehavior(typeof(LoggingBehavior<,>));
-        });
-    }
-
+    
     private static void ConfigureCors(IServiceCollection services)
     {
         services.AddCors(options =>

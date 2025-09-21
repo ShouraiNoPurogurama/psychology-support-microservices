@@ -1,6 +1,4 @@
-﻿using Post.Domain.Abstractions;
-
-namespace Post.Infrastructure.Resilience.Entities;
+﻿namespace Post.Domain.Aggregates.Idempotency;
 
 public partial class IdempotencyKey : Entity<Guid>, IHasCreationAudit
 {

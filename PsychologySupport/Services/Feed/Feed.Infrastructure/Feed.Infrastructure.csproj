@@ -16,6 +16,7 @@
 
     <ItemGroup>
         <PackageReference Include="CassandraCSharpDriver"/>
+        <PackageReference Include="Polly" />
         <PackageReference Include="Scrutor"/>
     </ItemGroup>
 

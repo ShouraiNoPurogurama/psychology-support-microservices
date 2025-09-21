@@ -135,6 +135,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Feed.Domain", "Services\Fee
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Feed.Infrastructure", "Services\Feed\Feed.Infrastructure\Feed.Infrastructure.csproj", "{2CD9642A-C26C-410F-AEC4-B552942F98DC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildingBlocks.Observability", "BuildingBlocks\BuildingBlocks.Observability\BuildingBlocks.Observability.csproj", "{652AE1D9-48D0-4646-A728-81B0FC7B4A42}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -309,6 +311,10 @@ Global
 		{2CD9642A-C26C-410F-AEC4-B552942F98DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2CD9642A-C26C-410F-AEC4-B552942F98DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2CD9642A-C26C-410F-AEC4-B552942F98DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{652AE1D9-48D0-4646-A728-81B0FC7B4A42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{652AE1D9-48D0-4646-A728-81B0FC7B4A42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{652AE1D9-48D0-4646-A728-81B0FC7B4A42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{652AE1D9-48D0-4646-A728-81B0FC7B4A42}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -376,6 +382,7 @@ Global
 		{33C86023-2A91-4671-86DF-4A3BA74575D1} = {E843327E-E1C3-45B7-AEEB-C71856409478}
 		{16022CAC-5FEE-4814-A26C-A2153B9E4BC3} = {E843327E-E1C3-45B7-AEEB-C71856409478}
 		{2CD9642A-C26C-410F-AEC4-B552942F98DC} = {E843327E-E1C3-45B7-AEEB-C71856409478}
+		{652AE1D9-48D0-4646-A728-81B0FC7B4A42} = {DBB5D807-FDC6-4E5B-84F0-7AE5FB721B12}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9F295B72-0C22-4375-A44F-7F4256AB2C44}

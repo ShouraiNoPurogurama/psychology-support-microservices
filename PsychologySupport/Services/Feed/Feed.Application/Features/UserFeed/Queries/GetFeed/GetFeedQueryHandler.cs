@@ -1,4 +1,6 @@
-﻿using BuildingBlocks.CQRS;
+﻿using System.Diagnostics;
+using BuildingBlocks.CQRS;
+using BuildingBlocks.Observability.Telemetry;
 using Feed.Application.Abstractions.CursorService;
 using Feed.Application.Abstractions.UserFeed;
 using Feed.Application.Abstractions.ViewerFollowing;
@@ -8,6 +10,8 @@ using Feed.Application.Abstractions.ViewerMuting;
 using Feed.Application.Abstractions.PostModeration;
 using Feed.Application.Abstractions.RankingService;
 using Feed.Application.Abstractions.VipService;
+using Feed.Application.Configuration;
+using Microsoft.Extensions.Options;
 using Mapster;
 
 namespace Feed.Application.Features.UserFeed.Queries.GetFeed;
@@ -21,30 +25,65 @@ public sealed class GetFeedQueryHandler(
     IPostModerationRepository moderationRepository,
     IVipService vipService,
     IRankingService rankingService,
-    ICursorService cursorService)
+    ICursorService cursorService,
+    IOptions<FeedConfiguration> feedConfig)
     : IQueryHandler<GetFeedQuery, GetFeedResult>
 {
+    private readonly FeedConfiguration _config = feedConfig.Value;
+
     public async Task<GetFeedResult> Handle(GetFeedQuery request, CancellationToken cancellationToken)
     {
-        // Check if user is VIP
-        var isVip = await vipService.IsVipAsync(request.AliasId, cancellationToken);
+        using var activity = FeedActivitySource.Instance.StartActivity("feed.get_feed");
+        activity?.SetTag("alias_id", request.AliasId);
+        activity?.SetTag("page_size", request.PageSize);
+        activity?.SetTag("page_index", request.PageIndex);
 
-        if (isVip)
+        var sw = Stopwatch.StartNew();
+        string feedType = "unknown";
+
+        try
         {
-            return await GetVipFeedAsync(request, cancellationToken);
+            var isVip = await vipService.IsVipAsync(request.AliasId, cancellationToken);
+            activity?.SetTag("is_vip", isVip);
+            feedType = isVip ? "vip" : "regular";
+
+            var result = isVip
+                ? await GetVipFeedAsync(request, cancellationToken)
+                : await GetRegularFeedAsync(request, cancellationToken);
+
+            FeedMetrics.FeedRequests.Add(1,
+                new KeyValuePair<string, object?>("feed_type", feedType),
+                new KeyValuePair<string, object?>("result", "success"));
+
+            return result;
         }
-        else
+        catch (Exception ex)
         {
-            return await GetRegularFeedAsync(request, cancellationToken);
+            FeedMetrics.FeedRequests.Add(1,
+                new KeyValuePair<string, object?>("feed_type", feedType),
+                new KeyValuePair<string, object?>("result", "error"));
+
+            activity?.SetTag("error", true);
+            activity?.SetTag("error.message", ex.Message);
+            throw;
+        }
+        finally
+        {
+            sw.Stop();
+            FeedMetrics.FeedDuration.Record(sw.Elapsed.TotalMilliseconds,
+                KeyValuePair.Create<string, object?>("feed_type", feedType));
         }
     }
 
+
     private async Task<GetFeedResult> GetVipFeedAsync(GetFeedQuery request, CancellationToken cancellationToken)
     {
-        // VIP flow: Query from pre-computed user_feed_by_bucket
+        using var activity = FeedActivitySource.Instance.StartActivity(FeedActivitySource.Operations.GetVipFeed);
+        
+        // VIP flow: Query from pre-computed user_feed_by_bucket using config values
         var feedItems = await feedRepository.GetUserFeedAsync(
             request.AliasId,
-            days: 7,
+            days: _config.VipFeedDays,
             limit: request.PageSize * 2, // Get extra for filtering
             cancellationToken);
 
@@ -85,11 +124,13 @@ public sealed class GetFeedQueryHandler(
 
     private async Task<GetFeedResult> GetRegularFeedAsync(GetFeedQuery request, CancellationToken cancellationToken)
     {
-        // Regular flow: Fan-in from follows + trending
+        using var activity = FeedActivitySource.Instance.StartActivity(FeedActivitySource.Operations.GetRegularFeed);
+        
+        // Regular flow: Fan-in from follows + trending using config values
         var follows = await followingRepository.GetAllByViewerAsync(request.AliasId, cancellationToken);
         var followedAliasIds = follows.Select(f => f.FollowedAliasId).ToList();
 
-        // Get trending posts from Redis
+        // Get trending posts from Redis using config
         var trendingPosts = await rankingService.GetTrendingPostsAsync(DateTime.UtcNow, cancellationToken);
 
         // Combine and rank posts
