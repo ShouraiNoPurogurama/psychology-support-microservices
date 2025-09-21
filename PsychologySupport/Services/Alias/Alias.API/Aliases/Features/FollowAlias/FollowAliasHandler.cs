@@ -22,6 +22,7 @@ using Alias.API.Data.Public;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Alias;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Aliases;
+using Microsoft.EntityFrameworkCore;
 using MassTransit;
 
 namespace Alias.API.Aliases.Features.FollowAlias;

@@ -14,10 +14,11 @@
 
 using Alias.API.Aliases.Exceptions.DomainExceptions;
 using Alias.API.Common.Authentication;
+using Alias.API.Common.Outbox;
 using Alias.API.Data.Public;
 using BuildingBlocks.CQRS;
-using BuildingBlocks.Messaging.Events.IntegrationEvents.Aliases;
-using MassTransit;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Alias;
+using Microsoft.EntityFrameworkCore;
 
 namespace Alias.API.Aliases.Features.UnfollowAlias;
 
@@ -27,7 +28,7 @@ namespace Alias.API.Aliases.Features.UnfollowAlias;
 public sealed class UnfollowAliasHandler(
     AliasDbContext dbContext,
     ICurrentActorAccessor currentActorAccessor,
-    IPublishEndpoint publishEndpoint) : ICommandHandler<UnfollowAliasCommand, UnfollowAliasResult>
+    IOutboxWriter outbox) : ICommandHandler<UnfollowAliasCommand, UnfollowAliasResult>
 {
     public async Task<UnfollowAliasResult> Handle(UnfollowAliasCommand request, CancellationToken cancellationToken)
     {
@@ -39,23 +40,17 @@ public sealed class UnfollowAliasHandler(
             .FirstOrDefaultAsync(f => 
                 f.FollowerAliasId == followerAliasId && 
                 f.FollowedAliasId == request.FollowedAliasId, 
-                cancellationToken);
-
-        if (follow == null)
-            throw new InvalidAliasDataException("Follow relationship does not exist.");
+                cancellationToken)
+            ?? throw new InvalidAliasDataException("Follow relationship does not exist.");
 
         // Get both aliases to update their counts
         var followerAlias = await dbContext.Aliases
-            .FirstOrDefaultAsync(a => a.Id == followerAliasId && !a.IsDeleted, cancellationToken);
+            .FirstOrDefaultAsync(a => a.Id == followerAliasId && !a.IsDeleted, cancellationToken)
+            ?? throw new InvalidAliasDataException("Follower alias not found or has been deleted.");
 
         var followedAlias = await dbContext.Aliases
-            .FirstOrDefaultAsync(a => a.Id == request.FollowedAliasId && !a.IsDeleted, cancellationToken);
-
-        if (followerAlias == null)
-            throw new InvalidAliasDataException("Follower alias not found or has been deleted.");
-
-        if (followedAlias == null)
-            throw new InvalidAliasDataException("Followed alias not found or has been deleted.");
+            .FirstOrDefaultAsync(a => a.Id == request.FollowedAliasId && !a.IsDeleted, cancellationToken)
+            ?? throw new InvalidAliasDataException("Followed alias not found or has been deleted.");
 
         // Call domain method to handle removal logic and events
         follow.Remove();
@@ -66,18 +61,16 @@ public sealed class UnfollowAliasHandler(
 
         // Remove the follow relationship from database
         dbContext.Follows.Remove(follow);
+
+        // Outbox event before save
+        await outbox.WriteAsync(new UserUnfollowedIntegrationEvent(
+            followerAliasId,
+            request.FollowedAliasId
+        ), cancellationToken);
+
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var unfollowedAt = DateTimeOffset.UtcNow;
-
-        // Publish integration event for other services
-        var integrationEvent = new AliasUnfollowedIntegrationEvent(
-            followerAliasId,
-            request.FollowedAliasId,
-            unfollowedAt);
-
-        await publishEndpoint.Publish(integrationEvent, cancellationToken);
-
         return new UnfollowAliasResult(
             followerAliasId,
             request.FollowedAliasId,
