@@ -3,8 +3,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Post.Application.Data;
-using Post.Application.Integration;
 using Microsoft.EntityFrameworkCore;
+using Post.Application.Abstractions.Integration;
 using Post.Domain.Aggregates.Posts.DomainEvents;
 
 namespace Post.Application.Services;

@@ -1,7 +1,7 @@
-﻿using Post.Application.Aggregates.Posts.Commands.UpdatePost;
-using Carter;
+﻿using Carter;
 using Mapster;
 using MediatR;
+using Post.Application.Features.Posts.Commands.UpdatePost;
 
 namespace Post.API.Endpoints.Posts;
 

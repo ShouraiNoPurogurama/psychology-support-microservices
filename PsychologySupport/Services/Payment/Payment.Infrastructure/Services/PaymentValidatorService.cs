@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.Queries.Billing;
 using BuildingBlocks.Messaging.Events.Queries.Profile;
 using BuildingBlocks.Messaging.Events.Queries.Scheduling;
 using BuildingBlocks.Messaging.Events.Queries.Subscription;
@@ -97,6 +98,17 @@ public class PaymentValidatorService(
                     StartTime = dto.StartTime,
                 }
             );
+
+        if (!validationResult.Message.IsSuccess)
+        {
+            throw new BadRequestException("Dữ liệu không hợp lệ: " + string.Join(", ", validationResult.Message.Errors));
+        }
+    }
+
+    public async Task ValidateOrderRequestAsync(OrderDto dto)
+    {
+        var validationResult =
+            await checkSubscriptionClient.GetResponse<ValidateOrderResponse>(dto.Adapt<ValidateOrderRequest>());
 
         if (!validationResult.Message.IsSuccess)
         {

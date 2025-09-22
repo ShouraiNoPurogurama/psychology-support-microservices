@@ -2,7 +2,7 @@
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
 using BuildingBlocks.Exceptions;
-using Media.Application.Dtos;
+using Media.Application.Features.Media.Dtos;
 using Media.Application.ServiceContracts;
 using Media.Infrastructure.Options;
 using Microsoft.AspNetCore.Http;

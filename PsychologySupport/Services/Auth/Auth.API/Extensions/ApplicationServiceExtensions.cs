@@ -1,14 +1,14 @@
 ﻿using Auth.API.Data;
-using Auth.API.Domains.Authentication.BackgroundServices;
-using Auth.API.Domains.Authentication.ServiceContracts;
-using Auth.API.Domains.Authentication.ServiceContracts.Features;
-using Auth.API.Domains.Authentication.ServiceContracts.Shared;
-using Auth.API.Domains.Authentication.Services;
-using Auth.API.Domains.Authentication.Services.Features;
-using Auth.API.Domains.Authentication.Services.Shared;
-using Auth.API.Domains.Authentication.Validators;
-using Auth.API.Domains.Encryption.ServiceContracts;
-using Auth.API.Domains.Encryption.Services;
+using Auth.API.Features.Authentication.BackgroundServices;
+using Auth.API.Features.Authentication.ServiceContracts;
+using Auth.API.Features.Authentication.ServiceContracts.Features;
+using Auth.API.Features.Authentication.ServiceContracts.Shared;
+using Auth.API.Features.Authentication.Services;
+using Auth.API.Features.Authentication.Services.Features;
+using Auth.API.Features.Authentication.Services.Shared;
+using Auth.API.Features.Authentication.Validators;
+using Auth.API.Features.Encryption.ServiceContracts;
+using Auth.API.Features.Encryption.Services;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Extensions;
@@ -24,21 +24,19 @@ using Notification.API.Protos;
 using Pii.API.Protos;
 using Profile.API.Protos;
 using StackExchange.Redis;
-using EmailService = Auth.API.Domains.Authentication.Services.Shared.EmailService;
+using EmailService = Auth.API.Features.Authentication.Services.Shared.EmailService;
 
 namespace Auth.API.Extensions;
 
 public static class ApplicationServiceExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config,
+        IWebHostEnvironment env)
     {
         services.AddCarter();
-        services.AddControllers(options =>
-        {
-            options.Filters.Add<LoggingActionFilter>();
-        });
+        services.AddControllers(options => { options.Filters.Add<LoggingActionFilter>(); });
         services.AddEndpointsApiExplorer();
-        
+
         var connectionString = GetConnectionString(config)!;
         services.AddHealthChecks()
             .AddNpgSql(connectionString);
@@ -60,7 +58,7 @@ public static class ApplicationServiceExtensions
         services.AddHostedService<RevokeSessionCleanupService>();
 
         services.AddHttpContextAccessor();
-        
+
         ConfigureDataProtection(services, config, env);
 
         AddGrpcServiceDependencies(services, config);
@@ -108,7 +106,7 @@ public static class ApplicationServiceExtensions
             });
         });
     }
-    
+
     private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
@@ -120,14 +118,14 @@ public static class ApplicationServiceExtensions
                 Version = "v1"
             });
             
-            //Chỉ add server khi chạy Production
-            if (env.IsProduction())
+            var url = env.IsProduction() 
+                ? "/auth-service/swagger/v1/swagger.json" 
+                : "https://localhost:5510/auth-service";
+
+            options.AddServer(new OpenApiServer
             {
-                options.AddServer(new OpenApiServer
-                {
-                    Url = "/auth-service/"
-                });
-            }
+                Url = url
+            });
         });
     }
 
@@ -135,31 +133,31 @@ public static class ApplicationServiceExtensions
     {
         services.AddScoped<LoggingActionFilter>();
         services.AddScoped<IPayloadProtector, PayloadProtector>();
-        
+
         //Facade
         services.AddScoped<IAuthFacade, AuthFacade>();
-        services.AddScoped<IFirebaseAuthService, FirebaseAuthService>(); 
-        
+        services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
+
         //Features
         services.AddScoped<IUserRegistrationService, UserRegistrationService>();
         services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IUserAccountService, UserAccountService>();
         services.AddScoped<IUserOnboardingService, UserOnboardingService>();
-        
+
         //Shared
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IDeviceManagementService, DeviceManagementService>();
         services.AddScoped<IEmailService, EmailService>();
-        services.AddScoped<ITokenService, TokenService>(); 
+        services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPayloadProtector, PayloadProtector>();
         services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         services.AddScoped<ITokenRevocationService, TokenRevocationService>();
         services.Decorate<ITokenRevocationService, CachedTokenRevocationService>();
-        
+
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
-        
+
         services.AddFluentValidationAutoValidation();
         services.AddValidatorsFromAssemblyContaining<ChangePasswordRequestValidator>();
     }
@@ -185,9 +183,9 @@ public static class ApplicationServiceExtensions
     private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
     {
         services.AddGrpcClient<NotificationService.NotificationServiceClient>(options =>
-        {
-            options.Address = new Uri(config["GrpcSettings:NotificationUrl"]!);
-        })
+            {
+                options.Address = new Uri(config["GrpcSettings:NotificationUrl"]!);
+            })
             .ConfigurePrimaryHttpMessageHandler(() =>
             {
                 var handler = new HttpClientHandler
@@ -196,11 +194,11 @@ public static class ApplicationServiceExtensions
                 };
                 return handler;
             });
-        
+
         services.AddGrpcClient<PatientProfileService.PatientProfileServiceClient>(options =>
-        {
-            options.Address = new Uri(config["GrpcSettings:PatientProfileUrl"]!);
-        })
+            {
+                options.Address = new Uri(config["GrpcSettings:PatientProfileUrl"]!);
+            })
             .ConfigurePrimaryHttpMessageHandler(() =>
             {
                 var handler = new HttpClientHandler
@@ -209,7 +207,7 @@ public static class ApplicationServiceExtensions
                 };
                 return handler;
             });
-        
+
         services.AddGrpcClient<PiiService.PiiServiceClient>(options =>
             {
                 options.Address = new Uri(config["GrpcSettings:PiiUrl"]!);

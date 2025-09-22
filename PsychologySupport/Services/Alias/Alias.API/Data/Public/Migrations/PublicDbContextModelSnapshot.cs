@@ -17,30 +17,23 @@ namespace Alias.API.Data.Public.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "citext");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Alias.API.Models.Public.Alias", b =>
+            modelBuilder.Entity("Alias.API.Aliases.Models.Alias", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<string>("AliasVisibility")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasDefaultValue("Public")
-                        .HasColumnName("alias_visibility");
-
                     b.Property<Guid?>("AvatarMediaId")
                         .HasColumnType("uuid")
                         .HasColumnName("avatar_media_id");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -52,6 +45,18 @@ namespace Alias.API.Data.Public.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("current_version_id");
 
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("deleted_by");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
                     b.Property<DateTimeOffset?>("LastModified")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
@@ -60,16 +65,32 @@ namespace Alias.API.Data.Public.Migrations
                         .HasColumnType("text")
                         .HasColumnName("last_modified_by");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("SuspendedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("suspended_at");
+
+                    b.Property<string>("SuspensionReason")
+                        .HasColumnType("text")
+                        .HasColumnName("suspension_reason");
+
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Public")
+                        .HasColumnName("visibility");
+
                     b.HasKey("Id")
                         .HasName("aliases_pkey");
-
-                    b.HasIndex("CurrentVersionId")
-                        .HasDatabaseName("ix_aliases_current_version_id");
 
                     b.ToTable("aliases", (string)null);
                 });
 
-            modelBuilder.Entity("Alias.API.Models.Public.AliasAudit", b =>
+            modelBuilder.Entity("Alias.API.Aliases.Models.AliasAudit", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -84,7 +105,7 @@ namespace Alias.API.Data.Public.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("alias_id");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -105,9 +126,10 @@ namespace Alias.API.Data.Public.Migrations
                     b.ToTable("alias_audits", (string)null);
                 });
 
-            modelBuilder.Entity("Alias.API.Models.Public.AliasVersion", b =>
+            modelBuilder.Entity("Alias.API.Aliases.Models.AliasVersion", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -115,7 +137,7 @@ namespace Alias.API.Data.Public.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("alias_id");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -123,10 +145,10 @@ namespace Alias.API.Data.Public.Migrations
                         .HasColumnType("text")
                         .HasColumnName("created_by");
 
-                    b.Property<string>("Label")
+                    b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("alias_label");
+                        .HasColumnName("display_name");
 
                     b.Property<string>("NicknameSource")
                         .IsRequired()
@@ -143,11 +165,11 @@ namespace Alias.API.Data.Public.Migrations
                         .HasColumnType("citext")
                         .HasColumnName("unique_key");
 
-                    b.Property<DateTime>("ValidFrom")
+                    b.Property<DateTimeOffset>("ValidFrom")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("valid_from");
 
-                    b.Property<DateTime?>("ValidTo")
+                    b.Property<DateTimeOffset?>("ValidTo")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("valid_to");
 
@@ -169,30 +191,101 @@ namespace Alias.API.Data.Public.Migrations
                     b.ToTable("alias_versions", (string)null);
                 });
 
-            modelBuilder.Entity("Alias.API.Models.Public.Alias", b =>
+            modelBuilder.Entity("Alias.API.Aliases.Models.Alias", b =>
                 {
-                    b.HasOne("Alias.API.Models.Public.AliasVersion", null)
-                        .WithMany()
-                        .HasForeignKey("CurrentVersionId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .HasConstraintName("aliases_current_version_id_fkey");
+                    b.OwnsOne("Alias.API.Aliases.Models.ValueObjects.AliasLabel", "Label", b1 =>
+                        {
+                            b1.Property<Guid>("AliasId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<string>("SearchKey")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("search_key");
+
+                            b1.Property<string>("UniqueKey")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("unique_key");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("value");
+
+                            b1.HasKey("AliasId");
+
+                            b1.ToTable("aliases");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AliasId")
+                                .HasConstraintName("fk_aliases_aliases_id");
+                        });
+
+                    b.OwnsOne("Alias.API.Aliases.Models.ValueObjects.AliasMetadata", "Metadata", b1 =>
+                        {
+                            b1.Property<Guid>("AliasId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<DateTimeOffset>("CreatedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("metadata_created_at");
+
+                            b1.Property<bool>("IsSystemGenerated")
+                                .HasColumnType("boolean")
+                                .HasColumnName("is_system_generated");
+
+                            b1.Property<DateTimeOffset?>("LastActiveAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("last_active_at");
+
+                            b1.Property<int>("VersionCount")
+                                .HasColumnType("integer")
+                                .HasColumnName("version_count");
+
+                            b1.HasKey("AliasId");
+
+                            b1.ToTable("aliases");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AliasId")
+                                .HasConstraintName("fk_aliases_aliases_id");
+                        });
+
+                    b.Navigation("Label")
+                        .IsRequired();
+
+                    b.Navigation("Metadata")
+                        .IsRequired();
                 });
 
-            modelBuilder.Entity("Alias.API.Models.Public.AliasVersion", b =>
+            modelBuilder.Entity("Alias.API.Aliases.Models.AliasAudit", b =>
                 {
-                    b.HasOne("Alias.API.Models.Public.Alias", "Alias")
-                        .WithMany("AliasVersions")
+                    b.HasOne("Alias.API.Aliases.Models.Alias", null)
+                        .WithMany("AuditRecords")
                         .HasForeignKey("AliasId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("alias_versions_alias_id_fkey");
-
-                    b.Navigation("Alias");
+                        .HasConstraintName("fk_alias_audits_aliases_alias_id");
                 });
 
-            modelBuilder.Entity("Alias.API.Models.Public.Alias", b =>
+            modelBuilder.Entity("Alias.API.Aliases.Models.AliasVersion", b =>
                 {
-                    b.Navigation("AliasVersions");
+                    b.HasOne("Alias.API.Aliases.Models.Alias", null)
+                        .WithMany("Versions")
+                        .HasForeignKey("AliasId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_alias_versions_aliases_alias_id");
+                });
+
+            modelBuilder.Entity("Alias.API.Aliases.Models.Alias", b =>
+                {
+                    b.Navigation("AuditRecords");
+
+                    b.Navigation("Versions");
                 });
 #pragma warning restore 612, 618
         }

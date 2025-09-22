@@ -1,48 +1,289 @@
-﻿using Media.Domain.Abstractions;
-using Media.Domain.Enums;
+﻿using Media.Domain.Enums;
+using Media.Domain.Events;
+using Media.Domain.Exceptions;
+using Media.Domain.ValueObjects;
 
 namespace Media.Domain.Models;
 
-public partial class MediaAsset : AggregateRoot<Guid>
+public sealed class MediaAsset : AggregateRoot<Guid>
 {
-    public MediaState State { get; set; }
+    //VOs
+    public MediaContent Content { get; private set; } = null!;
+    public MediaChecksum Checksum { get; private set; } = null!;
+    public MediaDimensions? Dimensions { get; private set; }
+    /// <summary>
+    /// Enum này trả lời câu hỏi: "Kết quả của việc kiểm duyệt là gì?". 
+    /// </summary>
+    public MediaModerationInfo Moderation { get; private set; } = null!;
 
-    public string SourceMime { get; set; } = null!;
+    //Properties
+    /// <summary>
+    /// Enum này trả lời câu hỏi: "Media asset này đang ở giai đoạn nào trong vòng đời của nó?"
+    /// </summary>
+    public MediaState State { get; private set; }
+    public bool ExifRemoved { get; private set; } = false;
+    public bool HoldThumbUntilPass { get; private set; } = false;
 
-    public long SourceBytes { get; set; }
+    //Collections
+    private readonly List<MediaModerationAudit> _moderationAudits = new();
+    private readonly List<MediaOwner> _owners = new();
+    private readonly List<MediaProcessingJob> _processingJobs = new();
+    private readonly List<MediaVariant> _variants = new();
 
-    public string ChecksumSha256 { get; set; } = null!;
+    public IReadOnlyList<MediaModerationAudit> ModerationAudits => _moderationAudits.AsReadOnly();
+    public IReadOnlyList<MediaOwner> Owners => _owners.AsReadOnly();
+    public IReadOnlyList<MediaProcessingJob> ProcessingJobs => _processingJobs.AsReadOnly();
+    public IReadOnlyList<MediaVariant> Variants => _variants.AsReadOnly();
 
+    private MediaAsset() { }
 
-    // Optional (images, deduplication)
-    public string? Phash64 { get; set; }
+    public static MediaAsset Create(
+        Guid? seedMediaId,
+        string mimeType,
+        long sizeInBytes,
+        string checksumSha256,
+        int? width = null,
+        int? height = null,
+        string? phash64 = null)
+    {
+        var newId = seedMediaId ?? Guid.NewGuid();
+        
+        var media = new MediaAsset
+        {
+            Id = newId,
+            Content = MediaContent.Create(mimeType, sizeInBytes, phash64),
+            Checksum = MediaChecksum.CreateSha256(checksumSha256),
+            Dimensions = MediaDimensions.CreateOptional(width, height),
+            Moderation = MediaModerationInfo.Pending(),
+            State = MediaState.Pending,
+            CreatedAt = DateTime.UtcNow
+        };
 
-    public int? Width { get; set; }
+        media.AddDomainEvent(new MediaUploadedEvent(
+            media.Id,
+            mimeType,
+            sizeInBytes,
+            checksumSha256,
+            width,
+            height,
+            media.CreatedAt));
 
-    public int? Height { get; set; }
+        return media;
+    }
 
+    // Business methods
+    public void StartProcessing()
+    {
+        ValidateNotDeleted();
+        
+        if (State != MediaState.Processing)
+        {
+            var previousState = State;
+            State = MediaState.Processing;
+            
+            AddDomainEvent(new MediaStateChangedEvent(Id, previousState.ToString(), State.ToString()));
+        }
+    }
 
-    // Security / policy
-    public bool ExifRemoved { get; set; } = false;
-    public bool HoldThumbUntilPass { get; set; } = false;
+    public void MarkAsReady()
+    {
+        ValidateNotDeleted();
+        
+        ValidateCanTransitionToReady();
 
+        var previousState = State;
+        State = MediaState.Ready;
 
-    // Moderation (nullable -> optional)
-    public string? ModerationStatus { get; set; }
+        AddDomainEvent(new MediaStateChangedEvent(Id, previousState.ToString(), State.ToString()));
+    }
 
-    public decimal? ModerationScore { get; set; }
+    public void Hide(string reason)
+    {
+        ValidateNotDeleted();
 
-    public DateTime? ModerationCheckedAt { get; set; }
+        var previousState = State;
+        State = MediaState.Hidden;
 
-    public string? ModerationPolicyVersion { get; set; }
+        AddDomainEvent(new MediaStateChangedEvent(Id, previousState.ToString(), State.ToString(), reason));
+    }
 
-    public string? RawModerationJson { get; set; }
+    public void Block(string reason)
+    {
+        ValidateNotDeleted();
 
-    public virtual ICollection<MediaModerationAudit> MediaModerationAudits { get; set; } = new List<MediaModerationAudit>();
+        var previousState = State;
+        State = MediaState.Blocked;
 
-    public virtual ICollection<MediaOwner> MediaOwners { get; set; } = new List<MediaOwner>();
+        AddDomainEvent(new MediaStateChangedEvent(Id, previousState.ToString(), State.ToString(), reason));
+    }
 
-    public virtual ICollection<MediaProcessingJob> MediaProcessingJobs { get; set; } = new List<MediaProcessingJob>();
+    public void Delete(string reason, string? deletedBy = null)
+    {
+        if (State == MediaState.Deleted) return;
 
-    public virtual ICollection<MediaVariant> MediaVariants { get; set; } = new List<MediaVariant>();
+        State = MediaState.Deleted;
+        DeletedAt = DateTime.UtcNow;
+        DeletedBy = deletedBy;
+
+        AddDomainEvent(new MediaDeletedEvent(Id, reason, DeletedAt.Value));
+    }
+
+    public void RequestModeration()
+    {
+        ValidateNotDeleted();
+
+        ValidateModerationIsPending();
+
+        State = MediaState.Moderating;
+
+        AddDomainEvent(new MediaModerationRequestedEvent(Id));
+    }
+
+    public void ApproveModeration(string policyVersion, decimal? score = null, string? rawJson = null)
+    {
+        ValidateNotDeleted();
+
+        ValidateModerationIsPending();
+        
+        Moderation = MediaModerationInfo.Approve(policyVersion, score, rawJson);
+
+        var audit = MediaModerationAudit.Create(Id, MediaModerationStatus.Approved, score, policyVersion, rawJson);
+        _moderationAudits.Add(audit);
+
+        AddDomainEvent(new MediaModerationSucceededEvent(
+            Id, 
+            nameof(MediaModerationStatus.Approved), 
+            score, 
+            policyVersion, 
+            DateTime.UtcNow));
+
+        //Auto-mark as ready if processing is complete and moderation is approved
+        if (State == MediaState.Moderating && CanTransitionToReady())
+        {
+            MarkAsReady();
+        }
+    }
+
+    public void RejectModeration(string policyVersion, decimal? score = null, string? rawJson = null)
+    {
+        ValidateNotDeleted();
+        
+        ValidateModerationIsPending();
+        
+        Moderation = MediaModerationInfo.Reject(policyVersion, score, rawJson);
+
+        var audit = MediaModerationAudit.Create(Id, MediaModerationStatus.Rejected, score, policyVersion, rawJson);
+        _moderationAudits.Add(audit);
+
+        AddDomainEvent(new MediaModerationSucceededEvent(
+            Id, 
+            MediaModerationStatus.Rejected.ToString(), 
+            score, 
+            policyVersion, 
+            DateTime.UtcNow));
+
+        //Auto-block rejected media
+        Block("Moderation rejected");
+    }
+
+    public void AssignOwnership(MediaOwnerType ownerType, Guid ownerId)
+    {
+        ValidateNotDeleted();
+
+        if (_owners.Any(o => o.MediaOwnerType == ownerType && o.MediaOwnerId == ownerId))
+            throw new MediaOwnershipException("Ownership already assigned to this owner.");
+
+        var ownership = MediaOwner.Create(Id, ownerType, ownerId);
+        _owners.Add(ownership);
+
+        AddDomainEvent(new MediaOwnershipAssignedEvent(Id, ownerType.ToString(), ownerId));
+    }
+
+    public void AddProcessingJob(JobType jobType)
+    {
+        ValidateNotDeleted();
+
+        if (_processingJobs.Any(j => j.JobType == jobType && j.Status != ProcessStatus.Failed && j.Status != ProcessStatus.Succeeded))
+            throw new MediaProcessingException($"A {jobType} job is already queued or in progress.");
+
+        var job = MediaProcessingJob.Create(Id, jobType);
+        _processingJobs.Add(job);
+
+        AddDomainEvent(new MediaProcessingStartedEvent(Id, jobType.ToString()));
+    }
+
+    public void AddVariant(VariantType variantType, MediaFormat format, int width, int height, long bytes, string bucketKey, string? cdnUrl = null)
+    {
+        ValidateNotDeleted();
+
+        if (_variants.Any(v => v.VariantType == variantType))
+            throw new MediaProcessingException($"A {variantType} variant already exists.");
+
+        var variant = MediaVariant.Create(Id, variantType, format, width, height, bytes, bucketKey, cdnUrl);
+        _variants.Add(variant);
+
+        AddDomainEvent(new MediaVariantCreatedEvent(
+            Id, 
+            variant.Id, 
+            variantType.ToString(), 
+            format.ToString(), 
+            width, 
+            height, 
+            cdnUrl ?? ""));
+    }
+
+    public void MarkExifRemoved()
+    {
+        ValidateNotDeleted();
+        ExifRemoved = true;
+    }
+
+    public void SetHoldThumbUntilPass(bool hold)
+    {
+        ValidateNotDeleted();
+        HoldThumbUntilPass = hold;
+    }
+
+    // Query methods
+    public bool IsImage => Content.IsImage;
+    public bool IsVideo => Content.IsVideo;
+    public bool IsAudio => Content.IsAudio;
+    public bool IsReady => State == MediaState.Ready;
+    public bool IsProcessing => State == MediaState.Processing;
+    public bool IsBlocked => State == MediaState.Blocked;
+    public bool IsDeleted => State == MediaState.Deleted;
+    public DateTimeOffset? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
+    public bool HasDimensions => Dimensions != null;
+    public bool IsModerationApproved => Moderation.IsApproved;
+    public bool RequiresModeration => Moderation.RequiresReview;
+
+    public MediaVariant? GetOriginalVariant() 
+        => _variants.FirstOrDefault(v => v.VariantType == VariantType.Original);
+
+    public MediaVariant? GetThumbnailVariant() 
+        => _variants.FirstOrDefault(v => v.VariantType == VariantType.Thumbnail);
+
+    // Private validation methods
+    private void ValidateNotDeleted()
+    {
+        if (IsDeleted)
+            throw new MediaDomainException("Cannot perform operation on deleted media.");
+    }
+
+    private void ValidateCanTransitionToReady()
+    {
+        if (!Moderation.IsApproved)
+            throw new MediaDomainException("Cannot mark media as ready without approved moderation.");
+    }
+
+    private bool CanTransitionToReady()
+        => Moderation.IsApproved;
+    
+    private void ValidateModerationIsPending()
+    {
+        if(!Moderation.IsPending) 
+            throw new MediaModerationException("Media moderation has already been completed.");
+    }
 }
+

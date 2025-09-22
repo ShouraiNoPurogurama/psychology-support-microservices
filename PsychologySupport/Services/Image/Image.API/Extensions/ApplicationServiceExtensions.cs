@@ -49,13 +49,15 @@ namespace Image.API.Extensions
                     Title = "Image API",
                     Version = "v1"
                 });
-                if (env.IsProduction())
+
+                var url = env.IsProduction() 
+                    ? "/image-service/swagger/v1/swagger.json" 
+                    : "https://localhost:5510/image-service";
+                
+                options.AddServer(new OpenApiServer
                 {
-                    options.AddServer(new OpenApiServer
-                    {
-                        Url = "/image-service/"
-                    });
-                }
+                    Url = url
+                });
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",

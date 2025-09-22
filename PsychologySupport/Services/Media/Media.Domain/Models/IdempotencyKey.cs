@@ -1,6 +1,4 @@
-﻿using Media.Domain.Abstractions;
-
-namespace Media.Domain.Models;
+﻿namespace Media.Domain.Models;
 
 public partial class IdempotencyKey : Entity<Guid>, IHasCreationAudit
 {
@@ -12,7 +10,7 @@ public partial class IdempotencyKey : Entity<Guid>, IHasCreationAudit
 
     public DateTime ExpiresAt { get; set; }
 
-    public DateTimeOffset? CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
     public string? CreatedBy { get; set; }
 
 

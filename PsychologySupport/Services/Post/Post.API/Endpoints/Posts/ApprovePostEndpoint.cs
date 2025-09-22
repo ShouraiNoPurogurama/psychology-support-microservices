@@ -3,7 +3,7 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using BuildingBlocks.Exceptions;
-using Post.Application.Aggregates.Posts.Commands.ApprovePost;
+using Post.Application.Features.Posts.Commands.ApprovePost;
 
 namespace Post.API.Endpoints.Posts;
 

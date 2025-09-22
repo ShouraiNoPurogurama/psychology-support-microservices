@@ -1,7 +1,8 @@
 ﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Post.Application.Aggregates.Posts.Commands.ApprovePost;
 using BuildingBlocks.Exceptions;
+using Post.Application.Abstractions.Integration;
+using Post.Application.Features.Posts.Commands.ApprovePost;
 using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.UnitTests.Aggregates.Posts.Commands.ApprovePost;
@@ -9,7 +10,7 @@ namespace Post.UnitTests.Aggregates.Posts.Commands.ApprovePost;
 public class ApprovePostCommandHandlerTests
 {
     private readonly Mock<IPostDbContext> _dbContextMock;
-    private readonly Mock<IActorResolver> _actorResolverMock;
+    private readonly Mock<ICurrentActorAccessor> _actorResolverMock;
     private readonly Mock<IOutboxWriter> _outboxWriterMock;
     private readonly Mock<DbSet<Domain.Aggregates.Posts.Post>> _postsDbSetMock;
     private readonly ApprovePostCommandHandler _handler;
@@ -18,11 +19,11 @@ public class ApprovePostCommandHandlerTests
     public ApprovePostCommandHandlerTests()
     {
         _dbContextMock = new Mock<IPostDbContext>();
-        _actorResolverMock = new Mock<IActorResolver>();
+        _actorResolverMock = new Mock<ICurrentActorAccessor>();
         _outboxWriterMock = new Mock<IOutboxWriter>();
         _postsDbSetMock = new Mock<DbSet<Domain.Aggregates.Posts.Post>>();
         
-        _actorResolverMock.Setup(x => x.AliasId).Returns(_moderatorAliasId);
+        _actorResolverMock.Setup(x => x.GetRequiredAliasId()).Returns(_moderatorAliasId);
         _dbContextMock.Setup(x => x.Posts).Returns(_postsDbSetMock.Object);
         
         _handler = new ApprovePostCommandHandler(

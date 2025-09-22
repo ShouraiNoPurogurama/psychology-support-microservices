@@ -3,7 +3,7 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using BuildingBlocks.Exceptions;
-using Post.Application.Aggregates.CategoryTags.Commands.AttachCategoryTagsToPost;
+using Post.Application.Features.CategoryTags.Commands.AttachCategoryTagsToPost;
 
 namespace Post.API.Endpoints.CategoryTags;
 

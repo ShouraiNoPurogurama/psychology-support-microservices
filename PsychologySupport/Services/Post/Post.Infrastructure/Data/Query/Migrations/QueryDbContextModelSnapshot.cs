@@ -18,17 +18,21 @@ namespace Post.Infrastructure.Data.Query.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("query")
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Post.Application.ReadModels.AliasVersionReplica", b =>
+            modelBuilder.Entity("Post.Application.ReadModels.Models.AliasVersionReplica", b =>
                 {
                     b.Property<Guid>("AliasId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("alias_id");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("avatar_url");
 
                     b.Property<Guid>("CurrentVersionId")
                         .HasColumnType("uuid")
@@ -53,7 +57,7 @@ namespace Post.Infrastructure.Data.Query.Migrations
                     b.ToTable("alias_version_replica", "query");
                 });
 
-            modelBuilder.Entity("Post.Application.ReadModels.EmotionTagReplica", b =>
+            modelBuilder.Entity("Post.Application.ReadModels.Models.EmotionTagReplica", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -92,11 +96,11 @@ namespace Post.Infrastructure.Data.Query.Migrations
                     b.ToTable("emotion_tag_replicas", "query");
                 });
 
-            modelBuilder.Entity("Post.Application.ReadModels.UserOwnedTagReplica", b =>
+            modelBuilder.Entity("Post.Application.ReadModels.Models.UserOwnedTagReplica", b =>
                 {
-                    b.Property<Guid>("SubjectRef")
+                    b.Property<Guid>("AliasId")
                         .HasColumnType("uuid")
-                        .HasColumnName("subject_ref");
+                        .HasColumnName("alias_id");
 
                     b.Property<Guid>("EmotionTagId")
                         .HasColumnType("uuid")
@@ -106,7 +110,7 @@ namespace Post.Infrastructure.Data.Query.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_synced_at");
 
-                    b.HasKey("SubjectRef", "EmotionTagId")
+                    b.HasKey("AliasId", "EmotionTagId")
                         .HasName("pk_user_owned_tag_replicas");
 
                     b.ToTable("user_owned_tag_replicas", "query");

@@ -18,12 +18,13 @@ public interface IPaymentValidatorService
     Task ValidateSubscriptionRequestAsync(BuySubscriptionDto dto);
     Task ValidateSubscriptionRequestAsync(UpgradeSubscriptionDto dto);
     Task ValidateBookingRequestAsync(BuyBookingDto dto);
+    Task ValidateOrderRequestAsync(OrderDto dto);
 
     #endregion
 
     #region Common Validations
 
-    
+
 
     #endregion
 }

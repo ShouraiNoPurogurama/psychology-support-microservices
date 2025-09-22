@@ -71,13 +71,14 @@ namespace DigitalGoods.API.Extensions
                     Version = "v1"
                 });
 
-                if (env.IsProduction())
+                var url = env.IsProduction() 
+                    ? "/digitalgoods-service/swagger/v1/swagger.json" 
+                    : "https://localhost:5510/digitalgoods-service";
+                
+                options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
                 {
-                    options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
-                    {
-                        Url = "/digitalgoods-service/"
-                    });
-                }
+                    Url = url
+                });
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

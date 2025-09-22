@@ -1,9 +1,9 @@
-﻿using Post.Application.Aggregates.Posts.Commands.ReorderPostMedia;
-using Carter;
+﻿using Carter;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using BuildingBlocks.Exceptions;
+using Post.Application.Features.Posts.Commands.ReorderPostMedia;
 
 namespace Post.API.Endpoints.Posts;
 

@@ -71,13 +71,15 @@ public static class ApplicationServiceExtensions
                 Version = "v1"
             });
 
-            if (env.IsProduction())
+            var url = env.IsProduction() 
+                ? "/translation-service/swagger/v1/swagger.json" 
+                : "https://localhost:5510/translation-service";
+            
+            options.AddServer(new OpenApiServer
             {
-                options.AddServer(new OpenApiServer
-                {
-                    Url = "/translation-service/"
-                });
-            }
+                Url = url
+            });
+
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

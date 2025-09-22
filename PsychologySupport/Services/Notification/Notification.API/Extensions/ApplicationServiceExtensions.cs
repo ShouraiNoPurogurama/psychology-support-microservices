@@ -62,13 +62,15 @@ public static class ApplicationServiceExtensions
                 Title = "Notification API",
                 Version = "v1"
             });
-            if (env.IsProduction())
+
+            var url = env.IsProduction() 
+                ? "/notification-service/swagger/v1/swagger.json" 
+                : "https://localhost:5510/notification-service";
+            
+            options.AddServer(new OpenApiServer
             {
-                options.AddServer(new OpenApiServer
-                {
-                    Url = "/notification-service/"
-                });
-            }
+                Url = url
+            });
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",

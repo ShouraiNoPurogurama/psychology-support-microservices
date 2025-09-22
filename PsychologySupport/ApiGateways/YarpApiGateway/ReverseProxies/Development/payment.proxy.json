@@ -1,0 +1,44 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "payment-health": {
+        "ClusterId": "payment-cluster",
+        "Match": {
+          "Path": "/billing-service/health"
+        },
+        "Transforms": [ { "PathPattern": "/health" } ]
+      },
+      "payment-swagger": {
+        "ClusterId": "payment-cluster",
+        "Match": {
+          "Path": "/billing-service/swagger/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+      },
+      "payment-route": {
+        "ClusterId": "payment-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Match": {
+          "Path": "/billing-service/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+      }
+    },
+    "Clusters": {
+      "payment-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "https://localhost:5504/"
+          }
+        }
+      }
+    }
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}

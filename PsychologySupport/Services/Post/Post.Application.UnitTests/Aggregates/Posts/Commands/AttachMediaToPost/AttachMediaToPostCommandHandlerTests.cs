@@ -2,17 +2,17 @@
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Post.Application.Abstractions.Authentication;
-using Post.Application.Aggregates.Posts.Commands.AttachMediaToPost;
 using Post.Application.Data;
-using Post.Application.Integration;
 using BuildingBlocks.Exceptions;
+using Post.Application.Abstractions.Integration;
+using Post.Application.Features.Posts.Commands.AttachMediaToPost;
 
 namespace Post.UnitTests.Aggregates.Posts.Commands.AttachMediaToPost;
 
 public class AttachMediaToPostCommandHandlerTests
 {
     private readonly Mock<IPostDbContext> _dbContextMock;
-    private readonly Mock<IActorResolver> _actorResolverMock;
+    private readonly Mock<ICurrentActorAccessor> _actorResolverMock;
     private readonly Mock<IOutboxWriter> _outboxWriterMock;
     private readonly Mock<DbSet<Domain.Aggregates.Posts.Post>> _postsDbSetMock;
     private readonly AttachMediaToPostCommandHandler _handler;
@@ -21,11 +21,11 @@ public class AttachMediaToPostCommandHandlerTests
     public AttachMediaToPostCommandHandlerTests()
     {
         _dbContextMock = new Mock<IPostDbContext>();
-        _actorResolverMock = new Mock<IActorResolver>();
+        _actorResolverMock = new Mock<ICurrentActorAccessor>();
         _outboxWriterMock = new Mock<IOutboxWriter>();
         _postsDbSetMock = new Mock<DbSet<Domain.Aggregates.Posts.Post>>();
         
-        _actorResolverMock.Setup(x => x.AliasId).Returns(_currentUserAliasId);
+        _actorResolverMock.Setup(x => x.GetRequiredAliasId()).Returns(_currentUserAliasId);
         _dbContextMock.Setup(x => x.Posts).Returns(_postsDbSetMock.Object);
         
         _handler = new AttachMediaToPostCommandHandler(

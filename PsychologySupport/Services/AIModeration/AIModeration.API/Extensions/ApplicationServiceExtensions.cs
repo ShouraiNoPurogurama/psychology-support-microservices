@@ -12,39 +12,37 @@ namespace AIModeration.API.Extensions;
 
 public static class ApplicationServiceExtensions
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config,
+        IWebHostEnvironment env)
     {
         var connectionString = GetConnectionString(config)!;
         services.AddHealthChecks()
             .AddNpgSql(connectionString);
-        
-        services.AddControllers(options =>
-        {
-            options.Filters.Add<LoggingActionFilter>();
-        });
-        
+
+        services.AddControllers(options => { options.Filters.Add<LoggingActionFilter>(); });
+
         // services.AddCarter();
 
-        ConfigureSwagger(services, env); 
+        ConfigureSwagger(services, env);
 
         ConfigureCors(services);
-        
+
         AddDatabase(services, config);
 
         AddServiceDependencies(services);
-        
+
         ConfigureGemini(services, config);
 
         ConfigureMediatR(services);
 
         AddAIServices(services);
-        
+
         services.AddIdentityServices(config);
-        
+
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
         services.AddHttpContextAccessor();
-        
+
         return services;
     }
 
@@ -57,21 +55,21 @@ public static class ApplicationServiceExtensions
             config.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
     }
-    
+
     private static IServiceCollection AddAIServices(this IServiceCollection services)
     {
         // services.AddScoped<IContextBuilder, ChatContextBuilder>();
         // services.AddScoped<IAIProvider, GeminiProvider>();
         // services.AddSingleton<ISessionConcurrencyManager, SessionConcurrencyManager>();
         // services.AddScoped<IMessageProcessor, MessageProcessor>();
-        
+
         return services;
     }
 
     private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
-        
+
         services.AddSwaggerGen(options =>
         {
             options.SwaggerDoc("v1", new OpenApiInfo
@@ -79,14 +77,16 @@ public static class ApplicationServiceExtensions
                 Title = "Moderation API",
                 Version = "v1"
             });
-            //Chỉ add server khi chạy Production
-            if (env.IsProduction())
+            
+            var url = env.IsProduction() 
+                ? "/moderation-service/swagger/v1/swagger.json" 
+                : "https://localhost:5510/moderation-service";
+            
+            options.AddServer(new OpenApiServer
             {
-                options.AddServer(new OpenApiServer
-                {
-                    Url = "/moderation-service/"
-                });
-            }
+                Url = url
+            });
+            
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",
@@ -119,7 +119,6 @@ public static class ApplicationServiceExtensions
         {
             options.AddPolicy("CorsPolicy", builder =>
             {
-
                 builder
                     .AllowAnyMethod()
                     .AllowAnyHeader()

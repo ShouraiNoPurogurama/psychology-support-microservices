@@ -23,13 +23,13 @@ namespace Payment.Application.Payments.Queries
         {
             var payments = await dbContext.Payments
                 .Where(p => p.Status == PaymentStatus.Completed &&
-                            p.CreatedAt.HasValue &&
-                            DateOnly.FromDateTime(p.CreatedAt.Value.UtcDateTime) >= request.StartTime &&
-                            DateOnly.FromDateTime(p.CreatedAt.Value.UtcDateTime) <= request.EndTime)
+                          
+                            DateOnly.FromDateTime(p.CreatedAt.UtcDateTime) >= request.StartTime &&
+                            DateOnly.FromDateTime(p.CreatedAt.UtcDateTime) <= request.EndTime)
                 .ToListAsync(cancellationToken); 
 
             var revenueByDate = payments
-                .GroupBy(p => DateOnly.FromDateTime(p.CreatedAt.Value.UtcDateTime))
+                .GroupBy(p => DateOnly.FromDateTime(p.CreatedAt.UtcDateTime))
                 .Select(g => new DailyRevenue(g.Key, g.Sum(p => p.TotalAmount), g.Count()))
                 .ToList();
 

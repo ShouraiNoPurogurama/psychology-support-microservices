@@ -3,7 +3,8 @@ using BuildingBlocks.Exceptions;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
-using Post.Application.Aggregates.Gifts.Commands.AttachGift;
+using Post.Application.Abstractions.Integration;
+using Post.Application.Features.Gifts.Commands.AttachGift;
 using Post.Domain.Aggregates.Comments;
 using Post.Domain.Aggregates.Gifts;
 using Post.Domain.Aggregates.Gifts.DomainEvents;
@@ -14,18 +15,18 @@ namespace Post.UnitTests.Aggregates.Gifts.Commands;
 public sealed class AttachGiftCommandHandlerTests
 {
     private readonly IPostDbContext _context;
-    private readonly IAliasVersionResolver _aliasResolver;
-    private readonly IActorResolver _actorResolver;
+    private readonly IAliasVersionAccessor _aliasAccessor;
+    private readonly ICurrentActorAccessor _currentActorAccessor;
     private readonly IOutboxWriter _outboxWriter;
     private readonly AttachGiftCommandHandler _handler;
 
     public AttachGiftCommandHandlerTests()
     {
         _context = Substitute.For<IPostDbContext>();
-        _aliasResolver = Substitute.For<IAliasVersionResolver>();
-        _actorResolver = Substitute.For<IActorResolver>();
+        _aliasAccessor = Substitute.For<IAliasVersionAccessor>();
+        _currentActorAccessor = Substitute.For<ICurrentActorAccessor>();
         _outboxWriter = Substitute.For<IOutboxWriter>();
-        _handler = new AttachGiftCommandHandler(_context, _aliasResolver, _outboxWriter, _actorResolver);
+        _handler = new AttachGiftCommandHandler(_context, _aliasAccessor, _outboxWriter, _currentActorAccessor);
     }
 
     [Fact]
@@ -40,9 +41,9 @@ public sealed class AttachGiftCommandHandlerTests
             "Test message"
         );
 
-        _aliasResolver.GetCurrentAliasVersionIdAsync(Arg.Any<CancellationToken>())
+        _aliasAccessor.GetRequiredCurrentAliasVersionIdAsync(Arg.Any<CancellationToken>())
             .Returns(Guid.NewGuid());
-        _actorResolver.AliasId.Returns(Guid.NewGuid());
+        _currentActorAccessor.GetRequiredAliasId().Returns(Guid.NewGuid());
 
         _context.Posts.AnyAsync(Arg.Any<Expression<Func<Domain.Aggregates.Posts.Post, bool>>>(), Arg.Any<CancellationToken>())
             .Returns(true);
@@ -74,9 +75,9 @@ public sealed class AttachGiftCommandHandlerTests
             "Test message for comment"
         );
 
-        _aliasResolver.GetCurrentAliasVersionIdAsync(Arg.Any<CancellationToken>())
+        _aliasAccessor.GetRequiredCurrentAliasVersionIdAsync(Arg.Any<CancellationToken>())
             .Returns(Guid.NewGuid());
-        _actorResolver.AliasId.Returns(Guid.NewGuid());
+        _currentActorAccessor.GetRequiredAliasId().Returns(Guid.NewGuid());
 
         _context.Comments.AnyAsync(Arg.Any<Expression<Func<Comment, bool>>>(), Arg.Any<CancellationToken>())
             .Returns(true);
@@ -127,9 +128,9 @@ public sealed class AttachGiftCommandHandlerTests
             "Test message"
         );
 
-        _aliasResolver.GetCurrentAliasVersionIdAsync(Arg.Any<CancellationToken>())
+        _aliasAccessor.GetRequiredCurrentAliasVersionIdAsync(Arg.Any<CancellationToken>())
             .Returns(Guid.NewGuid());
-        _actorResolver.AliasId.Returns(Guid.NewGuid());
+        _currentActorAccessor.GetRequiredAliasId().Returns(Guid.NewGuid());
 
         _context.Posts.AnyAsync(Arg.Any<Expression<Func<Domain.Aggregates.Posts.Post, bool>>>(), Arg.Any<CancellationToken>())
             .Returns(false);
@@ -151,9 +152,9 @@ public sealed class AttachGiftCommandHandlerTests
             "Test message"
         );
 
-        _aliasResolver.GetCurrentAliasVersionIdAsync(Arg.Any<CancellationToken>())
+        _aliasAccessor.GetRequiredCurrentAliasVersionIdAsync(Arg.Any<CancellationToken>())
             .Returns(Guid.NewGuid());
-        _actorResolver.AliasId.Returns(Guid.NewGuid());
+        _currentActorAccessor.GetRequiredAliasId().Returns(Guid.NewGuid());
 
         _context.Comments.AnyAsync(Arg.Any<Expression<Func<Comment, bool>>>(), Arg.Any<CancellationToken>())
             .Returns(false);
@@ -175,9 +176,9 @@ public sealed class AttachGiftCommandHandlerTests
             "Test message"
         );
 
-        _aliasResolver.GetCurrentAliasVersionIdAsync(Arg.Any<CancellationToken>())
+        _aliasAccessor.GetRequiredCurrentAliasVersionIdAsync(Arg.Any<CancellationToken>())
             .Returns(Guid.NewGuid());
-        _actorResolver.AliasId.Returns(Guid.NewGuid());
+        _currentActorAccessor.GetRequiredAliasId().Returns(Guid.NewGuid());
 
         _context.Posts.AnyAsync(Arg.Any<Expression<Func<Domain.Aggregates.Posts.Post, bool>>>(), Arg.Any<CancellationToken>())
             .Returns(true);

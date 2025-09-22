@@ -5,13 +5,13 @@ using Post.Application.Data;
 using Post.Domain.Aggregates.CategoryTags;
 using Post.Domain.Aggregates.Comments;
 using Post.Domain.Aggregates.Gifts;
+using Post.Domain.Aggregates.Idempotency;
+using Post.Domain.Aggregates.OutboxMessages;
 using Post.Domain.Aggregates.Posts;
 using Post.Domain.Aggregates.Posts.Enums;
 using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Aggregates.Reaction;
 using Post.Domain.Aggregates.Reactions.Enums;
-using Post.Infrastructure.Integration.Entities;
-using Post.Infrastructure.Resilience.Entities;
 
 namespace Post.Infrastructure.Data.Post;
 
@@ -119,7 +119,18 @@ public class PostDbContext : DbContext, IPostDbContext
             entity.Property(p => p.Visibility)
                 .HasConversion
                 (pv => pv.ToString(), str =>
-                    (PostVisibility)Enum.Parse(typeof(PostVisibility), str));
+                    (PostVisibility)Enum.Parse(typeof(PostVisibility), str))
+                .HasDefaultValue(PostVisibility.Draft)
+                .HasSentinel(PostVisibility.Draft)
+                ;
+            
+            entity.Property(p => p.Status)
+                .HasConversion
+                (ps => ps.ToString(), str =>
+                    (PostStatus)Enum.Parse(typeof(PostStatus), str))
+                .HasDefaultValue(PostStatus.Creating)
+                .HasSentinel(PostStatus.Creating)
+                ;
 
             // index 1: visibility + created_at
             entity.HasIndex(

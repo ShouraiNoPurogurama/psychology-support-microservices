@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.Exceptions;
 using Carter;
 using Mapster;
-using Media.Application.Dtos;
-using Media.Application.Media.Commands;
+using Media.Application.Features.Media.Commands.UploadMedia;
+using Media.Application.Features.Media.Dtos;
 using Media.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

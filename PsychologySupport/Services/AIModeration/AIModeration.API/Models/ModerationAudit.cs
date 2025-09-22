@@ -12,7 +12,7 @@ public partial class ModerationAudit : Entity<Guid>, IHasCreationAudit
 
     public string? Data { get; set; }
 
-    public DateTimeOffset? CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 
     public string? CreatedBy { get; set; }
 

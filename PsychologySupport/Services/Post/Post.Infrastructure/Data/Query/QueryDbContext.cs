@@ -26,7 +26,7 @@ public class QueryDbContext : DbContext, IQueryDbContext
         buidler.Entity<UserOwnedTagReplica>(e =>
         {
             //Subject ref đứng đầu => index sẽ được sử dụng khi lọc theo SubjectRef
-            e.HasKey(u => new { u.SubjectRef, u.EmotionTagId });
+            e.HasKey(u => new { SubjectRef = u.AliasId, u.EmotionTagId });
         });
 
         buidler.Entity<AliasVersionReplica>(entity =>

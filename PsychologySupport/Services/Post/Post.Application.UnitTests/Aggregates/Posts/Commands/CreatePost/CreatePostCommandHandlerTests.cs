@@ -1,4 +1,5 @@
-﻿using Post.Application.Aggregates.Posts.Commands.CreatePost;
+﻿using Post.Application.Abstractions.Integration;
+using Post.Application.Features.Posts.Commands.CreatePost;
 using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.UnitTests.Aggregates.Posts.Commands.CreatePost
@@ -6,8 +7,8 @@ namespace Post.UnitTests.Aggregates.Posts.Commands.CreatePost
     public class CreatePostCommandHandlerTests
     {
         private readonly Mock<IPostDbContext> _dbContextMock;
-        private readonly Mock<IAliasVersionResolver> _aliasVersionResolverMock;
-        private readonly Mock<IActorResolver> _actorResolverMock;
+        private readonly Mock<IAliasVersionAccessor> _aliasVersionResolverMock;
+        private readonly Mock<ICurrentActorAccessor> _actorResolverMock;
         private readonly Mock<IOutboxWriter> _outboxWriterMock;
         private readonly CreatePostCommandHandler _handler;
         private readonly Guid _currentUserAliasId = Guid.NewGuid();
@@ -16,20 +17,19 @@ namespace Post.UnitTests.Aggregates.Posts.Commands.CreatePost
         public CreatePostCommandHandlerTests()
         {
             _dbContextMock = new Mock<IPostDbContext>();
-            _aliasVersionResolverMock = new Mock<IAliasVersionResolver>();
-            _actorResolverMock = new Mock<IActorResolver>();
+            _aliasVersionResolverMock = new Mock<IAliasVersionAccessor>();
+            _actorResolverMock = new Mock<ICurrentActorAccessor>();
             _outboxWriterMock = new Mock<IOutboxWriter>();
             
             // Common setup
-            _actorResolverMock.Setup(x => x.AliasId).Returns(_currentUserAliasId);
-            _aliasVersionResolverMock.Setup(x => x.GetCurrentAliasVersionIdAsync(It.IsAny<CancellationToken>()))
+            _actorResolverMock.Setup(x => x.GetRequiredAliasId()).Returns(_currentUserAliasId);
+            _aliasVersionResolverMock.Setup(x => x.GetRequiredCurrentAliasVersionIdAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(_aliasVersionId);
             
             _handler = new CreatePostCommandHandler(
                 _dbContextMock.Object,
                 _aliasVersionResolverMock.Object,
-                _actorResolverMock.Object,
-                _outboxWriterMock.Object);
+                _actorResolverMock.Object);
         }
 
         [Fact]

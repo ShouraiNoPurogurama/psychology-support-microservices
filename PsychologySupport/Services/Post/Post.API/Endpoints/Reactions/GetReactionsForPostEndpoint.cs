@@ -2,7 +2,7 @@
 using Carter;
 using Mapster;
 using MediatR;
-using Post.Application.Aggregates.Reactions.Queries.GetReactionsForPost;
+using Post.Application.Features.Reactions.Queries.GetReactionsForPost;
 
 namespace Post.API.Endpoints.Reactions;
 

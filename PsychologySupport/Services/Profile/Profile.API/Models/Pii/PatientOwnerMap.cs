@@ -7,7 +7,7 @@ public class PatientOwnerMap : Entity<Guid>, IHasCreationAudit
 {
     public Guid SubjectRef { get; private set; }
     public Guid PatientProfileId { get; private set; }
-    public DateTimeOffset? CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
     public string? CreatedBy { get; set; }
     
     public PersonProfile PersonProfile { get; set; }

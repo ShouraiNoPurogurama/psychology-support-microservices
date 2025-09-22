@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 using BuildingBlocks.Idempotency;
 using Microsoft.EntityFrameworkCore;
+using Post.Domain.Aggregates.Idempotency;
 using Post.Infrastructure.Data.Post;
-using Post.Infrastructure.Resilience.Entities;
 
 namespace Post.Infrastructure.Resilience.Services;
 

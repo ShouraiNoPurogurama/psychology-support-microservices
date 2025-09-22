@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
 using Post.Application.Extensions;
+using Post.Application.Services;
 
 namespace Post.Application;
 
@@ -23,6 +24,27 @@ public static class DependencyInjection
         services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
         services.AddFeatureManagement();
 
+        services.AddServiceDependencies(configuration);
+        services.AddConfigurationSettings(configuration);
+        
+        return services;
+    }
+    
+    public static IServiceCollection AddServiceDependencies(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddScoped<IRateLimitingService, MemoryRateLimitingService>();
+        services.AddScoped<ICounterSynchronizationService, CounterSynchronizationService>();
+        
+        services.AddHostedService<PostAbandonmentBackgroundService>();
+
+        return services;
+    }
+    
+    public static IServiceCollection AddConfigurationSettings(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<RateLimitOptions>(configuration.GetSection(RateLimitOptions.SectionName));
+        services.Configure<PostAbandonmentOptions>(configuration.GetSection(PostAbandonmentOptions.SectionName));
+        
         return services;
     }
 }

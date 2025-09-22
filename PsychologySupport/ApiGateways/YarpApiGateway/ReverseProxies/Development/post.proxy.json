@@ -1,0 +1,45 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "post-health": {
+        "ClusterId": "post-cluster",
+        "Match": { "Path": "/post-service/health" },
+        "Transforms": [ { "PathPattern": "/health" } ],
+        "Metadata": {
+          "RateLimiterPolicy": "fixed",
+          "RouteGroup": "post-group"
+        }
+      },
+      "post-swagger": {
+        "ClusterId": "post-cluster",
+        "Match": { "Path": "/post-service/swagger/{**catch-all}" },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ],
+        "Metadata": {
+          "RateLimiterPolicy": "fixed",
+          "RouteGroup": "post-group"
+        }
+      },
+      "post-route": {
+        "ClusterId": "post-cluster",
+        "Match": { "Path": "/post-service/{**catch-all}" },
+        "Transforms": [ 
+          { "PathPattern": "/{**catch-all}" },
+          { "TokenExchange": "enabled" }
+        ],
+        "Metadata": {
+          "RateLimiterPolicy": "fixed",
+          "RouteGroup": "post-group"
+        }
+      }
+    },
+    "Clusters": {
+      "post-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "https://localhost:5514/"
+          }
+        }
+      }
+    }
+  }
+}

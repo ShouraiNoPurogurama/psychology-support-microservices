@@ -1,0 +1,49 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "notification-health": {
+        "ClusterId": "notification-cluster",
+        "Match": {
+          "Path": "/notification-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ]
+      },
+      "notification-swagger": {
+        "ClusterId": "notification-cluster",
+        "Match": {
+          "Path": "/notification-service/swagger/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/{**catch-all}"
+          }
+        ]
+      },
+      "notification-route": {
+        "ClusterId": "notification-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Match": {
+          "Path": "/notification-service/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/{**catch-all}"
+          }
+        ]
+      }
+    },
+    "Clusters": {
+      "notification-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://notification.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,10 +1,10 @@
-﻿using Post.Application.Aggregates.Posts.Commands.CreatePost;
-using Post.Domain.Aggregates.Posts.Enums;
+﻿using Post.Domain.Aggregates.Posts.Enums;
 using Carter;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using BuildingBlocks.Exceptions;
+using Post.Application.Features.Posts.Commands.CreatePost;
 
 namespace Post.API.Endpoints.Posts;
 
@@ -12,7 +12,9 @@ public sealed record CreatePostRequest(
     string? Title,
     string Content,
     PostVisibility Visibility,
-    IEnumerable<Guid>? MediaIds = null
+    IEnumerable<Guid>? MediaIds = null,
+    Guid? CategoryTagId = null,
+    Guid? EmotionId = null
 );
 
 public sealed record CreatePostResponse(
@@ -44,7 +46,9 @@ public class CreatePostEndpoint : ICarterModule
                     request.Title,
                     request.Content,
                     request.Visibility,
-                    request.MediaIds
+                    request.MediaIds,
+                    request.CategoryTagId,
+                    request.EmotionId
                 );
 
                 var result = await sender.Send(command, ct);

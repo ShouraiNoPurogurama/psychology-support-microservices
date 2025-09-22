@@ -12,7 +12,7 @@ namespace Media.Domain.Abstractions
         [Key]
         public T Id { get; set; }
 
-        public DateTimeOffset? CreatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
 
         public string? CreatedBy { get; set; }
 

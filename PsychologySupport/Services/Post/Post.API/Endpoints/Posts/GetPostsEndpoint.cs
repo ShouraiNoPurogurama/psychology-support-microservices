@@ -1,9 +1,9 @@
-﻿using Post.Application.Aggregates.Posts.Queries.GetPosts;
-using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Pagination;
 using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Post.Application.Aggregates.Posts.Dtos;
+using Post.Application.Features.Posts.Dtos;
+using Post.Application.Features.Posts.Queries.GetPosts;
 
 namespace Post.API.Endpoints.Posts;
 

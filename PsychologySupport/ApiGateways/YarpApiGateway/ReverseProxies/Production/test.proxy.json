@@ -1,0 +1,37 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "test-health": {
+        "ClusterId": "test-cluster",
+        "Match": {
+          "Path": "/test-service/health"
+        },
+        "Transforms": [ { "PathPattern": "/health" } ]
+      },
+      "test-swagger": {
+        "ClusterId": "test-cluster",
+        "Match": {
+          "Path": "/test-service/swagger/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+      },
+      "test-route": {
+        "ClusterId": "test-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Match": {
+          "Path": "/test-service/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+      }
+    },
+    "Clusters": {
+      "test-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://test.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}

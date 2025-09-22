@@ -17,21 +17,23 @@ namespace Media.Infrastructure.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasDefaultSchema("public")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Media.API.Media.Models.IdempotencyKey", b =>
+            modelBuilder.Entity("Media.Domain.Models.IdempotencyKey", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text")
@@ -47,7 +49,8 @@ namespace Media.Infrastructure.Data.Migrations
 
                     b.Property<string>("RequestHash")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("request_hash");
 
                     b.Property<string>("ResponsePayload")
@@ -55,24 +58,25 @@ namespace Media.Infrastructure.Data.Migrations
                         .HasColumnName("response_payload");
 
                     b.HasKey("Id")
-                        .HasName("pk_idempotency_keys");
+                        .HasName("idempotency_keys_pkey");
 
-                    b.ToTable("idempotency_keys", (string)null);
+                    b.HasIndex(new[] { "Key" }, "idempotency_keys_key")
+                        .IsUnique()
+                        .HasDatabaseName("ix_idempotency_keys_key");
+
+                    b.HasIndex(new[] { "ExpiresAt" }, "ix_idempotency_keys_expires_at")
+                        .HasDatabaseName("ix_idempotency_keys_expires_at");
+
+                    b.ToTable("idempotency_keys", "public");
                 });
 
-            modelBuilder.Entity("Media.API.Media.Models.MediaAsset", b =>
+            modelBuilder.Entity("Media.Domain.Models.MediaAsset", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<string>("ChecksumSha256")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("checksum_sha256");
-
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -80,16 +84,25 @@ namespace Media.Infrastructure.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("created_by");
 
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("deleted_by");
+
                     b.Property<bool>("ExifRemoved")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
+                        .HasDefaultValue(false)
                         .HasColumnName("exif_removed");
 
-                    b.Property<int?>("Height")
-                        .HasColumnType("integer")
-                        .HasColumnName("height");
-
                     b.Property<bool>("HoldThumbUntilPass")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
+                        .HasDefaultValue(false)
                         .HasColumnName("hold_thumb_until_pass");
 
                     b.Property<DateTimeOffset?>("LastModified")
@@ -100,58 +113,27 @@ namespace Media.Infrastructure.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("last_modified_by");
 
-                    b.Property<DateTime?>("ModerationCheckedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("moderation_checked_at");
-
-                    b.Property<string>("ModerationPolicyVersion")
-                        .HasColumnType("text")
-                        .HasColumnName("moderation_policy_version");
-
-                    b.Property<decimal?>("ModerationScore")
-                        .HasColumnType("numeric")
-                        .HasColumnName("moderation_score");
-
-                    b.Property<string>("ModerationStatus")
-                        .HasColumnType("text")
-                        .HasColumnName("moderation_status");
-
-                    b.Property<string>("Phash64")
-                        .HasColumnType("text")
-                        .HasColumnName("phash64");
-
-                    b.Property<string>("RawModerationJson")
-                        .HasColumnType("text")
-                        .HasColumnName("raw_moderation_json");
-
-                    b.Property<long>("SourceBytes")
-                        .HasColumnType("bigint")
-                        .HasColumnName("source_bytes");
-
-                    b.Property<string>("SourceMime")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("source_mime");
-
                     b.Property<string>("State")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("state");
-
-                    b.Property<int?>("Width")
-                        .HasColumnType("integer")
-                        .HasColumnName("width");
 
                     b.HasKey("Id")
                         .HasName("pk_media_assets");
 
-                    b.ToTable("media_assets", (string)null);
+                    b.HasIndex("State")
+                        .HasDatabaseName("ix_media_assets_state");
+
+                    b.HasIndex("CreatedAt", "State")
+                        .HasDatabaseName("ix_media_assets_created_state");
+
+                    b.ToTable("media_assets", "public");
                 });
 
-            modelBuilder.Entity("Media.API.Media.Models.MediaModerationAudit", b =>
+            modelBuilder.Entity("Media.Domain.Models.MediaModerationAudit", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -159,7 +141,7 @@ namespace Media.Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("checked_at");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -180,7 +162,8 @@ namespace Media.Infrastructure.Data.Migrations
                         .HasColumnName("media_id");
 
                     b.Property<string>("PolicyVersion")
-                        .HasColumnType("text")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("policy_version");
 
                     b.Property<string>("RawJson")
@@ -188,31 +171,35 @@ namespace Media.Infrastructure.Data.Migrations
                         .HasColumnName("raw_json");
 
                     b.Property<decimal?>("Score")
-                        .HasColumnType("numeric")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)")
                         .HasColumnName("score");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("status");
 
                     b.HasKey("Id")
                         .HasName("pk_media_moderation_audits");
 
-                    b.HasIndex("MediaId")
-                        .HasDatabaseName("ix_media_moderation_audits_media_id");
+                    b.HasIndex("CheckedAt")
+                        .HasDatabaseName("ix_moderation_audits_checked_at");
 
-                    b.ToTable("media_moderation_audits", (string)null);
+                    b.HasIndex("MediaId")
+                        .HasDatabaseName("ix_moderation_audits_media_id");
+
+                    b.ToTable("media_moderation_audits", "public");
                 });
 
-            modelBuilder.Entity("Media.API.Media.Models.MediaOwner", b =>
+            modelBuilder.Entity("Media.Domain.Models.MediaOwner", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -238,30 +225,36 @@ namespace Media.Infrastructure.Data.Migrations
 
                     b.Property<string>("MediaOwnerType")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("media_owner_type");
 
                     b.HasKey("Id")
                         .HasName("pk_media_owners");
 
-                    b.HasIndex("MediaId")
-                        .HasDatabaseName("ix_media_owners_media_id");
+                    b.HasIndex("MediaOwnerType", "MediaOwnerId")
+                        .HasDatabaseName("ix_media_owners_owner");
 
-                    b.ToTable("media_owners", (string)null);
+                    b.HasIndex("MediaId", "MediaOwnerType", "MediaOwnerId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_media_owners_unique");
+
+                    b.ToTable("media_owners", "public");
                 });
 
-            modelBuilder.Entity("Media.API.Media.Models.MediaProcessingJob", b =>
+            modelBuilder.Entity("Media.Domain.Models.MediaProcessingJob", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
                     b.Property<int>("Attempt")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(0)
                         .HasColumnName("attempt");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -275,7 +268,8 @@ namespace Media.Infrastructure.Data.Migrations
 
                     b.Property<string>("JobType")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("job_type");
 
                     b.Property<DateTimeOffset?>("LastModified")
@@ -296,28 +290,36 @@ namespace Media.Infrastructure.Data.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("status");
 
                     b.HasKey("Id")
                         .HasName("pk_media_processing_jobs");
 
                     b.HasIndex("MediaId")
-                        .HasDatabaseName("ix_media_processing_jobs_media_id");
+                        .HasDatabaseName("ix_processing_jobs_media_id");
 
-                    b.ToTable("media_processing_jobs", (string)null);
+                    b.HasIndex("JobType", "Status")
+                        .HasDatabaseName("ix_processing_jobs_type_status");
+
+                    b.HasIndex("Status", "NextRetryAt")
+                        .HasDatabaseName("ix_processing_jobs_queue")
+                        .HasFilter("status NOT IN ('Succeeded', 'Failed', 'Cancelled')");
+
+                    b.ToTable("media_processing_jobs", "public");
                 });
 
-            modelBuilder.Entity("Media.API.Media.Models.MediaVariant", b =>
+            modelBuilder.Entity("Media.Domain.Models.MediaVariant", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
                     b.Property<string>("BucketKey")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("bucket_key");
 
                     b.Property<long>("Bytes")
@@ -325,10 +327,11 @@ namespace Media.Infrastructure.Data.Migrations
                         .HasColumnName("bytes");
 
                     b.Property<string>("CdnUrl")
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("cdn_url");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -338,7 +341,8 @@ namespace Media.Infrastructure.Data.Migrations
 
                     b.Property<string>("Format")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("format");
 
                     b.Property<int>("Height")
@@ -359,7 +363,8 @@ namespace Media.Infrastructure.Data.Migrations
 
                     b.Property<string>("VariantType")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("variant_type");
 
                     b.Property<int>("Width")
@@ -369,16 +374,23 @@ namespace Media.Infrastructure.Data.Migrations
                     b.HasKey("Id")
                         .HasName("pk_media_variants");
 
+                    b.HasIndex("CdnUrl")
+                        .HasDatabaseName("ix_media_variants_cdn_url")
+                        .HasFilter("cdn_url IS NOT NULL");
+
                     b.HasIndex("MediaId")
                         .HasDatabaseName("ix_media_variants_media_id");
 
-                    b.ToTable("media_variants", (string)null);
+                    b.HasIndex("MediaId", "VariantType")
+                        .IsUnique()
+                        .HasDatabaseName("ux_media_variants_media_type");
+
+                    b.ToTable("media_variants", "public");
                 });
 
-            modelBuilder.Entity("Media.API.Media.Models.OutboxMessage", b =>
+            modelBuilder.Entity("Media.Domain.Models.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -386,7 +398,7 @@ namespace Media.Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("aggregate_id");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -396,7 +408,8 @@ namespace Media.Infrastructure.Data.Migrations
 
                     b.Property<string>("EventType")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("event_type");
 
                     b.Property<DateTimeOffset?>("LastModified")
@@ -421,15 +434,164 @@ namespace Media.Infrastructure.Data.Migrations
                         .HasColumnName("processed_on");
 
                     b.HasKey("Id")
-                        .HasName("pk_outbox_messages");
+                        .HasName("outbox_messages_pkey");
 
-                    b.ToTable("outbox_messages", (string)null);
+                    b.HasIndex(new[] { "OccurredOn" }, "ix_outbox_pending")
+                        .HasDatabaseName("ix_outbox_messages_occurred_on")
+                        .HasFilter("processed_on IS NULL");
+
+                    b.HasIndex(new[] { "ProcessedOn" }, "ix_outbox_processed")
+                        .HasDatabaseName("ix_outbox_messages_processed_on")
+                        .HasFilter("processed_on IS NOT NULL");
+
+                    b.ToTable("outbox_messages", "public");
                 });
 
-            modelBuilder.Entity("Media.API.Media.Models.MediaModerationAudit", b =>
+            modelBuilder.Entity("Media.Domain.Models.MediaAsset", b =>
                 {
-                    b.HasOne("Media.API.Media.Models.MediaAsset", "Media")
-                        .WithMany("MediaModerationAudits")
+                    b.OwnsOne("Media.Domain.ValueObjects.MediaChecksum", "Checksum", b1 =>
+                        {
+                            b1.Property<Guid>("MediaAssetId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<string>("Algorithm")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)")
+                                .HasColumnName("checksum_algorithm");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("checksum_value");
+
+                            b1.HasKey("MediaAssetId");
+
+                            b1.ToTable("media_assets", "public");
+
+                            b1.WithOwner()
+                                .HasForeignKey("MediaAssetId")
+                                .HasConstraintName("fk_media_assets_media_assets_id");
+                        });
+
+                    b.OwnsOne("Media.Domain.ValueObjects.MediaContent", "Content", b1 =>
+                        {
+                            b1.Property<Guid>("MediaAssetId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<string>("MimeType")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("mime_type");
+
+                            b1.Property<string>("Phash64")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("phash64");
+
+                            b1.Property<long>("SizeInBytes")
+                                .HasColumnType("bigint")
+                                .HasColumnName("size_in_bytes");
+
+                            b1.HasKey("MediaAssetId");
+
+                            b1.ToTable("media_assets", "public");
+
+                            b1.WithOwner()
+                                .HasForeignKey("MediaAssetId")
+                                .HasConstraintName("fk_media_assets_media_assets_id");
+                        });
+
+                    b.OwnsOne("Media.Domain.ValueObjects.MediaDimensions", "Dimensions", b1 =>
+                        {
+                            b1.Property<Guid>("MediaAssetId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<long>("AspectRatioDenominator")
+                                .HasColumnType("bigint")
+                                .HasColumnName("aspect_ratio_denominator");
+
+                            b1.Property<long>("AspectRatioNumerator")
+                                .HasColumnType("bigint")
+                                .HasColumnName("aspect_ratio_numerator");
+
+                            b1.Property<int>("Height")
+                                .HasColumnType("integer")
+                                .HasColumnName("height");
+
+                            b1.Property<int>("Width")
+                                .HasColumnType("integer")
+                                .HasColumnName("width");
+
+                            b1.HasKey("MediaAssetId");
+
+                            b1.ToTable("media_assets", "public");
+
+                            b1.WithOwner()
+                                .HasForeignKey("MediaAssetId")
+                                .HasConstraintName("fk_media_assets_media_assets_id");
+                        });
+
+                    b.OwnsOne("Media.Domain.ValueObjects.MediaModerationInfo", "Moderation", b1 =>
+                        {
+                            b1.Property<Guid>("MediaAssetId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<DateTime?>("CheckedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("moderation_checked_at");
+
+                            b1.Property<string>("PolicyVersion")
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)")
+                                .HasColumnName("moderation_policy_version");
+
+                            b1.Property<string>("RawJson")
+                                .HasColumnType("text")
+                                .HasColumnName("moderation_raw_json");
+
+                            b1.Property<decimal?>("Score")
+                                .HasPrecision(5, 4)
+                                .HasColumnType("numeric(5,4)")
+                                .HasColumnName("moderation_score");
+
+                            b1.Property<string>("Status")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)")
+                                .HasColumnName("moderation_status");
+
+                            b1.HasKey("MediaAssetId");
+
+                            b1.ToTable("media_assets", "public");
+
+                            b1.WithOwner()
+                                .HasForeignKey("MediaAssetId")
+                                .HasConstraintName("fk_media_assets_media_assets_id");
+                        });
+
+                    b.Navigation("Checksum")
+                        .IsRequired();
+
+                    b.Navigation("Content")
+                        .IsRequired();
+
+                    b.Navigation("Dimensions");
+
+                    b.Navigation("Moderation")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Media.Domain.Models.MediaModerationAudit", b =>
+                {
+                    b.HasOne("Media.Domain.Models.MediaAsset", "Media")
+                        .WithMany("ModerationAudits")
                         .HasForeignKey("MediaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
@@ -438,10 +600,10 @@ namespace Media.Infrastructure.Data.Migrations
                     b.Navigation("Media");
                 });
 
-            modelBuilder.Entity("Media.API.Media.Models.MediaOwner", b =>
+            modelBuilder.Entity("Media.Domain.Models.MediaOwner", b =>
                 {
-                    b.HasOne("Media.API.Media.Models.MediaAsset", "Media")
-                        .WithMany("MediaOwners")
+                    b.HasOne("Media.Domain.Models.MediaAsset", "Media")
+                        .WithMany("Owners")
                         .HasForeignKey("MediaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
@@ -450,10 +612,10 @@ namespace Media.Infrastructure.Data.Migrations
                     b.Navigation("Media");
                 });
 
-            modelBuilder.Entity("Media.API.Media.Models.MediaProcessingJob", b =>
+            modelBuilder.Entity("Media.Domain.Models.MediaProcessingJob", b =>
                 {
-                    b.HasOne("Media.API.Media.Models.MediaAsset", "Media")
-                        .WithMany("MediaProcessingJobs")
+                    b.HasOne("Media.Domain.Models.MediaAsset", "Media")
+                        .WithMany("ProcessingJobs")
                         .HasForeignKey("MediaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
@@ -462,10 +624,10 @@ namespace Media.Infrastructure.Data.Migrations
                     b.Navigation("Media");
                 });
 
-            modelBuilder.Entity("Media.API.Media.Models.MediaVariant", b =>
+            modelBuilder.Entity("Media.Domain.Models.MediaVariant", b =>
                 {
-                    b.HasOne("Media.API.Media.Models.MediaAsset", "Media")
-                        .WithMany("MediaVariants")
+                    b.HasOne("Media.Domain.Models.MediaAsset", "Media")
+                        .WithMany("Variants")
                         .HasForeignKey("MediaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
@@ -474,15 +636,15 @@ namespace Media.Infrastructure.Data.Migrations
                     b.Navigation("Media");
                 });
 
-            modelBuilder.Entity("Media.API.Media.Models.MediaAsset", b =>
+            modelBuilder.Entity("Media.Domain.Models.MediaAsset", b =>
                 {
-                    b.Navigation("MediaModerationAudits");
+                    b.Navigation("ModerationAudits");
 
-                    b.Navigation("MediaOwners");
+                    b.Navigation("Owners");
 
-                    b.Navigation("MediaProcessingJobs");
+                    b.Navigation("ProcessingJobs");
 
-                    b.Navigation("MediaVariants");
+                    b.Navigation("Variants");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,7 +1,7 @@
-﻿using Post.Application.Aggregates.Posts.Commands.DeletePost;
-using Carter;
+﻿using Carter;
 using Mapster;
 using MediatR;
+using Post.Application.Features.Posts.Commands.DeletePost;
 
 namespace Post.API.Endpoints.Posts;
 

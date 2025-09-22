@@ -1,7 +1,20 @@
-﻿using Alias.API.Domains.Aliases.Enums;
-using Alias.API.Models.Public;
+﻿using Alias.API.Aliases.Models;
+using Alias.API.Aliases.Models.Aliases;
+using Alias.API.Aliases.Models.Aliases.Enums;
+using Alias.API.Aliases.Models.Follows;
 
 namespace Alias.API.Data.Public;
+
+using Alias = Aliases.Models.Aliases.Alias;
+public class OutboxMessage
+{
+    public Guid Id { get; set; }
+    public string Type { get; set; } = default!;
+    public string Content { get; set; } = default!;
+    public DateTime OccurredOn { get; set; }
+    public DateTime? ProcessedOn { get; set; }
+}
+
 
 public partial class AliasDbContext : DbContext
 {
@@ -10,11 +23,13 @@ public partial class AliasDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Models.Public.Alias> Aliases { get; set; }
+    public virtual DbSet<Alias> Aliases { get; set; }
 
     public virtual DbSet<AliasAudit> AliasAudits { get; set; }
 
     public virtual DbSet<AliasVersion> AliasVersions { get; set; }
+
+    public virtual DbSet<Follow> Follows { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -23,32 +38,40 @@ public partial class AliasDbContext : DbContext
         //     .HasPostgresEnum<NicknameSource>("public", "nickname_source")
         //     .HasPostgresExtension("citext");
 
-        modelBuilder.Entity<Models.Public.Alias>(entity =>
+        modelBuilder.Entity<Alias>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("aliases_pkey");
 
             entity.ToTable("aliases");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
-            entity.Property(e => e.CurrentVersionId).HasColumnName("current_version_id");
-            entity.Property(e => e.LastModified).HasColumnName("last_modified");
-            entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
+                .ValueGeneratedNever();
 
-            entity.Property(e => e.AliasVisibility)
+            entity.Property(e => e.Visibility)
                 .HasDefaultValue(AliasVisibility.Public)
                 .HasSentinel(AliasVisibility.Public)
                 .HasConversion(s => s.ToString(),
                     dbStatus => (AliasVisibility)Enum.Parse(typeof(AliasVisibility), dbStatus));
 
-            entity.HasOne<AliasVersion>()
-                .WithMany()
-                .HasForeignKey(e => e.CurrentVersionId)
-                .OnDelete(DeleteBehavior.SetNull)
-                .HasConstraintName("aliases_current_version_id_fkey");
+            entity.OwnsOne(a => a.Label, label =>
+            {
+                label.Property(l => l.Value).HasColumnName("value");
+                label.Property(l => l.SearchKey).HasColumnName("search_key");
+                label.Property(l => l.UniqueKey).HasColumnName("unique_key");
+            });
+
+            // Map the AliasMetadata value object as an owned type with explicit column names
+            entity.OwnsOne(a => a.Metadata, metadata =>
+            {
+                metadata.Property(m => m.IsSystemGenerated).HasColumnName("is_system_generated");
+                metadata.Property(m => m.LastActiveAt).HasColumnName("last_active_at");
+                metadata.Property(m => m.VersionCount).HasColumnName("version_count");
+            });
+
+            entity.HasMany(a => a.Versions)
+                .WithOne()
+                .HasForeignKey(av => av.AliasId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<AliasAudit>(entity =>
@@ -60,15 +83,14 @@ public partial class AliasDbContext : DbContext
             entity.HasIndex(e => e.AliasId, "ix_alias_audits_alias");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
-            entity.Property(e => e.Action).HasColumnName("action");
-            entity.Property(e => e.AliasId).HasColumnName("alias_id");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+                .ValueGeneratedNever();
+
             entity.Property(e => e.Details)
-                .HasColumnType("jsonb")
-                .HasColumnName("details");
+                .HasColumnType("jsonb");
+
+            entity.Property(e => e.Action)
+                .HasConversion(a => a.ToString(),
+                    dbAction => (AliasAuditAction)Enum.Parse(typeof(AliasAuditAction), dbAction));
         });
 
         modelBuilder.Entity<AliasVersion>(entity =>
@@ -79,51 +101,76 @@ public partial class AliasDbContext : DbContext
 
             entity.HasIndex(e => e.SearchKey, "idx_search_key_current")
                 .HasFilter("(valid_to IS NULL)");
-            
+
             entity.HasIndex(e => e.UniqueKey, "uniq_unique_key_current")
                 .IsUnique()
                 .HasFilter("(valid_to IS NULL)");
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
-
-            entity
-                .Property(e => e.AliasId)
-                .HasColumnName("alias_id");
 
             entity.Property(e => e.SearchKey)
                 .HasColumnType("citext");
 
             entity.Property(e => e.UniqueKey)
                 .HasColumnType("citext");
-            
-            entity.Property(e => e.Label).HasColumnName("alias_label");
+
+            entity.Property(e => e.DisplayName);
 
             entity.Property(e => e.NicknameSource)
-                .HasColumnName("nickname_source")
                 .HasConversion(s => s.ToString(),
                     dbStatus => (NicknameSource)Enum.Parse(typeof(NicknameSource), dbStatus));
 
-            // entity.Property(e => e.NicknameSource)
-            //     .HasColumnType("public.nickname_source")
-            //     .HasColumnName("nickname_source");
+            entity.Property(e => e.CreatedAt);
+            entity.Property(e => e.CreatedBy);
+            entity.Property(e => e.ValidFrom);
+            entity.Property(e => e.ValidTo);
 
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
-            entity.Property(e => e.ValidFrom).HasColumnName("valid_from");
-            entity.Property(e => e.ValidTo).HasColumnName("valid_to");
-
-            entity.HasOne(d => d.Alias)
-                .WithMany(p => p.AliasVersions)
-                .HasForeignKey(d => d.AliasId)
-                .HasConstraintName("alias_versions_alias_id_fkey");
 
             entity.HasIndex(e => e.AliasId, "ix_alias_versions_alias_id");
         });
 
+        modelBuilder.Entity<Follow>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("follows_pkey");
+
+            entity.ToTable("follows");
+
+            // Composite unique index to prevent duplicate follow relationships
+            entity.HasIndex(e => new { e.FollowerAliasId, e.FollowedAliasId })
+                .IsUnique()
+                .HasDatabaseName("uix_follows_follower_followed");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever();
+
+            entity.Property(e => e.FollowedAt)
+                .HasColumnName("followed_at");
+
+            entity.Property(e => e.FollowerAliasId)
+                .HasColumnName("follower_alias_id");
+
+            entity.Property(e => e.FollowedAliasId)
+                .HasColumnName("followed_alias_id");
+
+            // Indexes for query performance
+            entity.HasIndex(e => e.FollowerAliasId, "ix_follows_follower_alias_id");
+            entity.HasIndex(e => e.FollowedAliasId, "ix_follows_followed_alias_id");
+
+            // Foreign key relationships with cascade delete
+            entity.HasOne<Alias>()
+                .WithMany()
+                .HasForeignKey(f => f.FollowerAliasId)
+                .HasConstraintName("fk_follows_follower_alias")
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne<Alias>()
+                .WithMany()
+                .HasForeignKey(f => f.FollowedAliasId)
+                .HasConstraintName("fk_follows_followed_alias")
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         OnModelCreatingPartial(modelBuilder);
     }
+
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

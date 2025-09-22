@@ -18,7 +18,7 @@ namespace Post.Infrastructure.Data.Post.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("post")
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -249,9 +249,18 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("published_at");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Creating")
+                        .HasColumnName("status");
+
                     b.Property<string>("Visibility")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("text")
+                        .HasDefaultValue("Draft")
                         .HasColumnName("visibility");
 
                     b.HasKey("Id")

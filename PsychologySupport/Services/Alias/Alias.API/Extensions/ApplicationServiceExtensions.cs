@@ -1,6 +1,8 @@
-﻿using Alias.API.Data.Public;
-using Alias.API.Domains.Aliases.Common.Reservations;
-using Alias.API.Domains.Aliases.Common.Security;
+﻿using Alias.API.Common.Authentication;
+using Alias.API.Common.Outbox;
+using Alias.API.Common.Reservations;
+using Alias.API.Common.Security;
+using Alias.API.Data.Public;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Exceptions.Handler;
@@ -71,6 +73,11 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
         services.AddSingleton<IAliasReservationStore, AliasReservationStore>();
         services.AddSingleton<IAliasTokenService, AliasTokenService>();
+
+        services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
+        services.AddScoped<IAliasVersionAccessor, AliasVersionAccessor>();
+        services.AddMemoryCache();
+        services.AddScoped<IOutboxWriter, EfOutboxWriter>();
     }
 
     private static void ConfigureMediatR(IServiceCollection services)
@@ -109,13 +116,14 @@ public static class ApplicationServiceExtensions
                 Version = "v1"
             });
 
-            if (env.IsProduction())
+            var url = env.IsProduction() 
+                ? "/alias-service/swagger/v1/swagger.json" 
+                : "https://localhost:5510/alias-service";
+            
+            options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
             {
-                options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
-                {
-                    Url = "/alias-service/"
-                });
-            }
+                Url = url
+            });
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

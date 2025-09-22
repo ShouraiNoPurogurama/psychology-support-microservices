@@ -22,7 +22,7 @@ if (builder.Environment.IsProduction())
     });
 }
 
-builder.Services.AddApplicationServices(builder.Configuration);
+builder.Services.AddApplicationServices(builder.Environment, builder.Configuration);
 
 builder.Services.AddIdentityServices(builder.Configuration);
 

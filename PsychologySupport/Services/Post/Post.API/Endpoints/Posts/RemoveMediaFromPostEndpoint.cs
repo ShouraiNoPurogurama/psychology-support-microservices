@@ -1,9 +1,9 @@
-﻿using Post.Application.Aggregates.Posts.Commands.RemoveMediaFromPost;
-using Carter;
+﻿using Carter;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using BuildingBlocks.Exceptions;
+using Post.Application.Features.Posts.Commands.RemoveMediaFromPost;
 
 namespace Post.API.Endpoints.Posts;
 

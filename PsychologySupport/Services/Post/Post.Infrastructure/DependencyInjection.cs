@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Post.Application.Abstractions.Authentication;
+using Post.Application.Abstractions.Integration;
 using Post.Application.Data;
-using Post.Application.Integration;
 using Post.Infrastructure.Authentication;
 using Post.Infrastructure.Data.Interceptors;
 using Post.Infrastructure.Data.Post;
@@ -36,11 +36,12 @@ public static class DependencyInjection
         services.Decorate<IIdempotencyService, LockingIdempotencyService>();     // single-flight
         services.Decorate<IIdempotencyService, CachingIdempotencyService>();
         
-        services.AddScoped<IAliasVersionResolver, CurrentAliasVersionResolver>(); 
-        services.AddScoped<IActorResolver, CurrentAliasVersionResolver>();
+        services.AddScoped<IAliasVersionAccessor, AliasVersionAccessor>(); 
+        services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
 
         services.AddScoped<IOutboxWriter, EfOutboxWriter>();
-            
+        services.AddScoped<IFollowerCountProvider, FollowerCountProvider>();
+        
         
         // services.AddDbContext<LegacyPublicDbContext>((serviceProvider, options) =>
         // {

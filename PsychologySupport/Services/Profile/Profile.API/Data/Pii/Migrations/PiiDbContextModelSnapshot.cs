@@ -19,7 +19,7 @@ namespace Profile.API.Data.Pii.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("pii")
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pii", "citext");
@@ -35,7 +35,7 @@ namespace Profile.API.Data.Pii.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("alias_id");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -67,7 +67,7 @@ namespace Profile.API.Data.Pii.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -108,7 +108,7 @@ namespace Profile.API.Data.Pii.Migrations
                         .HasColumnType("date")
                         .HasColumnName("birth_date");
 
-                    b.Property<DateTimeOffset?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")

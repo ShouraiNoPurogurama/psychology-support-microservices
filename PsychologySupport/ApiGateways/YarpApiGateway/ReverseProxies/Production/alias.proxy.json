@@ -1,0 +1,40 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "alias-health": {
+        "ClusterId": "alias-cluster",
+        "Match": {
+          "Path": "/alias-service/health"
+        },
+        "Transforms": [ { "PathPattern": "/health" } ]
+      },
+      "alias-swagger": {
+        "ClusterId": "alias-cluster",
+        "Match": {
+          "Path": "/alias-service/swagger/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+      },
+      "alias-route": {
+        "ClusterId": "alias-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Match": {
+          "Path": "/alias-service/{**catch-all}"
+        },
+        "Transforms": [ 
+          { "PathPattern": "/{**catch-all}" },
+          { "TokenExchange": "enabled" }
+        ]
+      }
+    },
+    "Clusters": {
+      "alias-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://alias.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}

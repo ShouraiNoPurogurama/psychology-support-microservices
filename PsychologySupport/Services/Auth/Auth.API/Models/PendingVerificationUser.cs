@@ -8,7 +8,7 @@ public class PendingVerificationUser : Entity<Guid>, IHasCreationAudit
 {
     [NotMapped] public string FullName { get; init; } = default!;
     public Guid UserId { get; set; }
-    public DateTimeOffset? CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
     public string? CreatedBy { get; set; }
     public DateTimeOffset? ProcessedAt { get; set; }
 

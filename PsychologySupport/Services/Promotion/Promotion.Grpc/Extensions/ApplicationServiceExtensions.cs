@@ -38,7 +38,7 @@ public static class ApplicationServiceExtensions
                 Title = "Promotion API",
                 Version = "v1"
             });
-            if(env.IsProduction())
+            if (env.IsProduction())
             {
                 options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
                 {

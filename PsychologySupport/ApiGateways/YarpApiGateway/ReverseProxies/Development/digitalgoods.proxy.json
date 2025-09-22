@@ -1,0 +1,37 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "digitalgoods-health": {
+        "ClusterId": "digitalgoods-cluster",
+        "Match": {
+          "Path": "/digitalgoods-service/health"
+        },
+        "Transforms": [ { "PathPattern": "/health" } ]
+      },
+      "digitalgoods-swagger": {
+        "ClusterId": "digitalgoods-cluster",
+        "Match": {
+          "Path": "/digitalgoods-service/swagger/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+      },
+      "digitalgoods-route": {
+        "ClusterId": "digitalgoods-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Match": {
+          "Path": "/digitalgoods-service/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+      }
+    },
+    "Clusters": {
+      "digitalgoods-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "https://localhost:5522/"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,9 +1,9 @@
-﻿using Post.Application.Aggregates.Posts.Queries.GetPostsByUser;
-using Post.Application.Aggregates.Posts.Dtos;
-using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
 using MediatR;
+using Post.Application.Features.Posts.Dtos;
+using Post.Application.Features.Posts.Queries.GetPostsByUser;
 
 namespace Post.API.Endpoints.Posts;
 

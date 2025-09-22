@@ -1,0 +1,49 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "promotion-health": {
+        "ClusterId": "promotion-cluster",
+        "Match": {
+          "Path": "/promotion-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ]
+      },
+      "promotion-swagger": {
+        "ClusterId": "promotion-cluster",
+        "Match": {
+          "Path": "/promotion-service/swagger/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/{**catch-all}"
+          }
+        ]
+      },
+      "promotion-route": {
+        "ClusterId": "promotion-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Match": {
+          "Path": "/promotion-service/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/{**catch-all}"
+          }
+        ]
+      }
+    },
+    "Clusters": {
+      "promotion-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://promotion.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}

@@ -89,13 +89,14 @@ public static class ApplicationServiceExtensions
                 Version = "v1"
             });
 
-            if (env.IsProduction())
+            var url = env.IsProduction() 
+                ? "/subscription-service/swagger/v1/swagger.json" 
+                : "https://localhost:5510/subscription-service";
+            
+            options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
             {
-                options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
-                {
-                    Url = "/subscription-service/"
-                });
-            }
+                Url = url
+            });
             
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {

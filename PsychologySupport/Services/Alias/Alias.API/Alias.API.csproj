@@ -27,7 +27,6 @@
 
     <ItemGroup>
         <Folder Include="Data\Public\"/>
-        <Folder Include="Domains\"/>
     </ItemGroup>
 
     <ItemGroup>

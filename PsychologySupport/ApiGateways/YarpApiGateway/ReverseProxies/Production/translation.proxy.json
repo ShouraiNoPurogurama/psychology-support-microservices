@@ -1,0 +1,37 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "translation-health": {
+        "ClusterId": "translation-cluster",
+        "Match": {
+          "Path": "/translation-service/health"
+        },
+        "Transforms": [ { "PathPattern": "/health" } ]
+      },
+      "translation-swagger": {
+        "ClusterId": "translation-cluster",
+        "Match": {
+          "Path": "/translation-service/swagger/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+      },
+      "translation-route": {
+        "ClusterId": "translation-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Match": {
+          "Path": "/translation-service/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+      }
+    },
+    "Clusters": {
+      "translation-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://translation.api:8080/"
+          }
+        }
+      }
+    }
+  }
+}
