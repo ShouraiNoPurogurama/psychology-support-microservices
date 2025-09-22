@@ -1,4 +1,5 @@
 ﻿using Alias.API.Common.Authentication;
+using Alias.API.Common.Outbox;
 using Alias.API.Common.Reservations;
 using Alias.API.Common.Security;
 using Alias.API.Data.Public;
@@ -76,6 +77,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
         services.AddScoped<IAliasVersionAccessor, AliasVersionAccessor>();
         services.AddMemoryCache();
+        services.AddScoped<IOutboxWriter, EfOutboxWriter>();
     }
 
     private static void ConfigureMediatR(IServiceCollection services)

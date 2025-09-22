@@ -33,12 +33,9 @@ public sealed class ApprovePostCommandHandler : ICommandHandler<ApprovePostComma
         if (post == null)
             throw new NotFoundException("Post not found or has been deleted.", "POST_NOT_FOUND");
 
-        // Use existing domain method
         post.Approve("1.0", _currentActorAccessor.GetRequiredAliasId());
 
-        await _context.SaveChangesAsync(cancellationToken);
-
-        // Publish integration event via Outbox
+        // Write both events to outbox before saving
         await _outboxWriter.WriteAsync(
             new PostApprovedIntegrationEvent(
                 post.Id,
@@ -47,6 +44,12 @@ public sealed class ApprovePostCommandHandler : ICommandHandler<ApprovePostComma
                 DateTimeOffset.UtcNow
             ),
             cancellationToken);
+
+        await _outboxWriter.WriteAsync(
+            new ModerationEvaluatedIntegrationEvent(post.Id, ModerationDecision.Approved, null),
+            cancellationToken);
+
+        await _context.SaveChangesAsync(cancellationToken);
 
         return new ApprovePostResult(
             post.Id,

@@ -28,18 +28,13 @@ internal sealed class RejectPostCommandHandler : ICommandHandler<RejectPostComma
     public async Task<RejectPostResult> Handle(RejectPostCommand request, CancellationToken cancellationToken)
     {
         var post = await _context.Posts
-            .FirstOrDefaultAsync(p => p.Id == request.PostId && !p.IsDeleted, cancellationToken);
+            .FirstOrDefaultAsync(p => p.Id == request.PostId && !p.IsDeleted, cancellationToken)
+            ?? throw new NotFoundException("Post not found or has been deleted.", "POST_NOT_FOUND");
 
-        if (post == null)
-            throw new NotFoundException("Post not found or has been deleted.", "POST_NOT_FOUND");
-
-        // Use existing domain method
         var reasons = new List<string> { request.Reason };
         post.Reject(reasons, "1.0", _currentActorAccessor.GetRequiredAliasId());
 
-        await _context.SaveChangesAsync(cancellationToken);
-
-        // Publish integration event via Outbox
+        // Outbox both domain-specific and generalized moderation events
         await _outboxWriter.WriteAsync(
             new PostRejectedIntegrationEvent(
                 post.Id,
@@ -49,6 +44,12 @@ internal sealed class RejectPostCommandHandler : ICommandHandler<RejectPostComma
                 DateTimeOffset.UtcNow
             ),
             cancellationToken);
+
+        await _outboxWriter.WriteAsync(
+            new ModerationEvaluatedIntegrationEvent(post.Id, ModerationDecision.Rejected, request.Reason),
+            cancellationToken);
+
+        await _context.SaveChangesAsync(cancellationToken);
 
         return new RejectPostResult(
             post.Id,

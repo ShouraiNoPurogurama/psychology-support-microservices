@@ -4,6 +4,7 @@ using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
+using Post.Application.Abstractions.Integration;
 using Post.Application.Data;
 
 namespace Post.Application.Features.Posts.Commands.CreatePost;
@@ -13,7 +14,9 @@ public sealed class CreatePostCommandHandler(
     IAliasVersionAccessor aliasAccessor,
     ICurrentActorAccessor currentActorAccessor,
     IQueryDbContext queryContext,
-    IPublishEndpoint publishEndpoint)
+    IPublishEndpoint publishEndpoint,
+    IOutboxWriter outboxWriter,
+    IFollowerCountProvider followerCountProvider)
     : ICommandHandler<CreatePostCommand, CreatePostResult>
 {
 
@@ -34,7 +37,6 @@ public sealed class CreatePostCommandHandler(
 
         await AttachCategoryTagToPost(request, cancellationToken, post);
 
-        // Add media if provided
         if (request.MediaIds?.Any() == true)
         {
             foreach (var mediaId in request.MediaIds)
@@ -44,10 +46,16 @@ public sealed class CreatePostCommandHandler(
         }
 
         context.Posts.Add(post);
+
+        // Outbox post-created (with follower count) BEFORE saving
+        var followerCount = await followerCountProvider.GetFollowerCountAsync(aliasId, cancellationToken);
+        await outboxWriter.WriteAsync(new PostCreatedIntegrationEvent(post.Id, aliasId, post.CreatedAt, followerCount), cancellationToken);
+
         await context.SaveChangesAsync(cancellationToken);
 
+        // Publish media processing event (kept as-is)
         var integrationEvent = new PostCreatedWithMediaPendingIntegrationEvent(post.Id, "Post", request.MediaIds);
-        
+
         await publishEndpoint.Publish(integrationEvent, cancellationToken);
 
         return new CreatePostResult(

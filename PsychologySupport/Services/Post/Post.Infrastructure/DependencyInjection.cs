@@ -40,7 +40,8 @@ public static class DependencyInjection
         services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
 
         services.AddScoped<IOutboxWriter, EfOutboxWriter>();
-            
+        services.AddScoped<IFollowerCountProvider, FollowerCountProvider>();
+        
         
         // services.AddDbContext<LegacyPublicDbContext>((serviceProvider, options) =>
         // {
