@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
+    <ProjectReference Include="..\Wellness.Application\Wellness.Application.csproj" />
+    <ProjectReference Include="..\Wellness.Domain\Wellness.Domain.csproj" />
+  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="EFCore.NamingConventions" />
+		<PackageReference Include="StackExchange.Redis" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Data\Migrations\" />
+	</ItemGroup>
+
+</Project>
