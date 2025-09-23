@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Wellness.Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class RefactorSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,14 +21,36 @@ namespace Wellness.Infrastructure.Data.Migrations
                     activity_type = table.Column<string>(type: "text", nullable: false),
                     duration = table.Column<int>(type: "integer", nullable: true),
                     instructions = table.Column<string>(type: "text", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    last_modified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    last_modified_by = table.Column<Guid>(type: "uuid", nullable: true)
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    created_by = table.Column<string>(type: "text", nullable: true),
+                    last_modified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    last_modified_by = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_activities", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "challenges",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    title = table.Column<string>(type: "text", nullable: false),
+                    description = table.Column<string>(type: "text", nullable: true),
+                    difficulty = table.Column<string>(type: "text", nullable: false),
+                    challenge_type = table.Column<string>(type: "text", nullable: false),
+                    duration_activity = table.Column<int>(type: "integer", nullable: false),
+                    duration_date = table.Column<int>(type: "integer", nullable: false),
+                    module_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    created_by = table.Column<string>(type: "text", nullable: true),
+                    last_modified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    last_modified_by = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_challenges", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -49,21 +71,18 @@ namespace Wellness.Infrastructure.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "journal_moods",
+                name: "moods",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    subject_ref = table.Column<Guid>(type: "uuid", nullable: false),
-                    mood = table.Column<string>(type: "text", nullable: false),
-                    note = table.Column<string>(type: "text", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    last_modified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    last_modified_by = table.Column<Guid>(type: "uuid", nullable: true)
+                    name = table.Column<string>(type: "text", nullable: false),
+                    description = table.Column<string>(type: "text", nullable: true),
+                    icon_code = table.Column<string>(type: "text", nullable: true),
+                    value = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_journal_moods", x => x.id);
+                    table.PrimaryKey("pk_moods", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -90,65 +109,15 @@ namespace Wellness.Infrastructure.Data.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "text", nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    last_modified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    last_modified_by = table.Column<Guid>(type: "uuid", nullable: true)
+                    media_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    created_by = table.Column<string>(type: "text", nullable: true),
+                    last_modified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    last_modified_by = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_wellness_modules", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "challenges",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    title = table.Column<string>(type: "text", nullable: false),
-                    description = table.Column<string>(type: "text", nullable: true),
-                    difficulty = table.Column<string>(type: "text", nullable: false),
-                    challenge_type = table.Column<string>(type: "text", nullable: false),
-                    duration_activity = table.Column<int>(type: "integer", nullable: false),
-                    duration_date = table.Column<int>(type: "integer", nullable: false),
-                    module_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    last_modified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    last_modified_by = table.Column<Guid>(type: "uuid", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_challenges", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_challenges_wellness_modules_module_id",
-                        column: x => x.module_id,
-                        principalTable: "wellness_modules",
-                        principalColumn: "id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "module_sections",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    module_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    title = table.Column<string>(type: "text", nullable: false),
-                    description = table.Column<string>(type: "text", nullable: true),
-                    total_duration = table.Column<int>(type: "integer", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    last_modified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    last_modified_by = table.Column<Guid>(type: "uuid", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_module_sections", x => x.id);
-                    table.ForeignKey(
-                        name: "fk_module_sections_wellness_modules_module_id",
-                        column: x => x.module_id,
-                        principalTable: "wellness_modules",
-                        principalColumn: "id");
                 });
 
             migrationBuilder.CreateTable(
@@ -160,12 +129,12 @@ namespace Wellness.Infrastructure.Data.Migrations
                     challenge_id = table.Column<Guid>(type: "uuid", nullable: true),
                     process_status = table.Column<string>(type: "text", nullable: false),
                     progress_percent = table.Column<int>(type: "integer", nullable: true),
-                    start_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    end_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    last_modified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    last_modified_by = table.Column<Guid>(type: "uuid", nullable: true)
+                    start_date = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    end_date = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    created_by = table.Column<string>(type: "text", nullable: true),
+                    last_modified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    last_modified_by = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -186,10 +155,10 @@ namespace Wellness.Infrastructure.Data.Migrations
                     activity_id = table.Column<Guid>(type: "uuid", nullable: true),
                     day_number = table.Column<int>(type: "integer", nullable: false),
                     order_index = table.Column<int>(type: "integer", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    last_modified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    last_modified_by = table.Column<Guid>(type: "uuid", nullable: true)
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    created_by = table.Column<string>(type: "text", nullable: true),
+                    last_modified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    last_modified_by = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -207,22 +176,45 @@ namespace Wellness.Infrastructure.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "journal_moods",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    subject_ref = table.Column<Guid>(type: "uuid", nullable: false),
+                    mood_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    note = table.Column<string>(type: "text", nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    created_by = table.Column<string>(type: "text", nullable: true),
+                    last_modified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    last_modified_by = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_journal_moods", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_journal_moods_moods_mood_id",
+                        column: x => x.mood_id,
+                        principalTable: "moods",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "process_histories",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     subject_ref = table.Column<Guid>(type: "uuid", nullable: false),
                     activity_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    challenge_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    start_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    end_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    start_time = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    end_time = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     process_status = table.Column<string>(type: "text", nullable: false),
-                    pre_mood = table.Column<string>(type: "text", nullable: true),
-                    post_mood = table.Column<string>(type: "text", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    last_modified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    last_modified_by = table.Column<Guid>(type: "uuid", nullable: true)
+                    post_mood_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    challenge_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    created_by = table.Column<string>(type: "text", nullable: true),
+                    last_modified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    last_modified_by = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -237,54 +229,35 @@ namespace Wellness.Infrastructure.Data.Migrations
                         column: x => x.challenge_id,
                         principalTable: "challenges",
                         principalColumn: "id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "module_progresses",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    subject_ref = table.Column<Guid>(type: "uuid", nullable: false),
-                    section_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    process_status = table.Column<string>(type: "text", nullable: false),
-                    minutes_read = table.Column<int>(type: "integer", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    last_modified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    last_modified_by = table.Column<Guid>(type: "uuid", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_module_progresses", x => x.id);
                     table.ForeignKey(
-                        name: "fk_module_progresses_module_sections_section_id",
-                        column: x => x.section_id,
-                        principalTable: "module_sections",
+                        name: "fk_process_histories_moods_post_mood_id",
+                        column: x => x.post_mood_id,
+                        principalTable: "moods",
                         principalColumn: "id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "section_articles",
+                name: "module_sections",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    section_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    module_id = table.Column<Guid>(type: "uuid", nullable: true),
                     title = table.Column<string>(type: "text", nullable: false),
-                    content_json = table.Column<string>(type: "text", nullable: false),
-                    order_index = table.Column<int>(type: "integer", nullable: false),
-                    duration = table.Column<int>(type: "integer", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    last_modified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    last_modified_by = table.Column<Guid>(type: "uuid", nullable: true)
+                    media_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    description = table.Column<string>(type: "text", nullable: true),
+                    total_duration = table.Column<int>(type: "integer", nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    created_by = table.Column<string>(type: "text", nullable: true),
+                    last_modified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    last_modified_by = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_section_articles", x => x.id);
+                    table.PrimaryKey("pk_module_sections", x => x.id);
                     table.ForeignKey(
-                        name: "fk_section_articles_module_sections_section_id",
-                        column: x => x.section_id,
-                        principalTable: "module_sections",
+                        name: "fk_module_sections_wellness_modules_module_id",
+                        column: x => x.module_id,
+                        principalTable: "wellness_modules",
                         principalColumn: "id");
                 });
 
@@ -296,14 +269,13 @@ namespace Wellness.Infrastructure.Data.Migrations
                     challenge_progress_id = table.Column<Guid>(type: "uuid", nullable: true),
                     challenge_step_id = table.Column<Guid>(type: "uuid", nullable: true),
                     process_status = table.Column<string>(type: "text", nullable: false),
-                    started_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    completed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    pre_mood = table.Column<string>(type: "text", nullable: true),
-                    post_mood = table.Column<string>(type: "text", nullable: true),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    last_modified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    last_modified_by = table.Column<Guid>(type: "uuid", nullable: true)
+                    started_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    completed_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    post_mood_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    created_by = table.Column<string>(type: "text", nullable: true),
+                    last_modified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    last_modified_by = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -318,6 +290,62 @@ namespace Wellness.Infrastructure.Data.Migrations
                         column: x => x.challenge_step_id,
                         principalTable: "challenge_steps",
                         principalColumn: "id");
+                    table.ForeignKey(
+                        name: "fk_challenge_step_progresses_moods_post_mood_id",
+                        column: x => x.post_mood_id,
+                        principalTable: "moods",
+                        principalColumn: "id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "module_progresses",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    subject_ref = table.Column<Guid>(type: "uuid", nullable: false),
+                    section_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    process_status = table.Column<string>(type: "text", nullable: false),
+                    minutes_read = table.Column<int>(type: "integer", nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    created_by = table.Column<string>(type: "text", nullable: true),
+                    last_modified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    last_modified_by = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_module_progresses", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_module_progresses_module_sections_section_id",
+                        column: x => x.section_id,
+                        principalTable: "module_sections",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "section_articles",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    section_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    title = table.Column<string>(type: "text", nullable: false),
+                    media_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    content_json = table.Column<string>(type: "text", nullable: false),
+                    order_index = table.Column<int>(type: "integer", nullable: false),
+                    duration = table.Column<int>(type: "integer", nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    created_by = table.Column<string>(type: "text", nullable: true),
+                    last_modified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    last_modified_by = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_section_articles", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_section_articles_module_sections_section_id",
+                        column: x => x.section_id,
+                        principalTable: "module_sections",
+                        principalColumn: "id");
                 });
 
             migrationBuilder.CreateTable(
@@ -328,11 +356,11 @@ namespace Wellness.Infrastructure.Data.Migrations
                     module_progress_id = table.Column<Guid>(type: "uuid", nullable: true),
                     article_id = table.Column<Guid>(type: "uuid", nullable: true),
                     process_status = table.Column<string>(type: "text", nullable: false),
-                    log_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_by = table.Column<Guid>(type: "uuid", nullable: false),
-                    last_modified = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    last_modified_by = table.Column<Guid>(type: "uuid", nullable: true)
+                    log_date = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    created_by = table.Column<string>(type: "text", nullable: true),
+                    last_modified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    last_modified_by = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -375,6 +403,11 @@ namespace Wellness.Infrastructure.Data.Migrations
                 column: "challenge_step_id");
 
             migrationBuilder.CreateIndex(
+                name: "ix_challenge_step_progresses_post_mood_id",
+                table: "challenge_step_progresses",
+                column: "post_mood_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_challenge_steps_activity_id",
                 table: "challenge_steps",
                 column: "activity_id");
@@ -385,9 +418,9 @@ namespace Wellness.Infrastructure.Data.Migrations
                 column: "challenge_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_challenges_module_id",
-                table: "challenges",
-                column: "module_id");
+                name: "ix_journal_moods_mood_id",
+                table: "journal_moods",
+                column: "mood_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_module_progresses_section_id",
@@ -408,6 +441,11 @@ namespace Wellness.Infrastructure.Data.Migrations
                 name: "ix_process_histories_challenge_id",
                 table: "process_histories",
                 column: "challenge_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_process_histories_post_mood_id",
+                table: "process_histories",
+                column: "post_mood_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_section_articles_section_id",
@@ -447,6 +485,9 @@ namespace Wellness.Infrastructure.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "challenge_steps");
+
+            migrationBuilder.DropTable(
+                name: "moods");
 
             migrationBuilder.DropTable(
                 name: "module_sections");

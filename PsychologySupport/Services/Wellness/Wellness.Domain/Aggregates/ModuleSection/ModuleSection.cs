@@ -1,27 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using Wellness.Domain.Abstractions;
 
-namespace Wellness.Domain.Models;
+namespace Wellness.Domain.Aggregates.ModuleSection;
 
-public partial class ModuleSection
+public partial class ModuleSection : AuditableEntity<Guid>
 {
-    public Guid Id { get; set; }
-
     public Guid? ModuleId { get; set; }
 
     public string Title { get; set; } = null!;
 
+    public Guid MediaId { get; set; }
+
     public string? Description { get; set; }
 
-    public int? TotalDuration { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public Guid CreatedBy { get; set; }
-
-    public DateTime? LastModified { get; set; }
-
-    public Guid? LastModifiedBy { get; set; }
+    public int TotalDuration { get; set; } // Tổng thời gian ước tính để hoàn thành section (tính bằng phút)
 
     public virtual WellnessModule? Module { get; set; }
 

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Wellness.Infrastructure.Data;
@@ -11,9 +12,11 @@ using Wellness.Infrastructure.Data;
 namespace Wellness.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(WellnessDbContext))]
-    partial class WellnessDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250923101431_AddEnums")]
+    partial class AddEnums
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

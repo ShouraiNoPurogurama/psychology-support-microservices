@@ -1,5 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Wellness.Application.Data;
+using Wellness.Domain.Aggregates.Challenge;
+using Wellness.Domain.Aggregates.Challenge.Enums;
+using Wellness.Domain.Aggregates.IdempotencyKey;
+using Wellness.Domain.Aggregates.JournalMood;
+using Wellness.Domain.Aggregates.ModuleSection;
+using Wellness.Domain.Aggregates.OutboxMessage;
+using Wellness.Domain.Aggregates.ProcessHistory;
+using Wellness.Domain.Enums;
 using Wellness.Domain.Models;
 
 
@@ -40,5 +49,72 @@ public partial class WellnessDbContext : DbContext, IWellnessDbContext
 
     public virtual DbSet<WellnessModule> WellnessModules { get; set; }
 
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+    public virtual DbSet<Mood> Moods { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+
+        modelBuilder.Entity<Activity>(entity =>
+        {
+
+            entity.Property(e => e.ActivityType)
+                        .HasConversion(new EnumToStringConverter<ActivityType>())
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
+        });
+
+        modelBuilder.Entity<Challenge>(entity =>
+        {
+
+            entity.Property(e => e.ChallengeType)
+                        .HasConversion(new EnumToStringConverter<ChallengeType>())
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
+        });
+
+        modelBuilder.Entity<ChallengeProgress>(entity =>
+        {
+
+            entity.Property(e => e.ProcessStatus)
+                        .HasConversion(new EnumToStringConverter<ProcessStatus>())
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
+        });
+
+        modelBuilder.Entity<ChallengeStepProgress>(entity =>
+        {
+
+            entity.Property(e => e.ProcessStatus)
+                        .HasConversion(new EnumToStringConverter<ProcessStatus>())
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
+        });
+
+        modelBuilder.Entity<ArticleProgress>(entity =>
+        {
+
+            entity.Property(e => e.ProcessStatus)
+                        .HasConversion(new EnumToStringConverter<ProcessStatus>())
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
+        });
+
+        modelBuilder.Entity<ModuleProgress>(entity =>
+        {
+
+            entity.Property(e => e.ProcessStatus)
+                        .HasConversion(new EnumToStringConverter<ProcessStatus>())
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
+        });
+
+        modelBuilder.Entity<ProcessHistory>(entity =>
+        {
+
+            entity.Property(e => e.ProcessStatus)
+                        .HasConversion(new EnumToStringConverter<ProcessStatus>())
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
+        });
+    }
 }

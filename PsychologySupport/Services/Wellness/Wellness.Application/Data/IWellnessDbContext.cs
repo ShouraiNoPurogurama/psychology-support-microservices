@@ -1,4 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Wellness.Domain.Aggregates.Challenge;
+using Wellness.Domain.Aggregates.IdempotencyKey;
+using Wellness.Domain.Aggregates.JournalMood;
+using Wellness.Domain.Aggregates.ModuleSection;
+using Wellness.Domain.Aggregates.OutboxMessage;
+using Wellness.Domain.Aggregates.ProcessHistory;
 using Wellness.Domain.Models;
 
 namespace Wellness.Application.Data
@@ -19,6 +25,7 @@ namespace Wellness.Application.Data
         DbSet<ProcessHistory> ProcessHistories { get; }
         DbSet<SectionArticle> SectionArticles { get; }
         DbSet<WellnessModule> WellnessModules { get; }
+        DbSet<Mood> Moods{ get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

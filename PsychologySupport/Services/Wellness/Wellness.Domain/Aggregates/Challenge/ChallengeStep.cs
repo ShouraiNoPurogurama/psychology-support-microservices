@@ -1,27 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using Wellness.Domain.Abstractions;
+using Wellness.Domain.Aggregates.Challenge;
 
 namespace Wellness.Domain.Models;
 
-public partial class ChallengeStep
+public partial class ChallengeStep : AuditableEntity<Guid>
 {
-    public Guid Id { get; set; }
-
     public Guid? ChallengeId { get; set; }
 
     public Guid? ActivityId { get; set; }
 
-    public int DayNumber { get; set; }
+    public int DayNumber { get; set; } // Ngày thứ bao nhiêu trong thử thách
 
-    public int OrderIndex { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public Guid CreatedBy { get; set; }
-
-    public DateTime? LastModified { get; set; }
-
-    public Guid? LastModifiedBy { get; set; }
+    public int OrderIndex { get; set; } // Thứ tự thực hiện trong ngày (nếu có nhiều hoạt động trong một ngày)
 
     public virtual Activity? Activity { get; set; }
 

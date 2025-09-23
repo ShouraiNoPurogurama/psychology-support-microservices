@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Wellness.Domain.Models;
+namespace Wellness.Domain.Aggregates.IdempotencyKey;
 
 public partial class IdempotencyKey
 {
