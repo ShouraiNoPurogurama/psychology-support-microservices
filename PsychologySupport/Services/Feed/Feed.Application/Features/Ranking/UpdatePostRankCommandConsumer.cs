@@ -3,7 +3,6 @@ using Feed.Application.Configuration;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
 
 namespace Feed.Application.Features.Ranking;
 

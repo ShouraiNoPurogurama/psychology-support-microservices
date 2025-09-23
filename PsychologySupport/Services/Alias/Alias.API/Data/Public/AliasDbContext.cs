@@ -66,6 +66,8 @@ public partial class AliasDbContext : DbContext
                 metadata.Property(m => m.IsSystemGenerated).HasColumnName("is_system_generated");
                 metadata.Property(m => m.LastActiveAt).HasColumnName("last_active_at");
                 metadata.Property(m => m.VersionCount).HasColumnName("version_count");
+                metadata.Property(m => m.FollowersCount).HasColumnName("followers_count");
+                metadata.Property(m => m.FollowingCount).HasColumnName("following_count");
             });
 
             entity.HasMany(a => a.Versions)
