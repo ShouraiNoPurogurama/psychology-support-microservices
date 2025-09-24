@@ -83,6 +83,8 @@ public static class DependencyInjection
         services.AddScoped<IVipService, VipService>();
         services.AddScoped<IRankingService, RankingService>();
         services.AddScoped<ICursorService, CursorService>();
+        services.AddScoped<IIdempotencyHashAccessor, IdempotencyHashAccessor>();
+        services.AddScoped<IIdempotencyService, CassandraIdempotencyService>();
         
         //Add repositories
         services.AddScoped<IUserFeedRepository, UserFeedRepository>();

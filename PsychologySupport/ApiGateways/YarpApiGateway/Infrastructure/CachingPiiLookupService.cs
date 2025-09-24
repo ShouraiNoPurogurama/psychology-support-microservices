@@ -43,11 +43,18 @@ public class CachingPiiLookupService : IPiiLookupService
             _logger.LogInformation("Cache MISS for key: {Key}. Calling decorated service.", key);
             var realValue = await factory();
 
-            if (!string.IsNullOrEmpty(realValue))
+            //Kiểm tra giá trị hợp lệ trước khi cache
+            if (!string.IsNullOrEmpty(realValue) && Guid.TryParse(realValue, out var guid) && guid != Guid.Empty)
             {
                 var options = new DistributedCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
                 await _cache.SetStringAsync(key, realValue, options);
+                _logger.LogInformation("Cache SET for key: {Key}", key);
             }
+            else
+            {
+                _logger.LogWarning("Invalid GUID returned for key: {Key}. Value: {Value}. Skipping cache.", key, realValue);
+            }
+
             return realValue;
         }
         catch (Exception ex)
@@ -56,4 +63,5 @@ public class CachingPiiLookupService : IPiiLookupService
             return await factory();
         }
     }
+
 }
