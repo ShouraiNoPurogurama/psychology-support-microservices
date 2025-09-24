@@ -1,6 +1,6 @@
 ﻿using Wellness.Domain.Abstractions;
-using Wellness.Domain.Aggregates.Challenge;
-using Wellness.Domain.Aggregates.JournalMood;
+using Wellness.Domain.Aggregates.Challenges;
+using Wellness.Domain.Aggregates.JournalMoods;
 using Wellness.Domain.Enums;
 
 namespace Wellness.Domain.Aggregates.ProcessHistory;

@@ -1,21 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Wellness.Domain.Abstractions;
 
 namespace Wellness.Domain.Aggregates.IdempotencyKey;
 
-public partial class IdempotencyKey
+public partial class IdempotencyKey : Entity<Guid>, IHasCreationAudit
 {
-    public Guid Id { get; set; }
-
-    public string IdempotencyKey1 { get; set; } = null!;
+    public Guid Key { get; set; }
 
     public string RequestHash { get; set; } = null!;
-
     public string? ResponsePayload { get; set; }
+    public DateTimeOffset? ExpiresAt { get; set; }
 
-    public DateTime ExpiresAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public Guid CreatedBy { get; set; }
+    public string? CreatedBy { get; set; }
 }
+

@@ -1,0 +1,26 @@
+﻿using Wellness.Domain.Abstractions;
+using Wellness.Domain.Aggregates.Challenges.Enums;
+
+namespace Wellness.Domain.Aggregates.Challenges;
+
+public partial class Challenge : AuditableEntity<Guid>
+{
+
+    public string Title { get; set; } = null!;
+
+    public string? Description { get; set; }
+
+    public ChallengeType ChallengeType { get; set; }
+
+    public int DurationActivity { get; set; } // Số lượng hoạt động trong thử thách
+
+    public int DurationDate { get; set; } // Số ngày của thử thách
+
+    public Guid? ModuleId { get; set; }
+
+    public virtual ICollection<ChallengeProgress> ChallengeProgresses { get; set; } = new List<ChallengeProgress>();
+
+    public virtual ICollection<ChallengeStep> ChallengeSteps { get; set; } = new List<ChallengeStep>();
+
+    public virtual ICollection<ProcessHistory.ProcessHistory> ProcessHistories { get; set; } = new List<ProcessHistory.ProcessHistory>();
+}

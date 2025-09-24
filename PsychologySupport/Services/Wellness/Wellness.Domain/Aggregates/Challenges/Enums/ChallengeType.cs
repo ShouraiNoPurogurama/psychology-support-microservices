@@ -6,14 +6,13 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Wellness.Domain.Enums
+namespace Wellness.Domain.Aggregates.Challenges.Enums
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ProcessStatus
+    public enum ChallengeType
     {
-        NotStarted,
-        Progressing,
-        Completed,
-        Skipped
+        OneDayChallenge,
+        ThreeDayChallenge,
+        SevenDayChallenge
     }
 }

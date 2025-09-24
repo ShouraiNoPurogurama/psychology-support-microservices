@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Wellness.Infrastructure.Data;
@@ -11,9 +12,11 @@ using Wellness.Infrastructure.Data;
 namespace Wellness.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(WellnessDbContext))]
-    partial class WellnessDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250923180421_AddArticleSource")]
+    partial class AddArticleSource
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -306,21 +309,22 @@ namespace Wellness.Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text")
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
                         .HasColumnName("created_by");
 
-                    b.Property<DateTimeOffset?>("ExpiresAt")
+                    b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
-                    b.Property<Guid>("Key")
-                        .HasColumnType("uuid")
-                        .HasColumnName("key");
+                    b.Property<string>("IdempotencyKey1")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("idempotency_key1");
 
                     b.Property<string>("RequestHash")
                         .IsRequired()

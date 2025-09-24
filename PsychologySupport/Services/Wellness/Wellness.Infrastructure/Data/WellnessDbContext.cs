@@ -1,16 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Wellness.Application.Data;
-using Wellness.Domain.Aggregates.Challenge;
-using Wellness.Domain.Aggregates.Challenge.Enums;
+using Wellness.Domain.Aggregates.Challenges;
+using Wellness.Domain.Aggregates.Challenges.Enums;
 using Wellness.Domain.Aggregates.IdempotencyKey;
-using Wellness.Domain.Aggregates.JournalMood;
-using Wellness.Domain.Aggregates.ModuleSection;
+using Wellness.Domain.Aggregates.JournalMoods;
+using Wellness.Domain.Aggregates.ModuleSections;
 using Wellness.Domain.Aggregates.OutboxMessage;
 using Wellness.Domain.Aggregates.ProcessHistory;
 using Wellness.Domain.Enums;
-using Wellness.Domain.Models;
-
 
 namespace Wellness.Infrastructure.Data;
 
@@ -115,6 +113,16 @@ public partial class WellnessDbContext : DbContext, IWellnessDbContext
                         .HasConversion(new EnumToStringConverter<ProcessStatus>())
                         .HasColumnType("VARCHAR(20)")
                         .HasColumnName("status");
+        });
+
+        modelBuilder.Entity<SectionArticle>(builder =>
+        {
+            builder.OwnsOne(x => x.Source, sa =>
+            {
+                sa.Property(p => p.Name).HasColumnName("source_name");
+                sa.Property(p => p.Url).HasColumnName("source_url");
+                sa.Property(p => p.Description).HasColumnName("source_description");
+            });
         });
     }
 }
