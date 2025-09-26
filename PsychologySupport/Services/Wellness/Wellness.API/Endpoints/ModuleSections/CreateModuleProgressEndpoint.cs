@@ -4,8 +4,9 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Wellness.Application.Features.ModuleSections.Commands;
 using Wellness.Domain.Enums;
+using BuildingBlocks.Exceptions;
 
-namespace Wellness.API.Endpoints
+namespace Wellness.API.Endpoints.ModuleSections
 {
     public record CreateModuleProgressRequest(
         Guid SubjectRef,
@@ -23,32 +24,41 @@ namespace Wellness.API.Endpoints
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPost("/v1/module-progress", async (
+            app.MapPost("/v1/me/module-progress", async (
                 [FromBody] CreateModuleProgressRequest request,
+                [FromHeader(Name = "Idempotency-Key")] Guid? requestKey,
                 ISender sender) =>
             {
+                if (requestKey is null || requestKey == Guid.Empty)
+                    throw new BadRequestException(
+                        "Missing or invalid Idempotency-Key header.",
+                        "MISSING_IDEMPOTENCY_KEY"
+                    );
 
+                // Map request sang command
                 var command = request.Adapt<CreateModuleProgressCommand>();
+                command = command with { IdempotencyKey = requestKey.Value };
 
-
+                // Gửi command qua MediatR
                 var result = await sender.Send(command);
 
-
+                // Map kết quả sang response
                 var response = result.Adapt<CreateModuleProgressResponse>();
 
                 return Results.Created(
-                    $"/v1/module-progress/{response.ModuleProgressId}",
+                    $"/v1/me/module-progress/{response.ModuleProgressId}",
                     response
                 );
             })
+            .RequireAuthorization()
             .WithName("CreateModuleProgress")
             .WithTags("ModuleProgress")
             .Produces<CreateModuleProgressResponse>(201)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .WithSummary("ModuleProgress")
-            .WithDescription("ModuleProgress");
+            .WithSummary("Create a Module Progress entry for a user")
+            .WithDescription("Creates a new module progress record. 'Idempotency-Key' header is required for idempotent creation. The SectionArticleId must belong to the specified ModuleSection.");
         }
     }
 }

@@ -3,23 +3,60 @@ using Wellness.Domain.Aggregates.JournalMoods;
 using Wellness.Domain.Enums;
 
 namespace Wellness.Domain.Aggregates.Challenges;
+
 public partial class ChallengeStepProgress : AuditableEntity<Guid>
 {
-    public Guid? ChallengeProgressId { get; set; }
+    public Guid ChallengeProgressId { get; private set; }
 
-    public Guid? ChallengeStepId { get; set; }
+    public Guid ChallengeStepId { get; private set; }
 
-    public ProcessStatus ProcessStatus { get; set; }
+    public ProcessStatus ProcessStatus { get; private set; }
 
-    public DateTimeOffset? StartedAt { get; set; }
+    public DateTimeOffset? StartedAt { get; private set; }
 
-    public DateTimeOffset? CompletedAt { get; set; }
+    public DateTimeOffset? CompletedAt { get; private set; }
 
-    public Guid? PostMoodId { get; set; } // Log cảm xúc sau khi hoàn thành hoạt động
+    public Guid? PostMoodId { get; private set; }
 
-    public virtual Mood? PostMood { get; set; }
+    public virtual Mood? PostMood { get; private set; }
 
-    public virtual ChallengeProgress? ChallengeProgress { get; set; }
+    public virtual ChallengeProgress? ChallengeProgress { get; private set; }
 
-    public virtual ChallengeStep? ChallengeStep { get; set; }
+    public virtual ChallengeStep? ChallengeStep { get; private set; }
+
+    private ChallengeStepProgress() { }
+
+    private ChallengeStepProgress(Guid challengeProgressId, Guid challengeStepId)
+    {
+        Id = Guid.NewGuid();
+        ChallengeProgressId = challengeProgressId;
+        ChallengeStepId = challengeStepId;
+        ProcessStatus = ProcessStatus.NotStarted;
+    }
+
+    public static ChallengeStepProgress Create(Guid challengeProgressId, Guid stepId)
+        => new ChallengeStepProgress(challengeProgressId, stepId);
+
+    public void Start()
+    {
+        if (ProcessStatus == ProcessStatus.NotStarted)
+        {
+            ProcessStatus = ProcessStatus.Progressing;
+            StartedAt = DateTimeOffset.UtcNow.AddHours(7);
+        }
+    }
+
+    public void Complete(Guid? postMoodId = null)
+    {
+        ProcessStatus = ProcessStatus.Completed;
+        CompletedAt = DateTimeOffset.UtcNow.AddHours(7);
+        PostMoodId = postMoodId;
+    }
+
+    public void Skip(Guid? postMoodId = null)
+    {
+        ProcessStatus = ProcessStatus.Skipped;
+        CompletedAt = DateTimeOffset.UtcNow.AddHours(7);
+        PostMoodId = postMoodId;
+    }
 }

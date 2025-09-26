@@ -47,7 +47,6 @@ public partial class ModuleProgress : AggregateRoot<Guid>
     {
         MinutesRead = (MinutesRead ?? 0) + minutesRead;
 
-        // Phát event cho subscriber tạo/update ArticleProgress tương ứng
         AddDomainEvent(new ModuleProgressUpdatedEvent(
             ModuleProgressId: this.Id,
             SubjectRef: this.SubjectRef,

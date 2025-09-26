@@ -24,10 +24,10 @@ namespace Wellness.Application.Features.ModuleSections.EventHandler.Domains
             {
                 var articleProgress = ArticleProgress.Create(notification.ModuleProgressId, articleId);
 
-                // Nếu là bài đầu tiên được đọc => đánh dấu Progressing luôn
+                // Nếu là bài đầu tiên được đọc => đánh dấu Completed luôn
                 if (articleId == notification.FirstSectionArticleId)
                 {
-                    articleProgress.Update(ProcessStatus.Progressing);
+                    articleProgress.Update(ProcessStatus.Completed);
                 }
 
                 _dbContext.ArticleProgresses.Add(articleProgress);

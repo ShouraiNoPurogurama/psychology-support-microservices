@@ -16,8 +16,4 @@
     <ProjectReference Include="..\Media.Domain\Media.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Features\" />
-  </ItemGroup>
-
 </Project>

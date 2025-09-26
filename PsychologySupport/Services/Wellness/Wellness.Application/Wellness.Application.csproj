@@ -17,12 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Features\Challenges\Commands\" />
-	  <Folder Include="Features\Challenges\Dtos\" />
-	  <Folder Include="Features\Challenges\Queries\" />
-	  <Folder Include="Features\JournalMoods\Commands\" />
-	  <Folder Include="Features\JournalMoods\Dtos\" />
-	  <Folder Include="Features\JournalMoods\Queries\" />
+	  <Folder Include="Features\Challenges\EventHandler\Domains\" />
 	  <Folder Include="Features\ProcessHistory\Commands\" />
 	  <Folder Include="Features\ProcessHistory\Dtos\" />
 	  <Folder Include="Features\ProcessHistory\Queries\" />

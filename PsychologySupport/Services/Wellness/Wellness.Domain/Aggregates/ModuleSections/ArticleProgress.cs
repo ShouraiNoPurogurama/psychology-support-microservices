@@ -32,7 +32,7 @@ public partial class ArticleProgress : AuditableEntity<Guid>
         ProcessStatus = status;
         if (status == ProcessStatus.Completed)
         {
-            LogDate = DateTimeOffset.UtcNow;
+            LogDate = DateTimeOffset.UtcNow.AddHours(7);
         }
     }
 }

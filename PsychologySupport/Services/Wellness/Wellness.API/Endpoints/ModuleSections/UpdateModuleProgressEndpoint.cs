@@ -4,7 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Wellness.Domain.Enums;
 
-namespace Wellness.API.Endpoints
+namespace Wellness.API.Endpoints.ModuleSections
 {
     public record UpdateModuleProgressRequest(
         Guid ModuleSectionId,

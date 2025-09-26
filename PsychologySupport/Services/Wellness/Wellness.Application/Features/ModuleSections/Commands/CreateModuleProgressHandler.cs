@@ -6,10 +6,11 @@ using Wellness.Domain.Aggregates.ModuleSections;
 using Wellness.Domain.Enums;
 
 public record CreateModuleProgressCommand(
+    Guid IdempotencyKey,
     Guid SubjectRef,         // Ai đang học (User/Subject)
     Guid ModuleSectionId,          // Section nào
     Guid SectionArticleId    // Bài viết đầu tiên được đọc
-) : ICommand<CreateModuleProgressResult>;
+) : IdempotentCommand<CreateModuleProgressResult>(IdempotencyKey);
 
 public record CreateModuleProgressResult(
     Guid ModuleProgressId,
