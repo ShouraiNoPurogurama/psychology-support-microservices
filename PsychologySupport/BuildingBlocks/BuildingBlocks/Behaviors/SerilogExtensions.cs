@@ -41,7 +41,7 @@ public static class SerilogExtensions
             //Console sink (luôn enable, kể cả prod)
             loggerConfiguration.WriteTo.Console(
                 outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{ServiceName}] {Message:lj}{NewLine}{Exception}",
-                theme: theme ?? AnsiConsoleTheme.Code
+                theme: theme ?? AnsiConsoleTheme.Code 
             );
             
         });
