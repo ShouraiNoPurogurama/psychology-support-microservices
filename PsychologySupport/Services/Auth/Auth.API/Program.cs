@@ -54,6 +54,9 @@ app.UseCors(config =>
     config.AllowAnyOrigin();
 });
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();

@@ -67,11 +67,10 @@ namespace Auth.API.Features.Authentication.Services.Shared
                 await userManager.AddToRoleAsync(user, Roles.UserRole);
             }
 
-            var accessToken = await tokenService.GenerateJWTToken(user);
-            var refreshToken = tokenService.GenerateRefreshToken();
-            await tokenService.SaveRefreshToken(user, refreshToken);
+            var (accessToken, jti, refreshToken) = await tokenService.GenerateTokensAsync(user);
 
-            return new LoginResponse(accessToken.Token, refreshToken);
+
+            return new LoginResponse(accessToken, refreshToken);
         }
     }
 }

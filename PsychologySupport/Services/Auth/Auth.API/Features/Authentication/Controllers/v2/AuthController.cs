@@ -2,6 +2,8 @@
 using Auth.API.Features.Authentication.ServiceContracts;
 using Auth.API.Features.Authentication.ServiceContracts.Features;
 using Auth.API.Features.Authentication.ServiceContracts.Shared;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Auth.API.Features.Authentication.Controllers.v2;
@@ -88,10 +90,11 @@ public class AuthController(
         return Ok(new { success = result, message = "Đổi mật khẩu thành công." });
     }
 
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [HttpGet("v2/onboarding/status")]
-    public async Task<IActionResult> GetOnboardingStatus([FromQuery] Guid userId)
+    public async Task<IActionResult> GetOnboardingStatus()
     {
-        var result = await userOnboardingService.GetOnboardingStatusAsync(userId);
+        var result = await userOnboardingService.GetOnboardingStatusAsync();
 
         return Ok(result);
     }

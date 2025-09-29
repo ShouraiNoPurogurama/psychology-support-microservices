@@ -47,7 +47,7 @@ public static class IdentityServiceExtensions
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             // Existing authentication (RSA JWT)
-            .AddJwtBearer("LocalAuth", options =>
+            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 var rsaKey = RSA.Create();
                 string xmlKey = File.ReadAllText(config["Jwt:PrivateKeyPath"]!);

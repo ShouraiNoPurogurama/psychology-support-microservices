@@ -1,4 +1,5 @@
-﻿using Auth.API.Data;
+﻿using Auth.API.Common.Authentication;
+using Auth.API.Data;
 using Auth.API.Features.Authentication.BackgroundServices;
 using Auth.API.Features.Authentication.ServiceContracts;
 using Auth.API.Features.Authentication.ServiceContracts.Features;
@@ -50,7 +51,7 @@ public static class ApplicationServiceExtensions
         AddDatabase(services, config);
 
         AddServiceDependencies(services);
-
+        
         services.AddRedisCache(config);
 
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
@@ -58,7 +59,7 @@ public static class ApplicationServiceExtensions
         services.AddHostedService<RevokeSessionCleanupService>();
 
         services.AddHttpContextAccessor();
-
+        
         ConfigureDataProtection(services, config, env);
 
         AddGrpcServiceDependencies(services, config);
@@ -133,6 +134,7 @@ public static class ApplicationServiceExtensions
     {
         services.AddScoped<LoggingActionFilter>();
         services.AddScoped<IPayloadProtector, PayloadProtector>();
+        services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
 
         //Facade
         services.AddScoped<IAuthFacade, AuthFacade>();

@@ -1,12 +1,18 @@
-﻿using Auth.API.Data;
+﻿using Auth.API.Common.Authentication;
+using Auth.API.Data;
 using Auth.API.Enums;
 using Auth.API.Features.Authentication.Dtos.Responses;
 using Auth.API.Features.Authentication.Exceptions;
 using Auth.API.Features.Authentication.ServiceContracts.Features;
+using Pii.API.Protos;
 
 namespace Auth.API.Features.Authentication.Services.Features;
 
-public class UserOnboardingService(AuthDbContext dbContext, ILogger<UserOnboardingService> logger) : IUserOnboardingService
+public class UserOnboardingService(
+    AuthDbContext dbContext,
+    ICurrentActorAccessor actorAccessor,
+    PiiService.PiiServiceClient piiClient,
+    ILogger<UserOnboardingService> logger) : IUserOnboardingService
 {
     public async Task<bool> MarkPiiOnboardedAsync(Guid userId, CancellationToken cancellationToken = default)
     {
@@ -53,9 +59,26 @@ public class UserOnboardingService(AuthDbContext dbContext, ILogger<UserOnboardi
 
         return true;
     }
-    
-    public async Task<UserOnboardingStatusResponse> GetOnboardingStatusAsync(Guid userId, CancellationToken cancellationToken = default)
+
+    public async Task<UserOnboardingStatusResponse> GetOnboardingStatusAsync(CancellationToken cancellationToken = default)
     {
+        var subjectRef = actorAccessor.GetRequiredSubjectRef();
+
+        var resolveResponse = await piiClient.ResolveUserIdBySubjectRefAsync(new ResolveUserIdBySubjectRefRequest
+        {
+            SubjectRef = subjectRef.ToString()
+        });
+
+        if (!Guid.TryParse(resolveResponse.UserId, out var userId))
+        {
+            return new UserOnboardingStatusResponse
+            (
+                Status: UserOnboardingStatus.Pending,
+                PiiCompleted: false,
+                PatientProfileCompleted: false
+            );
+        }
+
         var user = await dbContext.Users
             .Include(u => u.Onboarding)
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken: cancellationToken);
@@ -66,9 +89,9 @@ public class UserOnboardingService(AuthDbContext dbContext, ILogger<UserOnboardi
         var result = new UserOnboardingStatusResponse(
             Status: user.OnboardingStatus,
             PiiCompleted: user.Onboarding?.PiiCompleted ?? false,
-            PatientProfileCompleted: user.Onboarding?.PatientProfileCompleted  ?? false
+            PatientProfileCompleted: user.Onboarding?.PatientProfileCompleted ?? false
         );
-        
+
         return result;
     }
 

@@ -5,7 +5,7 @@ namespace Auth.API.Features.Authentication.Exceptions;
 public class UserNotFoundException : NotFoundException
 {
     private const string Code = "USER_NOT_FOUND";
-    private const string DefaultSafeMessage = "Không tìm thấy người dùng.";
+    private const string DefaultSafeMessage = "Không tìm thấy người dùng trong hệ thống.";
 
     public UserNotFoundException()
         : base(

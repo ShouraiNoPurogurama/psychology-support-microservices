@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using Auth.API.Enums;
 using Auth.API.Features.Authentication.ServiceContracts.Shared;
 using BuildingBlocks.Exceptions;
 using Microsoft.IdentityModel.Tokens;
@@ -17,23 +18,69 @@ public class TokenService(
 ) : ITokenService
 {
     private readonly PasswordHasher<User> _passwordHasher = new();
+    private static RsaSecurityKey? _cachedKey;
+
+    public (string Token, string Jti) GenerateJWTFromOldToken(string oldToken)
+    {
+        var principal = GetPrincipalFromExpiredToken(oldToken);
+
+        var sub = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(sub, out var _) || string.IsNullOrWhiteSpace(sub))
+            throw new UnauthorizedException();
+
+        var roles = principal.FindAll(ClaimTypes.Role).Select(c => c.Value);
+
+        var onboarding = principal.FindFirst(ClaimTypes.Authentication)?.Value ?? nameof(UserOnboardingStatus.Pending);
+
+        var jti = Guid.NewGuid().ToString();
+
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Jti, jti),
+            new Claim(ClaimTypes.NameIdentifier, sub),
+            new Claim(ClaimTypes.Authentication, onboarding)
+        };
+        
+        claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+        
+        var rsaSecurityKey = GetRsaSecurityKey();
+
+        var signingCredential = new SigningCredentials(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
+
+        var token = new JwtSecurityToken(
+            configuration["Jwt:Issuer"],
+            configuration["Jwt:Audience"],
+            claims,
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: signingCredential
+        );
+
+        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+        return (tokenString, jti);
+    }
 
     public async Task<(string Token, string Jti)> GenerateJWTToken(User user)
     {
-        var roles = await userManager.GetRolesAsync(user);
+        var roles = user.UserRoles.Select(r => r.Role.Name).ToList();
 
         var subjectRef = await ResolveSubjectRef(user);
 
         var onboardingStatus = user.OnboardingStatus.ToString();
 
         var jti = Guid.NewGuid().ToString();
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Jti, jti),
             new Claim(JwtRegisteredClaimNames.Sub, subjectRef),
-            new Claim(ClaimTypes.Role, string.Join(",", roles)),
             new Claim(ClaimTypes.Authentication, onboardingStatus)
         };
+        
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role!));
+        }
 
         var rsaSecurityKey = GetRsaSecurityKey();
 
@@ -51,6 +98,7 @@ public class TokenService(
 
         return (tokenString, jti);
     }
+
 
     private async Task<string> ResolveSubjectRef(User user)
     {
@@ -101,49 +149,20 @@ public class TokenService(
 
     private RsaSecurityKey GetRsaSecurityKey()
     {
-        var rsaKeys = RSA.Create();
-        string xmlKey = File.ReadAllText(configuration.GetSection("Jwt:PrivateKeyPath").Value!);
-        rsaKeys.FromXmlString(xmlKey);
-        var rsaSecurityKey = new RsaSecurityKey(rsaKeys);
-        return rsaSecurityKey;
-    }
-
-
-    public Guid GetAliasIdFromHttpContext(HttpContext httpContext)
-    {
-        if (!httpContext.Request.Headers.ContainsKey("Authorization"))
-            throw new ForbiddenException("Thiếu header Authorization.");
-
-        var authorizationHeader = httpContext.Request.Headers["Authorization"].ToString();
-
-        if (string.IsNullOrWhiteSpace(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
-            throw new ForbiddenException("Định dạng header Authorization không hợp lệ.");
-
-        var jwtToken = authorizationHeader["Bearer ".Length..]; //Slice token to get Payload
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        if (!tokenHandler.CanReadToken(jwtToken)) throw new ForbiddenException("Định dạng JWT token không hợp lệ.");
-
-        try
-        {
-            var token = tokenHandler.ReadJwtToken(jwtToken);
-            var userIdClaim = token.Claims.FirstOrDefault(claim => claim.Type == "aliasId");
-
-            if (userIdClaim is null || string.IsNullOrWhiteSpace(userIdClaim.Value))
-                throw new ForbiddenException("Thiếu thông tin Alias Id trong token.");
-
-            return Guid.Parse(userIdClaim.Value);
-        }
-        catch (Exception e)
-        {
-            throw new InternalServerException($"Lỗi khi phân tích token: {e.Message}");
-        }
+        if (_cachedKey != null) return _cachedKey;
+        var rsa = RSA.Create();
+        rsa.FromXmlString(File.ReadAllText(configuration["Jwt:PrivateKeyPath"]!));
+        
+        //Cache key để tránh việc đọc file và parse XML nhiều lần.
+        _cachedKey = new RsaSecurityKey(rsa);
+        return _cachedKey;
     }
 
 
     public bool VerifyPassword(string providedPassword, string hashedPassword, User user)
     {
         var result = _passwordHasher.VerifyHashedPassword(user, hashedPassword, providedPassword);
+        
         return result == PasswordVerificationResult.Success;
     }
 
@@ -162,63 +181,60 @@ public class TokenService(
 
     public string GenerateRefreshToken()
     {
-        var randomNumber = new byte[32]; //Needed for HMAC-SHA512 (256-bit length)
-        using var randomNumberGenerator = RandomNumberGenerator.Create();
-        randomNumberGenerator.GetBytes(randomNumber);
-        return Convert.ToBase64String(randomNumber);
+        var randomNumber = new byte[32]; // (256-bit length)
+        RandomNumberGenerator.Fill(randomNumber);
+        return Base64UrlEncoder.Encode(randomNumber);
     }
 
-    public async Task SaveRefreshToken(User user, string refreshToken)
+    public (string newJwtToken, string jti, string newRefreshToken) RefreshToken(string oldJwt)
     {
-        await userManager.SetAuthenticationTokenAsync(user, "PsychologySupport", "RefreshToken", refreshToken);
-    }
+        (string token, string jti) =  GenerateJWTFromOldToken(oldJwt);
 
-    public async Task<bool> ValidateRefreshToken(User user, string refreshToken)
-    {
-        var storedToken = await userManager.GetAuthenticationTokenAsync(user, "PsychologySupport", "RefreshToken");
-
-        return storedToken is not null && storedToken == refreshToken;
-    }
-
-
-    public async Task<(string newJwtToken, string newRefreshToken)> RefreshToken(User user, string refreshToken)
-    {
-        var isValidRefreshToken = await ValidateRefreshToken(user, refreshToken);
-
-        if (!isValidRefreshToken) throw new ForbiddenException("Refresh Token không hợp lệ.");
-
-        var newJwtToken = await GenerateJWTToken(user);
         var newRefreshToken = GenerateRefreshToken();
 
-        await SaveRefreshToken(user, newRefreshToken);
-
-        return (newJwtToken.Token, newRefreshToken);
+        return (token, jti, newRefreshToken);
     }
+
+    public async Task<(string AccessToken, string Jti, string RefreshToken)> GenerateTokensAsync(User user)
+    {
+        var accessToken = await GenerateJWTToken(user);
+
+        var refreshToken = GenerateRefreshToken();
+
+        return (accessToken.Token, accessToken.Jti, refreshToken);
+    }
+
 
     public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
     {
         var securityKey = GetRsaSecurityKey();
+
         var tokenValidationParameters = new TokenValidationParameters
         {
             ValidateActor = false,
-            ValidateAudience = false, //you might want to validate the audience and issuer depending on your use case
-            ValidateIssuer = false,
+            
+            ValidateAudience = true,
+            ValidAudience = configuration["Jwt:Audience"], 
+            
+            ValidateIssuer = true,
+            ValidIssuer = configuration["Jwt:Issuer"],
+            
             ValidateIssuerSigningKey = true,
-            // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jtw:Key"]!)),
             IssuerSigningKey = securityKey,
-            ValidateLifetime = false //here we are saying that we don't care about the token's expiration date
+            
+            ValidateLifetime = false,
+            ClockSkew = TimeSpan.Zero,
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
 
-        SecurityToken securityToken;
+        var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
 
-        var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
-
-        // var jwtSecurityToken = securityToken as JwtSecurityToken;
-        // if (jwtSecurityToken == null ||
-        //     !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-        //     throw new SecurityTokenException("Token không hợp lệ");
+        if (securityToken is not JwtSecurityToken jwt ||
+            !string.Equals(jwt.Header.Alg, SecurityAlgorithms.RsaSha256, StringComparison.Ordinal))
+        {
+            throw new SecurityTokenException("Thuật toán ký không hợp lệ");
+        }
 
         return principal;
     }
