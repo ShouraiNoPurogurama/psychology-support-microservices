@@ -397,8 +397,11 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+
     ports:
-      - "80:80"
+      - "8080:8080"        # chỉ mở nội bộ host, Nginx sẽ proxy vào đây
 #      - "443:443"
     build:
       context: .
