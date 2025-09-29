@@ -17,10 +17,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Features\Challenges\EventHandler\Domains\" />
-	  <Folder Include="Features\ProcessHistory\Commands\" />
-	  <Folder Include="Features\ProcessHistory\Dtos\" />
-	  <Folder Include="Features\ProcessHistory\Queries\" />
+	  <Folder Include="Features\ProcessHistories\Dtos\" />
+	  <Folder Include="Features\ProcessHistories\Queries\" />
 	</ItemGroup>
 
 </Project>

@@ -2,6 +2,7 @@
 using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Wellness.Application.Data;
+using Wellness.Application.Exceptions;
 using Wellness.Domain.Aggregates.Challenges;
 using Wellness.Domain.Enums;
 
@@ -45,16 +46,13 @@ internal class CreateChallengeProgressHandler
             });
         }
 
-
-        // 2. Load challenge
         var challenge = await _dbContext.Challenges
             .Include(c => c.ChallengeSteps)
             .FirstOrDefaultAsync(c => c.Id == request.ChallengeId, cancellationToken);
 
         if (challenge == null)
-            throw new NotFoundException($"Challenge with Id = {request.ChallengeId} not found.");
+            throw new WellnessNotFoundException($"Challenge with Id = {request.ChallengeId} not found.");
 
-        // 3. Create ChallengeProgress via domain method
         var progress = ChallengeProgress.Create(request.SubjectRef, challenge);
 
         _dbContext.ChallengeProgresses.Add(progress);

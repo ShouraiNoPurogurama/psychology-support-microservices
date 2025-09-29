@@ -9,13 +9,16 @@ public static class ChallengeDomainEvents
         Guid ChallengeProgressId,
         Guid SubjectRef,
         Guid ChallengeId,
-        List<Guid> StepIds // danh sách step thuộc challenge
+        List<Guid> StepIds 
     ) : IDomainEvent;
 
     public record ChallengeProgressUpdatedEvent(
-        Guid ChallengeProgressId,
-        Guid ChallengeStepId,
-        Guid? PostMoodId,
-        ProcessStatus Status
-    ) : IDomainEvent;
+       Guid ChallengeProgressId,
+       Guid SubjectRef,
+       Guid ChallengeStepId,
+       Guid ActivityId,           
+       Guid? PostMoodId,
+       ProcessStatus Status
+   ) : IDomainEvent;
+
 }

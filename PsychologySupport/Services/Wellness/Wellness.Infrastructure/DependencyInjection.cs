@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.Data.Interceptors;
-using BuildingBlocks.Idempotency;
+﻿using BuildingBlocks.Idempotency;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Wellness.Application.Data;
 using Wellness.Infrastructure.Resilience.Decorators;
 using Wellness.Infrastructure.Resilience.Services;
+using Wellness.Infrastructure.Data.Interceptors;
 
 namespace Wellness.Infrastructure
 {

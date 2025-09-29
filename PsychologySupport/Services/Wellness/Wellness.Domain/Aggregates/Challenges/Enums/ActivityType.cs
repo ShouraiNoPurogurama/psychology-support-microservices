@@ -10,12 +10,11 @@ namespace Wellness.Domain.Aggregates.Challenges.Enums
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum ActivityType
     {
-        Meditation,
-        Breathing,
-        Journaling,
-        Reading,
-        Listening,
-        Exercise,
-        Other
+        Mental,    // Meditation, Breathing, Journaling, Gratitude, Mindfulness, Reading, Listening
+        Physical,  // Exercise, Walking, Stretching, Relaxation, Nature
+        Social,    // Social connection, talking with friends, group activities
+        Creative,  // Art, music, writing, crafting
+        Other      // Anything not covered above
     }
+
 }

@@ -112,7 +112,7 @@ namespace Wellness.API
             {
                 app.UseSwaggerUI(c =>
                 {
-                    c.SwaggerEndpoint("/wellness-service/swagger/v1/swagger.json", "Media API v1");
+                    c.SwaggerEndpoint("/wellness-service/swagger/v1/swagger.json", "Wellness API v1");
                 });
             }
 

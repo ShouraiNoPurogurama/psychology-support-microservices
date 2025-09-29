@@ -9,7 +9,7 @@ public partial class ChallengeStep : AuditableEntity<Guid>
 {
     public Guid? ChallengeId { get; set; }
 
-    public Guid? ActivityId { get; set; }
+    public Guid ActivityId { get; set; }
 
     public int DayNumber { get; set; } // Ngày thứ bao nhiêu trong thử thách
 

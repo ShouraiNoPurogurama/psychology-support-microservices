@@ -4,7 +4,7 @@ using Wellness.Domain.Aggregates.IdempotencyKey;
 using Wellness.Domain.Aggregates.JournalMoods;
 using Wellness.Domain.Aggregates.ModuleSections;
 using Wellness.Domain.Aggregates.OutboxMessage;
-using Wellness.Domain.Aggregates.ProcessHistory;
+using Wellness.Domain.Aggregates.ProcessHistories;
 
 namespace Wellness.Application.Data
 {

@@ -18,7 +18,7 @@ public partial class ChallengeProgress : AggregateRoot<Guid>
 
     public DateTimeOffset? EndDate { get; private set; }
 
-    public virtual Challenge? Challenge { get; private set; }
+    public virtual Challenge Challenge { get; private set; }
 
     public virtual ICollection<ChallengeStepProgress> ChallengeStepProgresses { get; private set; }
         = new List<ChallengeStepProgress>();
@@ -87,13 +87,18 @@ public partial class ChallengeProgress : AggregateRoot<Guid>
                 ProcessStatus = ProcessStatus.Progressing;
             }
         }
-       
+
         AddDomainEvent(new ChallengeProgressUpdatedEvent(
             ChallengeProgressId: this.Id,
+            SubjectRef: this.SubjectRef,
             ChallengeStepId: stepId,
+            ActivityId: this.Challenge.ChallengeSteps
+                .First(s => s.Id == stepId) 
+                .ActivityId,
             PostMoodId: postMoodId,
             Status: stepStatus
         ));
+
     }
 
 }
