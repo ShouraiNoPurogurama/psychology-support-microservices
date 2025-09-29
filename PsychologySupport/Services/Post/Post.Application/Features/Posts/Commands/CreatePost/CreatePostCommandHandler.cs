@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Abstractions.Integration;
 using Post.Application.Data;
+using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Features.Posts.Commands.CreatePost;
 
@@ -33,6 +34,9 @@ public sealed class CreatePostCommandHandler(
             request.Visibility
         );
 
+        //Bypass moderation for now
+        post.FinalizePost();
+        
         await AttachEmotionTagToPost(request, cancellationToken, aliasId, post);
 
         await AttachCategoryTagToPost(request, cancellationToken, post);
@@ -43,6 +47,12 @@ public sealed class CreatePostCommandHandler(
             {
                 post.AddMedia(mediaId);
             }
+        }
+        
+        //Bypass moderation, auto-publish if possible
+        if (post.CanBePublished)
+        {
+            post.ChangeVisibility(PostVisibility.Public, editorAliasId: post.Author.AliasId);
         }
 
         context.Posts.Add(post);

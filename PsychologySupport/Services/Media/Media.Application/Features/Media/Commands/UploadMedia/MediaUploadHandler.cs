@@ -13,6 +13,7 @@ namespace Media.Application.Features.Media.Commands.UploadMedia
     public record MediaUploadCommand(
         Guid IdempotencyKey,
         IFormFile File,
+        MediaPurpose Purpose,
         MediaOwnerType MediaOwnerType,
         Guid MediaOwnerId
     ) : IdempotentCommand<MediaUploadResult>(IdempotencyKey);
@@ -67,6 +68,7 @@ namespace Media.Application.Features.Media.Commands.UploadMedia
                 request.File.ContentType,
                 request.File.Length,
                 checksumSha256,
+                request.Purpose,
                 width,
                 height);
 

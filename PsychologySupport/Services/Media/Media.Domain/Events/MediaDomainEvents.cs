@@ -2,6 +2,7 @@
 
 public sealed record MediaUploadedEvent(
     Guid MediaId,
+    string MediaPurpose,
     string MimeType,
     long SizeInBytes,
     string ChecksumSha256,

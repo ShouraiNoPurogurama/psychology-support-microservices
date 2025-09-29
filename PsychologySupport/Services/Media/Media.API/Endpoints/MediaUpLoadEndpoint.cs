@@ -11,6 +11,7 @@ namespace Media.API.Endpoints
 {
     public record MediaUploadRequest(
         IFormFile File,
+        MediaPurpose Purpose,
         MediaOwnerType MediaOwnerType,
         Guid MediaOwnerId 
     );
@@ -40,6 +41,7 @@ namespace Media.API.Endpoints
                 var command = new MediaUploadCommand(
                     idempotencyKey,
                     request.File,
+                    request.Purpose,
                     request.MediaOwnerType,
                     request.MediaOwnerId
                 );
