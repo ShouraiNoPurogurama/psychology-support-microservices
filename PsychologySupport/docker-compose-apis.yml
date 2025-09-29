@@ -411,6 +411,7 @@ services:
       #      - /etc/ssl/certs-anhtn:/certs:ro
       - /etc/ssl/api-cert:/certs:ro
       - ~/.aspnet/https:/https:ro
+      - /var/emoease/dp-keys:/home/app/.aspnet/DataProtection-Keys
   
   distributedcache:
     container_name: distributedcache-msa
