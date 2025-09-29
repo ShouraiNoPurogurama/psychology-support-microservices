@@ -88,6 +88,11 @@ public class MediaDbContext : DbContext, IMediaDbContext
             entity.Property(m => m.ExifRemoved).HasColumnName("exif_removed").HasDefaultValue(false);
             entity.Property(m => m.HoldThumbUntilPass).HasColumnName("hold_thumb_until_pass").HasDefaultValue(false);
 
+            entity.Property(m => m.Purpose)
+                .HasConversion(p => p.ToString(),
+                    dbPurpose => (MediaPurpose)Enum.Parse(typeof(MediaPurpose), dbPurpose))
+                .HasDefaultValue(MediaPurpose.NotSpecified)
+                .HasSentinel(MediaPurpose.NotSpecified);
             
             entity.Property(m => m.DeletedAt).HasColumnName("deleted_at");
             entity.Property(m => m.DeletedBy).HasColumnName("deleted_by").HasMaxLength(255);

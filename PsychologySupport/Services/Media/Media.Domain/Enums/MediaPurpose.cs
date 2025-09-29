@@ -23,5 +23,7 @@ public enum MediaPurpose
     /// <summary>
     /// File được upload để gắn vào một bình luận.
     /// </summary>
-    CommentAttachment
+    CommentAttachment,
+    
+    NotSpecified
 }
