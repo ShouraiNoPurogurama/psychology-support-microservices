@@ -29,15 +29,10 @@ app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();
-    app.UseSwaggerUI();
 }
-else
-{
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/auth-service/swagger/v1/swagger.json", "Auth API v1");
-    });
-}
+
+app.UseSwaggerUI();
+
 
 app.UseHealthChecks("/health",
     new HealthCheckOptions
