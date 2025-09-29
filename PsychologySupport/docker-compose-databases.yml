@@ -1,138 +1,147 @@
 version: '3.8'
 
 services:
-  authdb:
-    image: postgres
-    container_name: authdb
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=AuthDb
-    restart: always
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
+    container_name: mongodb
     ports:
-      - "5433:5432"
+      - "27017:27017"
     volumes:
-      - postgres_auth:/var/lib/postgresql/data/
-
-  chatboxdb:
-    image: postgres
-    container_name: chatboxdb
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=ChatBoxDb
-    restart: always
-    ports:
-      - "5434:5432"
-    volumes:
-      - postgres_chatbox:/var/lib/postgresql/data/
-
-  lifestyledb:
-    image: postgres
-    container_name: lifestyledb
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=LifeStyleDb
-      - 
-    restart: always
-    ports:
-      - "5435:5432"
-    volumes:
-      - postgres_lifestyle:/var/lib/postgresql/data/
-
-  notificationdb:
-    image: postgres
-    container_name: notificationdb
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=NotificationDb
-    restart: always
-    ports:
-      - "5436:5432"
-    volumes:
-      - postgres_notification:/var/lib/postgresql/data/
-
-  paymentdb:
-    image: postgres
-    container_name: paymentdb
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=PaymentDb
-    restart: always
-    ports:
-      - "5437:5432"
-    volumes:
-      - postgres_payment:/var/lib/postgresql/data/
-
-  profiledb:
-    image: postgres
-    container_name: profiledb
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=ProfileDb
-    restart: always
-    ports:
-      - "5438:5432"
-    volumes:
-      - postgres_profile:/var/lib/postgresql/data/
-
-  promotiondb:
-    image: postgres
-    container_name: promotiondb
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=PromotionDb
-    restart: always
-    ports:
-      - "5439:5432"
-    volumes:
-      - postgres_promotion:/var/lib/postgresql/data/
-
-  schedulingdb:
-    image: postgres
-    container_name: schedulingdb
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=SchedulingDb
-    restart: always
-    ports:
-      - "5440:5432"
-    volumes:
-      - postgres_scheduling:/var/lib/postgresql/data/
-
-  subscriptiondb:
-    image: postgres
-    container_name: subscriptiondb
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=SubscriptionDb
-    restart: always
-    ports:
-      - "5441:5432"
-    volumes:
-      - postgres_subscription:/var/lib/postgresql/data/
-
-  testdb:
-    image: postgres
-    container_name: testdb
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=TestDb
-    restart: always
-    ports:
-      - "5442:5432"
-    volumes:
-      - postgres_test:/var/lib/postgresql/data/
+      - mongodb_data:/data/db
+  
+#  authdb:
+#    image: postgres
+#    container_name: authdb
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=12345
+#      - POSTGRES_DB=AuthDb
+#    restart: always
+#    ports:
+#      - "5433:5432"
+#    volumes:
+#      - postgres_auth:/var/lib/postgresql/data/
+#
+#  chatboxdb:
+#    image: postgres
+#    container_name: chatboxdb
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=12345
+#      - POSTGRES_DB=ChatBoxDb
+#    restart: always
+#    ports:
+#      - "5434:5432"
+#    volumes:
+#      - postgres_chatbox:/var/lib/postgresql/data/
+#
+#  lifestyledb:
+#    image: postgres
+#    container_name: lifestyledb
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=12345
+#      - POSTGRES_DB=LifeStyleDb
+#      - 
+#    restart: always
+#    ports:
+#      - "5435:5432"
+#    volumes:
+#      - postgres_lifestyle:/var/lib/postgresql/data/
+#
+#  notificationdb:
+#    image: postgres
+#    container_name: notificationdb
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=12345
+#      - POSTGRES_DB=NotificationDb
+#    restart: always
+#    ports:
+#      - "5436:5432"
+#    volumes:
+#      - postgres_notification:/var/lib/postgresql/data/
+#
+#  paymentdb:
+#    image: postgres
+#    container_name: paymentdb
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=12345
+#      - POSTGRES_DB=PaymentDb
+#    restart: always
+#    ports:
+#      - "5437:5432"
+#    volumes:
+#      - postgres_payment:/var/lib/postgresql/data/
+#
+#  profiledb:
+#    image: postgres
+#    container_name: profiledb
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=12345
+#      - POSTGRES_DB=ProfileDb
+#    restart: always
+#    ports:
+#      - "5438:5432"
+#    volumes:
+#      - postgres_profile:/var/lib/postgresql/data/
+#
+#  promotiondb:
+#    image: postgres
+#    container_name: promotiondb
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=12345
+#      - POSTGRES_DB=PromotionDb
+#    restart: always
+#    ports:
+#      - "5439:5432"
+#    volumes:
+#      - postgres_promotion:/var/lib/postgresql/data/
+#
+#  schedulingdb:
+#    image: postgres
+#    container_name: schedulingdb
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=12345
+#      - POSTGRES_DB=SchedulingDb
+#    restart: always
+#    ports:
+#      - "5440:5432"
+#    volumes:
+#      - postgres_scheduling:/var/lib/postgresql/data/
+#
+#  subscriptiondb:
+#    image: postgres
+#    container_name: subscriptiondb
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=12345
+#      - POSTGRES_DB=SubscriptionDb
+#    restart: always
+#    ports:
+#      - "5441:5432"
+#    volumes:
+#      - postgres_subscription:/var/lib/postgresql/data/
+#
+#  testdb:
+#    image: postgres
+#    container_name: testdb
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=12345
+#      - POSTGRES_DB=TestDb
+#    restart: always
+#    ports:
+#      - "5442:5432"
+#    volumes:
+#      - postgres_test:/var/lib/postgresql/data/
 
 volumes:
+  mongodb_data:
   postgres_auth:
   postgres_chatbox:
   postgres_lifestyle:
