@@ -162,10 +162,10 @@ jobs:
             ${{ secrets.APPSETTINGS_PRODUCTION_POST }}
             EOF
 
-            # YARP ApiGateway
-            cat <<EOF > ApiGateways/YarpApiGateway/appsettings.Production.json
-            ${{ secrets.APPSETTINGS_PRODUCTION_YARP_API_GATEWAY }}
-            EOF
+            # # YARP ApiGateway
+            # cat <<EOF > ApiGateways/YarpApiGateway/appsettings.Production.json
+            # ${{ secrets.APPSETTINGS_PRODUCTION_YARP_API_GATEWAY }}
+            # EOF
 
             # ==================================================
 
