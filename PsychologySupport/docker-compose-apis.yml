@@ -64,7 +64,7 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Auth/Auth.API/RSAKeys:/app/RSAKeys
-      - /mnt/dpkeys:/dpkeys
+      - /mnt/dpkeys:/home/app/.aspnet/DataProtection-Keys
   #
   #  billing.api:
   #    image: ${DOCKER_REGISTRY-}billingapi
@@ -432,7 +432,7 @@ services:
       #      - /etc/ssl/certs-anhtn:/certs:ro
       - /etc/ssl/api-cert:/certs:ro
       - ~/.aspnet/https:/https:ro
-      - /var/emoease/dp-keys:/home/app/.aspnet/DataProtection-Keys
+      - /mnt/dpkeys:/home/app/.aspnet/DataProtection-Keys
   
   distributedcache:
     container_name: distributedcache-msa
