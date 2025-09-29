@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Mvc;
 using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Transforms.Builder;
 using YarpApiGateway.Features.TokenExchange.Contracts;
@@ -72,7 +73,26 @@ public class TokenExchangeTransformFactory(ILogger<TokenExchangeTransformFactory
             var newScopedToken = await tokenExchangeService.ExchangeTokenAsync(originalToken, destinationAudience);
             if (string.IsNullOrEmpty(newScopedToken))
             {
-                context.HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+                var statusCode = StatusCodes.Status403Forbidden;
+                var title = "Hồ sơ chưa hoàn thiện";
+                var detail = "Hồ sơ của bạn chưa được hoàn thiện. Vui lòng cập nhật hồ sơ để tiếp tục.";
+                var errorCode = "PROFILE_INCOMPLETE";
+
+                context.HttpContext.Response.StatusCode = statusCode;
+                context.HttpContext.Response.ContentType = "application/json";
+
+                var problemDetails = new ProblemDetails
+                {
+                    Title = title,
+                    Detail = detail,
+                    Status = statusCode,
+                    Instance = context.HttpContext.Request.Path
+                };
+
+                problemDetails.Extensions["errorCode"] = errorCode;
+                problemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+
+                await context.HttpContext.Response.WriteAsJsonAsync(problemDetails);
                 return;
             }
             

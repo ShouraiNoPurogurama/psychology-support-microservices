@@ -23,7 +23,7 @@ namespace Alias.API.Data.Public.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "citext");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Alias.API.Aliases.Models.Alias", b =>
+            modelBuilder.Entity("Alias.API.Aliases.Models.Aliases.Alias", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -90,7 +90,7 @@ namespace Alias.API.Data.Public.Migrations
                     b.ToTable("aliases", (string)null);
                 });
 
-            modelBuilder.Entity("Alias.API.Aliases.Models.AliasAudit", b =>
+            modelBuilder.Entity("Alias.API.Aliases.Models.Aliases.AliasAudit", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -126,7 +126,7 @@ namespace Alias.API.Data.Public.Migrations
                     b.ToTable("alias_audits", (string)null);
                 });
 
-            modelBuilder.Entity("Alias.API.Aliases.Models.AliasVersion", b =>
+            modelBuilder.Entity("Alias.API.Aliases.Models.Aliases.AliasVersion", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -191,9 +191,59 @@ namespace Alias.API.Data.Public.Migrations
                     b.ToTable("alias_versions", (string)null);
                 });
 
-            modelBuilder.Entity("Alias.API.Aliases.Models.Alias", b =>
+            modelBuilder.Entity("Alias.API.Aliases.Models.Follows.Follow", b =>
                 {
-                    b.OwnsOne("Alias.API.Aliases.Models.ValueObjects.AliasLabel", "Label", b1 =>
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("FollowedAliasId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("followed_alias_id");
+
+                    b.Property<DateTimeOffset>("FollowedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("followed_at");
+
+                    b.Property<Guid>("FollowerAliasId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("follower_alias_id");
+
+                    b.Property<DateTimeOffset?>("LastModified")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("last_modified_by");
+
+                    b.HasKey("Id")
+                        .HasName("follows_pkey");
+
+                    b.HasIndex("FollowerAliasId", "FollowedAliasId")
+                        .IsUnique()
+                        .HasDatabaseName("uix_follows_follower_followed");
+
+                    b.HasIndex(new[] { "FollowedAliasId" }, "ix_follows_followed_alias_id")
+                        .HasDatabaseName("ix_follows_followed_alias_id");
+
+                    b.HasIndex(new[] { "FollowerAliasId" }, "ix_follows_follower_alias_id")
+                        .HasDatabaseName("ix_follows_follower_alias_id");
+
+                    b.ToTable("follows", (string)null);
+                });
+
+            modelBuilder.Entity("Alias.API.Aliases.Models.Aliases.Alias", b =>
+                {
+                    b.OwnsOne("Alias.API.Aliases.Models.Aliases.ValueObjects.AliasLabel", "Label", b1 =>
                         {
                             b1.Property<Guid>("AliasId")
                                 .HasColumnType("uuid")
@@ -223,7 +273,7 @@ namespace Alias.API.Data.Public.Migrations
                                 .HasConstraintName("fk_aliases_aliases_id");
                         });
 
-                    b.OwnsOne("Alias.API.Aliases.Models.ValueObjects.AliasMetadata", "Metadata", b1 =>
+                    b.OwnsOne("Alias.API.Aliases.Models.Aliases.ValueObjects.AliasMetadata", "Metadata", b1 =>
                         {
                             b1.Property<Guid>("AliasId")
                                 .HasColumnType("uuid")
@@ -232,6 +282,14 @@ namespace Alias.API.Data.Public.Migrations
                             b1.Property<DateTimeOffset>("CreatedAt")
                                 .HasColumnType("timestamp with time zone")
                                 .HasColumnName("metadata_created_at");
+
+                            b1.Property<long>("FollowersCount")
+                                .HasColumnType("bigint")
+                                .HasColumnName("followers_count");
+
+                            b1.Property<long>("FollowingCount")
+                                .HasColumnType("bigint")
+                                .HasColumnName("following_count");
 
                             b1.Property<bool>("IsSystemGenerated")
                                 .HasColumnType("boolean")
@@ -261,9 +319,9 @@ namespace Alias.API.Data.Public.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Alias.API.Aliases.Models.AliasAudit", b =>
+            modelBuilder.Entity("Alias.API.Aliases.Models.Aliases.AliasAudit", b =>
                 {
-                    b.HasOne("Alias.API.Aliases.Models.Alias", null)
+                    b.HasOne("Alias.API.Aliases.Models.Aliases.Alias", null)
                         .WithMany("AuditRecords")
                         .HasForeignKey("AliasId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -271,9 +329,9 @@ namespace Alias.API.Data.Public.Migrations
                         .HasConstraintName("fk_alias_audits_aliases_alias_id");
                 });
 
-            modelBuilder.Entity("Alias.API.Aliases.Models.AliasVersion", b =>
+            modelBuilder.Entity("Alias.API.Aliases.Models.Aliases.AliasVersion", b =>
                 {
-                    b.HasOne("Alias.API.Aliases.Models.Alias", null)
+                    b.HasOne("Alias.API.Aliases.Models.Aliases.Alias", null)
                         .WithMany("Versions")
                         .HasForeignKey("AliasId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -281,7 +339,24 @@ namespace Alias.API.Data.Public.Migrations
                         .HasConstraintName("fk_alias_versions_aliases_alias_id");
                 });
 
-            modelBuilder.Entity("Alias.API.Aliases.Models.Alias", b =>
+            modelBuilder.Entity("Alias.API.Aliases.Models.Follows.Follow", b =>
+                {
+                    b.HasOne("Alias.API.Aliases.Models.Aliases.Alias", null)
+                        .WithMany()
+                        .HasForeignKey("FollowedAliasId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_follows_followed_alias");
+
+                    b.HasOne("Alias.API.Aliases.Models.Aliases.Alias", null)
+                        .WithMany()
+                        .HasForeignKey("FollowerAliasId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_follows_follower_alias");
+                });
+
+            modelBuilder.Entity("Alias.API.Aliases.Models.Aliases.Alias", b =>
                 {
                     b.Navigation("AuditRecords");
 

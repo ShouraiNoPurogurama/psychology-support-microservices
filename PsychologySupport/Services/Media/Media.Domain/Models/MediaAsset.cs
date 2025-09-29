@@ -21,6 +21,11 @@ public sealed class MediaAsset : AggregateRoot<Guid>
     /// Enum này trả lời câu hỏi: "Media asset này đang ở giai đoạn nào trong vòng đời của nó?"
     /// </summary>
     public MediaState State { get; private set; }
+    /// <summary>
+    /// Enum này trả lời câu hỏi: "Media này được upload với mục đích gì?".
+    /// Thuộc tính này là bất biến sau khi được tạo.
+    /// </summary>
+    public MediaPurpose Purpose { get; private set; } 
     public bool ExifRemoved { get; private set; } = false;
     public bool HoldThumbUntilPass { get; private set; } = false;
 
@@ -35,6 +40,15 @@ public sealed class MediaAsset : AggregateRoot<Guid>
     public IReadOnlyList<MediaProcessingJob> ProcessingJobs => _processingJobs.AsReadOnly();
     public IReadOnlyList<MediaVariant> Variants => _variants.AsReadOnly();
 
+    
+    private static readonly Dictionary<MediaPurpose, MediaOwnerType[]> PurposeOwnerCompatibilityMap = new()
+    {
+        { MediaPurpose.PostAttachment, [MediaOwnerType.Post] },
+        { MediaPurpose.CommentAttachment, [MediaOwnerType.Comment] },
+        { MediaPurpose.Avatar, [MediaOwnerType.Profile] },
+        { MediaPurpose.ProfileBackground, [MediaOwnerType.Profile] }
+    };
+    
     private MediaAsset() { }
 
     public static MediaAsset Create(
@@ -42,6 +56,7 @@ public sealed class MediaAsset : AggregateRoot<Guid>
         string mimeType,
         long sizeInBytes,
         string checksumSha256,
+        MediaPurpose purpose, 
         int? width = null,
         int? height = null,
         string? phash64 = null)
@@ -51,6 +66,7 @@ public sealed class MediaAsset : AggregateRoot<Guid>
         var media = new MediaAsset
         {
             Id = newId,
+            Purpose = purpose,
             Content = MediaContent.Create(mimeType, sizeInBytes, phash64),
             Checksum = MediaChecksum.CreateSha256(checksumSha256),
             Dimensions = MediaDimensions.CreateOptional(width, height),
@@ -61,6 +77,7 @@ public sealed class MediaAsset : AggregateRoot<Guid>
 
         media.AddDomainEvent(new MediaUploadedEvent(
             media.Id,
+            media.Purpose.ToString(),
             mimeType,
             sizeInBytes,
             checksumSha256,
@@ -96,7 +113,7 @@ public sealed class MediaAsset : AggregateRoot<Guid>
 
         AddDomainEvent(new MediaStateChangedEvent(Id, previousState.ToString(), State.ToString()));
     }
-
+    
     public void Hide(string reason)
     {
         ValidateNotDeleted();
@@ -186,6 +203,43 @@ public sealed class MediaAsset : AggregateRoot<Guid>
         Block("Moderation rejected");
     }
 
+    /// <summary>
+    /// Gắn media vào chủ sở hữu cuối cùng của nó (ví dụ: Post, Comment).
+    /// Phương thức này xác thực các điều kiện nghiệp vụ trước khi gán quyền sở hữu.
+    /// </summary>
+    /// <param name="finalOwnerType">Loại chủ sở hữu cuối cùng (Post, Comment, ...)</param>
+    /// <param name="finalOwnerId">ID của chủ sở hữu cuối cùng</param>
+    /// <param name="initialOwnerId">ID của người dùng đã upload media, dùng để xác thực.</param>
+    public void AttachToFinalOwner(MediaOwnerType finalOwnerType, Guid finalOwnerId, Guid initialOwnerId)
+    {
+        ValidateNotDeleted();
+        
+        if (_owners.All(o => o.MediaOwnerId != initialOwnerId))
+        {
+            throw new MediaOwnershipException(
+                "The user attempting to attach the media is not the original uploader.");
+        }
+
+        if (State != MediaState.Ready && State != MediaState.Moderating && State != MediaState.Processing)
+        {
+            throw new MediaDomainException($"Media cannot be attached in its current state: {State}.");
+        }
+
+        // Kiểm tra sự tương thích giữa Purpose và OwnerType
+        // Không thể gắn media có Purpose=Avatar vào một Post.
+        if (!PurposeOwnerCompatibilityMap.TryGetValue(Purpose, out var validOwnerTypes) || !validOwnerTypes.Contains(finalOwnerType))
+        {
+            throw new MediaDomainException(
+                $"Media with purpose '{Purpose}' cannot be attached to an owner of type '{finalOwnerType}'.");
+        }
+
+        AssignOwnership(finalOwnerType, finalOwnerId);
+        
+        SetStateAttached();
+
+        AddDomainEvent(new MediaOwnershipAssignedEvent(Id, finalOwnerType.ToString(), finalOwnerId));
+    }
+    
     public void AssignOwnership(MediaOwnerType ownerType, Guid ownerId)
     {
         ValidateNotDeleted();
@@ -195,9 +249,8 @@ public sealed class MediaAsset : AggregateRoot<Guid>
 
         var ownership = MediaOwner.Create(Id, ownerType, ownerId);
         _owners.Add(ownership);
-
-        AddDomainEvent(new MediaOwnershipAssignedEvent(Id, ownerType.ToString(), ownerId));
     }
+    
 
     public void AddProcessingJob(JobType jobType)
     {
@@ -258,6 +311,9 @@ public sealed class MediaAsset : AggregateRoot<Guid>
     public bool IsModerationApproved => Moderation.IsApproved;
     public bool RequiresModeration => Moderation.RequiresReview;
 
+    
+    
+    
     public MediaVariant? GetOriginalVariant() 
         => _variants.FirstOrDefault(v => v.VariantType == VariantType.Original);
 
@@ -269,6 +325,11 @@ public sealed class MediaAsset : AggregateRoot<Guid>
     {
         if (IsDeleted)
             throw new MediaDomainException("Cannot perform operation on deleted media.");
+    }
+    
+    private void SetStateAttached()
+    {
+        State = MediaState.Attached;
     }
 
     private void ValidateCanTransitionToReady()

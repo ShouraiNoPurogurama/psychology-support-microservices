@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Messaging.MassTransit;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
@@ -21,7 +22,14 @@ public static class DependencyInjection
         });
 
         services.RegisterMapsterConfigurations();
-        services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
+        services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly(),
+            (context, configurator) =>
+            {
+                configurator.ReceiveEndpoint("post-service-events-queue", e =>
+                {
+                    e.ConfigureConsumers(context);
+                });
+            });
         services.AddFeatureManagement();
 
         services.AddServiceDependencies(configuration);

@@ -4,37 +4,81 @@ using BuildingBlocks.Exceptions;
 
 namespace Auth.API.Features.Authentication.Services.Shared;
 
-public class DeviceManagementService(AuthDbContext authDbContext, ITokenRevocationService tokenRevocationService) : IDeviceManagementService
+public class DeviceManagementService(AuthDbContext authDbContext, ITokenRevocationService tokenRevocationService)
+    : IDeviceManagementService
 {
-    public async Task<Device> GetOrUpsertDeviceAsync(Guid userId, string clientDeviceId, DeviceType deviceType,
-        string? deviceToken)
-    {
-        var device = await authDbContext.Devices.FirstOrDefaultAsync(d =>
-            d.ClientDeviceId == clientDeviceId && d.UserId == userId);
+    // Trong file DeviceManagementService.cs
 
-        if (device is null)
+// Phương thức mới để gom nhóm các tác vụ
+    public async Task<Device> HandleDeviceAndSessionAsync(
+        Guid userId,
+        string clientDeviceId,
+        DeviceType deviceType,
+        string? deviceToken,
+        string newAccessTokenId,
+        string newRefreshToken)
+    {
+        //1. Upsert device 
+        var device = await GetOrUpsertDeviceAsync(userId, clientDeviceId, deviceType, deviceToken);
+
+        //2. Thêm session mới vào context (chưa save)
+        var newSession = new DeviceSession
         {
-            device = new Device
-            {
-                UserId = userId,
-                DeviceType = deviceType,
-                DeviceToken = deviceToken,
-                ClientDeviceId = clientDeviceId,
-                LastUsedAt = DateTime.UtcNow,
-            };
-            await authDbContext.Devices.AddAsync(device);
-        }
-        else
+            DeviceId = device.Id,
+            AccessTokenId = newAccessTokenId,
+            RefreshToken = newRefreshToken
+        };
+        authDbContext.DeviceSessions.Add(newSession);
+
+        //3. Tìm và đánh dấu các session cũ cần thu hồi (1 DB call)
+        int allowedLimit = deviceType switch
         {
-            device.LastUsedAt = DateTime.UtcNow;
+            DeviceType.Web => 2,
+            _ => 1
+        };
+
+        var sessionsToRevoke = await authDbContext.DeviceSessions
+            .Where(s => s.Device.UserId == userId && s.Device.DeviceType == deviceType && !s.IsRevoked)
+            .OrderByDescending(s => s.CreatedAt)
+            .Skip(allowedLimit - 1)
+            .ToListAsync();
+
+        foreach (var session in sessionsToRevoke)
+        {
+            session.IsRevoked = true;
+            session.RevokedAt = DateTime.UtcNow;
         }
 
         await authDbContext.SaveChangesAsync();
+
         return device;
     }
-    
 
-    public async Task RevokeOldestSessionIfLimitExceededAsync(Guid userId, DeviceType deviceType, Guid deviceId, string currentJti)
+    public async Task<Device> GetOrUpsertDeviceAsync(
+        Guid userId, string clientDeviceId, DeviceType deviceType, string? deviceToken)
+    {
+        var deviceTypeValue = deviceType.ToString();
+
+        //upsert + trả về bản ghi cuối cùng
+        var device = (await authDbContext.Devices
+                .FromSqlInterpolated($@"
+        INSERT INTO devices (id, user_id, client_device_id, device_type, device_token, last_used_at)
+        VALUES ({Guid.NewGuid()}, {userId}, {clientDeviceId}, {deviceType.ToString()}, {deviceToken}, now())
+        ON CONFLICT (client_device_id, user_id) DO UPDATE
+        SET  device_type  = EXCLUDED.device_type,
+             device_token = COALESCE(EXCLUDED.device_token, devices.device_token),
+             last_used_at = now()
+        RETURNING *")
+                .AsNoTracking()
+                .ToListAsync())
+                .Single();
+
+        return device;
+    }
+
+
+    public async Task<List<DeviceSession>> GetOldestSessionsToRevokeAsync(Guid userId, DeviceType deviceType, Guid deviceId,
+        string currentJti)
     {
         int allowedLimit = deviceType switch
         {
@@ -44,34 +88,26 @@ public class DeviceManagementService(AuthDbContext authDbContext, ITokenRevocati
             _ => 1
         };
 
-        var userDeviceIds = await authDbContext.Devices.AsNoTracking()
-            .Where(d => d.UserId == userId &&  d.DeviceType == deviceType)
-            .Select(d => d.Id)
+        var sessionsToRevoke = await authDbContext.DeviceSessions
+            .Where(s => s.Device.UserId == userId && s.Device.DeviceType == deviceType && !s.IsRevoked)
+            .OrderByDescending(s => s.CreatedAt)
+            .Skip(allowedLimit - 1)
             .ToListAsync();
 
-        if (!userDeviceIds.Any()) return;
-
-        var activeSessions = await authDbContext.DeviceSessions
-            .Where(s => userDeviceIds.Contains(s.DeviceId) && !s.IsRevoked && s.AccessTokenId != currentJti.ToString())
-            .OrderBy(s => s.CreatedAt) 
-            .ToListAsync();
-
-        if (activeSessions.Count > allowedLimit)
+        return sessionsToRevoke;
+    }
+    
+    public void MarkSessionsAsRevoked(IEnumerable<DeviceSession> sessionsToRevoke)
+    {
+        foreach (var session in sessionsToRevoke)
         {
-            int sessionsToRevokeCount = activeSessions.Count - allowedLimit;
-            var sessionsToRevoke = activeSessions.Take(sessionsToRevokeCount);
-
-            await tokenRevocationService.RevokeSessionsAsync(sessionsToRevoke);
+            session.IsRevoked = true;
+            session.RevokedAt = DateTime.UtcNow;
         }
     }
 
-    public async Task<DeviceSession> CreateDeviceSessionAsync(Guid deviceId, string accessTokenId, string refreshToken)
+    public DeviceSession PrepareNewDeviceSession(Guid deviceId, string accessTokenId, string refreshToken)
     {
-        var existingDevice = await authDbContext.Devices
-            .AnyAsync(d => d.Id == deviceId);
-        if (!existingDevice)
-            throw new BadRequestException("Thiết bị không hợp lệ.");
-
         var session = new DeviceSession
         {
             DeviceId = deviceId,
@@ -80,7 +116,6 @@ public class DeviceManagementService(AuthDbContext authDbContext, ITokenRevocati
         };
 
         authDbContext.DeviceSessions.Add(session);
-        await authDbContext.SaveChangesAsync();
 
         return session;
     }

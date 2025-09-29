@@ -9,12 +9,14 @@ public class TokenExchangeService : ITokenExchangeService
 {
     private readonly IInternalTokenMintingService _tokenMintingService;
     private readonly TokenExchangeRuleRegistry _ruleRegistry;
+    private readonly ILogger<TokenExchangeService> _logger;
     private readonly JwtSecurityTokenHandler _tokenHandler = new();
 
-    public TokenExchangeService(TokenExchangeRuleRegistry ruleRegistry, IInternalTokenMintingService tokenMintingService)
+    public TokenExchangeService(TokenExchangeRuleRegistry ruleRegistry, IInternalTokenMintingService tokenMintingService, ILogger<TokenExchangeService> logger)
     {
         _ruleRegistry = ruleRegistry;
         _tokenMintingService = tokenMintingService;
+        _logger = logger;
     }
 
     public async Task<string?> ExchangeTokenAsync(string originalToken, string destinationAudience)
@@ -31,7 +33,15 @@ public class TokenExchangeService : ITokenExchangeService
             if (rule.Keywords.Any(destinationAudience.Contains))
             {
                 var newId = await rule.LookupFunction(subjectRef);
-                if (string.IsNullOrEmpty(newId)) return null;
+                
+                //Nếu ID bị empty tức là user chưa tạo alias hoặc chưa làm onboarding => trả null cho caller 
+                //viiết 403 vào response
+                if (string.IsNullOrEmpty(newId) || Guid.Parse(newId) == Guid.Empty)
+                {
+                    _logger.LogWarning("*** Claims fetching failed for: `{rule}` with result got {newId}", rule.ClaimType, newId);
+
+                    return null;
+                }
 
                 var newClaims = new List<Claim> { new Claim(rule.ClaimType, newId) };
 

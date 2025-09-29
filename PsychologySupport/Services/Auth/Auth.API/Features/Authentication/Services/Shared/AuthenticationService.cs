@@ -16,12 +16,15 @@ public class AuthenticationService(
 {
     private const int LockoutTimeInMinutes = 15;
 
-    
+
     public async Task<User> AuthenticateWithPasswordAsync(LoginRequest request)
     {
         var user = await FindAndValidateUserAsync(request);
+
         ValidateUserLockout(user);
+
         await VerifyPasswordAsync(user, request.Password);
+
         return user;
     }
 
@@ -40,8 +43,10 @@ public class AuthenticationService(
         if (!string.IsNullOrWhiteSpace(loginRequest.Email))
         {
             user = await userManager.Users
+                       .Include(u => u.UserRoles)
+                       .ThenInclude(ur => ur.Role)
                        .FirstOrDefaultAsync(u => u.Email == loginRequest.Email && !u.LockoutEnabled)
-                   ?? throw new UserNotFoundException(loginRequest.Email);
+                   ?? throw new UserNotFoundException("Không tìm thấy tài khoản trong hệ thống. Vui lòng kiểm tra lại email hoặc số điện thoại.");
 
             if (!user.EmailConfirmed)
                 throw new ForbiddenException("Tài khoản chưa được xác nhận. Vui lòng kiểm tra email.");
@@ -49,8 +54,10 @@ public class AuthenticationService(
         else
         {
             user = await userManager.Users
+                       .Include(u => u.UserRoles)
+                       .ThenInclude(ur => ur.Role)
                        .FirstOrDefaultAsync(u => u.PhoneNumber == loginRequest.PhoneNumber && !u.LockoutEnabled)
-                   ?? throw new UserNotFoundException(loginRequest.PhoneNumber);
+                   ?? throw new UserNotFoundException("Không tìm thấy tài khoản trong hệ thống. Vui lòng kiểm tra lại email hoặc số điện thoại.");
 
             if (user is { PhoneNumberConfirmed: false, PasswordHash: not null })
                 throw new ForbiddenException("Tài khoản chưa xác nhận bằng số điện thoại.");
@@ -88,10 +95,15 @@ public class AuthenticationService(
             throw new ForbiddenException("Email hoặc mật khẩu không hợp lệ.");
         }
 
-        // Reset lockout counter
-        user.AccessFailedCount = 0;
-        user.LockoutEnd = null;
-        await userManager.UpdateAsync(user);
+        //Chỉ cập nhật nếu có sự thay đổi, tránh gọi DB không cần thiết
+        if (user.AccessFailedCount > 0 || user.LockoutEnd != null)
+        {
+            user.AccessFailedCount = 0;
+            user.LockoutEnd = null;
+            await userManager.UpdateAsync(user);
+        }
+
+        ;
     }
 
     private async Task<GoogleJsonWebSignature.Payload> ValidateGoogleTokenAsync(string googleIdToken)

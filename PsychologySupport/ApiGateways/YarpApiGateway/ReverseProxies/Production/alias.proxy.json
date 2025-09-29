@@ -6,14 +6,46 @@
         "Match": {
           "Path": "/alias-service/health"
         },
-        "Transforms": [ { "PathPattern": "/health" } ]
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ]
       },
       "alias-swagger": {
         "ClusterId": "alias-cluster",
         "Match": {
           "Path": "/alias-service/swagger/{**catch-all}"
         },
-        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/{**catch-all}"
+          }
+        ]
+      },
+      "alias-public-suggest-route": {
+        "ClusterId": "public-alias-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Match": {
+          "Path": "/alias-service/{version}/aliases/suggest"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/{version}/aliases/suggest"
+          }
+        ]
+      },
+      "alias-public-issue-route": {
+        "ClusterId": "public-alias-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Match": {
+          "Path": "/alias-service/{version}/me/aliases/issue"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/{version}/me/aliases/issue"
+          }
+        ]
       },
       "alias-route": {
         "ClusterId": "alias-cluster",
@@ -21,9 +53,13 @@
         "Match": {
           "Path": "/alias-service/{**catch-all}"
         },
-        "Transforms": [ 
-          { "PathPattern": "/{**catch-all}" },
-          { "TokenExchange": "enabled" }
+        "Transforms": [
+          {
+            "PathPattern": "/{**catch-all}"
+          },
+          {
+            "TokenExchange": "enabled"
+          }
         ]
       }
     },
@@ -33,6 +69,13 @@
           "destination1": {
             "Address": "http://alias.api:8080/"
           }
+        }
+      }
+    },
+    "public-alias-cluster": {
+      "Destinations": {
+        "destination1": {
+          "Address": "https://localhost:5513/"
         }
       }
     }

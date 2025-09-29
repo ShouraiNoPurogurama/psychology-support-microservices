@@ -14,15 +14,12 @@
  */
 
 using Alias.API.Aliases.Exceptions.DomainExceptions;
-using Alias.API.Aliases.Models;
 using Alias.API.Aliases.Models.Aliases.Enums;
 using Alias.API.Aliases.Models.Follows;
 using Alias.API.Common.Authentication;
 using Alias.API.Data.Public;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Alias;
-using BuildingBlocks.Messaging.Events.IntegrationEvents.Aliases;
-using Microsoft.EntityFrameworkCore;
 using MassTransit;
 
 namespace Alias.API.Aliases.Features.FollowAlias;

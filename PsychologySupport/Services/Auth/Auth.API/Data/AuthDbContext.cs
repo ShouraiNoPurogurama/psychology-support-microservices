@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Auth.API.Data;
 
-public class AuthDbContext : IdentityDbContext<User, Role, Guid>
+public class AuthDbContext : IdentityDbContext<User, Role, Guid, IdentityUserClaim<Guid>, UserRole, IdentityUserLogin<Guid>,
+    IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>
 {
     public AuthDbContext(DbContextOptions options) : base(options)
     {
@@ -17,14 +18,15 @@ public class AuthDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<Device> Devices { get; set; }
     public DbSet<DeviceSession> DeviceSessions { get; set; }
     public DbSet<PendingVerificationUser> PendingVerificationUsers { get; set; }
-    
+
     public DbSet<UserOnboarding> UserOnboardings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         Console.WriteLine($"***************** Executing assembly: {Assembly.GetExecutingAssembly().FullName} **************");
-        builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(builder);
+
+        builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         builder.Entity<User>(entity =>
         {
@@ -33,8 +35,21 @@ public class AuthDbContext : IdentityDbContext<User, Role, Guid>
                     dbStatus => (UserOnboardingStatus)Enum.Parse(typeof(UserOnboardingStatus), dbStatus))
                 .HasSentinel(UserOnboardingStatus.Pending)
                 .HasDefaultValue(UserOnboardingStatus.Pending);
+
+            entity.HasMany(e => e.UserRoles)
+                .WithOne(e => e.User)
+                .HasForeignKey(ur => ur.UserId)
+                .IsRequired();
         });
-        
+
+        builder.Entity<Role>(entity =>
+        {
+            entity.HasMany(e => e.UserRoles)
+                .WithOne(e => e.Role)
+                .HasForeignKey(ur => ur.RoleId)
+                .IsRequired();
+        });
+
         builder.Entity<UserOnboarding>(entity =>
         {
             entity.HasKey(x => x.Id);
@@ -64,6 +79,15 @@ public class AuthDbContext : IdentityDbContext<User, Role, Guid>
             e.Property(d => d.DeviceType)
                 .HasConversion(d => d.ToString(),
                     dbStatus => (DeviceType)Enum.Parse(typeof(DeviceType), dbStatus));
+
+            e
+                .HasIndex(d => new { d.UserId, d.DeviceType })
+                .HasDatabaseName("ix_devices_user_device_type");
+
+            e
+                .HasIndex(d => new { d.ClientDeviceId, d.UserId })
+                .IsUnique()
+                .HasDatabaseName("uq_devices_client_user");
         });
 
         builder.Entity<PendingVerificationUser>(e =>

@@ -111,7 +111,33 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
             dict.TryGetValue(RankFields.Ctr, out var ctr) ? (double)ctr : 0.0,
             dict.TryGetValue(RankFields.UpdatedAt, out var updatedAt) ? DateTimeOffset.FromUnixTimeSeconds((long)updatedAt) : DateTimeOffset.UtcNow,
             dict.TryGetValue(RankFields.CreatedAt, out var createdAt) ? DateTimeOffset.FromUnixTimeSeconds((long)createdAt) : DateTimeOffset.UtcNow,
-            authorId.Value
+            authorId ?? Guid.Empty
+        );
+    }
+
+    private async Task<PostRankData?> GetPostRankDataAsync(Guid postId, CancellationToken ct)
+    {
+        var key = GetRankKey(postId);
+        var hash = await _database.HashGetAllAsync(key);
+
+        if (hash.Length == 0) return null;
+
+        var hashDict = hash.ToDictionary(h => h.Name, h => h.Value);
+
+        return new PostRankData(
+            hashDict.TryGetValue(RankFields.Score, out var score) ? (double)score : 0.0,
+            hashDict.TryGetValue(RankFields.Reactions, out var reactions) ? (int)reactions : 0,
+            hashDict.TryGetValue(RankFields.Comments, out var comments) ? (int)comments : 0,
+            hashDict.TryGetValue(RankFields.Ctr, out var ctr) ? (double)ctr : 0.0,
+            hashDict.TryGetValue(RankFields.UpdatedAt, out var updatedAt)
+                ? DateTimeOffset.FromUnixTimeSeconds((long)updatedAt)
+                : DateTimeOffset.UtcNow,
+            hashDict.TryGetValue(RankFields.CreatedAt, out var createdAt)
+                ? DateTimeOffset.FromUnixTimeSeconds((long)createdAt)  
+                : DateTimeOffset.UtcNow,
+            hashDict.TryGetValue(RankFields.AuthorId, out var authorId) && Guid.TryParse(authorId, out var parsedAuthorId)
+                ? parsedAuthorId
+                : Guid.Empty
         );
     }
 
