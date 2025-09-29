@@ -102,7 +102,7 @@ public static class ApplicationServiceExtensions
             });
 
             var url = env.IsProduction() 
-                ? "/profile-service/swagger/v1/swagger.json" 
+                ? "/profile-service" 
                 : "https://localhost:5510/profile-service";
             
             options.AddServer(new OpenApiServer

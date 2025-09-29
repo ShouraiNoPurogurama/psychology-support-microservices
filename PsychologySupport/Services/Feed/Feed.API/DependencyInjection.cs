@@ -63,7 +63,7 @@ public static class DependencyInjection
             });
 
             var url = env.IsProduction()
-                ? "/Feed-service/swagger/v1/swagger.json"
+                ? "/Feed-service"
                 : "https://localhost:5510/feed-service";
 
             options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer

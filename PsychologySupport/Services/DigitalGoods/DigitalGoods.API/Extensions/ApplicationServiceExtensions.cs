@@ -72,7 +72,7 @@ namespace DigitalGoods.API.Extensions
                 });
 
                 var url = env.IsProduction() 
-                    ? "/digitalgoods-service/swagger/v1/swagger.json" 
+                    ? "/digitalgoods-service" 
                     : "https://localhost:5510/digitalgoods-service";
                 
                 options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer

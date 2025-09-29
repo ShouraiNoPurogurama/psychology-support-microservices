@@ -117,7 +117,7 @@ public static class ApplicationServiceExtensions
             });
 
             var url = env.IsProduction() 
-                ? "/alias-service/swagger/v1/swagger.json" 
+                ? "/alias-service" 
                 : "https://localhost:5510/alias-service";
             
             options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer

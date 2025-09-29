@@ -51,7 +51,7 @@ namespace Image.API.Extensions
                 });
 
                 var url = env.IsProduction() 
-                    ? "/image-service/swagger/v1/swagger.json" 
+                    ? "/image-service" 
                     : "https://localhost:5510/image-service";
                 
                 options.AddServer(new OpenApiServer
