@@ -8,5 +8,5 @@ namespace BuildingBlocks.Dtos
     string Description,
     IntensityLevel IntensityLevel,
     ImpactLevel ImpactLevel
-    ) : IActivityDto;
+    ) : IActivityDto; 
 }
