@@ -120,7 +120,7 @@ public static class ApplicationServiceExtensions
             });
             
             var url = env.IsProduction() 
-                ? "/auth-service/swagger/v1/swagger.json" 
+                ? "/auth-service" 
                 : "https://localhost:5510/auth-service";
 
             options.AddServer(new OpenApiServer

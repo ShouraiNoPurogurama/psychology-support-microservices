@@ -33,7 +33,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseSwaggerUI();
 
-
 app.UseHealthChecks("/health",
     new HealthCheckOptions
     {
