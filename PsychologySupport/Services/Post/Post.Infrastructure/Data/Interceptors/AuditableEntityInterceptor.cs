@@ -1,9 +1,8 @@
-﻿using System.Security.Claims;
-using BuildingBlocks.DDD;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Post.Domain.Abstractions;
 
 namespace Post.Infrastructure.Data.Interceptors;
 
@@ -28,36 +27,34 @@ public class AuditableEntityInterceptor(IHttpContextAccessor httpContextAccessor
         if (context is null) return;
 
         var now = DateTimeOffset.UtcNow;
-        var currentUser = GetCurrentUser();
+        var currentUser = GetCurrentUserAliasId();
 
         foreach (EntityEntry<IEntity> entry in context.ChangeTracker.Entries<IEntity>())
         {
             if (entry.State == EntityState.Added && entry.Entity is IHasCreationAudit c)
             {
                 c.CreatedAt = now;
-                c.CreatedBy ??= currentUser;
+                c.CreatedByAliasId = currentUser;
             }
 
             if ((entry.State == EntityState.Added || entry.State == EntityState.Modified || entry.HasChangedOwnedEntities())
                 && entry.Entity is IHasModificationAudit m)
             {
                 m.LastModified = now;
-                m.LastModifiedBy = currentUser;
+                m.LastModifiedByAliasId = currentUser;
             }
         }
     }
 
-    private string GetCurrentUser()
+    private Guid GetCurrentUserAliasId()
     {
         var httpContext = httpContextAccessor.HttpContext;
 
-        if (httpContext?.User.Identity?.IsAuthenticated != true) return "System";
+        if (httpContext?.User.Identity?.IsAuthenticated != true) return Guid.Empty;
 
-        var subjectRef = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        var sub = httpContext.User.FindFirst("sub")?.Value;
-
-        return subjectRef ?? sub ?? "Unknown";
+        Guid.TryParse(httpContext.User.FindFirst("aliasId")?.Value, out var aliasId);
+        
+        return aliasId;
     }
 }
 

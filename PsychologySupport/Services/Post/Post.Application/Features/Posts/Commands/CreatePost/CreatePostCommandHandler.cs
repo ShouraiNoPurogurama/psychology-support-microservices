@@ -68,6 +68,8 @@ public sealed class CreatePostCommandHandler(
     private async Task AttachCategoryTagToPost(CreatePostCommand request, CancellationToken cancellationToken,
         Domain.Aggregates.Posts.Post post)
     {
+        if(request.CategoryTagId is null) return;
+        
         var tagExists = await context.CategoryTags
             .AnyAsync(ct => ct.Id == request.CategoryTagId, cancellationToken);
 
@@ -80,6 +82,8 @@ public sealed class CreatePostCommandHandler(
     private async Task AttachEmotionTagToPost(CreatePostCommand request, CancellationToken cancellationToken, Guid aliasId,
         Domain.Aggregates.Posts.Post post)
     {
+        if (request.EmotionId is null) return;
+        
         var emotionQuery = queryContext.EmotionTagReplicas
             .Where(e => e.Id == request.EmotionId);
 

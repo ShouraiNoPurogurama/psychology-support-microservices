@@ -39,7 +39,14 @@ public static class ApplicationServiceExtensions
 
         services.AddHttpContextAccessor();
         
-        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly,
+            (context, configurator) =>
+            {
+                configurator.ReceiveEndpoint("profile-service-events-queue", e =>
+                {
+                    e.ConfigureConsumers(context);
+                });
+            });
 
         services.AddValidatorsFromAssemblyContaining<UpdateDoctorProfileValidator>();
         

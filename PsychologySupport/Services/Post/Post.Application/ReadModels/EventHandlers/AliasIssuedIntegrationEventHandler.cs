@@ -6,7 +6,8 @@ using Post.Application.ReadModels.Commands.CreateAliasVersionReplica;
 
 namespace Post.Application.ReadModels.EventHandlers;
 
-public class AliasIssuedIntegrationEventHandler(ISender sender, ILogger<AliasIssuedIntegrationEventHandler> logger) : IConsumer<AliasIssuedIntegrationEvent>
+public class AliasIssuedIntegrationEventHandler(ISender sender, ILogger<AliasIssuedIntegrationEventHandler> logger)
+    : IConsumer<AliasIssuedIntegrationEvent>
 {
     public async Task Consume(ConsumeContext<AliasIssuedIntegrationEvent> context)
     {
@@ -17,7 +18,7 @@ public class AliasIssuedIntegrationEventHandler(ISender sender, ILogger<AliasIss
             context.Message.Label,
             context.Message.ValidFrom
         );
-        
+
         var result = await sender.Send(command, context.CancellationToken);
 
         if (!result.IsSuccess)
