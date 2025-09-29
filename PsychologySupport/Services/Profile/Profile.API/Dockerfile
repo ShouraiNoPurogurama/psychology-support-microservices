@@ -6,7 +6,6 @@ USER app
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
-
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
@@ -16,6 +15,7 @@ COPY ["Services/Profile/Profile.API/Profile.API.csproj", "Services/Profile/Profi
 COPY ["BuildingBlocks/BuildingBlocks.Messaging/BuildingBlocks.Messaging.csproj", "BuildingBlocks/BuildingBlocks.Messaging/"]
 COPY ["BuildingBlocks/BuildingBlocks/BuildingBlocks.csproj", "BuildingBlocks/BuildingBlocks/"]
 COPY ["Services/Profile/Profile.API/EmailTemplates", "app/EmailTemplates"]
+COPY ["Services/Profile/Profile.API/Domains/Public/PatientProfiles/EmailTemplates", "app/Domains/Public/PatientProfiles/EmailTemplates"]
 RUN dotnet restore "./Services/Profile/Profile.API/Profile.API.csproj"
 COPY . .
 WORKDIR "/src/Services/Profile/Profile.API"
