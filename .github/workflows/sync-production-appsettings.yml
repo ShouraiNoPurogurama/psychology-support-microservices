@@ -46,8 +46,6 @@ on:
         required: true
       APPSETTINGS_PRODUCTION_POST:
         required: true
-      APPSETTINGS_PRODUCTION_YARP_API_GATEWAY:
-        required: true
       # -----------------------------------------------------
   workflow_dispatch:
 
