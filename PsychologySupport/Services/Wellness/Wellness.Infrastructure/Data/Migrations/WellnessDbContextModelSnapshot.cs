@@ -22,7 +22,7 @@ namespace Wellness.Infrastructure.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Wellness.Domain.Models.Activity", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.Challenges.Activity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -31,15 +31,15 @@ namespace Wellness.Infrastructure.Data.Migrations
 
                     b.Property<string>("ActivityType")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("activity_type");
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
                         .HasColumnName("created_by");
 
                     b.Property<string>("Description")
@@ -54,12 +54,12 @@ namespace Wellness.Infrastructure.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("instructions");
 
-                    b.Property<DateTime?>("LastModified")
+                    b.Property<DateTimeOffset?>("LastModified")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
                         .HasColumnName("last_modified_by");
 
                     b.Property<string>("Name")
@@ -73,59 +73,7 @@ namespace Wellness.Infrastructure.Data.Migrations
                     b.ToTable("activities", (string)null);
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ArticleProgress", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid?>("ArticleId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("article_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("created_by");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_modified");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("last_modified_by");
-
-                    b.Property<DateTime>("LogDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("log_date");
-
-                    b.Property<Guid?>("ModuleProgressId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("module_progress_id");
-
-                    b.Property<string>("ProcessStatus")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("process_status");
-
-                    b.HasKey("Id")
-                        .HasName("pk_article_progresses");
-
-                    b.HasIndex("ArticleId")
-                        .HasDatabaseName("ix_article_progresses_article_id");
-
-                    b.HasIndex("ModuleProgressId")
-                        .HasDatabaseName("ix_article_progresses_module_progress_id");
-
-                    b.ToTable("article_progresses", (string)null);
-                });
-
-            modelBuilder.Entity("Wellness.Domain.Models.Challenge", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.Challenges.Challenge", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -134,25 +82,20 @@ namespace Wellness.Infrastructure.Data.Migrations
 
                     b.Property<string>("ChallengeType")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("challenge_type");
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
                         .HasColumnName("created_by");
 
                     b.Property<string>("Description")
                         .HasColumnType("text")
                         .HasColumnName("description");
-
-                    b.Property<string>("Difficulty")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("difficulty");
 
                     b.Property<int>("DurationActivity")
                         .HasColumnType("integer")
@@ -162,17 +105,13 @@ namespace Wellness.Infrastructure.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("duration_date");
 
-                    b.Property<DateTime?>("LastModified")
+                    b.Property<DateTimeOffset?>("LastModified")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
                         .HasColumnName("last_modified_by");
-
-                    b.Property<Guid?>("ModuleId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("module_id");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -182,53 +121,50 @@ namespace Wellness.Infrastructure.Data.Migrations
                     b.HasKey("Id")
                         .HasName("pk_challenges");
 
-                    b.HasIndex("ModuleId")
-                        .HasDatabaseName("ix_challenges_module_id");
-
                     b.ToTable("challenges", (string)null);
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ChallengeProgress", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.Challenges.ChallengeProgress", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid?>("ChallengeId")
+                    b.Property<Guid>("ChallengeId")
                         .HasColumnType("uuid")
                         .HasColumnName("challenge_id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
                         .HasColumnName("created_by");
 
-                    b.Property<DateTime?>("EndDate")
+                    b.Property<DateTimeOffset?>("EndDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("end_date");
 
-                    b.Property<DateTime?>("LastModified")
+                    b.Property<DateTimeOffset?>("LastModified")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
                         .HasColumnName("last_modified_by");
 
                     b.Property<string>("ProcessStatus")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("process_status");
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
 
-                    b.Property<int?>("ProgressPercent")
+                    b.Property<int>("ProgressPercent")
                         .HasColumnType("integer")
                         .HasColumnName("progress_percent");
 
-                    b.Property<DateTime>("StartDate")
+                    b.Property<DateTimeOffset>("StartDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("start_date");
 
@@ -245,14 +181,14 @@ namespace Wellness.Infrastructure.Data.Migrations
                     b.ToTable("challenge_progresses", (string)null);
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ChallengeStep", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.Challenges.ChallengeStep", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid?>("ActivityId")
+                    b.Property<Guid>("ActivityId")
                         .HasColumnType("uuid")
                         .HasColumnName("activity_id");
 
@@ -260,24 +196,24 @@ namespace Wellness.Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("challenge_id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
                         .HasColumnName("created_by");
 
                     b.Property<int>("DayNumber")
                         .HasColumnType("integer")
                         .HasColumnName("day_number");
 
-                    b.Property<DateTime?>("LastModified")
+                    b.Property<DateTimeOffset?>("LastModified")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
                         .HasColumnName("last_modified_by");
 
                     b.Property<int>("OrderIndex")
@@ -296,55 +232,51 @@ namespace Wellness.Infrastructure.Data.Migrations
                     b.ToTable("challenge_steps", (string)null);
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ChallengeStepProgress", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.Challenges.ChallengeStepProgress", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid?>("ChallengeProgressId")
+                    b.Property<Guid>("ChallengeProgressId")
                         .HasColumnType("uuid")
                         .HasColumnName("challenge_progress_id");
 
-                    b.Property<Guid?>("ChallengeStepId")
+                    b.Property<Guid>("ChallengeStepId")
                         .HasColumnType("uuid")
                         .HasColumnName("challenge_step_id");
 
-                    b.Property<DateTime?>("CompletedAt")
+                    b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("completed_at");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
                         .HasColumnName("created_by");
 
-                    b.Property<DateTime?>("LastModified")
+                    b.Property<DateTimeOffset?>("LastModified")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
                         .HasColumnName("last_modified_by");
 
-                    b.Property<string>("PostMood")
-                        .HasColumnType("text")
-                        .HasColumnName("post_mood");
-
-                    b.Property<string>("PreMood")
-                        .HasColumnType("text")
-                        .HasColumnName("pre_mood");
+                    b.Property<Guid?>("PostMoodId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("post_mood_id");
 
                     b.Property<string>("ProcessStatus")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("process_status");
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
 
-                    b.Property<DateTime?>("StartedAt")
+                    b.Property<DateTimeOffset?>("StartedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("started_at");
 
@@ -357,32 +289,34 @@ namespace Wellness.Infrastructure.Data.Migrations
                     b.HasIndex("ChallengeStepId")
                         .HasDatabaseName("ix_challenge_step_progresses_challenge_step_id");
 
+                    b.HasIndex("PostMoodId")
+                        .HasDatabaseName("ix_challenge_step_progresses_post_mood_id");
+
                     b.ToTable("challenge_step_progresses", (string)null);
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.IdempotencyKey", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.IdempotencyKey.IdempotencyKey", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
                         .HasColumnName("created_by");
 
-                    b.Property<DateTime>("ExpiresAt")
+                    b.Property<DateTimeOffset?>("ExpiresAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
-                    b.Property<string>("IdempotencyKey1")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("idempotency_key1");
+                    b.Property<Guid>("Key")
+                        .HasColumnType("uuid")
+                        .HasColumnName("key");
 
                     b.Property<string>("RequestHash")
                         .IsRequired()
@@ -399,33 +333,32 @@ namespace Wellness.Infrastructure.Data.Migrations
                     b.ToTable("idempotency_keys", (string)null);
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.JournalMood", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.JournalMoods.JournalMood", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
                         .HasColumnName("created_by");
 
-                    b.Property<DateTime?>("LastModified")
+                    b.Property<DateTimeOffset?>("LastModified")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
                         .HasColumnName("last_modified_by");
 
-                    b.Property<string>("Mood")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("mood");
+                    b.Property<Guid>("MoodId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("mood_id");
 
                     b.Property<string>("Note")
                         .HasColumnType("text")
@@ -438,30 +371,115 @@ namespace Wellness.Infrastructure.Data.Migrations
                     b.HasKey("Id")
                         .HasName("pk_journal_moods");
 
+                    b.HasIndex("MoodId")
+                        .HasDatabaseName("ix_journal_moods_mood_id");
+
                     b.ToTable("journal_moods", (string)null);
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ModuleProgress", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.JournalMoods.Mood", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("IconCode")
+                        .HasColumnType("text")
+                        .HasColumnName("icon_code");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("integer")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("pk_moods");
+
+                    b.ToTable("moods", (string)null);
+                });
+
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ModuleSections.ArticleProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ArticleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("article_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
                         .HasColumnName("created_by");
 
-                    b.Property<DateTime?>("LastModified")
+                    b.Property<DateTimeOffset?>("LastModified")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 
-                    b.Property<Guid?>("LastModifiedBy")
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("last_modified_by");
+
+                    b.Property<DateTimeOffset?>("LogDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("log_date");
+
+                    b.Property<Guid>("ModuleProgressId")
                         .HasColumnType("uuid")
+                        .HasColumnName("module_progress_id");
+
+                    b.Property<string>("ProcessStatus")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_article_progresses");
+
+                    b.HasIndex("ArticleId")
+                        .HasDatabaseName("ix_article_progresses_article_id");
+
+                    b.HasIndex("ModuleProgressId")
+                        .HasDatabaseName("ix_article_progresses_module_progress_id");
+
+                    b.ToTable("article_progresses", (string)null);
+                });
+
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ModuleSections.ModuleProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTimeOffset?>("LastModified")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
                         .HasColumnName("last_modified_by");
 
                     b.Property<int?>("MinutesRead")
@@ -470,10 +488,10 @@ namespace Wellness.Infrastructure.Data.Migrations
 
                     b.Property<string>("ProcessStatus")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("process_status");
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
 
-                    b.Property<Guid?>("SectionId")
+                    b.Property<Guid>("SectionId")
                         .HasColumnType("uuid")
                         .HasColumnName("section_id");
 
@@ -490,32 +508,37 @@ namespace Wellness.Infrastructure.Data.Migrations
                     b.ToTable("module_progresses", (string)null);
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ModuleSection", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ModuleSections.ModuleSection", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
                         .HasColumnName("created_by");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("description");
 
-                    b.Property<DateTime?>("LastModified")
+                    b.Property<DateTimeOffset?>("LastModified")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
                         .HasColumnName("last_modified_by");
+
+                    b.Property<Guid>("MediaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("media_id");
 
                     b.Property<Guid?>("ModuleId")
                         .HasColumnType("uuid")
@@ -526,7 +549,7 @@ namespace Wellness.Infrastructure.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("title");
 
-                    b.Property<int?>("TotalDuration")
+                    b.Property<int>("TotalDuration")
                         .HasColumnType("integer")
                         .HasColumnName("total_duration");
 
@@ -539,7 +562,107 @@ namespace Wellness.Infrastructure.Data.Migrations
                     b.ToTable("module_sections", (string)null);
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.OutboxMessage", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ModuleSections.SectionArticle", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ContentJson")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content_json");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<int>("Duration")
+                        .HasColumnType("integer")
+                        .HasColumnName("duration");
+
+                    b.Property<DateTimeOffset?>("LastModified")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("last_modified_by");
+
+                    b.Property<Guid>("MediaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("media_id");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("integer")
+                        .HasColumnName("order_index");
+
+                    b.Property<Guid?>("SectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("section_id");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.HasKey("Id")
+                        .HasName("pk_section_articles");
+
+                    b.HasIndex("SectionId")
+                        .HasDatabaseName("ix_section_articles_section_id");
+
+                    b.ToTable("section_articles", (string)null);
+                });
+
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ModuleSections.WellnessModule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<DateTimeOffset?>("LastModified")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("last_modified_by");
+
+                    b.Property<Guid>("MediaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("media_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_wellness_modules");
+
+                    b.ToTable("wellness_modules", (string)null);
+                });
+
+            modelBuilder.Entity("Wellness.Domain.Aggregates.OutboxMessage.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -579,7 +702,7 @@ namespace Wellness.Infrastructure.Data.Migrations
                     b.ToTable("outbox_messages", (string)null);
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ProcessHistory", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ProcessHistories.ProcessHistory", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -594,40 +717,36 @@ namespace Wellness.Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("challenge_id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
                         .HasColumnName("created_by");
 
-                    b.Property<DateTime?>("EndTime")
+                    b.Property<DateTimeOffset?>("EndTime")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("end_time");
 
-                    b.Property<DateTime?>("LastModified")
+                    b.Property<DateTimeOffset?>("LastModified")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uuid")
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text")
                         .HasColumnName("last_modified_by");
 
-                    b.Property<string>("PostMood")
-                        .HasColumnType("text")
-                        .HasColumnName("post_mood");
-
-                    b.Property<string>("PreMood")
-                        .HasColumnType("text")
-                        .HasColumnName("pre_mood");
+                    b.Property<Guid?>("PostMoodId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("post_mood_id");
 
                     b.Property<string>("ProcessStatus")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("process_status");
+                        .HasColumnType("VARCHAR(20)")
+                        .HasColumnName("status");
 
-                    b.Property<DateTime>("StartTime")
+                    b.Property<DateTimeOffset>("StartTime")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("start_time");
 
@@ -644,146 +763,34 @@ namespace Wellness.Infrastructure.Data.Migrations
                     b.HasIndex("ChallengeId")
                         .HasDatabaseName("ix_process_histories_challenge_id");
 
+                    b.HasIndex("PostMoodId")
+                        .HasDatabaseName("ix_process_histories_post_mood_id");
+
                     b.ToTable("process_histories", (string)null);
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.SectionArticle", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.Challenges.ChallengeProgress", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("ContentJson")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content_json");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("created_by");
-
-                    b.Property<int?>("Duration")
-                        .HasColumnType("integer")
-                        .HasColumnName("duration");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_modified");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("last_modified_by");
-
-                    b.Property<int>("OrderIndex")
-                        .HasColumnType("integer")
-                        .HasColumnName("order_index");
-
-                    b.Property<Guid?>("SectionId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("section_id");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("title");
-
-                    b.HasKey("Id")
-                        .HasName("pk_section_articles");
-
-                    b.HasIndex("SectionId")
-                        .HasDatabaseName("ix_section_articles_section_id");
-
-                    b.ToTable("section_articles", (string)null);
-                });
-
-            modelBuilder.Entity("Wellness.Domain.Models.WellnessModule", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("created_by");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_modified");
-
-                    b.Property<Guid?>("LastModifiedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("last_modified_by");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id")
-                        .HasName("pk_wellness_modules");
-
-                    b.ToTable("wellness_modules", (string)null);
-                });
-
-            modelBuilder.Entity("Wellness.Domain.Models.ArticleProgress", b =>
-                {
-                    b.HasOne("Wellness.Domain.Models.SectionArticle", "Article")
-                        .WithMany("ArticleProgresses")
-                        .HasForeignKey("ArticleId")
-                        .HasConstraintName("fk_article_progresses_section_articles_article_id");
-
-                    b.HasOne("Wellness.Domain.Models.ModuleProgress", "ModuleProgress")
-                        .WithMany("ArticleProgresses")
-                        .HasForeignKey("ModuleProgressId")
-                        .HasConstraintName("fk_article_progresses_module_progresses_module_progress_id");
-
-                    b.Navigation("Article");
-
-                    b.Navigation("ModuleProgress");
-                });
-
-            modelBuilder.Entity("Wellness.Domain.Models.Challenge", b =>
-                {
-                    b.HasOne("Wellness.Domain.Models.WellnessModule", "Module")
-                        .WithMany("Challenges")
-                        .HasForeignKey("ModuleId")
-                        .HasConstraintName("fk_challenges_wellness_modules_module_id");
-
-                    b.Navigation("Module");
-                });
-
-            modelBuilder.Entity("Wellness.Domain.Models.ChallengeProgress", b =>
-                {
-                    b.HasOne("Wellness.Domain.Models.Challenge", "Challenge")
+                    b.HasOne("Wellness.Domain.Aggregates.Challenges.Challenge", "Challenge")
                         .WithMany("ChallengeProgresses")
                         .HasForeignKey("ChallengeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("fk_challenge_progresses_challenges_challenge_id");
 
                     b.Navigation("Challenge");
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ChallengeStep", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.Challenges.ChallengeStep", b =>
                 {
-                    b.HasOne("Wellness.Domain.Models.Activity", "Activity")
+                    b.HasOne("Wellness.Domain.Aggregates.Challenges.Activity", "Activity")
                         .WithMany("ChallengeSteps")
                         .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("fk_challenge_steps_activities_activity_id");
 
-                    b.HasOne("Wellness.Domain.Models.Challenge", "Challenge")
+                    b.HasOne("Wellness.Domain.Aggregates.Challenges.Challenge", "Challenge")
                         .WithMany("ChallengeSteps")
                         .HasForeignKey("ChallengeId")
                         .HasConstraintName("fk_challenge_steps_challenges_challenge_id");
@@ -793,36 +800,82 @@ namespace Wellness.Infrastructure.Data.Migrations
                     b.Navigation("Challenge");
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ChallengeStepProgress", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.Challenges.ChallengeStepProgress", b =>
                 {
-                    b.HasOne("Wellness.Domain.Models.ChallengeProgress", "ChallengeProgress")
+                    b.HasOne("Wellness.Domain.Aggregates.Challenges.ChallengeProgress", "ChallengeProgress")
                         .WithMany("ChallengeStepProgresses")
                         .HasForeignKey("ChallengeProgressId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("fk_challenge_step_progresses_challenge_progresses_challenge_pr");
 
-                    b.HasOne("Wellness.Domain.Models.ChallengeStep", "ChallengeStep")
+                    b.HasOne("Wellness.Domain.Aggregates.Challenges.ChallengeStep", "ChallengeStep")
                         .WithMany("ChallengeStepProgresses")
                         .HasForeignKey("ChallengeStepId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("fk_challenge_step_progresses_challenge_steps_challenge_step_id");
+
+                    b.HasOne("Wellness.Domain.Aggregates.JournalMoods.Mood", "PostMood")
+                        .WithMany("ChallengeStepProgresses")
+                        .HasForeignKey("PostMoodId")
+                        .HasConstraintName("fk_challenge_step_progresses_moods_post_mood_id");
 
                     b.Navigation("ChallengeProgress");
 
                     b.Navigation("ChallengeStep");
+
+                    b.Navigation("PostMood");
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ModuleProgress", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.JournalMoods.JournalMood", b =>
                 {
-                    b.HasOne("Wellness.Domain.Models.ModuleSection", "Section")
+                    b.HasOne("Wellness.Domain.Aggregates.JournalMoods.Mood", "Mood")
+                        .WithMany("JournalMoods")
+                        .HasForeignKey("MoodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_journal_moods_moods_mood_id");
+
+                    b.Navigation("Mood");
+                });
+
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ModuleSections.ArticleProgress", b =>
+                {
+                    b.HasOne("Wellness.Domain.Aggregates.ModuleSections.SectionArticle", "Article")
+                        .WithMany("ArticleProgresses")
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_article_progresses_section_articles_article_id");
+
+                    b.HasOne("Wellness.Domain.Aggregates.ModuleSections.ModuleProgress", "ModuleProgress")
+                        .WithMany("ArticleProgresses")
+                        .HasForeignKey("ModuleProgressId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_article_progresses_module_progresses_module_progress_id");
+
+                    b.Navigation("Article");
+
+                    b.Navigation("ModuleProgress");
+                });
+
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ModuleSections.ModuleProgress", b =>
+                {
+                    b.HasOne("Wellness.Domain.Aggregates.ModuleSections.ModuleSection", "Section")
                         .WithMany("ModuleProgresses")
                         .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("fk_module_progresses_module_sections_section_id");
 
                     b.Navigation("Section");
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ModuleSection", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ModuleSections.ModuleSection", b =>
                 {
-                    b.HasOne("Wellness.Domain.Models.WellnessModule", "Module")
+                    b.HasOne("Wellness.Domain.Aggregates.ModuleSections.WellnessModule", "Module")
                         .WithMany("ModuleSections")
                         .HasForeignKey("ModuleId")
                         .HasConstraintName("fk_module_sections_wellness_modules_module_id");
@@ -830,41 +883,77 @@ namespace Wellness.Infrastructure.Data.Migrations
                     b.Navigation("Module");
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ProcessHistory", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ModuleSections.SectionArticle", b =>
                 {
-                    b.HasOne("Wellness.Domain.Models.Activity", "Activity")
-                        .WithMany("ProcessHistories")
-                        .HasForeignKey("ActivityId")
-                        .HasConstraintName("fk_process_histories_activities_activity_id");
-
-                    b.HasOne("Wellness.Domain.Models.Challenge", "Challenge")
-                        .WithMany("ProcessHistories")
-                        .HasForeignKey("ChallengeId")
-                        .HasConstraintName("fk_process_histories_challenges_challenge_id");
-
-                    b.Navigation("Activity");
-
-                    b.Navigation("Challenge");
-                });
-
-            modelBuilder.Entity("Wellness.Domain.Models.SectionArticle", b =>
-                {
-                    b.HasOne("Wellness.Domain.Models.ModuleSection", "Section")
+                    b.HasOne("Wellness.Domain.Aggregates.ModuleSections.ModuleSection", "Section")
                         .WithMany("SectionArticles")
                         .HasForeignKey("SectionId")
                         .HasConstraintName("fk_section_articles_module_sections_section_id");
 
+                    b.OwnsOne("Wellness.Domain.Aggregates.ModuleSections.ValueObjects.ArticleSource", "Source", b1 =>
+                        {
+                            b1.Property<Guid>("SectionArticleId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<string>("Description")
+                                .HasColumnType("text")
+                                .HasColumnName("source_description");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("source_name");
+
+                            b1.Property<string>("Url")
+                                .HasColumnType("text")
+                                .HasColumnName("source_url");
+
+                            b1.HasKey("SectionArticleId");
+
+                            b1.ToTable("section_articles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SectionArticleId")
+                                .HasConstraintName("fk_section_articles_section_articles_id");
+                        });
+
                     b.Navigation("Section");
+
+                    b.Navigation("Source")
+                        .IsRequired();
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.Activity", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ProcessHistories.ProcessHistory", b =>
+                {
+                    b.HasOne("Wellness.Domain.Aggregates.Challenges.Activity", "Activity")
+                        .WithMany("ProcessHistories")
+                        .HasForeignKey("ActivityId")
+                        .HasConstraintName("fk_process_histories_activities_activity_id");
+
+                    b.HasOne("Wellness.Domain.Aggregates.Challenges.Challenge", null)
+                        .WithMany("ProcessHistories")
+                        .HasForeignKey("ChallengeId")
+                        .HasConstraintName("fk_process_histories_challenges_challenge_id");
+
+                    b.HasOne("Wellness.Domain.Aggregates.JournalMoods.Mood", "PostMood")
+                        .WithMany("ProcessHistories")
+                        .HasForeignKey("PostMoodId")
+                        .HasConstraintName("fk_process_histories_moods_post_mood_id");
+
+                    b.Navigation("Activity");
+
+                    b.Navigation("PostMood");
+                });
+
+            modelBuilder.Entity("Wellness.Domain.Aggregates.Challenges.Activity", b =>
                 {
                     b.Navigation("ChallengeSteps");
 
                     b.Navigation("ProcessHistories");
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.Challenge", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.Challenges.Challenge", b =>
                 {
                     b.Navigation("ChallengeProgresses");
 
@@ -873,37 +962,44 @@ namespace Wellness.Infrastructure.Data.Migrations
                     b.Navigation("ProcessHistories");
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ChallengeProgress", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.Challenges.ChallengeProgress", b =>
                 {
                     b.Navigation("ChallengeStepProgresses");
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ChallengeStep", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.Challenges.ChallengeStep", b =>
                 {
                     b.Navigation("ChallengeStepProgresses");
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ModuleProgress", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.JournalMoods.Mood", b =>
+                {
+                    b.Navigation("ChallengeStepProgresses");
+
+                    b.Navigation("JournalMoods");
+
+                    b.Navigation("ProcessHistories");
+                });
+
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ModuleSections.ModuleProgress", b =>
                 {
                     b.Navigation("ArticleProgresses");
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.ModuleSection", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ModuleSections.ModuleSection", b =>
                 {
                     b.Navigation("ModuleProgresses");
 
                     b.Navigation("SectionArticles");
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.SectionArticle", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ModuleSections.SectionArticle", b =>
                 {
                     b.Navigation("ArticleProgresses");
                 });
 
-            modelBuilder.Entity("Wellness.Domain.Models.WellnessModule", b =>
+            modelBuilder.Entity("Wellness.Domain.Aggregates.ModuleSections.WellnessModule", b =>
                 {
-                    b.Navigation("Challenges");
-
                     b.Navigation("ModuleSections");
                 });
 #pragma warning restore 612, 618

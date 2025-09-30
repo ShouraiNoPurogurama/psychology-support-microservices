@@ -1,6 +1,7 @@
 using BuildingBlocks.Behaviors;
 using Wellness.API;
 using Wellness.Application;
+using Wellness.Application.Extensions;
 using Wellness.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,11 +16,11 @@ builder.Host.UseCustomSerilog(builder.Configuration, "Wellness");
 builder.Services
     .AddApplicationServices(builder.Configuration)
     .AddInfrastructureServices(builder.Configuration)
-    .AddApiServices(builder.Configuration, builder.Environment);
-    //.RegisterMapsterConfiguration();
+    .AddApiServices(builder.Configuration, builder.Environment)
+    .RegisterMapsterConfiguration();
 
 var app = builder.Build();
 
-//app.UseApiServices();
+app.UseApiServices();
 
 app.Run();

@@ -54,17 +54,26 @@ namespace Media.Application.Features.Media.EventHandlers
             var sightengineResult = await _sightengineService.CheckImageWithWorkflowAsync(file);
 
             var auditStatus = sightengineResult.IsSafe ? MediaModerationStatus.Approved : MediaModerationStatus.Rejected;
-            
+
             moderationAudit.UpdateStatus(auditStatus, (decimal?)sightengineResult.Score, sightengineResult.WorkflowId,
                 sightengineResult.RawJson);
 
             if (sightengineResult.IsSafe)
             {
-                mediaAsset.MarkAsReady();
+                // Update moderation và auto mark as ready
+                mediaAsset.ApproveModeration(
+                    policyVersion: sightengineResult.WorkflowId,
+                    score: (decimal?)sightengineResult.Score,
+                    rawJson: sightengineResult.RawJson
+                );
             }
             else
             {
-                mediaAsset.Block("Bị chặn bởi hệ thống kiểm duyệt tự động do nội dung không phù hợp.");
+                mediaAsset.RejectModeration(
+                    policyVersion: sightengineResult.WorkflowId,
+                    score: (decimal?)sightengineResult.Score,
+                    rawJson: sightengineResult.RawJson
+                );
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);

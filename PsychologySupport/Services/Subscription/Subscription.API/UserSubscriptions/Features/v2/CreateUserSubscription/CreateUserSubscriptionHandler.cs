@@ -13,7 +13,6 @@ using Subscription.API.Data.Common;
 using Subscription.API.ServicePackages.Models;
 using Subscription.API.UserSubscriptions.Dtos;
 using Subscription.API.UserSubscriptions.Models;
-// using Profile.API.PatientProfiles.Models;
 
 namespace Subscription.API.UserSubscriptions.Features.v2.CreateUserSubscription;
 

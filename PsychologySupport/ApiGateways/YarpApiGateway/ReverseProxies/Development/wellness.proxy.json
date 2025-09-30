@@ -1,0 +1,37 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "wellness-health": {
+        "ClusterId": "wellness-cluster",
+        "Match": {
+          "Path": "/wellness-service/health"
+        },
+        "Transforms": [ { "PathPattern": "/health" } ]
+      },
+      "wellness-swagger": {
+        "ClusterId": "wellness-cluster",
+        "Match": {
+          "Path": "/wellness-service/swagger/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+      },
+      "wellness-route": {
+        "ClusterId": "wellness-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Match": {
+          "Path": "/wellness-service/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+      }
+    },
+    "Clusters": {
+      "wellness-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "https://localhost:5523/"
+          }
+        }
+      }
+    }
+  }
+}

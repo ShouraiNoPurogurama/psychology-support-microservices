@@ -55,8 +55,8 @@ namespace Wellness.API
                 });
 
                 var url = env.IsProduction()
-                    ? "/wellness-service/swagger/v1/swagger.json"
-                    : "https://localhost:5510/wellness-service";
+                    ? "/wellness-service"
+                    : "https://localhost:5523/wellness-service";
 
                 options.AddServer(new OpenApiServer
                 {
@@ -112,7 +112,7 @@ namespace Wellness.API
             {
                 app.UseSwaggerUI(c =>
                 {
-                    c.SwaggerEndpoint("/wellness-service/swagger/v1/swagger.json", "Media API v1");
+                    c.SwaggerEndpoint("/wellness-service/swagger/v1/swagger.json", "Wellness API v1");
                 });
             }
 

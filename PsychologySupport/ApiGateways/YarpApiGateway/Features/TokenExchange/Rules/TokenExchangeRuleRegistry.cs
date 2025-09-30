@@ -23,7 +23,7 @@ public class TokenExchangeRuleRegistry
             },
             new AudienceMappingRule
             {
-                Keywords = new[] { "profile" },
+                Keywords = new[] { "profile" ,"subscription" },
                 ClaimType = "patientId",
                 LookupFunction = (subRef) => _piiLookupService.ResolvePatientIdBySubjectRefAsync(subRef)
             }

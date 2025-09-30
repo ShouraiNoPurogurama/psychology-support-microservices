@@ -1,9 +1,11 @@
 ﻿using Azure.Storage.Blobs;
 using Media.Application.Data;
 using Media.Application.ServiceContracts;
+using Media.Domain.Repositories;
 using Media.Infrastructure.Data;
 using Media.Infrastructure.Data.Interceptors;
 using Media.Infrastructure.Options;
+using Media.Infrastructure.Repositories;
 using Media.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -59,6 +61,9 @@ namespace Media.Infrastructure
 
             // Other services
             services.AddScoped<IStorageService, AzureBlobStorageService>();
+
+            // Repository
+            services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
 
             return services;
         }

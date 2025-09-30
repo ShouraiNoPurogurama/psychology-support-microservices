@@ -113,8 +113,11 @@ namespace Media.Infrastructure.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("last_modified_by");
 
-                    b.Property<int>("Purpose")
-                        .HasColumnType("integer")
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("NotSpecified")
                         .HasColumnName("purpose");
 
                     b.Property<string>("State")
