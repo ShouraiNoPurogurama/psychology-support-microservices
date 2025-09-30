@@ -32,8 +32,10 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-      - GrpcSettings__PiiUrl=http://profile.api:8080
+      - GrpcSettings__PiiUrl=http://profile.api:8081
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
+    networks:
+      - emoease-net
     ports:
       - "5013:8080"
       - "5513:8081"
@@ -61,6 +63,8 @@ services:
       - GrpcSettings__PiiUrl=http://profile.api:8081
       - GrpcSettings__NotificationUrl=http://notification.api:8081
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
+    networks:
+      - emoease-net
     ports:
       - "5000:8080"
       - "5500:8081"
@@ -104,7 +108,6 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud/compute-default-sa.json
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
-
 
     ports:
       - "5008:8080"
@@ -297,6 +300,8 @@ services:
       - ASPNETCORE_Kestrel__Endpoints__Rest__Protocols=Http1
       - ASPNETCORE_Kestrel__Endpoints__GrpcH2c__Url=http://0.0.0.0:8081
       - ASPNETCORE_Kestrel__Endpoints__GrpcH2c__Protocols=Http2
+    networks:
+      - emoease-net
     ports:
       - "5001:8080"
       - "5501:8081"
@@ -379,6 +384,8 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud/compute-default-sa.json
       - GrpcSettings__TranslationUrl=http://translation.api:8081
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
+    networks:
+      - emoease-net
     ports:
       - "5006:8080"
       - "5506:8081"
@@ -410,6 +417,8 @@ services:
       - ASPNETCORE_Kestrel__Endpoints__Rest__Protocols=Http1
       - ASPNETCORE_Kestrel__Endpoints__GrpcH2c__Url=http://0.0.0.0:8081
       - ASPNETCORE_Kestrel__Endpoints__GrpcH2c__Protocols=Http2
+    networks:
+      - emoease-net
     ports:
       - "5009:8080"
       - "5509:8081"
@@ -438,6 +447,8 @@ services:
       - ASPNETCORE_URLS=http://0.0.0.0:8080
       - GrpcSettings__PiiUrl=http://profile.api:8081
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
+    networks:
+      - emoease-net
 
     ports:
       - "8080:8080"        # chỉ mở nội bộ host, Nginx sẽ proxy vào đây
@@ -458,3 +469,7 @@ services:
     restart: always
     ports:
       - "6379:6379"
+
+networks:
+  emoease-net:
+    external: true
