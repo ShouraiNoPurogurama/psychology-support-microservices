@@ -11,6 +11,9 @@ namespace Media.Domain.Enums
         Profile,
         EmotionTag,
         DigitalGood,
-        Audio
+        Audio,
+        WellnessModule,
+        ModuleSection,
+        SectionArticle
     }
 }

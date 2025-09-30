@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks.Messaging\BuildingBlocks.Messaging.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
     <ProjectReference Include="..\Wellness.Application\Wellness.Application.csproj" />
     <ProjectReference Include="..\Wellness.Domain\Wellness.Domain.csproj" />
@@ -14,6 +15,7 @@
 	<ItemGroup>
 		<PackageReference Include="EFCore.NamingConventions" />
 		<PackageReference Include="StackExchange.Redis" />
+		<PackageReference Include="Scrutor" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Data\Migrations\" />

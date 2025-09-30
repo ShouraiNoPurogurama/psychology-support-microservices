@@ -1,11 +1,13 @@
-﻿using BuildingBlocks.Data.Interceptors;
-using BuildingBlocks.Idempotency;
+﻿using BuildingBlocks.Idempotency;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Wellness.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Wellness.Application.Data;
+using Wellness.Infrastructure.Resilience.Decorators;
+using Wellness.Infrastructure.Resilience.Services;
+using Wellness.Infrastructure.Data.Interceptors;
 
 namespace Wellness.Infrastructure
 {
@@ -21,11 +23,9 @@ namespace Wellness.Infrastructure
             services.AddScoped<IWellnessDbContext, WellnessDbContext>();
             services.AddScoped<IIdempotencyHashAccessor, IdempotencyHashAccessor>();
 
-            //services.AddScoped<IIdempotencyService, IdempotencyService>();           // store gốc (EF/Db)
-            //services.Decorate<IIdempotencyService, LockingIdempotencyService>();     // single-flight
-            //services.Decorate<IIdempotencyService, CachingIdempotencyService>();
-
-
+            services.AddScoped<IIdempotencyService, IdempotencyService>();           // store gốc (EF/Db)
+            services.Decorate<IIdempotencyService, LockingIdempotencyService>();     // single-flight
+            services.Decorate<IIdempotencyService, CachingIdempotencyService>();
 
             services.AddDbContext<WellnessDbContext>((serviceProvider, options) =>
             {

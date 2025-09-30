@@ -59,23 +59,30 @@ namespace Media.Infrastructure.Services
                 throw new Exception("Sightengine API trả về dữ liệu không hợp lệ.");
             }
 
-            // Nếu 1 cao là thấp hẳn 
+            // Danh sách điểm an toàn (càng cao càng an toàn)
             var safeScores = new List<double>
-{
-                parsed.Nudity?.Safe ?? 1.0,
-                1 - (parsed.Weapon?.Prob ?? 0.0),
-                1 - (parsed.Alcohol?.Prob ?? 0.0),
-                1 - (parsed.Drugs?.Prob ?? 0.0)
-            };
+                {
+                    parsed.Nudity?.None ?? 1.0,                                  // tỷ lệ ảnh an toàn (none)
+                    1 - (parsed.Nudity?.SexualActivity ?? 0.0),                  // ngược lại với sexual_activity
+                    1 - (parsed.Nudity?.SexualDisplay ?? 0.0),                   // ngược lại với sexual_display
+                    1 - (parsed.Weapon?.Classes?.Firearm ?? 0.0),                // ngược lại với firearm
+                    1 - (parsed.Weapon?.Classes?.Knife ?? 0.0),                  // ngược lại với knife
+                    1 - (parsed.Alcohol?.Prob ?? 0.0),                           // ngược lại với alcohol
+                    1 - (parsed.Drugs?.Prob ?? 0.0),                             // ngược lại với drugs
+                    1 - (parsed.Violence?.Prob ?? 0.0)                           // ngược lại với violence
+                };
 
+            // Điểm an toàn cuối cùng là min của tất cả
             var score = safeScores.Min();
-            var isSafe = score > 0.8; // tùy chỉnh
+
+            // Đặt ngưỡng an toàn (ví dụ 0.8)
+            var isSafe = score > 0.8;
 
             return new SightengineResult(
                 IsSafe: isSafe,
                 RawJson: jsonResponse,
                 WorkflowId: _options.WorkflowId,
-                Score: (double)score
+                Score: score
             );
         }
     }

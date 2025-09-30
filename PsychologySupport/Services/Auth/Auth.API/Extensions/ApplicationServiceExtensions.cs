@@ -119,7 +119,7 @@ public static class ApplicationServiceExtensions
                 Title = "Auth API",
                 Version = "v1"
             });
-
+            
             var url = env.IsProduction()
                 ? "/auth-service"
                 : "https://localhost:5510/auth-service";

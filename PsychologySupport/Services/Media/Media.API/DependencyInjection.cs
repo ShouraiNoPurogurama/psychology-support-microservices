@@ -57,7 +57,7 @@ namespace Media.API
                 var url = env.IsProduction() 
                     ? "/media-service" 
                     : "https://localhost:5510/media-service";
-                
+
                 options.AddServer(new OpenApiServer
                 {
                     Url = url
