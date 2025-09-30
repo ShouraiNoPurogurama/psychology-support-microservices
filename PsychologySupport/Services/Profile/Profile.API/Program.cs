@@ -12,16 +12,6 @@ builder.Configuration.LoadConfiguration(builder.Environment);
 
 builder.Host.UseStandardSerilog(builder.Configuration, "Profile");
 
-builder.WebHost.ConfigureKestrel(options =>
-{
-    //Chỉ set protocols, còn port sẽ lấy từ cấu hình (launchSettings, env vars, appsettings.json)
-    options.ConfigureEndpointDefaults(lo =>
-    {
-        lo.Protocols = HttpProtocols.Http1AndHttp2;
-    });
-});
-
-
 var services = builder.Services;
 
 services.AddApplicationServices(builder.Configuration, builder.Environment);
