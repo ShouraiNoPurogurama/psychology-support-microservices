@@ -1,5 +1,5 @@
 using BuildingBlocks.CQRS;
-using Notification.API.Models.Notifications;
+using Notification.API.Features.Notifications.Models;
 
 namespace Notification.API.Features.Notifications.Queries.GetNotifications;
 

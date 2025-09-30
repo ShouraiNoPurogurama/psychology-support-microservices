@@ -1,4 +1,5 @@
-﻿using Notification.API.Data;
+using Notification.API.Data;
+using Notification.API.Infrastructure.Data;
 
 namespace Notification.API.Extensions;
 

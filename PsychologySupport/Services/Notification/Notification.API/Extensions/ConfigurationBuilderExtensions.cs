@@ -1,4 +1,4 @@
-﻿namespace Notification.API.Extensions;
+namespace Notification.API.Extensions;
 
 public static class ConfigurationBuilderExtensions
 {

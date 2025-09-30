@@ -1,5 +1,5 @@
 using BuildingBlocks.CQRS;
-using Notification.API.Abstractions;
+using Notification.API.Contracts;
 
 namespace Notification.API.Features.Notifications.Queries.GetUnreadCount;
 

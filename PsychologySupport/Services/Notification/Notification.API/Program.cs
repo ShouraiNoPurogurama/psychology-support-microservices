@@ -1,10 +1,10 @@
-﻿using BuildingBlocks.Behaviors;
+using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Notification.API.Domains.Emails.Services;
+using Notification.API.Features.Emails.Services;
 using Notification.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
