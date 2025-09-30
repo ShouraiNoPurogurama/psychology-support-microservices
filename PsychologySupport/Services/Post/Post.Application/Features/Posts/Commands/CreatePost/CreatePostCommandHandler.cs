@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using MassTransit;
@@ -36,19 +36,20 @@ public sealed class CreatePostCommandHandler(
 
         //Bypass moderation for now
         post.FinalizePost();
-        
+
         await AttachEmotionTagToPost(request, cancellationToken, aliasId, post);
 
         await AttachCategoryTagToPost(request, cancellationToken, post);
 
-        if (request.MediaIds?.Any() == true)
+        var hasMedia = request.MediaIds?.Any() == true;
+        if (hasMedia)
         {
-            foreach (var mediaId in request.MediaIds)
+            foreach (var mediaId in request.MediaIds!)
             {
                 post.AddMedia(mediaId);
             }
         }
-        
+
         //Bypass moderation, auto-publish if possible
         if (post.CanBePublished)
         {
@@ -63,10 +64,12 @@ public sealed class CreatePostCommandHandler(
 
         await context.SaveChangesAsync(cancellationToken);
 
-        // Publish media processing event (kept as-is)
-        var integrationEvent = new PostCreatedWithMediaPendingIntegrationEvent(post.Id, "Post", request.MediaIds);
-
-        await publishEndpoint.Publish(integrationEvent, cancellationToken);
+        // Publish media processing event ONLY when media is present
+        if (hasMedia)
+        {
+            var integrationEvent = new PostCreatedWithMediaPendingIntegrationEvent(post.Id, "Post", request.MediaIds);
+            await publishEndpoint.Publish(integrationEvent, cancellationToken);
+        }
 
         return new CreatePostResult(
             post.Id,
@@ -74,12 +77,12 @@ public sealed class CreatePostCommandHandler(
             post.CreatedAt
         );
     }
-    
+
     private async Task AttachCategoryTagToPost(CreatePostCommand request, CancellationToken cancellationToken,
         Domain.Aggregates.Posts.Post post)
     {
         if(request.CategoryTagId is null) return;
-        
+
         var tagExists = await context.CategoryTags
             .AnyAsync(ct => ct.Id == request.CategoryTagId, cancellationToken);
 
@@ -93,7 +96,7 @@ public sealed class CreatePostCommandHandler(
         Domain.Aggregates.Posts.Post post)
     {
         if (request.EmotionId is null) return;
-        
+
         var emotionQuery = queryContext.EmotionTagReplicas
             .Where(e => e.Id == request.EmotionId);
 
