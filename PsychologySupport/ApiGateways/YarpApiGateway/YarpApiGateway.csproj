@@ -16,8 +16,8 @@
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         </None>
         <None Update="RSAKeys\PrivateKey.xml">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         </None>
     </ItemGroup>
     <ItemGroup>
@@ -25,31 +25,35 @@
             <Link>.dockerignore</Link>
         </Content>
     </ItemGroup>
-    <ItemGroup>
-        <Protobuf Include="..\..\Services\Profile\Profile.API\Protos\pii.proto" GrpcServices="Client">
-            <Link>Protos\pii.proto</Link>
-        </Protobuf>
-    </ItemGroup>
+
     <ItemGroup>
         <PackageReference Include="AspNetCore.HealthChecks.UI.Client"/>
-        <PackageReference Include="Grpc.AspNetCore" />
+        <PackageReference Include="Grpc.AspNetCore"/>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer"/>
-        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis"/>
         <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets"/>
-        <PackageReference Include="Scrutor" />
+        <PackageReference Include="Scrutor"/>
         <PackageReference Include="Serilog.AspNetCore"/>
         <PackageReference Include="Serilog.Enrichers.Environment"/>
         <PackageReference Include="Serilog.Enrichers.Process"/>
         <PackageReference Include="Serilog.Enrichers.Thread"/>
         <PackageReference Include="Serilog.Sinks.Console"/>
-        <PackageReference Include="StackExchange.Redis" />
+        <PackageReference Include="StackExchange.Redis"/>
         <PackageReference Include="System.IdentityModel.Tokens.Jwt"/>
         <PackageReference Include="Yarp.ReverseProxy"/>
     </ItemGroup>
     <ItemGroup>
-        <Folder Include="Protos\"/>
+        <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj"/>
     </ItemGroup>
+    
     <ItemGroup>
-      <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
+      <Protobuf Include="Protos\pii.proto">
+        <GrpcServices>Client</GrpcServices>
+        <Access>Public</Access>
+        <ProtoCompile>True</ProtoCompile>
+        <CompileOutputs>True</CompileOutputs>
+        <OutputDir>obj\Debug\net9.0\</OutputDir>
+        <Generator>MSBuild:Compile</Generator>
+      </Protobuf>
     </ItemGroup>
 </Project>

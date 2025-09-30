@@ -13,7 +13,7 @@ public abstract class AuditableEntity<T> : IEntity<T>, IHasCreationAudit, IHasMo
 
     public DateTimeOffset? LastModified { get; set; }
 
-    public string? LastModifiedByAliasId { get; set; }
+    public Guid? LastModifiedByAliasId { get; set; }
 
     public override bool Equals(object? obj)
     {

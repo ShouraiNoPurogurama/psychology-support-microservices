@@ -64,7 +64,7 @@ public static class ApplicationServiceExtensions
             });
 
             var url = env.IsProduction() 
-                ? "/notification-service/swagger/v1/swagger.json" 
+                ? "/notification-service" 
                 : "https://localhost:5510/notification-service";
             
             options.AddServer(new OpenApiServer

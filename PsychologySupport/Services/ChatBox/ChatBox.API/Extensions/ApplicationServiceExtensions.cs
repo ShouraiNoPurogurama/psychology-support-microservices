@@ -89,7 +89,7 @@ public static class ApplicationServiceExtensions
             });
 
             var url = env.IsProduction() 
-                ? "/chatbox-service/swagger/v1/swagger.json" 
+                ? "/chatbox-service" 
                 : "https://localhost:5510/chatbox-service";
             
             options.AddServer(new OpenApiServer

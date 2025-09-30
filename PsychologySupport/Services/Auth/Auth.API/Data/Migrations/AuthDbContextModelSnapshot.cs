@@ -54,8 +54,12 @@ namespace Auth.API.Data.Migrations
                     b.HasKey("Id")
                         .HasName("pk_devices");
 
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_devices_user_id");
+                    b.HasIndex("ClientDeviceId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("uq_devices_client_user");
+
+                    b.HasIndex("UserId", "DeviceType")
+                        .HasDatabaseName("ix_devices_user_device_type");
 
                     b.ToTable("devices", (string)null);
                 });

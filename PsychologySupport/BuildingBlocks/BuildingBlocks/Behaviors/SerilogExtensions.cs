@@ -27,7 +27,7 @@ public static class SerilogExtensions
                 .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
                 .Enrich.WithMachineName()
-                .Enrich.WithThreadId();
+                .Enrich.WithThreadId(); 
 
             //Thêm service name nếu được cung cấp
             if (!string.IsNullOrEmpty(serviceName))

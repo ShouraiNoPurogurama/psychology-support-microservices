@@ -51,7 +51,7 @@ public static class DependencyInjection
             });
             
             var url = env.IsProduction() 
-                ? "/payment-service/swagger/v1/swagger.json" 
+                ? "/payment-service" 
                 : "https://localhost:5510/payment-service";
             
             options.AddServer(new OpenApiServer

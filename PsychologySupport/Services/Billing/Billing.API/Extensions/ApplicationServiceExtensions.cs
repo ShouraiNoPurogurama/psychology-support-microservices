@@ -94,7 +94,7 @@ namespace Billing.API.Extensions
                 });
 
                 var url = env.IsProduction() 
-                    ? "/billing-service/swagger/v1/swagger.json" 
+                    ? "/billing-service" 
                     : "https://localhost:5510/billing-service";
                 
                 options.AddServer(new OpenApiServer

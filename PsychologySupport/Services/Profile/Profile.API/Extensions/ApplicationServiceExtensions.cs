@@ -39,7 +39,14 @@ public static class ApplicationServiceExtensions
 
         services.AddHttpContextAccessor();
         
-        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly,
+            (context, configurator) =>
+            {
+                configurator.ReceiveEndpoint("profile-service-events-queue", e =>
+                {
+                    e.ConfigureConsumers(context);
+                });
+            });
 
         services.AddValidatorsFromAssemblyContaining<UpdateDoctorProfileValidator>();
         
@@ -95,7 +102,7 @@ public static class ApplicationServiceExtensions
             });
 
             var url = env.IsProduction() 
-                ? "/profile-service/swagger/v1/swagger.json" 
+                ? "/profile-service" 
                 : "https://localhost:5510/profile-service";
             
             options.AddServer(new OpenApiServer

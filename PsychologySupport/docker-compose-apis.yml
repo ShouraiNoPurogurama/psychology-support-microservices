@@ -1,34 +1,39 @@
 services:
-  aimoderation.api:
-    image: ${DOCKER_REGISTRY-}aimoderationapi
-    container_name: aimoderation.api
-    environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-    ports:
-      - "5015:8080"
-      - "5515:8081"
-    build:
-      context: .
-      dockerfile: Services/AIModeration/AIModeration.API/Dockerfile
-    volumes:
-      - ~/.aspnet/https:/https:ro
-      - ./Services/AIModeration/AIModeration.API/RSAKeys:/app/RSAKeys
-
+  #  aimoderation.api:
+  #    image: ${DOCKER_REGISTRY-}aimoderationapi
+  #    container_name: aimoderation.api
+  #    environment:
+  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+  #      - ASPNETCORE_HTTP_PORTS=8080
+  #      - ASPNETCORE_HTTPS_PORTS=8081
+  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+  #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+  #    ports:
+  #      - "5015:8080"
+  #      - "5515:8081"
+  #    build:
+  #      context: .
+  #      dockerfile: Services/AIModeration/AIModeration.API/Dockerfile
+  #    volumes:
+  #      - ~/.aspnet/https:/https:ro
+  #      - ./Services/AIModeration/AIModeration.API/RSAKeys:/app/RSAKeys
+  #
   alias.api:
     image: ${DOCKER_REGISTRY-}aliasapi
     container_name: alias.api
+    depends_on:
+      - distributedcache
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - GrpcSettings__PiiUrl=http://profile.api:8080
+      - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
     ports:
       - "5013:8080"
       - "5513:8081"
@@ -41,14 +46,21 @@ services:
 
   auth.api:
     image: ${DOCKER_REGISTRY-}authapi
+    depends_on:
+      - distributedcache
     container_name: auth.api
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx 
+      - GrpcSettings__PatientProfileUrl=http://profile.api:8080
+      - GrpcSettings__PiiUrl=http://profile.api:8080
+      - GrpcSettings__NotificationUrl=http://notification.api:8080
+      - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
     ports:
       - "5000:8080"
       - "5500:8081"
@@ -58,28 +70,28 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Auth/Auth.API/RSAKeys:/app/RSAKeys
-      - /mnt/dpkeys:/dpkeys
-
-  billing.api:
-    image: ${DOCKER_REGISTRY-}billingapi
-    container_name: billing.api
-    environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-    ports:
-      - "5018:8080"
-      - "5518:8081"
-    build:
-      context: .
-      dockerfile: Services/Billing/Billing.API/Dockerfile
-    volumes:
-      - ~/.aspnet/https:/https:ro
-      - ./Services/Billing/Billing.API/RSAKeys:/app/RSAKeys
-
+      - /mnt/dpkeys:/home/app/.aspnet/DataProtection-Keys
+  #
+  #  billing.api:
+  #    image: ${DOCKER_REGISTRY-}billingapi
+  #    container_name: billing.api
+  #    environment:
+  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+  #      - ASPNETCORE_HTTP_PORTS=8080
+  #      - ASPNETCORE_HTTPS_PORTS=8081
+  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+#        - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+  #    ports:
+  #      - "5018:8080"
+  #      - "5518:8081"
+  #    build:
+  #      context: .
+  #      dockerfile: Services/Billing/Billing.API/Dockerfile
+  #    volumes:
+  #      - ~/.aspnet/https:/https:ro
+  #      - ./Services/Billing/Billing.API/RSAKeys:/app/RSAKeys
+  #
   chatbox.api:
     image: ${DOCKER_REGISTRY-}chatboxapi
     container_name: chatbox.api
@@ -91,6 +103,8 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud/compute-default-sa.json
+      - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
+
 
     ports:
       - "5008:8080"
@@ -102,65 +116,65 @@ services:
       - ~/.aspnet/https:/https:ro
       - ./Services/ChatBox/ChatBox.API/RSAKeys:/app/RSAKeys
       - ~/gcp/compute-default-sa.json:/app/gcloud/compute-default-sa.json:ro
-
-  digitalgoods.api:
-    image: ${DOCKER_REGISTRY-}digitalgoodsapi
-    container_name: digitalgoods.api
-    environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-    ports:
-      - "5022:8080"
-      - "5522:8081"
-    build:
-      context: .
-      dockerfile: Services/DigitalGoods/DigitalGoods.API/Dockerfile
-    volumes:
-      - ~/.aspnet/https:/https:ro
-      - ./Services/DigitalGoods/DigitalGoods.API/RSAKeys:/app/RSAKeys
-
-  feed.api:
-    image: ${DOCKER_REGISTRY-}feedapi
-    container_name: feed.api
-    environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-    ports:
-      - "5017:8080"
-      - "5517:8081"
-    build:
-      context: .
-      dockerfile: Services/Feed/Feed.API/Dockerfile
-    volumes:
-      - ~/.aspnet/https:/https:ro
-      - ./Services/Feed/Feed.API/RSAKeys:/app/RSAKeys
-
-  image.api:
-    image: ${DOCKER_REGISTRY-}imageapi
-    container_name: image.api
-    environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-    ports:
-      - "5011:8080"
-      - "5511:8081"
-    build:
-      context: .
-      dockerfile: Services/Image/Image.API/Dockerfile
-    volumes:
-      - ~/.aspnet/https:/https:ro
+  #
+  #  digitalgoods.api:
+  #    image: ${DOCKER_REGISTRY-}digitalgoodsapi
+  #    container_name: digitalgoods.api
+  #    environment:
+  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+  #      - ASPNETCORE_HTTP_PORTS=8080
+  #      - ASPNETCORE_HTTPS_PORTS=8081
+  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+  #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+  #    ports:
+  #      - "5022:8080"
+  #      - "5522:8081"
+  #    build:
+  #      context: .
+  #      dockerfile: Services/DigitalGoods/DigitalGoods.API/Dockerfile
+  #    volumes:
+  #      - ~/.aspnet/https:/https:ro
+  #      - ./Services/DigitalGoods/DigitalGoods.API/RSAKeys:/app/RSAKeys
+  
+  #  feed.api:
+  #    image: ${DOCKER_REGISTRY-}feedapi
+  #    container_name: feed.api
+  #    environment:
+  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+  #      - ASPNETCORE_HTTP_PORTS=8080
+  #      - ASPNETCORE_HTTPS_PORTS=8081
+  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+  #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+  #    ports:
+  #      - "5017:8080"
+  #      - "5517:8081"
+  #    build:
+  #      context: .
+  #      dockerfile: Services/Feed/Feed.API/Dockerfile
+  #    volumes:
+  #      - ~/.aspnet/https:/https:ro
+  #      - ./Services/Feed/Feed.API/RSAKeys:/app/RSAKeys
+  
+  #  image.api:
+  #    image: ${DOCKER_REGISTRY-}imageapi
+  #    container_name: image.api
+  #    environment:
+  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+  #      - ASPNETCORE_HTTP_PORTS=8080
+  #      - ASPNETCORE_HTTPS_PORTS=8081
+  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+  #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+  #    ports:
+  #      - "5011:8080"
+  #      - "5511:8081"
+  #    build:
+  #      context: .
+  #      dockerfile: Services/Image/Image.API/Dockerfile
+  #    volumes:
+  #      - ~/.aspnet/https:/https:ro
 
   lifestyles.api:
     image: ${DOCKER_REGISTRY-}lifestylesapi
@@ -186,8 +200,11 @@ services:
   media.api:
     image: ${DOCKER_REGISTRY-}mediaapi
     container_name: media.api
+    depends_on:
+      - distributedcache
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
@@ -203,24 +220,24 @@ services:
       - ~/.aspnet/https:/https:ro
       - ./Services/Media/Media.API/RSAKeys:/app/RSAKeys
   
-  #  notification.api:
-  #    image: ${DOCKER_REGISTRY-}notificationapi
-  #    container_name: notification.api
-  #    environment:
-  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-  #      - ASPNETCORE_HTTP_PORTS=8080
-  #      - ASPNETCORE_HTTPS_PORTS=8081 
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-  #    ports:
-  #      - "5012:8080"
-  #      - "5512:8081"
-  #    build:
-  #      context: .
-  #      dockerfile: Services/Notification/Notification.API/Dockerfile
-  #    volumes:
-  #      - ~/.aspnet/https:/https:ro
+  notification.api:
+    image: ${DOCKER_REGISTRY-}notificationapi
+    container_name: notification.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "5012:8080"
+      - "5512:8081"
+    build:
+      context: .
+      dockerfile: Services/Notification/Notification.API/Dockerfile
+    volumes:
+      - ~/.aspnet/https:/https:ro
 
   payment.api:
     image: ${DOCKER_REGISTRY-}paymentapi
@@ -245,8 +262,11 @@ services:
   post.api:
     image: ${DOCKER_REGISTRY-}postapi
     container_name: post.api
+    depends_on:
+      - distributedcache
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
@@ -265,13 +285,20 @@ services:
   profile.api:
     image: ${DOCKER_REGISTRY-}profileapi
     container_name: profile.api
+    depends_on:
+      - distributedcache
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ASPNETCORE_Kestrel__Endpoints__Rest__Url=http://0.0.0.0:8080
+      - ASPNETCORE_Kestrel__Endpoints__Rest__Protocols=Http1
+      - ASPNETCORE_Kestrel__Endpoints__GrpcH2c__Url=http://0.0.0.0:8081
+      - ASPNETCORE_Kestrel__Endpoints__GrpcH2c__Protocols=Http2
     ports:
       - "5001:8080"
       - "5501:8081"
@@ -300,7 +327,7 @@ services:
       dockerfile: Services/Promotion/Promotion.Grpc/Dockerfile
     volumes:
       - ~/.aspnet/https:/https:ro
-
+  
   scheduling.api:
     image: ${DOCKER_REGISTRY-}schedulingapi
     container_name: scheduling.api
@@ -320,7 +347,7 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Scheduling/Scheduling.API/RSAKeys:/app/RSAKeys
-
+  
   subscription.api:
     image: ${DOCKER_REGISTRY-}subscriptionapi
     container_name: subscription.api
@@ -340,7 +367,7 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Subscription/Subscription.API/RSAKeys:/app/RSAKeys
-
+  
   test.api:
     image: ${DOCKER_REGISTRY-}testapi
     container_name: test.api
@@ -368,8 +395,11 @@ services:
   translation.api:
     image: ${DOCKER_REGISTRY-}translation
     container_name: translation.api
+    depends_on:
+      - distributedcache
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
@@ -390,16 +420,24 @@ services:
   yarpapigateway:
     image: ${DOCKER_REGISTRY-}yarpapigateway
     container_name: emoease.yarpapigateway
+    depends_on:
+      - distributedcache
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - GrpcSettings__PiiUrl=http://profile.api:8080
+      - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
+
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:8080"        # chỉ mở nội bộ host, Nginx sẽ proxy vào đây
+#      - "443:443"
     build:
       context: .
       dockerfile: ApiGateways/YarpApiGateway/Dockerfile
@@ -408,7 +446,8 @@ services:
       #      - /etc/ssl/certs-anhtn:/certs:ro
       - /etc/ssl/api-cert:/certs:ro
       - ~/.aspnet/https:/https:ro
-      
+      - /mnt/dpkeys:/home/app/.aspnet/DataProtection-Keys
+  
   distributedcache:
     container_name: distributedcache-msa
     image: redis

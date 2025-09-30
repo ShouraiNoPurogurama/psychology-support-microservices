@@ -17,7 +17,7 @@ public interface IHasCreationAudit
 public interface IHasModificationAudit
 {
     DateTimeOffset? LastModified { get; set; }
-    string? LastModifiedByAliasId { get; set; }
+    Guid? LastModifiedByAliasId { get; set; }
 }
 
 public interface ISoftDeletable

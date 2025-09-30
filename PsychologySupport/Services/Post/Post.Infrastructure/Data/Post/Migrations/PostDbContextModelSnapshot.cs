@@ -61,8 +61,8 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 
-                    b.Property<string>("LastModifiedByAliasId")
-                        .HasColumnType("text")
+                    b.Property<Guid?>("LastModifiedByAliasId")
+                        .HasColumnType("uuid")
                         .HasColumnName("last_modified_by_alias_id");
 
                     b.Property<int>("SortOrder")
@@ -119,8 +119,8 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 
-                    b.Property<string>("LastModifiedByAliasId")
-                        .HasColumnType("text")
+                    b.Property<Guid?>("LastModifiedByAliasId")
+                        .HasColumnType("uuid")
                         .HasColumnName("last_modified_by_alias_id");
 
                     b.Property<Guid>("PostId")
@@ -180,8 +180,8 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 
-                    b.Property<string>("LastModifiedByAliasId")
-                        .HasColumnType("text")
+                    b.Property<Guid?>("LastModifiedByAliasId")
+                        .HasColumnType("uuid")
                         .HasColumnName("last_modified_by_alias_id");
 
                     b.Property<string>("Message")
@@ -197,6 +197,87 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .HasName("pk_gift_attaches");
 
                     b.ToTable("gift_attaches", "post");
+                });
+
+            modelBuilder.Entity("Post.Domain.Aggregates.Idempotency.IdempotencyKey", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("CreatedByAliasId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_alias_id");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("Key")
+                        .HasColumnType("uuid")
+                        .HasColumnName("key");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("request_hash");
+
+                    b.Property<string>("ResponsePayload")
+                        .HasColumnType("text")
+                        .HasColumnName("response_payload");
+
+                    b.HasKey("Id")
+                        .HasName("idempotency_keys_pkey");
+
+                    b.HasIndex(new[] { "Key" }, "idempotency_keys_idempotency_key")
+                        .IsUnique()
+                        .HasDatabaseName("ix_idempotency_keys_key");
+
+                    b.ToTable("idempotency_keys", "post");
+                });
+
+            modelBuilder.Entity("Post.Domain.Aggregates.OutboxMessages.OutboxMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("OccurredOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_on");
+
+                    b.Property<DateTime?>("ProcessedOn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_on");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id")
+                        .HasName("outbox_messages_pkey");
+
+                    b.HasIndex(new[] { "OccurredOn" }, "ix_outbox_pending")
+                        .HasDatabaseName("ix_outbox_messages_occurred_on")
+                        .HasFilter("(processed_on IS NULL)");
+
+                    b.HasIndex(new[] { "ProcessedOn" }, "ix_outbox_processed")
+                        .HasDatabaseName("ix_outbox_messages_processed_on")
+                        .HasFilter("(processed_on IS NOT NULL)");
+
+                    b.ToTable("outbox_messages", "post");
                 });
 
             modelBuilder.Entity("Post.Domain.Aggregates.Posts.Post", b =>
@@ -241,8 +322,8 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 
-                    b.Property<string>("LastModifiedByAliasId")
-                        .HasColumnType("text")
+                    b.Property<Guid?>("LastModifiedByAliasId")
+                        .HasColumnType("uuid")
                         .HasColumnName("last_modified_by_alias_id");
 
                     b.Property<DateTime>("PublishedAt")
@@ -487,8 +568,8 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 
-                    b.Property<string>("LastModifiedByAliasId")
-                        .HasColumnType("text")
+                    b.Property<Guid?>("LastModifiedByAliasId")
+                        .HasColumnType("uuid")
                         .HasColumnName("last_modified_by_alias_id");
 
                     b.Property<DateTimeOffset?>("ModifiedAt")
@@ -503,87 +584,6 @@ namespace Post.Infrastructure.Data.Post.Migrations
                         .HasName("pk_reactions");
 
                     b.ToTable("reactions", "post");
-                });
-
-            modelBuilder.Entity("Post.Infrastructure.Integration.Entities.OutboxMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("OccurredOn")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("occurred_on");
-
-                    b.Property<DateTime?>("ProcessedOn")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("processed_on");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("type");
-
-                    b.HasKey("Id")
-                        .HasName("outbox_messages_pkey");
-
-                    b.HasIndex(new[] { "OccurredOn" }, "ix_outbox_pending")
-                        .HasDatabaseName("ix_outbox_messages_occurred_on")
-                        .HasFilter("(processed_on IS NULL)");
-
-                    b.HasIndex(new[] { "ProcessedOn" }, "ix_outbox_processed")
-                        .HasDatabaseName("ix_outbox_messages_processed_on")
-                        .HasFilter("(processed_on IS NOT NULL)");
-
-                    b.ToTable("outbox_messages", "post");
-                });
-
-            modelBuilder.Entity("Post.Infrastructure.Resilience.Entities.IdempotencyKey", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<Guid>("CreatedByAliasId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("created_by_alias_id");
-
-                    b.Property<DateTimeOffset?>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expires_at");
-
-                    b.Property<Guid>("Key")
-                        .HasColumnType("uuid")
-                        .HasColumnName("key");
-
-                    b.Property<string>("RequestHash")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("request_hash");
-
-                    b.Property<string>("ResponsePayload")
-                        .HasColumnType("text")
-                        .HasColumnName("response_payload");
-
-                    b.HasKey("Id")
-                        .HasName("idempotency_keys_pkey");
-
-                    b.HasIndex(new[] { "Key" }, "idempotency_keys_idempotency_key")
-                        .IsUnique()
-                        .HasDatabaseName("ix_idempotency_keys_key");
-
-                    b.ToTable("idempotency_keys", "post");
                 });
 
             modelBuilder.Entity("Post.Domain.Aggregates.Comments.Comment", b =>

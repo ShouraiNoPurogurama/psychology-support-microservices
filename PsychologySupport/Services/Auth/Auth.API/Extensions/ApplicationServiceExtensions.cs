@@ -1,4 +1,7 @@
-﻿using Auth.API.Data;
+﻿using System.Net;
+using System.Net.Http;
+using Auth.API.Common.Authentication;
+using Auth.API.Data;
 using Auth.API.Features.Authentication.BackgroundServices;
 using Auth.API.Features.Authentication.ServiceContracts;
 using Auth.API.Features.Authentication.ServiceContracts.Features;
@@ -23,7 +26,6 @@ using Microsoft.OpenApi.Models;
 using Notification.API.Protos;
 using Pii.API.Protos;
 using Profile.API.Protos;
-using StackExchange.Redis;
 using EmailService = Auth.API.Features.Authentication.Services.Shared.EmailService;
 
 namespace Auth.API.Extensions;
@@ -117,10 +119,10 @@ public static class ApplicationServiceExtensions
                 Title = "Auth API",
                 Version = "v1"
             });
-
-            //var url = env.IsProduction()
-            //    ? "/auth-service/swagger/v1/swagger.json"
-            //    : "https://localhost:5510/auth-service";
+            
+            var url = env.IsProduction() 
+                ? "/auth-service/swagger/v1/swagger.json" 
+                : "https://localhost:5510/auth-service";
 
             //options.AddServer(new OpenApiServer
             //{
@@ -133,6 +135,7 @@ public static class ApplicationServiceExtensions
     {
         services.AddScoped<LoggingActionFilter>();
         services.AddScoped<IPayloadProtector, PayloadProtector>();
+        services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
 
         //Facade
         services.AddScoped<IAuthFacade, AuthFacade>();
@@ -182,43 +185,32 @@ public static class ApplicationServiceExtensions
 
     private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
     {
+        var notifUrl = config["GrpcSettings:NotificationUrl"];
+        var profileUrl = config["GrpcSettings:PatientProfileUrl"];
+        var piiUrl = config["GrpcSettings:PiiUrl"];
+
         services.AddGrpcClient<NotificationService.NotificationServiceClient>(options =>
             {
-                options.Address = new Uri(config["GrpcSettings:NotificationUrl"]!);
+                options.Address = new Uri(notifUrl!);
             })
-            .ConfigurePrimaryHttpMessageHandler(() =>
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
-                var handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                };
-                return handler;
+                EnableMultipleHttp2Connections = true
             });
 
         services.AddGrpcClient<PatientProfileService.PatientProfileServiceClient>(options =>
             {
-                options.Address = new Uri(config["GrpcSettings:PatientProfileUrl"]!);
+                options.Address = new Uri(profileUrl!);
             })
-            .ConfigurePrimaryHttpMessageHandler(() =>
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
-                var handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                };
-                return handler;
+                EnableMultipleHttp2Connections = true
             });
 
-        services.AddGrpcClient<PiiService.PiiServiceClient>(options =>
+        services.AddGrpcClient<PiiService.PiiServiceClient>(options => { options.Address = new Uri(piiUrl!); })
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
-                options.Address = new Uri(config["GrpcSettings:PiiUrl"]!);
-            })
-            .ConfigurePrimaryHttpMessageHandler(() =>
-            {
-                var handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                };
-                return handler;
+                EnableMultipleHttp2Connections = true
             });
     }
 }

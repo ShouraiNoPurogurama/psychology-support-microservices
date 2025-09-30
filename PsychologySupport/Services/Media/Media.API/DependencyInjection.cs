@@ -54,9 +54,9 @@ namespace Media.API
                     Version = "v1"
                 });
 
-                //var url = env.IsProduction() 
-                //    ? "/media-service/swagger/v1/swagger.json" 
-                //    : "https://localhost:5511/media-service";
+                var url = env.IsProduction() 
+                    ? "/media-service/swagger/v1/swagger.json" 
+                    : "https://localhost:5510/media-service";
                 
                 //options.AddServer(new OpenApiServer
                 //{
@@ -112,7 +112,7 @@ namespace Media.API
             {
                 app.UseSwaggerUI(c =>
                 {
-                    c.SwaggerEndpoint("/media-service/swagger/v1/swagger.json", "Media API v1");
+                    c.SwaggerEndpoint("/media-service", "Media API v1");
                 });
             }
 

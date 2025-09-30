@@ -2,24 +2,24 @@
 
 public sealed class Follower
 {
-    public Guid AuthorAliasId { get; }
+    public Guid FollowerAliasId { get; }
     public Guid AliasId { get; }
     public DateTimeOffset Since { get; }
 
-    private Follower(Guid authorAliasId, Guid aliasId, DateTimeOffset sinceUtc)
+    private Follower(Guid FollowerAliasId, Guid aliasId, DateTimeOffset sinceUtc)
     {
-        if (authorAliasId == Guid.Empty) 
-            throw new ArgumentException("AuthorAliasId is required", nameof(authorAliasId));
+        if (FollowerAliasId == Guid.Empty) 
+            throw new ArgumentException("FollowerAliasId is required", nameof(FollowerAliasId));
         if (aliasId == Guid.Empty) 
             throw new ArgumentException("AliasId is required", nameof(aliasId));
-        if (authorAliasId == aliasId)
+        if (FollowerAliasId == aliasId)
             throw new ArgumentException("Cannot follow yourself", nameof(aliasId));
 
-        AuthorAliasId = authorAliasId;
+        FollowerAliasId = FollowerAliasId;
         AliasId = aliasId;
         Since = sinceUtc.ToUniversalTime() ;
     }
 
-    public static Follower Create(Guid authorAliasId, Guid aliasId, DateTimeOffset? since = null)
-        => new(authorAliasId, aliasId, (since ?? DateTimeOffset.UtcNow).ToUniversalTime());
+    public static Follower Create(Guid FollowerAliasId, Guid aliasId, DateTimeOffset? since = null)
+        => new(FollowerAliasId, aliasId, (since ?? DateTimeOffset.UtcNow).ToUniversalTime());
 }

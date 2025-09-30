@@ -12,6 +12,12 @@ public sealed record PostCreatedEvent(
     DateTimeOffset CreatedAt
 ) : DomainEvent(PostId);
 
+#region Bypass Events
+
+public record PostFinalizedEvent(Guid PostId) : IDomainEvent;
+
+#endregion
+
 public sealed record PostUpdatedEvent(Guid PostId, Guid AuthorAliasId) : DomainEvent(PostId);
 
 public sealed record PostDeletedEvent(Guid PostId, Guid AuthorAliasId) : DomainEvent(PostId);

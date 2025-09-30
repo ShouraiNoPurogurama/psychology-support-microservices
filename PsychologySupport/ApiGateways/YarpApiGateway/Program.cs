@@ -16,9 +16,6 @@ if (builder.Environment.IsProduction())
                 "/certs/privkey.pem"
             );
         });
-
-        serverOptions.ListenAnyIP(80);
-        serverOptions.ListenAnyIP(443);
     });
 }
 

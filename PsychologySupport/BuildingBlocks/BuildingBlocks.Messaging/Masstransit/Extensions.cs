@@ -8,8 +8,10 @@ namespace BuildingBlocks.Messaging.MassTransit;
 
 public static class Extensions
 {
-    public static IServiceCollection AddMessageBroker(this IServiceCollection services, IConfiguration configuration,
-        Assembly? assembly = null) 
+    public static IServiceCollection AddMessageBroker(this IServiceCollection services,
+        IConfiguration configuration,
+        Assembly? assembly = null,
+        Action<IBusRegistrationContext, IRabbitMqBusFactoryConfigurator>? configureEndpoints = null)
     {
         services.AddMassTransit(config =>
         {
@@ -31,11 +33,22 @@ public static class Extensions
                     host.Username(configuration["MessageBroker:UserName"]!);
                     host.Password(configuration["MessageBroker:Password"]!);
                 });
-                
+
                 configurator.UseInMemoryOutbox(context); //giúp đảm bảo transactional message dispatch
-                
-                configurator.ConfigureEndpoints(context);
-                
+
+                if (configureEndpoints is not null)
+                {
+                    //Nếu service GỌI ĐẾN cung cấp một cấu hình tùy chỉnh thì dùng nó để override cấu hình mặc định
+                    
+                    //Ko có cái này thì lúc fanout nhiều consumer sẽ bị nhét vào cùng 1 queue
+                    //=> 1 message chỉ có 1 consumer xử lý :)
+                    configureEndpoints(context, configurator);
+                }
+                else
+                {
+                    configurator.ConfigureEndpoints(context);
+                }
+
                 // configurator.UseMessageRetry(retryConfig =>
                 // {
                 //     retryConfig.Exponential(
@@ -55,7 +68,6 @@ public static class Extensions
                 //     cb.ActiveThreshold = 10;                       //Phải có ít nhất 10 request mới tính TripThreshold
                 //     cb.ResetInterval = TimeSpan.FromMinutes(5);    //Sau 5 phút thử đóng mạch lại
                 // });
-
             });
         });
         return services;

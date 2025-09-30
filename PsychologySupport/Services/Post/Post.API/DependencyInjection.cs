@@ -58,7 +58,7 @@ public static class DependencyInjection
             });
 
             var url = env.IsProduction() 
-                ? "/post-service/swagger/v1/swagger.json" 
+                ? "/post-service" 
                 : "https://localhost:5510/post-service";
             
             options.AddServer(new OpenApiServer
@@ -115,7 +115,7 @@ public static class DependencyInjection
         {
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/post-service/swagger/v1/swagger.json", "Post API v1");
+                c.SwaggerEndpoint("/post-service", "Post API v1");
             });
         }
 

@@ -2,7 +2,7 @@
 
 public abstract class AggregateRoot<TId> : AuditableEntity<TId>, IAggregateRoot<TId>
 {
-    private readonly List<IDomainEvent> _domainEvents = new();
+    private readonly List<IDomainEvent> _domainEvents = [];
 
     public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 

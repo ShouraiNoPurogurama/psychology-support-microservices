@@ -1,0 +1,32 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Notification.API.Protos";
+
+service NotificationService {
+ 
+  rpc HasSentEmailRecently (HasSentEmailRecentlyRequest) returns (HasSentEmailRecentlyResponse);
+
+  rpc SendEmail (SendEmailRequest) returns (SendEmailResponse);
+}
+
+message HasSentEmailRecentlyRequest {
+  string email = 1;
+}
+
+message HasSentEmailRecentlyResponse {
+  bool isRecentlySent = 1; 
+}
+
+message SendEmailRequest {
+  string eventId = 1; 
+  string to = 2;
+  string subject = 3;
+  string body = 4;
+}
+
+message SendEmailResponse {
+  bool success = 1;
+  string message = 2;
+}

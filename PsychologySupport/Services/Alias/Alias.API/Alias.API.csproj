@@ -35,9 +35,20 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Protobuf Include="..\..\Profile\Profile.API\Protos\pii.proto" GrpcServices="Client">
-            <Link>Protos\pii.proto</Link>
-        </Protobuf>
+      <Protobuf Include="Protos\pii.proto">
+        <GrpcServices>Client</GrpcServices>
+        <Access>Public</Access>
+        <ProtoCompile>True</ProtoCompile>
+        <CompileOutputs>True</CompileOutputs>
+        <OutputDir>obj\Debug\net9.0\</OutputDir>
+        <Generator>MSBuild:Compile</Generator>
+      </Protobuf>
     </ItemGroup>
+
+<!--    <ItemGroup>-->
+<!--        <Protobuf Include="..\..\Profile\Profile.API\Protos\pii.proto" GrpcServices="Client">-->
+<!--            <Link>Protos\pii.proto</Link>-->
+<!--        </Protobuf>-->
+<!--    </ItemGroup>-->
 
 </Project>

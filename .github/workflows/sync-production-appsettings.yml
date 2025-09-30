@@ -31,9 +31,24 @@ on:
         required: true
       APPSETTINGS_PRODUCTION_TRANSLATION:
         required: true
-      APPSETTINGS_PRODUCTION_TEST:
+      # --------- NEW SECRETS FOR MISSING SERVICES ----------
+      APPSETTINGS_PRODUCTION_AIMODERATION:
         required: true
+      APPSETTINGS_PRODUCTION_ALIAS:
+        required: true
+      APPSETTINGS_PRODUCTION_BILLING:
+        required: true
+      APPSETTINGS_PRODUCTION_DIGITALGOODS:
+        required: true
+      APPSETTINGS_PRODUCTION_FEED:
+        required: true
+      APPSETTINGS_PRODUCTION_MEDIA:
+        required: true
+      APPSETTINGS_PRODUCTION_POST:
+        required: true
+      # -----------------------------------------------------
   workflow_dispatch:
+
 jobs:
   sync-production:
     runs-on: ubuntu-latest
@@ -83,7 +98,7 @@ jobs:
             ${{ secrets.APPSETTINGS_PRODUCTION_PROFILE }}
             EOF
 
-            # Promotion
+            # Promotion (gRPC)
             cat <<EOF > Services/Promotion/Promotion.Grpc/appsettings.Production.json
             ${{ secrets.APPSETTINGS_PRODUCTION_PROMOTION }}
             EOF
@@ -107,5 +122,49 @@ jobs:
             cat <<EOF > Services/Translation/Translation.API/appsettings.Production.json
             ${{ secrets.APPSETTINGS_PRODUCTION_TRANSLATION }}
             EOF
+
+            # ================== NEW SERVICES ==================
+
+            # AIModeration
+            cat <<EOF > Services/AIModeration/AIModeration.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_AIMODERATION }}
+            EOF
+
+            # Alias
+            cat <<EOF > Services/Alias/Alias.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_ALIAS }}
+            EOF
+
+            # Billing
+            cat <<EOF > Services/Billing/Billing.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_BILLING }}
+            EOF
+
+            # DigitalGoods
+            cat <<EOF > Services/DigitalGoods/DigitalGoods.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_DIGITALGOODS }}
+            EOF
+
+            # Feed
+            cat <<EOF > Services/Feed/Feed.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_FEED }}
+            EOF
+
+            # Media
+            cat <<EOF > Services/Media/Media.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_MEDIA }}
+            EOF
+
+            # Post
+            cat <<EOF > Services/Post/Post.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_POST }}
+            EOF
+
+            # # YARP ApiGateway
+            # cat <<EOF > ApiGateways/YarpApiGateway/appsettings.Production.json
+            # ${{ secrets.APPSETTINGS_PRODUCTION_YARP_API_GATEWAY }}
+            # EOF
+
+            # ==================================================
 
             echo "✅ Sync production appsettings done!"
