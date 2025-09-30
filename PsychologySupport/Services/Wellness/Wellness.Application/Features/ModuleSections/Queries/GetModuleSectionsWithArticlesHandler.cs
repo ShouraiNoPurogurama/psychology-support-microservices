@@ -17,7 +17,6 @@ public record GetModuleSectionsWithArticlesQuery(
 
 public record GetModuleSectionsWithArticlesResult(PaginatedResult<ModuleSectionDetailsDto> Sections);
 
-
 public class GetModuleSectionsWithArticlesHandler
     : IQueryHandler<GetModuleSectionsWithArticlesQuery, GetModuleSectionsWithArticlesResult>
 {
@@ -34,26 +33,37 @@ public class GetModuleSectionsWithArticlesHandler
 
     public async Task<GetModuleSectionsWithArticlesResult> Handle(GetModuleSectionsWithArticlesQuery request, CancellationToken cancellationToken)
     {
-        var query = _context.ModuleSections
+        var sections = await _context.ModuleSections
             .AsNoTracking()
             .Include(ms => ms.SectionArticles)
                 .ThenInclude(a => a.ArticleProgresses)
+                    .ThenInclude(ap => ap.ModuleProgress)
             .Include(ms => ms.ModuleProgresses)
-            .Where(ms => ms.ModuleId == request.ModuleId);
-
-        var totalCount = await query.CountAsync(cancellationToken);
-        if (totalCount == 0)
-            throw new WellnessNotFoundException($"Không tìm thấy module sections cho ModuleId '{request.ModuleId}'.");
-
-        var sections = await query
+            .Where(ms => ms.Id == request.ModuleId)
             .OrderBy(ms => ms.Title)
-            .Skip((request.PageIndex - 1) * request.PageSize)
-            .Take(request.PageSize)
             .ToListAsync(cancellationToken);
 
-        // Lấy tất cả MediaId (ModuleSection + SectionArticles)
-        var mediaIds = sections.Select(ms => ms.MediaId)
-            .Concat(sections.SelectMany(ms => ms.SectionArticles.Select(a => a.MediaId)))
+        if (!sections.Any())
+            throw new WellnessNotFoundException($"Không tìm thấy module sections cho ModuleId '{request.ModuleId}'.");
+
+        // Flatten tất cả SectionArticles
+        var allArticles = sections
+            .SelectMany(ms => ms.SectionArticles.Select(a => new { ModuleSection = ms, Article = a }))
+            .OrderBy(a => a.Article.OrderIndex)
+            .ToList();
+
+        var totalCount = allArticles.Count;
+
+        // Áp dụng pagination trên SectionArticles
+        var pagedArticles = allArticles
+            .Skip((request.PageIndex - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToList();
+
+        // Lấy tất cả MediaIds cần fetch URL
+        var mediaIds = pagedArticles
+            .Select(a => a.Article.MediaId)
+            .Concat(pagedArticles.Select(a => a.ModuleSection.MediaId))
             .Distinct()
             .ToList();
 
@@ -61,8 +71,12 @@ public class GetModuleSectionsWithArticlesHandler
             .GetResponse<GetMediaUrlResponse>(new GetMediaUrlRequest { MediaIds = mediaIds }, cancellationToken);
         var mediaUrls = mediaResponse.Message.Urls;
 
-        var dtoList = sections.Select(ms =>
+        // Map thành ModuleSectionDetailsDto
+        var groupedBySection = pagedArticles.GroupBy(a => a.ModuleSection.Id);
+        var dtoList = groupedBySection.Select(g =>
         {
+            var ms = g.First().ModuleSection;
+
             // Progress của module section
             var sectionProgress = ms.ModuleProgresses
                 .FirstOrDefault(p => p.SubjectRef == request.SubjectRef && p.SectionId == ms.Id);
@@ -70,27 +84,24 @@ public class GetModuleSectionsWithArticlesHandler
             int completedDuration = sectionProgress?.MinutesRead ?? 0;
             bool sectionCompleted = sectionProgress?.ProcessStatus == ProcessStatus.Completed;
 
-            // Danh sách bài viết
-            var articles = ms.SectionArticles
-                .OrderBy(a => a.OrderIndex)
-                .Select(a =>
-                {
-                    var progress = a.ArticleProgresses
-                        .FirstOrDefault(p => p.ModuleProgress != null && p.ModuleProgress.SubjectRef == request.SubjectRef);
+            var articles = g.Select(a =>
+            {
+                var progress = a.Article.ArticleProgresses
+                    .FirstOrDefault(p => p.ModuleProgress != null && p.ModuleProgress.SubjectRef == request.SubjectRef);
 
-                    bool completed = progress?.ProcessStatus == ProcessStatus.Completed;
+                bool completed = progress?.ProcessStatus == ProcessStatus.Completed;
 
-                    return new SectionArticleDto(
-                        a.Id,
-                        a.Title,
-                        mediaUrls.TryGetValue(a.MediaId, out var url) ? url : string.Empty,
-                        a.ContentJson,
-                        a.OrderIndex,
-                        a.Duration,
-                        completed,
-                        a.Source
-                    );
-                }).ToList();
+                return new SectionArticleDto(
+                    a.Article.Id,
+                    a.Article.Title,
+                    mediaUrls.TryGetValue(a.Article.MediaId, out var url) ? url : string.Empty,
+                    a.Article.ContentJson,
+                    a.Article.OrderIndex,
+                    a.Article.Duration,
+                    completed,
+                    a.Article.Source
+                );
+            }).ToList();
 
             return new ModuleSectionDetailsDto(
                 ms.Id,
@@ -114,4 +125,5 @@ public class GetModuleSectionsWithArticlesHandler
 
         return new GetModuleSectionsWithArticlesResult(paginatedResult);
     }
+
 }

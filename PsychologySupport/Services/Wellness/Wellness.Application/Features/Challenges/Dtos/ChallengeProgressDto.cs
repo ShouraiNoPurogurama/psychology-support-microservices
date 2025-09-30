@@ -28,7 +28,7 @@ namespace Wellness.Application.Features.Challenges.Dtos
         public Guid StepId { get; init; }
         public int DayNumber { get; init; }
         public int OrderIndex { get; init; }
-        public string ActivityName { get; init; } = string.Empty;
+        public ActivityDto? Activity { get; init; }
         public ProcessStatus ProcessStatus { get; init; }
         public DateTimeOffset? StartedAt { get; init; }
         public DateTimeOffset? CompletedAt { get; init; }

@@ -31,8 +31,8 @@ public class GetChallengeProgressEndpoint : ICarterModule
         {
 
             // Authorization check
-            if (!AuthorizationHelpers.CanView(request.SubjectRef, httpContext.User))
-                throw new ForbiddenException();
+            //if (!AuthorizationHelpers.CanView(request.SubjectRef, httpContext.User))
+            //    throw new ForbiddenException();
 
             var query = new GetChallengeProgressQuery(
                 request.SubjectRef,
@@ -46,7 +46,7 @@ public class GetChallengeProgressEndpoint : ICarterModule
 
             return Results.Ok(new GetChallengeProgressResponse(result.ChallengeProgresses));
         })
-        .RequireAuthorization()
+        //.RequireAuthorization()
         .WithName("GetChallengeProgress")
         .WithTags("ChallengeProgress")
         .Produces<GetChallengeProgressResponse>(200)

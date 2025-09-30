@@ -26,8 +26,8 @@ public class GetChallengesEndpoint : ICarterModule
             ISender sender, HttpContext httpContext) =>
         {
             // Authorization check
-            if (!AuthorizationHelpers.HasViewAccess(httpContext.User))
-                throw new ForbiddenException();
+            //if (!AuthorizationHelpers.HasViewAccess(httpContext.User))
+            //    throw new ForbiddenException();
 
             var query = new GetChallengesQuery(
                 request.ChallengeType,
@@ -39,7 +39,7 @@ public class GetChallengesEndpoint : ICarterModule
 
             return Results.Ok(new GetChallengesResponse(result.Challenges));
         })
-        .RequireAuthorization()
+        //.RequireAuthorization()
         .WithName("GetChallenges")
         .WithTags("Challenges")
         .Produces<GetChallengesResponse>(200)

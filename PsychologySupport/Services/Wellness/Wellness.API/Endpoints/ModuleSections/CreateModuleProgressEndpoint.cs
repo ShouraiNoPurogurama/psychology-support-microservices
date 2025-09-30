@@ -4,6 +4,7 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Wellness.API.Common;
+using Wellness.Application.Features.JournalMoods.Commands;
 using Wellness.Domain.Enums;
 
 namespace Wellness.API.Endpoints.ModuleSections
@@ -40,14 +41,15 @@ namespace Wellness.API.Endpoints.ModuleSections
                         "MISSING_IDEMPOTENCY_KEY"
                     );
 
-                // Map request sang command
-                var command = request.Adapt<CreateModuleProgressCommand>();
-                command = command with { IdempotencyKey = requestKey.Value };
+                var command = new CreateModuleProgressCommand(
+                   IdempotencyKey: requestKey.Value,
+                   SubjectRef: request.SubjectRef,
+                   ModuleSectionId: request.ModuleSectionId,
+                   SectionArticleId: request.SectionArticleId
+                );
 
-                // Gửi command qua MediatR
                 var result = await sender.Send(command);
 
-                // Map kết quả sang response
                 var response = result.Adapt<CreateModuleProgressResponse>();
 
                 return Results.Created(
@@ -55,7 +57,7 @@ namespace Wellness.API.Endpoints.ModuleSections
                     response
                 );
             })
-            .RequireAuthorization()
+            //.RequireAuthorization()
             .WithName("CreateModuleProgress")
             .WithTags("ModuleProgress")
             .Produces<CreateModuleProgressResponse>(201)

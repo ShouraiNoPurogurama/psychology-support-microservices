@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Wellness.API.Common;
+using Wellness.Application.Features.Challenges.Commands;
 using Wellness.Application.Features.ProcessHistories.Commands;
 
 namespace Wellness.API.Endpoints.ProcessHistories;
@@ -30,8 +31,8 @@ public class CreateProcessHistoryEndpoint : ICarterModule
             ISender sender, HttpContext httpContext) =>
         {
             // Authorization check
-            if (!AuthorizationHelpers.CanModify(request.SubjectRef, httpContext.User))
-                throw new ForbiddenException();
+            //if (!AuthorizationHelpers.CanModify(request.SubjectRef, httpContext.User))
+            //    throw new ForbiddenException();
 
             if (requestKey is null || requestKey == Guid.Empty)
                 throw new BadRequestException(
@@ -39,8 +40,11 @@ public class CreateProcessHistoryEndpoint : ICarterModule
                     "MISSING_IDEMPOTENCY_KEY"
                 );
 
-            var command = request.Adapt<CreateProcessHistoryCommand>() with
-            { IdempotencyKey = requestKey.Value };
+            var command = new CreateProcessHistoryCommand(
+                 IdempotencyKey: requestKey.Value,
+                 SubjectRef: request.SubjectRef,
+                 ActivityId: request.ActivityId
+              );
 
             var result = await sender.Send(command);
 
@@ -55,7 +59,7 @@ public class CreateProcessHistoryEndpoint : ICarterModule
                 response
             );
         })
-        .RequireAuthorization()
+        //.RequireAuthorization()
         .WithName("CreateProcessHistory")
         .WithTags("ProcessHistories")
         .Produces<CreateProcessHistoryResponse>(201)

@@ -36,7 +36,7 @@ internal class GetChallengeProgressHandler
             .AsNoTracking()
             .AsQueryable();
 
-        // filter bắt buộc theo SubjectRef
+        // mandatory filter by SubjectRef
         query = query.Where(cp => cp.SubjectRef == request.SubjectRef);
 
         if (request.ProcessStatus.HasValue)
@@ -49,7 +49,7 @@ internal class GetChallengeProgressHandler
             query = query.Where(cp => cp.Challenge!.ChallengeType == request.ChallengeType.Value);
         }
 
-        // sort theo StartDate desc rồi ChallengeType asc
+        // sort by StartDate desc then ChallengeType asc
         query = query
             .OrderByDescending(cp => cp.StartDate)
             .ThenBy(cp => cp.Challenge!.ChallengeType);
@@ -71,12 +71,25 @@ internal class GetChallengeProgressHandler
                 ProgressPercent = cp.ProgressPercent,
                 StartDate = cp.StartDate,
                 EndDate = cp.EndDate,
-                Steps = cp.ChallengeStepProgresses.Select(sp => new ChallengeStepProgressDto
-                {
+                Steps = cp.ChallengeStepProgresses
+                    .OrderBy(sp => sp.ChallengeStep!.DayNumber)       // sort DayNumber
+                    .ThenBy(sp => sp.ChallengeStep!.OrderIndex)       // sort OrderIndex
+                    .Select(sp => new ChallengeStepProgressDto
+                 {
                     StepId = sp.ChallengeStepId,
                     DayNumber = sp.ChallengeStep!.DayNumber,
                     OrderIndex = sp.ChallengeStep.OrderIndex,
-                    ActivityName = sp.ChallengeStep.Activity!.Name,
+                    Activity = sp.ChallengeStep.Activity == null
+                        ? null
+                        : new ActivityDto(
+                            sp.ChallengeStep.Activity.Id,
+                            sp.ChallengeStep.Activity.Name,
+                            sp.ChallengeStep.Activity.Description,
+                            sp.ChallengeStep.Activity.ActivityType,
+                            sp.ChallengeStep.Activity.Duration,
+                            sp.ChallengeStep.Activity.Instructions
+                        ),
+
                     ProcessStatus = sp.ProcessStatus,
                     StartedAt = sp.StartedAt,
                     CompletedAt = sp.CompletedAt,

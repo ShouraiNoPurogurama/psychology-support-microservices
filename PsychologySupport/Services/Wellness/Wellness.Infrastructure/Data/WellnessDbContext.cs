@@ -58,7 +58,7 @@ public partial class WellnessDbContext : DbContext, IWellnessDbContext
             entity.Property(e => e.ActivityType)
                         .HasConversion(new EnumToStringConverter<ActivityType>())
                         .HasColumnType("VARCHAR(20)")
-                        .HasColumnName("status");
+                        .HasColumnName("activity_type");
         });
 
         modelBuilder.Entity<Challenge>(entity =>
@@ -67,7 +67,7 @@ public partial class WellnessDbContext : DbContext, IWellnessDbContext
             entity.Property(e => e.ChallengeType)
                         .HasConversion(new EnumToStringConverter<ChallengeType>())
                         .HasColumnType("VARCHAR(20)")
-                        .HasColumnName("status");
+                        .HasColumnName("challenge_type");
         });
 
         modelBuilder.Entity<ChallengeProgress>(entity =>

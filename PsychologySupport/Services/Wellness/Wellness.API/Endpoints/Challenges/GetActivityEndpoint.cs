@@ -28,8 +28,8 @@ public class GetActivityEndpoint : ICarterModule
             ISender sender, HttpContext httpContext) =>
         {
             // Authorization check
-            if (!AuthorizationHelpers.HasViewAccess(httpContext.User))
-                throw new ForbiddenException();
+            //if (!AuthorizationHelpers.HasViewAccess(httpContext.User))
+            //    throw new ForbiddenException();
 
             var query = new GetActivitiesQuery(
                 request.ActivityType,
@@ -41,7 +41,7 @@ public class GetActivityEndpoint : ICarterModule
 
             return Results.Ok(new GetActivitiesResponse(result.Activities));
         })
-        .RequireAuthorization()
+        //.RequireAuthorization()
         .WithName("GetActivities")
         .WithTags("Activities")
         .Produces<GetActivitiesResponse>(200)
