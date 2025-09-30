@@ -57,9 +57,9 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-      - GrpcSettings__PatientProfileUrl=http://profile.api:8080
-      - GrpcSettings__PiiUrl=http://profile.api:8080
-      - GrpcSettings__NotificationUrl=http://notification.api:8080
+      - GrpcSettings__PatientProfileUrl=http://profile.api:8081
+      - GrpcSettings__PiiUrl=http://profile.api:8081
+      - GrpcSettings__NotificationUrl=http://notification.api:8081
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
     ports:
       - "5000:8080"
@@ -379,7 +379,7 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud/compute-default-sa.json
-      - GrpcSettings__TranslationUrl=http://translation.api:8080
+      - GrpcSettings__TranslationUrl=http://translation.api:8081
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
     ports:
       - "5006:8080"
@@ -438,7 +438,7 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
       - ASPNETCORE_URLS=http://0.0.0.0:8080
-      - GrpcSettings__PiiUrl=http://profile.api:8080
+      - GrpcSettings__PiiUrl=http://profile.api:8081
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
 
     ports:
