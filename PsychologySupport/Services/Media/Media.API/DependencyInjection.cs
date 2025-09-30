@@ -55,13 +55,13 @@ namespace Media.API
                 });
 
                 var url = env.IsProduction() 
-                    ? "/media-service/swagger/v1/swagger.json" 
+                    ? "/media-service" 
                     : "https://localhost:5510/media-service";
-                
-                //options.AddServer(new OpenApiServer
-                //{
-                //    Url = url
-                //});
+
+                options.AddServer(new OpenApiServer
+                {
+                    Url = url
+                });
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

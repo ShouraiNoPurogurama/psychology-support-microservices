@@ -52,17 +52,17 @@ public sealed class MediaAsset : AggregateRoot<Guid>
     private MediaAsset() { }
 
     public static MediaAsset Create(
-        Guid? seedMediaId,
-        string mimeType,
-        long sizeInBytes,
-        string checksumSha256,
-        MediaPurpose purpose, 
-        int? width = null,
-        int? height = null,
-        string? phash64 = null)
+    Guid? seedMediaId,
+    string mimeType,
+    long sizeInBytes,
+    string checksumSha256,
+    MediaPurpose purpose,
+    int? width = null,
+    int? height = null,
+    string? phash64 = null)
     {
         var newId = seedMediaId ?? Guid.NewGuid();
-        
+
         var media = new MediaAsset
         {
             Id = newId,
@@ -74,6 +74,13 @@ public sealed class MediaAsset : AggregateRoot<Guid>
             State = MediaState.Pending,
             CreatedAt = DateTime.UtcNow
         };
+
+        // Tạo moderation audit mặc định (pending)
+        var audit = MediaModerationAudit.Create(
+            media.Id,
+            MediaModerationStatus.Pending
+        );
+        media._moderationAudits.Add(audit);
 
         media.AddDomainEvent(new MediaUploadedEvent(
             media.Id,
@@ -164,8 +171,8 @@ public sealed class MediaAsset : AggregateRoot<Guid>
         
         Moderation = MediaModerationInfo.Approve(policyVersion, score, rawJson);
 
-        var audit = MediaModerationAudit.Create(Id, MediaModerationStatus.Approved, score, policyVersion, rawJson);
-        _moderationAudits.Add(audit);
+        //var audit = MediaModerationAudit.Create(Id, MediaModerationStatus.Approved, score, policyVersion, rawJson);
+        //_moderationAudits.Add(audit);
 
         AddDomainEvent(new MediaModerationSucceededEvent(
             Id, 
@@ -189,8 +196,8 @@ public sealed class MediaAsset : AggregateRoot<Guid>
         
         Moderation = MediaModerationInfo.Reject(policyVersion, score, rawJson);
 
-        var audit = MediaModerationAudit.Create(Id, MediaModerationStatus.Rejected, score, policyVersion, rawJson);
-        _moderationAudits.Add(audit);
+        //var audit = MediaModerationAudit.Create(Id, MediaModerationStatus.Rejected, score, policyVersion, rawJson);
+        //_moderationAudits.Add(audit);
 
         AddDomainEvent(new MediaModerationSucceededEvent(
             Id, 

@@ -120,14 +120,14 @@ public static class ApplicationServiceExtensions
                 Version = "v1"
             });
             
-            var url = env.IsProduction() 
-                ? "/auth-service/swagger/v1/swagger.json" 
+            var url = env.IsProduction()
+                ? "/auth-service"
                 : "https://localhost:5510/auth-service";
 
-            //options.AddServer(new OpenApiServer
-            //{
-            //    Url = url
-            //});
+            options.AddServer(new OpenApiServer
+            {
+                Url = url
+            });
         });
     }
 

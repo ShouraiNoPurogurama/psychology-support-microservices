@@ -29,10 +29,10 @@ namespace Media.Application.Features.Media.EventHandlers
                 .Include(m => m.Variants)
                 .FirstOrDefaultAsync(m => m.Id == notification.MediaId, cancellationToken);
 
-            if (mediaAsset == null || !mediaAsset.Moderation.IsPending)
+            if (mediaAsset == null || mediaAsset.ModerationAudits.All(m => m.Status != MediaModerationStatus.Pending))
                 return;
 
-            //var moderationAudit = mediaAsset.ModerationAudits.First(m => m.Status == MediaModerationStatus.Pending);
+            var moderationAudit = mediaAsset.ModerationAudits.First(m => m.Status == MediaModerationStatus.Pending);
             var originalVariant = mediaAsset.Variants.FirstOrDefault(v => v.VariantType == VariantType.Original);
 
             if (originalVariant == null)
@@ -54,9 +54,9 @@ namespace Media.Application.Features.Media.EventHandlers
             var sightengineResult = await _sightengineService.CheckImageWithWorkflowAsync(file);
 
             var auditStatus = sightengineResult.IsSafe ? MediaModerationStatus.Approved : MediaModerationStatus.Rejected;
-            
-            //moderationAudit.UpdateStatus(auditStatus, (decimal?)sightengineResult.Score, sightengineResult.WorkflowId,
-            //    sightengineResult.RawJson);
+
+            moderationAudit.UpdateStatus(auditStatus, (decimal?)sightengineResult.Score, sightengineResult.WorkflowId,
+                sightengineResult.RawJson);
 
             if (sightengineResult.IsSafe)
             {
@@ -75,7 +75,6 @@ namespace Media.Application.Features.Media.EventHandlers
                     rawJson: sightengineResult.RawJson
                 );
             }
-
 
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
