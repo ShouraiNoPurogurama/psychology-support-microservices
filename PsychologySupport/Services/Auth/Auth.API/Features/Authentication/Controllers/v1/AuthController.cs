@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Auth.API.Features.Authentication.Controllers.v1;
 
 [ApiController]
-[Route("[controller]")]
+[Route("[controller]/v1/")]
 public class AuthController(
     UserManager<User> userManager,
     RoleManager<Role> roleManager,

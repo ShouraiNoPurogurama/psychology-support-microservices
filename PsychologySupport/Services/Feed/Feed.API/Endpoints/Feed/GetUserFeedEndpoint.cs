@@ -13,7 +13,7 @@ public class GetUserFeedEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/v1/feed", async ([FromQuery] int? limit, [FromQuery] string? cursor, ISender sender, HttpContext http, CancellationToken ct) =>
+        app.MapGet("/v1/feed", async ([FromQuery] int? limit, [FromQuery] string? cursor, ISender sender, HttpContext http, CancellationToken ct) =>
             {
                 var aliasId = http.User.GetAliasId();
                 var pageSize = Math.Clamp(limit ?? 20, 1, 100);
