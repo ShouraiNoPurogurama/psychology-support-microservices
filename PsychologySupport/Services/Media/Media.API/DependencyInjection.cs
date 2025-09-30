@@ -54,14 +54,14 @@ namespace Media.API
                     Version = "v1"
                 });
 
-                var url = env.IsProduction() 
-                    ? "/media-service/swagger/v1/swagger.json" 
-                    : "https://localhost:5510/media-service";
+                //var url = env.IsProduction() 
+                //    ? "/media-service/swagger/v1/swagger.json" 
+                //    : "https://localhost:5511/media-service";
                 
-                options.AddServer(new OpenApiServer
-                {
-                    Url = url
-                });
+                //options.AddServer(new OpenApiServer
+                //{
+                //    Url = url
+                //});
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

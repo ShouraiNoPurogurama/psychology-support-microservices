@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using BuildingBlocks.CQRS;
+﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using Media.Application.Data;
 using Media.Application.Features.Media.Dtos;
@@ -7,6 +6,8 @@ using Media.Application.ServiceContracts;
 using Media.Domain.Enums;
 using Media.Domain.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
 
 namespace Media.Application.Features.Media.Commands.UploadMedia
 {
@@ -81,11 +82,13 @@ namespace Media.Application.Features.Media.Commands.UploadMedia
             }
 
             //Request moderation
-            mediaAsset.RequestModeration();
-
-            //Persist to database
             _dbContext.MediaAssets.Add(mediaAsset);
             await _dbContext.SaveChangesAsync(cancellationToken);
+
+            // Giờ entity đã có trong DB
+            mediaAsset.RequestModeration();
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
 
             //Build response
             var originalVariant = mediaAsset.GetOriginalVariant()!;

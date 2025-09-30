@@ -1,0 +1,37 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "billing-health": {
+        "ClusterId": "billing-cluster",
+        "Match": {
+          "Path": "/billing-service/health"
+        },
+        "Transforms": [ { "PathPattern": "/health" } ]
+      },
+      "billing-swagger": {
+        "ClusterId": "billing-cluster",
+        "Match": {
+          "Path": "/billing-service/swagger/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+      },
+      "billing-route": {
+        "ClusterId": "billing-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Match": {
+          "Path": "/billing-service/{**catch-all}"
+        },
+        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+      }
+    },
+    "Clusters": {
+      "billing-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "https://localhost:5518/"
+          }
+        }
+      }
+    }
+  }
+}

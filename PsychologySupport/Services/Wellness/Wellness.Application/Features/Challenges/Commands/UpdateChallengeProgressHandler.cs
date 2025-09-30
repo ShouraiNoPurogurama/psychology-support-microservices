@@ -8,6 +8,7 @@ using Wellness.Domain.Enums;
 namespace Wellness.Application.Features.Challenges.Commands
 {
     public record UpdateChallengeProgressCommand(
+        Guid SubjectRef,
         Guid ChallengeProgressId,
         Guid StepId,
         ProcessStatus StepStatus,

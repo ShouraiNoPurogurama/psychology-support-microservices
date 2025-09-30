@@ -1,8 +1,10 @@
-﻿using Carter;
+﻿using BuildingBlocks.Exceptions;
+using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using BuildingBlocks.Exceptions;
+using Wellness.API.Common;
 using Wellness.Application.Features.ProcessHistories.Commands;
 
 namespace Wellness.API.Endpoints.ProcessHistories;
@@ -25,8 +27,12 @@ public class CreateProcessHistoryEndpoint : ICarterModule
         app.MapPost("/v1/me/process-histories", async (
             [FromBody] CreateProcessHistoryRequest request,
             [FromHeader(Name = "Idempotency-Key")] Guid? requestKey,
-            ISender sender) =>
+            ISender sender, HttpContext httpContext) =>
         {
+            // Authorization check
+            if (!AuthorizationHelpers.CanModify(request.SubjectRef, httpContext.User))
+                throw new ForbiddenException();
+
             if (requestKey is null || requestKey == Guid.Empty)
                 throw new BadRequestException(
                     "Missing or invalid Idempotency-Key header.",

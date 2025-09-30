@@ -1,7 +1,10 @@
-﻿using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Exceptions;
+using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
+using Wellness.API.Common;
 using Wellness.Application.Features.ModuleSections.Dtos;
 
 public record GetModuleSectionsRequest(
@@ -19,9 +22,11 @@ public class GetModuleSectionsEndpoint : ICarterModule
     {
         app.MapGet("/v1/me/module-sections/{WellnessModuleId}", async (
                 [AsParameters] GetModuleSectionsRequest request,
-                ISender sender) =>
+                ISender sender, HttpContext httpContext) =>
         {
-            // Thiếu validate SubjectRef
+            // Authorization check
+            //if (!AuthorizationHelpers.CanView(request.SubjectRef, httpContext.User))
+            //    throw new ForbiddenException();
 
             var query = request.Adapt<GetModuleSectionsQuery>();
             var result = await sender.Send(query);

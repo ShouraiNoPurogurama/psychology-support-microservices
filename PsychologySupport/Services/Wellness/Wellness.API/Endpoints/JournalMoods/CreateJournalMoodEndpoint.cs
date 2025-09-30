@@ -1,9 +1,11 @@
-﻿using Carter;
+﻿using BuildingBlocks.Exceptions;
+using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Wellness.API.Common;
 using Wellness.Application.Features.JournalMoods.Commands;
-using BuildingBlocks.Exceptions;
 
 namespace Wellness.API.Endpoints.JournalMoods
 {
@@ -27,9 +29,11 @@ namespace Wellness.API.Endpoints.JournalMoods
             app.MapPost("/v1/me/journal-moods", async (
                 [FromBody] CreateJournalMoodRequest request,
                 [FromHeader(Name = "Idempotency-Key")] Guid? requestKey,
-                ISender sender) =>
+                ISender sender , HttpContext httpContext) =>
             {
-                // authentication is handled by middleware, this is just a double check
+                // Authorization check
+                if (!AuthorizationHelpers.CanModify(request.SubjectRef, httpContext.User))
+                    throw new ForbiddenException();
 
                 if (requestKey is null || requestKey == Guid.Empty)
                     throw new BadRequestException(

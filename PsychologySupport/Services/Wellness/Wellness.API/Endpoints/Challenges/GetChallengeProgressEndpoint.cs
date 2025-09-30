@@ -1,11 +1,13 @@
-﻿using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Exceptions;
+using BuildingBlocks.Pagination;
 using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Wellness.API.Common;
 using Wellness.Application.Features.Challenges.Dtos;
 using Wellness.Application.Features.Challenges.Queries;
-using Wellness.Domain.Enums;
 using Wellness.Domain.Aggregates.Challenges.Enums;
+using Wellness.Domain.Enums;
 
 namespace Wellness.API.Endpoints.Challenges;
 
@@ -23,10 +25,15 @@ public class GetChallengeProgressEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/v1/challenge-progress", async (
+        app.MapGet("/v1/me/challenge-progress", async (
             [AsParameters] GetChallengeProgressRequest request,
-            ISender sender) =>
+            ISender sender, HttpContext httpContext) =>
         {
+
+            // Authorization check
+            if (!AuthorizationHelpers.CanView(request.SubjectRef, httpContext.User))
+                throw new ForbiddenException();
+
             var query = new GetChallengeProgressQuery(
                 request.SubjectRef,
                 request.ProcessStatus,

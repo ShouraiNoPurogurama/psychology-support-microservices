@@ -1,13 +1,17 @@
-﻿using Carter;
+﻿using BuildingBlocks.Exceptions;
+using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Wellness.API.Common;
 using Wellness.Application.Features.Challenges.Commands;
 using Wellness.Domain.Enums;
 
 namespace Wellness.API.Endpoints.Challenges
 {
     public record UpdateChallengeProgressRequest(
+        Guid SubjectRef,
         Guid ChallengeProgressId,
         Guid StepId,
         ProcessStatus StepStatus,
@@ -24,10 +28,14 @@ namespace Wellness.API.Endpoints.Challenges
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPut("/v1/challenge-progress", async (
+            app.MapPut("/v1/me/challenge-progress", async (
                 [FromBody] UpdateChallengeProgressRequest request,
-                ISender sender) =>
+                ISender sender, HttpContext httpContext) =>
             {
+                // Authorization check
+                if (!AuthorizationHelpers.CanModify(request.SubjectRef, httpContext.User))
+                    throw new ForbiddenException();
+
                 var command = request.Adapt<UpdateChallengeProgressCommand>();
 
                 var result = await sender.Send(command);

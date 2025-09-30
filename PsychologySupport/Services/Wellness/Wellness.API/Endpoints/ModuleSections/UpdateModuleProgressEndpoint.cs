@@ -1,7 +1,10 @@
-﻿using Carter;
+﻿using BuildingBlocks.Exceptions;
+using Carter;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Wellness.API.Common;
 using Wellness.Domain.Enums;
 
 namespace Wellness.API.Endpoints.ModuleSections
@@ -22,10 +25,14 @@ namespace Wellness.API.Endpoints.ModuleSections
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPut("/v1/module-progress", async (
+            app.MapPut("/v1/me/module-progress", async (
                 [FromBody] UpdateModuleProgressRequest request,
-                ISender sender) =>
+                ISender sender, HttpContext httpContext) =>
             {
+                // Authorization check
+                //if (!AuthorizationHelpers.CanModify(request.SubjectRef, httpContext.User))
+                //    throw new ForbiddenException();
+
                 var command = request.Adapt<UpdateModuleProgressCommand>();
 
                 var result = await sender.Send(command);

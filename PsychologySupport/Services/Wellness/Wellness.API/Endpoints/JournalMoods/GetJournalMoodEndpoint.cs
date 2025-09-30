@@ -1,7 +1,9 @@
-﻿using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Exceptions;
+using BuildingBlocks.Pagination;
 using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Wellness.API.Common;
 using Wellness.Application.Features.JournalMoods.Dtos;
 using Wellness.Application.Features.JournalMoods.Queries;
 
@@ -22,8 +24,12 @@ public class GetJournalMoodEndpoint : ICarterModule
     {
         app.MapGet("/v1/me/journal-moods", async (
             [AsParameters] GetJournalMoodsRequest request,
-            ISender sender) =>
+            ISender sender, HttpContext httpContext) =>
         {
+            // Authorization check
+            if (!AuthorizationHelpers.CanView(request.SubjectRef, httpContext.User))
+                throw new ForbiddenException();
+
             var query = new GetJournalMoodsQuery(
                 request.SubjectRef,
                 request.PageIndex,

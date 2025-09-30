@@ -1,7 +1,10 @@
-﻿using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Exceptions;
+using BuildingBlocks.Pagination;
 using Carter;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Wellness.API.Common;
 using Wellness.Application.Features.Challenges.Dtos;
 using Wellness.Application.Features.Challenges.Queries;
 using Wellness.Domain.Aggregates.Challenges.Enums;
@@ -22,8 +25,12 @@ public class GetActivityEndpoint : ICarterModule
     {
         app.MapGet("/v1/activities", async (
             [AsParameters] GetActivitiesRequest request,
-            ISender sender) =>
+            ISender sender, HttpContext httpContext) =>
         {
+            // Authorization check
+            if (!AuthorizationHelpers.HasViewAccess(httpContext.User))
+                throw new ForbiddenException();
+
             var query = new GetActivitiesQuery(
                 request.ActivityType,
                 request.PageIndex,
