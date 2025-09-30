@@ -64,19 +64,45 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
-	<ItemGroup>
-		<Protobuf Include="..\..\Notification\Notification.API\Protos\notification.proto" GrpcServices="Client">
-			<Link>Protos\notification.proto</Link>
-		</Protobuf>
-		<Protobuf Include="..\..\Profile\Profile.API\Protos\patient_profile.proto" GrpcServices="Client">
-			<Link>Protos\patient_profile.proto</Link>
-		</Protobuf>
-        <Protobuf Include="..\..\Profile\Profile.API\Protos\pii.proto" GrpcServices="Client">
-			<Link>Protos\pii.proto</Link>
-		</Protobuf>
-	</ItemGroup>
+<!--	<ItemGroup>-->
+<!--		<Protobuf Include="..\..\Notification\Notification.API\Protos\notification.proto" GrpcServices="Client">-->
+<!--			<Link>Protos\notification.proto</Link>-->
+<!--		</Protobuf>-->
+<!--		<Protobuf Include="..\..\Profile\Profile.API\Protos\patient_profile.proto" GrpcServices="Client">-->
+<!--			<Link>Protos\patient_profile.proto</Link>-->
+<!--		</Protobuf>-->
+<!--        <Protobuf Include="..\..\Profile\Profile.API\Protos\pii.proto" GrpcServices="Client">-->
+<!--			<Link>Protos\pii.proto</Link>-->
+<!--		</Protobuf>-->
+<!--	</ItemGroup>-->
 	<ItemGroup>
 	  <Folder Include="Data\Migrations\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Protobuf Include="Protos\notification.proto">
+	    <GrpcServices>Client</GrpcServices>
+	    <Access>Public</Access>
+	    <ProtoCompile>True</ProtoCompile>
+	    <CompileOutputs>True</CompileOutputs>
+	    <OutputDir>obj\Debug\net9.0\</OutputDir>
+	    <Generator>MSBuild:Compile</Generator>
+	  </Protobuf>
+	  <Protobuf Include="Protos\patient_profile.proto">
+	    <GrpcServices>Client</GrpcServices>
+	    <Access>Public</Access>
+	    <ProtoCompile>True</ProtoCompile>
+	    <CompileOutputs>True</CompileOutputs>
+	    <OutputDir>obj\Debug\net9.0\</OutputDir>
+	    <Generator>MSBuild:Compile</Generator>
+	  </Protobuf>
+	  <Protobuf Include="Protos\pii.proto">
+	    <GrpcServices>Client</GrpcServices>
+	    <Access>Public</Access>
+	    <ProtoCompile>True</ProtoCompile>
+	    <CompileOutputs>True</CompileOutputs>
+	    <OutputDir>obj\Debug\net9.0\</OutputDir>
+	    <Generator>MSBuild:Compile</Generator>
+	  </Protobuf>
 	</ItemGroup>
 
 </Project>
