@@ -1,24 +1,24 @@
 services:
-  #  aimoderation.api:
-  #    image: ${DOCKER_REGISTRY-}aimoderationapi
-  #    container_name: aimoderation.api
-  #    environment:
-  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-  #      - ASPNETCORE_HTTP_PORTS=8080
-  #      - ASPNETCORE_HTTPS_PORTS=8081
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-  #    ports:
-  #      - "5015:8080"
-  #      - "5515:8081"
-  #    build:
-  #      context: .
-  #      dockerfile: Services/AIModeration/AIModeration.API/Dockerfile
-  #    volumes:
-  #      - ~/.aspnet/https:/https:ro
-  #      - ./Services/AIModeration/AIModeration.API/RSAKeys:/app/RSAKeys
-  #
+  aimoderation.api:
+    image: ${DOCKER_REGISTRY-}aimoderationapi
+    container_name: aimoderation.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "5015:8080"
+      - "5515:8081"
+    build:
+      context: .
+      dockerfile: Services/AIModeration/AIModeration.API/Dockerfile
+    volumes:
+      - ~/.aspnet/https:/https:ro
+      - ./Services/AIModeration/AIModeration.API/RSAKeys:/app/RSAKeys
+
   alias.api:
     image: ${DOCKER_REGISTRY-}aliasapi
     container_name: alias.api
@@ -56,7 +56,7 @@ services:
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx 
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - GrpcSettings__PatientProfileUrl=http://profile.api:8080
       - GrpcSettings__PiiUrl=http://profile.api:8080
       - GrpcSettings__NotificationUrl=http://notification.api:8080
@@ -81,7 +81,7 @@ services:
   #      - ASPNETCORE_HTTP_PORTS=8080
   #      - ASPNETCORE_HTTPS_PORTS=8081
   #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-#        - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+  #        - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
   #    ports:
   #      - "5018:8080"
   #      - "5518:8081"
@@ -379,6 +379,8 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud/compute-default-sa.json
+      - GrpcSettings__TranslationUrl=http://translation.api:8080
+      - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
     ports:
       - "5006:8080"
       - "5506:8081"
@@ -406,6 +408,10 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud/compute-default-sa.json
+      - ASPNETCORE_Kestrel__Endpoints__Rest__Url=http://0.0.0.0:8080
+      - ASPNETCORE_Kestrel__Endpoints__Rest__Protocols=Http1
+      - ASPNETCORE_Kestrel__Endpoints__GrpcH2c__Url=http://0.0.0.0:8081
+      - ASPNETCORE_Kestrel__Endpoints__GrpcH2c__Protocols=Http2
     ports:
       - "5009:8080"
       - "5509:8081"
@@ -437,7 +443,7 @@ services:
 
     ports:
       - "8080:8080"        # chỉ mở nội bộ host, Nginx sẽ proxy vào đây
-#      - "443:443"
+    #      - "443:443"
     build:
       context: .
       dockerfile: ApiGateways/YarpApiGateway/Dockerfile

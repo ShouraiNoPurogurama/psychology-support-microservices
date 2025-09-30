@@ -60,13 +60,9 @@ namespace Scheduling.API.Extensions
                 {
                     options.Address = new Uri(config["GrpcSettings:PromotionUrl"]!);
                 })
-                .ConfigurePrimaryHttpMessageHandler(() =>
+                .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
                 {
-                    var handler = new HttpClientHandler
-                    {
-                        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                    };
-                    return handler;
+                    EnableMultipleHttp2Connections = true
                 });
         }
 
