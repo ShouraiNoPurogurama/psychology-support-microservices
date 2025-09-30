@@ -12,6 +12,7 @@ public class SendEmailEndpoint : ICarterModule
         app.MapPost("/v1/emails/send", async (SendEmailRequest request, IMediator mediator) =>
             {
                 var notification = new SendEmailEvent(request.EventId, request.To, request.Subject, request.Body);
+                
                 await mediator.Publish(notification);
 
                 return Results.Ok();
