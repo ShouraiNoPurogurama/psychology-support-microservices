@@ -75,7 +75,7 @@
     "public-alias-cluster": {
       "Destinations": {
         "destination1": {
-          "Address": "https://localhost:5513/"
+          "Address": "http://alias.api:8080/"
         }
       }
     }
