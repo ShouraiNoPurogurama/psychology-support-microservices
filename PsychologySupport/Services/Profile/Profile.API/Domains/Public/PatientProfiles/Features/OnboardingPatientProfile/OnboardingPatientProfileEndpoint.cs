@@ -14,7 +14,7 @@ public class OnboardingPatientProfileEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPut("patients/me/onboarding",
+        app.MapPut("/v1/patients/me/onboarding",
                 async ([FromBody] OnboardingPatientProfileRequest request,
                     ClaimsPrincipal user, ISender sender) =>
                 {

@@ -12,7 +12,7 @@ public class FollowAliasEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/aliases/{followedAliasId:guid}/followers", async (
+        app.MapPost("/v1/aliases/{followedAliasId:guid}/followers", async (
                 [AsParameters] FollowAliasRequest request,
                 ISender sender,
                 CancellationToken ct) =>

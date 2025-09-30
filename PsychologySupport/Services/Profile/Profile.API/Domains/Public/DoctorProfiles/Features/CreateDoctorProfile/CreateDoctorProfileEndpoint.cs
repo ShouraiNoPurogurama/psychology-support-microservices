@@ -11,7 +11,7 @@ public class CreateDoctorProfileEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("doctor-profiles", async ([FromBody] CreateDoctorProfileRequest request, ISender sender) =>
+        app.MapPost("/v1/doctor-profiles", async ([FromBody] CreateDoctorProfileRequest request, ISender sender) =>
             {
                 var command = request.Adapt<CreateDoctorProfileCommand>();
                 var result = await sender.Send(command);

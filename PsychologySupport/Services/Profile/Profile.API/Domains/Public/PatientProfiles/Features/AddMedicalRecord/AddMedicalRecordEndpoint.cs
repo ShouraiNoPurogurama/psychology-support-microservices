@@ -17,7 +17,7 @@ public class AddMedicalRecordEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/patients/medical-record", async ([FromBody] AddMedicalRecordRequest request, ISender sender, HttpContext httpContext) =>
+        app.MapPost("/v1/patients/medical-record", async ([FromBody] AddMedicalRecordRequest request, ISender sender, HttpContext httpContext) =>
             {
                 // Authorization check
                 if (!AuthorizationHelpers.CanModifyPatientProfile(request.PatientProfileId, httpContext.User))

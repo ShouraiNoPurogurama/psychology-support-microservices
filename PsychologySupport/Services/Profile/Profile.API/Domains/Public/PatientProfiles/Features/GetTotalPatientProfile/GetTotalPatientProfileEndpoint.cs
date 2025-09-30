@@ -6,7 +6,7 @@ namespace Profile.API.Domains.Public.PatientProfiles.Features.GetTotalPatientPro
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/patients/total", async (
+            app.MapGet("/v1/patients/total", async (
                 [FromQuery] DateOnly startDate,
                 [FromQuery] DateOnly endDate,
                 [FromQuery] string? gender,

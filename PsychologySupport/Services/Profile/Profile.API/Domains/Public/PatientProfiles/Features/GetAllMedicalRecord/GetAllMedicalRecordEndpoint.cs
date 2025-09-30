@@ -21,7 +21,7 @@ public class GetAllMedicalRecordsEndpoint : ICarterModule
     public record GetAllMedicalRecordsResponse(PaginatedResult<MedicalRecordDto> MedicalRecords);
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/medical-records", async (
+        app.MapGet("/v1/medical-records", async (
             [AsParameters] GetAllMedicalRecordsRequest request,
             ISender sender, HttpContext httpContext) =>
         {

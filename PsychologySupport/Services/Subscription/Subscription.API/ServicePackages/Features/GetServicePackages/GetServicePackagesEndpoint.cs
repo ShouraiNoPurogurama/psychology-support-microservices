@@ -13,7 +13,7 @@ public class GetServicePackagesEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/service-packages", async (
+        app.MapGet("/v1/service-packages", async (
             [AsParameters] GetServicePackagesQuery request, ISender sender) =>
         {
             var result = await sender.Send(request);

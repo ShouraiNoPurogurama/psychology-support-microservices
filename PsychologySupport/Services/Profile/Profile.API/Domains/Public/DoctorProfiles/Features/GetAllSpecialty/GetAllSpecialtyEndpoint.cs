@@ -9,7 +9,7 @@ namespace Profile.API.Domains.Public.DoctorProfiles.Features.GetAllSpecialty
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/specialties", async ([AsParameters] PaginationRequest request, ISender sender) =>
+            app.MapGet("/v1/specialties", async ([AsParameters] PaginationRequest request, ISender sender) =>
             {
                 var query = new GetAllSpecialtiesQuery(request);
                 var result = await sender.Send(query);
@@ -27,4 +27,3 @@ namespace Profile.API.Domains.Public.DoctorProfiles.Features.GetAllSpecialty
         }
     }
 }
-

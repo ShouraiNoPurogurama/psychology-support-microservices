@@ -11,7 +11,7 @@ namespace Profile.API.Domains.Public.PatientProfiles.Features.GetMedicalRecord
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/medical-records/{medicalRecordId:guid}", async (Guid medicalRecordId,HttpContext httpContext, ISender sender) =>
+            app.MapGet("/v1/medical-records/{medicalRecordId:guid}", async (Guid medicalRecordId,HttpContext httpContext, ISender sender) =>
             {
                 if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
                     throw new ForbiddenException();

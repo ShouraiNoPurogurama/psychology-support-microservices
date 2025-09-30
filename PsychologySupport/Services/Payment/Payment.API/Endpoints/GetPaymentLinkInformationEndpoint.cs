@@ -11,7 +11,7 @@ namespace Payment.API.Endpoints
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/payments/payos/link-information/{paymentCode}", async (
+            app.MapGet("/v1/payments/payos/link-information/{paymentCode}", async (
                 long paymentCode,
                 [FromServices] ISender sender) =>
             {

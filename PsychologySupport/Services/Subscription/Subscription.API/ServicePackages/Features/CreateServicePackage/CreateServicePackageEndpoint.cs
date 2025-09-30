@@ -15,7 +15,7 @@ public class CreateServicePackageEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("service-packages", async (
+        app.MapPost("/v1/service-packages", async (
             [FromBody] CreateServicePackageRequest request,
             ISender sender, HttpContext httpContext) =>
         {

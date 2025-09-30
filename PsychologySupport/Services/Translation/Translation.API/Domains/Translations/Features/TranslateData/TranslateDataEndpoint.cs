@@ -13,7 +13,7 @@ public class TranslateDataEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/translate", async (
+        app.MapPost("/v1/translate", async (
                 [FromBody] TranslateDataRequest request,
                 ISender sender) =>
             {

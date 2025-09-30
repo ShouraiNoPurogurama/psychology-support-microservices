@@ -15,7 +15,7 @@ public class CreateVnPayCallBackUrlForBookingEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/payments/vnpay/booking", async ([FromBody]CreateVnPayCallBackUrlForBookingRequest request, ISender sender) =>
+        app.MapPost("/v1/payments/vnpay/booking", async ([FromBody]CreateVnPayCallBackUrlForBookingRequest request, ISender sender) =>
             {
                 var command = new CreateVnPayCallBackUrlForBookingCommand(request.BuyBooking);
                 

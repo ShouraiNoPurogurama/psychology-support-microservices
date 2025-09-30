@@ -16,7 +16,7 @@ public class CreateUserSubscriptionEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("user-subscriptions", async ([FromBody] CreateUserSubscriptionRequest request, ISender sender, HttpContext httpContext) =>
+        app.MapPost("/v1/user-subscription", async ([FromBody] CreateUserSubscriptionRequest request, ISender sender, HttpContext httpContext) =>
                 {
                     // Authorization check
                     if (!AuthorizationHelpers.CanModifyPatientProfile(request.UserSubscription.PatientId, httpContext.User))

@@ -9,7 +9,7 @@ public class SendEmailEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/emails/send", async (SendEmailRequest request, IMediator mediator) =>
+        app.MapPost("/v1/emails/send", async (SendEmailRequest request, IMediator mediator) =>
             {
                 var notification = new SendEmailEvent(request.EventId, request.To, request.Subject, request.Body);
                 await mediator.Publish(notification);

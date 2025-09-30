@@ -15,7 +15,7 @@ public class UpdateServicePackageEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPut("/service-packages/{id}", async (
+        app.MapPut("/v1/service-packages/{id}", async (
             [FromRoute] Guid id,
             [FromBody] UpdateServicePackageDto dto,
             ISender sender, HttpContext httpContext) =>

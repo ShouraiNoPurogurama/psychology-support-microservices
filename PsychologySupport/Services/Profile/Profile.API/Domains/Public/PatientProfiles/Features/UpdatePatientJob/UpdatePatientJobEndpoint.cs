@@ -10,7 +10,7 @@ public class UpdatePatientJobEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPut("patients/me/jobs",
+        app.MapPut("/v1/patients/me/jobs",
                 async ([FromBody] Guid jobId, ClaimsPrincipal user,
                     ISender sender) =>
                 {

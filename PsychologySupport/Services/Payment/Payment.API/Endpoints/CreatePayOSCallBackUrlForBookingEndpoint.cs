@@ -16,7 +16,7 @@ public class CreatePayOSCallBackUrlForBookingEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/payments/payos/booking", async (
+        app.MapPost("/v1/payments/payos/booking", async (
             [FromBody] CreatePayOSCallBackUrlForBookingRequest request,
             ISender sender, HttpContext httpContext) =>
         {

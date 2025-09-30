@@ -10,7 +10,7 @@ namespace Subscription.API.UserSubscriptions.Features.v1.GetTotalServicePackage
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/service-packages/total", async (
+            app.MapGet("/v1/service-packages/total", async (
                     [FromQuery] DateOnly startDate,
                     [FromQuery] DateOnly endDate,
                     ISender sender, HttpContext httpContext) =>

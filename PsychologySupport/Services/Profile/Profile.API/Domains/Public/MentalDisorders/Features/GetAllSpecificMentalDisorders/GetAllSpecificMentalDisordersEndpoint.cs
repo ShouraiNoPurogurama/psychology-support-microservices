@@ -10,7 +10,7 @@ namespace Profile.API.Domains.Public.MentalDisorders.Features.GetAllSpecificMent
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/specific-mental-disorders", async (
+            app.MapGet("/v1/specific-mental-disorders", async (
                 [AsParameters] PaginationRequest request,
                 [FromQuery] string? search,
                 ISender sender) =>
