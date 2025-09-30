@@ -1,7 +1,9 @@
-﻿using System.Reflection;
+using System.Reflection;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Messaging.MassTransit;
+using Feed.Application.Abstractions.FanOut;
 using Feed.Application.Extensions;
+using Feed.Application.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
@@ -22,6 +24,9 @@ public static class DependencyInjection
         services.RegisterMapsterConfigurations();
         services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
         services.AddFeatureManagement();
+
+        // Register application services
+        services.AddScoped<IFeedFanOutService, FeedFanOutService>();
 
         return services;
     }
