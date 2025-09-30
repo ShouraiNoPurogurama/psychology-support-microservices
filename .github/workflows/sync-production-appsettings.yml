@@ -61,7 +61,7 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            cd /home/root/emoease/PsychologySupport
+            cd /home/emoease/PsychologySupport
 
             # Auth
             cat <<EOF > Services/Auth/Auth.API/appsettings.Production.json
