@@ -23,7 +23,7 @@ public sealed class PostApprovedIntegrationEventHandler(
         var msg = context.Message;
         var authorId = msg.AuthorAliasId;
         // Determine VIP by follower threshold
-        var followers = await followerRepo.GetAllFollowersAsync(authorId, context.CancellationToken);
+        var followers = await followerRepo.GetAllFollowersOfAliasAsync(authorId, context.CancellationToken);
         var followerCount = followers.Count;
 
         if (followerCount < _config.VipCriteria.MinFollowers)

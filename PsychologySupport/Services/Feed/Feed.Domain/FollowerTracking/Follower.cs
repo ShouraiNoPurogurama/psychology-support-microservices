@@ -15,7 +15,6 @@ public sealed class Follower
         if (FollowerAliasId == aliasId)
             throw new ArgumentException("Cannot follow yourself", nameof(aliasId));
 
-        FollowerAliasId = FollowerAliasId;
         AliasId = aliasId;
         Since = sinceUtc.ToUniversalTime() ;
     }
