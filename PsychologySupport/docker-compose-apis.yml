@@ -304,7 +304,7 @@ services:
       - emoease-net
     ports:
       - "5001:8080"
-#      - "5501:8081"
+      - "6001:8081"
     build:
       context: .
       dockerfile: Services/Profile/Profile.API/Dockerfile
