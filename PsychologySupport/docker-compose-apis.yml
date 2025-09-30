@@ -463,6 +463,8 @@ services:
     container_name: distributedcache-msa
     image: redis
     restart: always
+    networks:
+      - emoease-net
     ports:
       - "6379:6379"
 
