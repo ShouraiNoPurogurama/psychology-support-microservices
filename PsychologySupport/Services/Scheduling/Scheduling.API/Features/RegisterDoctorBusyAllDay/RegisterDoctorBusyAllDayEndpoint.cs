@@ -13,7 +13,7 @@ namespace Scheduling.API.Features.RegisterDoctorBusyAllDay
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPost("/doctor-busy", async (
+            app.MapPost("/v1/doctor-busy", async (
                 RegisterDoctorBusyAllDayRequest request,
                 IValidator<RegisterDoctorBusyAllDayDto> validator, 
                 ISender sender) =>

@@ -7,7 +7,7 @@ namespace Scheduling.API.Features.GetTotalBooking
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/bookings/count", async ([AsParameters] GetTotalBookingQuery request, ISender sender) =>
+            app.MapGet("/v1/bookings/count", async ([AsParameters] GetTotalBookingQuery request, ISender sender) =>
             {
                 var result = await sender.Send(request);
                 return Results.Ok(result);
