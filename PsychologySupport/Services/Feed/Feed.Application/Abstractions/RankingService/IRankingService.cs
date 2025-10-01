@@ -1,4 +1,4 @@
-﻿
+
 namespace Feed.Application.Abstractions.RankingService;
 
 /// <summary>
@@ -33,13 +33,13 @@ public record RankedPost(
 
 public interface IRankingService
 {
-    Task<IReadOnlyList<Guid>> GetTrendingPostsAsync(DateTime date, CancellationToken ct);
+    Task<IReadOnlyList<Guid>> GetTrendingPostsAsync(DateTimeOffset date, CancellationToken ct);
     Task UpdatePostRankAsync(Guid postId, PostRankData rankData, CancellationToken ct);
 
     Task<IReadOnlyList<RankedPost>> RankPostsAsync(IReadOnlyList<Guid> followedAliasIds, IReadOnlyList<Guid> trendingPostIds,
         int limit, CancellationToken ct);
 
-    Task AddToTrendingAsync(Guid postId, double score, DateTime date, CancellationToken ct);
+    Task AddToTrendingAsync(Guid postId, double score, DateTimeOffset date, CancellationToken ct);
 
 
 

@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Pagination;
 using BuildingBlocks.Utils;
@@ -78,13 +78,13 @@ public class GetServicePackagesHandler(
                 .Include(us => us.ServicePackage)
                 .Where(us => us.PatientId == request.PatientId
                     && us.Status == SubscriptionStatus.Active
-                    && us.EndDate >= DateTime.UtcNow)
+                    && us.EndDate >= DateTimeOffset.UtcNow)
                 .OrderByDescending(us => us.StartDate)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (currentSubscription != null)
             {
-                var remainingDays = (int)Math.Floor((currentSubscription.EndDate - DateTime.UtcNow).TotalDays);
+                var remainingDays = (int)Math.Floor((currentSubscription.EndDate - DateTimeOffset.UtcNow).TotalDays);
                 var duration = currentSubscription.ServicePackage.DurationDays;
 
                 if (duration > 0 && remainingDays > 0)
@@ -99,7 +99,7 @@ public class GetServicePackagesHandler(
 
             patientSubscriptions = await _dbContext.UserSubscriptions
                 .Where(u => u.PatientId == request.PatientId
-                            && u.EndDate >= DateTime.UtcNow
+                            && u.EndDate >= DateTimeOffset.UtcNow
                             && (u.Status == SubscriptionStatus.Active || u.Status == SubscriptionStatus.AwaitPayment))
                 .ToDictionaryAsync(
                     u => u.ServicePackageId,

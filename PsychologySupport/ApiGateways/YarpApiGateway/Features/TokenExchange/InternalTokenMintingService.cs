@@ -39,7 +39,7 @@ public class InternalTokenMintingService : IInternalTokenMintingService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(15),
+            Expires = DateTimeOffset.UtcNow.AddMinutes(15).DateTime,
             Issuer = issuer,
             Audience = audience,
             SigningCredentials = signingCredential

@@ -1,8 +1,8 @@
-﻿using BuildingBlocks.Pagination;
+using BuildingBlocks.Pagination;
 
 namespace Profile.API.Domains.Public.PatientProfiles.Dtos;
 
 public record GetCreatedPatientProfileDto(    
-    DateTime Date,
+    DateTimeOffset Date,
     PaginatedResult<SimplifiedPatientProfileDto> Profiles
     );

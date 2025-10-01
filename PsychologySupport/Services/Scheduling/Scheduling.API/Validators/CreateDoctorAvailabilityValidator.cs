@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Scheduling.API.Dtos;
 
 namespace Scheduling.API.Validators
@@ -23,8 +23,8 @@ namespace Scheduling.API.Validators
         private bool BeAtLeastOneWeekLater(DateOnly date)
         {
             var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // GMT+7
-            var vietnamNow = TimeZoneInfo.ConvertTime(DateTime.UtcNow, vietnamTimeZone);
-            var oneWeekLater = DateOnly.FromDateTime(vietnamNow).AddDays(7);
+            var vietnamNow = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, vietnamTimeZone);
+            var oneWeekLater = DateOnly.FromDateTime(vietnamNow.DateTime).AddDays(7);
             return date >= oneWeekLater;
         }
     }

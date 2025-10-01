@@ -23,7 +23,7 @@ public class LoggingMiddleware
 
         var method = context.Request.Method;
         var path = context.Request.Path + context.Request.QueryString;
-        var startTime = DateTime.Now.ToString("HH:mm:ss");
+        var startTime = DateTimeOffset.Now.ToString("HH:mm:ss");
 
         using var correlationScope = LogContext.PushProperty("CorrelationId", correlationId);
         using var pathScope = LogContext.PushProperty("Path", path);
@@ -43,7 +43,7 @@ public class LoggingMiddleware
             using var durationScope = LogContext.PushProperty("Duration", duration);
             using var statusScope = LogContext.PushProperty("StatusCode", statusCode);
 
-            var endTime = DateTime.Now.ToString("HH:mm:ss");
+            var endTime = DateTimeOffset.Now.ToString("HH:mm:ss");
 
             if (duration > 3000)
             {
@@ -58,7 +58,7 @@ public class LoggingMiddleware
         {
             timer.Stop();
             var duration = timer.Elapsed.TotalMilliseconds;
-            var errorTime = DateTime.Now.ToString("HH:mm:ss");
+            var errorTime = DateTimeOffset.Now.ToString("HH:mm:ss");
 
             _logger.LogError(ex,
                 "[{Time}] ❌ [FAILED] [{CorrelationId}] {Method} {Path} after {Duration:0.##}ms: {ErrorMessage}",

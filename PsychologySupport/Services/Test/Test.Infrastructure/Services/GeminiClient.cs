@@ -1,4 +1,4 @@
-﻿using MassTransit;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Text;
@@ -35,7 +35,7 @@ public class GeminiClient(
             new AggregatePatientProfileRequest(Guid.Parse(patientProfileId)));
 
         var lifestyleResponse = await lifestyleClient.GetResponse<AggregatePatientLifestyleResponse>(
-            new AggregatePatientLifestyleRequest(Guid.Parse(patientProfileId), DateTime.UtcNow));
+            new AggregatePatientLifestyleRequest(Guid.Parse(patientProfileId), DateTimeOffset.UtcNow));
 
         var profile = profileResponse.Message;
         var lifestyle = lifestyleResponse.Message;

@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Test.Application.Data;
@@ -29,7 +29,7 @@ public class CreateTestResultHandler(
     public async Task<CreateTestResultResult> Handle(CreateTestResultCommand request, CancellationToken cancellationToken)
     {
         var isExceedQuotas = await dbContext.TestResults
-            .Where(tr => tr.PatientId == request.PatientId && tr.TestId == request.TestId && tr.TakenAt > DateTime.UtcNow.AddDays(-1))
+            .Where(tr => tr.PatientId == request.PatientId && tr.TestId == request.TestId && tr.TakenAt > DateTimeOffset.UtcNow.AddDays(-1))
             .CountAsync(cancellationToken) >= 5;
         
         if (isExceedQuotas)

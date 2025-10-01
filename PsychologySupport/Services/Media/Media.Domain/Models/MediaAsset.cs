@@ -72,7 +72,7 @@ public sealed class MediaAsset : AggregateRoot<Guid>
             Dimensions = MediaDimensions.CreateOptional(width, height),
             Moderation = MediaModerationInfo.Pending(),
             State = MediaState.Pending,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         // Tạo moderation audit mặc định (pending)
@@ -146,7 +146,7 @@ public sealed class MediaAsset : AggregateRoot<Guid>
         if (State == MediaState.Deleted) return;
 
         State = MediaState.Deleted;
-        DeletedAt = DateTime.UtcNow;
+        DeletedAt = DateTimeOffset.UtcNow;
         DeletedBy = deletedBy;
 
         AddDomainEvent(new MediaDeletedEvent(Id, reason, DeletedAt.Value));
@@ -179,7 +179,7 @@ public sealed class MediaAsset : AggregateRoot<Guid>
             nameof(MediaModerationStatus.Approved), 
             score, 
             policyVersion, 
-            DateTime.UtcNow));
+            DateTimeOffset.UtcNow));
 
         //Auto-mark as ready if processing is complete and moderation is approved
         if (State == MediaState.Moderating && CanTransitionToReady())
@@ -204,7 +204,7 @@ public sealed class MediaAsset : AggregateRoot<Guid>
             MediaModerationStatus.Rejected.ToString(), 
             score, 
             policyVersion, 
-            DateTime.UtcNow));
+            DateTimeOffset.UtcNow));
 
         //Auto-block rejected media
         Block("Moderation rejected");

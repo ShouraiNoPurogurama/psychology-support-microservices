@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -71,7 +71,7 @@ public class PostAbandonmentBackgroundService : BackgroundService
                 post.Id,
                 post.Author.AliasId,
                 post.CreatedAt,
-                DateTime.UtcNow
+                DateTimeOffset.UtcNow
             );
 
             await outboxWriter.WriteAsync(abandonedEvent, cancellationToken);

@@ -1,4 +1,4 @@
-﻿using Subscription.API.Data.Common;
+using Subscription.API.Data.Common;
 
 namespace Subscription.API.UserSubscriptions.Dtos;
 
@@ -8,7 +8,7 @@ public record UserSubscriptionDto(
     Guid ServicePackageId,
     Guid? PromotionCodeId,
     Guid? GiftId,
-    DateTime StartDate,
-    DateTime EndDate,
+    DateTimeOffset StartDate,
+    DateTimeOffset EndDate,
     SubscriptionStatus? Status
 );

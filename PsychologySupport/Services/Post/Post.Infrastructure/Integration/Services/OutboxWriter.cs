@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Post.Application.Abstractions.Integration;
 using Post.Domain.Aggregates.OutboxMessages;
 using Post.Infrastructure.Data.Post;
@@ -17,7 +17,7 @@ public sealed class EfOutboxWriter : IOutboxWriter
             Id = Guid.NewGuid(),
             Type = evt.GetType().FullName!,
             Content = JsonSerializer.Serialize(evt),
-            OccurredOn = DateTime.UtcNow
+            OccurredOn = DateTimeOffset.UtcNow
         });
         return Task.CompletedTask;
     }

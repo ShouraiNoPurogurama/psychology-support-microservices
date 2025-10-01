@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Messaging.Events.Queries.LifeStyle;
 using Mapster;
 using MassTransit;
@@ -62,7 +62,7 @@ public class CreateScheduleHandler(
 
     private Models.Schedule CreateSchedule(Guid patientId, Guid? doctorId)
     {
-        var startDate = DateTime.UtcNow.Date;
+        var startDate = DateTimeOffset.UtcNow.Date;
         var endDate = startDate.AddDays(6);
         return new Models.Schedule
         {
@@ -74,7 +74,7 @@ public class CreateScheduleHandler(
         };
     }
 
-    private List<Session> CreateSessions(Guid scheduleId, DateTime startDate, DateTime endDate, SchedulingDbContext context)
+    private List<Session> CreateSessions(Guid scheduleId, DateTimeOffset startDate, DateTimeOffset endDate, SchedulingDbContext context)
     {
         var sessions = new List<Session>();
         for (int i = 0; i < 7; i++)

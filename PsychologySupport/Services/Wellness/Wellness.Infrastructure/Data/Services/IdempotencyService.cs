@@ -1,4 +1,4 @@
-﻿//using BuildingBlocks.Idempotency;
+//using BuildingBlocks.Idempotency;
 //using Microsoft.EntityFrameworkCore;
 //using System;
 //using System.Collections.Generic;
@@ -51,8 +51,8 @@
 //            {
 //                Id = Guid.NewGuid(),
 //                Key = requestKey,
-//                ExpiresAt = DateTime.UtcNow.AddHours(12),
-//                CreatedAt = DateTime.UtcNow
+//                ExpiresAt = DateTimeOffset.UtcNow.AddHours(12),
+//                CreatedAt = DateTimeOffset.UtcNow
 //            };
 
 //            _dbContext.Add(idKey);

@@ -11,7 +11,7 @@ namespace Wellness.Domain.Abstractions
     {
         Guid EventId => Guid.NewGuid();
 
-        public DateTime OccurredOn => DateTime.Now;
+        public DateTimeOffset OccurredOn => DateTimeOffset.Now;
 
         public string EventType => GetType().AssemblyQualifiedName!;
     }
@@ -20,7 +20,7 @@ namespace Wellness.Domain.Abstractions
     {
         public DomainEvent() : this(Guid.NewGuid()) { }
 
-        public DateTime OccurredOn => DateTime.Now;
+        public DateTimeOffset OccurredOn => DateTimeOffset.Now;
 
         public string EventType => GetType().AssemblyQualifiedName!;
     }

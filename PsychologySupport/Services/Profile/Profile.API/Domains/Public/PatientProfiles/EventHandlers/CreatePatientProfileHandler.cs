@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.Queries.Profile;
+using BuildingBlocks.Messaging.Events.Queries.Profile;
 using Profile.API.Data.Pii;
 
 namespace Profile.API.Domains.Public.PatientProfiles.EventHandlers
@@ -107,7 +107,7 @@ namespace Profile.API.Domains.Public.PatientProfiles.EventHandlers
             //     var welcomeBody = RenderTemplate(welcomeTemplatePath, new Dictionary<string, string>
             //     {
             //         ["LoginUrl"] = "https://www.emoease.vn/EMO/learnAboutEmo",
-            //         ["Year"] = DateTime.UtcNow.Year.ToString()
+            //         ["Year"] = DateTimeOffset.UtcNow.Year.ToString()
             //     });
             //
             //     await _publishEndpoint.Publish(new SendEmailIntegrationEvent(

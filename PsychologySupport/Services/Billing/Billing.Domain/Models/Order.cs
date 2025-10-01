@@ -40,9 +40,9 @@ public partial class Order : AggregateRoot<Guid>
         Currency = currency;
         PromoCode = promoCode;
         Status = status;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = DateTimeOffset.UtcNow;
         CreatedBy = createdBy;
-        LastModified = DateTime.UtcNow;
+        LastModified = DateTimeOffset.UtcNow;
         LastModifiedBy = lastModifiedBy;
     }
 

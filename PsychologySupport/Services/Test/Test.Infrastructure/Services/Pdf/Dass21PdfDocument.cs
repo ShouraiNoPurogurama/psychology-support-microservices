@@ -1,4 +1,4 @@
-﻿using QuestPDF.Fluent;
+using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using Test.Application.Extensions.Utils;
@@ -9,7 +9,7 @@ namespace Test.Infrastructure.Services.Pdf;
 
 public class Dass21PdfDocument(
     string clientName,
-    DateTime testDate,
+    DateTimeOffset testDate,
     int age,
     string profileNickname,
     string profileDescription,
@@ -961,7 +961,7 @@ public class Dass21PdfDocument(
                                 .FontSize(10)
                                 .FontColor("#718096");
                             row.RelativeItem()
-                                .Text($"© 2025 | Tạo lúc: {DateTime.Now.AddHours(7):HH:mm dd/MM/yyyy}")
+                                .Text($"© 2025 | Tạo lúc: {DateTimeOffset.Now.AddHours(7):HH:mm dd/MM/yyyy}")
                                 .FontSize(10)
                                 .FontColor("#718096")
                                 .AlignRight();

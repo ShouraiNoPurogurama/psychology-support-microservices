@@ -1,4 +1,4 @@
-﻿using Carter;
+using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +11,7 @@ namespace Scheduling.API.Features02.Schedule.CreateScheduleFeedback
         Guid PatientId,
         string Content,
         int Rating,
-        DateTime FeedbackDate
+        DateTimeOffset FeedbackDate
     );
 
     public record CreateScheduleFeedbackV2Response(bool IsSucceeded);

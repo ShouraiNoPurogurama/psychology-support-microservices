@@ -1,11 +1,11 @@
-﻿namespace Post.Domain.Aggregates.Posts;
+namespace Post.Domain.Aggregates.Posts;
 
 public sealed class PostCounterDelta : Entity<Guid>
 {
     public Guid PostId { get; set; }
     public string CounterType { get; set; } = null!; // "reaction", "comment", "share", "view"
     public short Delta { get; set; } // +1, -1, etc.
-    public DateTime OccurredAt { get; set; }
+    public DateTimeOffset OccurredAt { get; set; }
     public bool IsProcessed { get; set; }
 
     private PostCounterDelta()
@@ -24,7 +24,7 @@ public sealed class PostCounterDelta : Entity<Guid>
             PostId = postId,
             CounterType = kind.ToLower(),
             Delta = delta,
-            OccurredAt = DateTime.UtcNow,
+            OccurredAt = DateTimeOffset.UtcNow,
             IsProcessed = false
         };
     }

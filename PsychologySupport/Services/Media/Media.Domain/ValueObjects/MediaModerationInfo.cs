@@ -1,4 +1,4 @@
-﻿using Media.Domain.Enums;
+using Media.Domain.Enums;
 using Media.Domain.Exceptions;
 
 namespace Media.Domain.ValueObjects;
@@ -7,7 +7,7 @@ public sealed record MediaModerationInfo
 {
     public MediaModerationStatus Status { get; init; }
     public decimal? Score { get; init; }
-    public DateTime? CheckedAt { get; init; }
+    public DateTimeOffset? CheckedAt { get; init; }
     public string? PolicyVersion { get; init; }
     public string? RawJson { get; init; }
 
@@ -16,7 +16,7 @@ public sealed record MediaModerationInfo
     private MediaModerationInfo(
         MediaModerationStatus status,
         decimal? score = null,
-        DateTime? checkedAt = null,
+        DateTimeOffset? checkedAt = null,
         string? policyVersion = null,
         string? rawJson = null)
     {
@@ -38,7 +38,7 @@ public sealed record MediaModerationInfo
         return new MediaModerationInfo(
             MediaModerationStatus.Approved,
             score,
-            DateTime.UtcNow,
+            DateTimeOffset.UtcNow,
             policyVersion,
             rawJson);
     }
@@ -51,7 +51,7 @@ public sealed record MediaModerationInfo
         return new MediaModerationInfo(
             MediaModerationStatus.Rejected,
             score,
-            DateTime.UtcNow,
+            DateTimeOffset.UtcNow,
             policyVersion,
             rawJson);
     }
@@ -64,7 +64,7 @@ public sealed record MediaModerationInfo
         return new MediaModerationInfo(
             MediaModerationStatus.Flagged,
             score,
-            DateTime.UtcNow,
+            DateTimeOffset.UtcNow,
             policyVersion,
             rawJson);
     }

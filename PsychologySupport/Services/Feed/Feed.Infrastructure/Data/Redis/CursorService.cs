@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Feed.Application.Abstractions.CursorService;
@@ -15,7 +15,7 @@ public sealed class CursorService : ICursorService
         _secret = configuration["Feed:CursorSecret"] ?? "default-secret-key";
     }
 
-    public string EncodeCursor(int offset, DateTime snapshotTs)
+    public string EncodeCursor(int offset, DateTimeOffset snapshotTs)
     {
         var data = new CursorData(offset, snapshotTs.ToUniversalTime());
         var json = JsonSerializer.Serialize(data);
@@ -26,7 +26,7 @@ public sealed class CursorService : ICursorService
         return Convert.ToBase64String(Encoding.UTF8.GetBytes(finalJson));
     }
 
-    public (int Offset, DateTime SnapshotTs) DecodeCursor(string cursor)
+    public (int Offset, DateTimeOffset SnapshotTs) DecodeCursor(string cursor)
     {
         try
         {
@@ -71,5 +71,5 @@ public sealed class CursorService : ICursorService
     }
 }
 
-internal record CursorData(int Offset, DateTime SnapshotTs);
+internal record CursorData(int Offset, DateTimeOffset SnapshotTs);
 internal record CursorWithHmac(string Data, string Hmac);

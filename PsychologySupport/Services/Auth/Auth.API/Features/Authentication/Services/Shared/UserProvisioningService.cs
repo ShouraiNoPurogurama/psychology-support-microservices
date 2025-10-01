@@ -45,7 +45,7 @@ public class UserProvisioningService(
             User = user,
             PiiCompleted = false,
             PatientProfileCompleted = false,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
         
         authDbContext.UserOnboardings.Add(onboardingRecord);

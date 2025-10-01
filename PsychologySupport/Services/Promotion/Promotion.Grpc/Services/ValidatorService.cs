@@ -1,4 +1,4 @@
-﻿using Google.Protobuf.WellKnownTypes;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 
 namespace Promotion.Grpc.Services;
@@ -35,7 +35,7 @@ public class ValidatorService
         if (startDate > endDate)
             throw new RpcException(new Status(StatusCode.InvalidArgument, "Ngày bắt đầu phải trước ngày kết thúc."));
 
-        if (endDate.ToDateTime() <= DateTime.UtcNow)
+        if (endDate.ToDateTime() <= DateTimeOffset.UtcNow)
             throw new RpcException(new Status(StatusCode.InvalidArgument, "Ngày kết thúc phải nằm trong tương lai."));
     }
 

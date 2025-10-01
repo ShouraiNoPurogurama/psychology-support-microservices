@@ -33,7 +33,7 @@ public class EmailService(
         var confirmBody = RenderTemplate(confirmTemplatePath, new Dictionary<string, string>
         {
             ["ConfirmUrl"] = url,
-            ["Year"] = DateTime.UtcNow.Year.ToString()
+            ["Year"] = DateTimeOffset.UtcNow.Year.ToString()
         });
 
         var sendEmailIntegrationEvent = new SendEmailIntegrationEvent(user.Email, "Xác nhận tài khoản", confirmBody);
@@ -60,7 +60,7 @@ public class EmailService(
         var resetBody = RenderTemplate(resetTemplatePath, new Dictionary<string, string>
         {
             ["ResetUrl"] = callbackUrl,
-            ["Year"] = DateTime.UtcNow.Year.ToString()
+            ["Year"] = DateTimeOffset.UtcNow.Year.ToString()
         });
 
         var sendEmailEvent = new SendEmailIntegrationEvent(user.Email, "Khôi phục mật khẩu", resetBody);

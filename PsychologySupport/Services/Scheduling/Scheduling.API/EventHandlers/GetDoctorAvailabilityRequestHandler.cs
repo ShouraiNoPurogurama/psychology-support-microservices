@@ -19,8 +19,8 @@ namespace Scheduling.API.EventHandlers
             var startDate = TimeZoneInfo.ConvertTime(request.StartDate, vietnamTimeZone);
             var endDate = TimeZoneInfo.ConvertTime(request.EndDate, vietnamTimeZone);
 
-            var dateOnlyStart = DateOnly.FromDateTime(startDate);
-            var dateOnlyEnd = DateOnly.FromDateTime(endDate);
+            var dateOnlyStart = DateOnly.FromDateTime(startDate.DateTime);
+            var dateOnlyEnd = DateOnly.FromDateTime(endDate.DateTime);
 
             var doctorData = await _context.DoctorSlotDurations
                 .Where(d => request.DoctorIds.Contains(d.DoctorId))

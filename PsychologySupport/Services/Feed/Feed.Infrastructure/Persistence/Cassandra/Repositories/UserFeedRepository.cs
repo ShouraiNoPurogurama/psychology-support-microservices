@@ -1,4 +1,4 @@
-﻿using Cassandra;
+using Cassandra;
 using Cassandra.Mapping;
 using Feed.Application.Abstractions.UserFeed;
 using Feed.Application.Configuration;
@@ -122,7 +122,7 @@ public sealed class UserFeedRepository : IUserFeedRepository
     public async Task<IReadOnlyList<UserFeedItem>> GetUserFeedAsync(Guid aliasId, int days = 7, int limit = 100, CancellationToken ct = default)
     {
         var allItems = new List<UserFeedItem>();
-        var currentDate = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        var currentDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
         var shardCount = _feedConfig.FeedShardCount;
 
         // Query each day with parallel shard queries for better performance

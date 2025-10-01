@@ -1,4 +1,4 @@
-﻿using Media.Domain.Enums;
+using Media.Domain.Enums;
 
 namespace Media.Domain.Models;
 
@@ -21,7 +21,7 @@ public sealed class MediaOwner : AuditableEntity<Guid>
             MediaId = mediaId,
             MediaOwnerType = ownerType,
             MediaOwnerId = ownerId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
     }
 }

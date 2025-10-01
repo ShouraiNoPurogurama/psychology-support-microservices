@@ -1,4 +1,4 @@
-﻿using MassTransit.SagaStateMachine;
+using MassTransit.SagaStateMachine;
 
 namespace Scheduling.API.Models
 {
@@ -8,8 +8,8 @@ namespace Scheduling.API.Models
         public Guid ScheduleId { get; set; }
         public string Purpose { get; set; } = string.Empty;
         public int Order { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateTimeOffset StartDate { get; set; }
+        public DateTimeOffset EndDate { get; set; }
 
         public ICollection<ScheduleActivity> Activities { get; set; } = new List<ScheduleActivity>();
     }

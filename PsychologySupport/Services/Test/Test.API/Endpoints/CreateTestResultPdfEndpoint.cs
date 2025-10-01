@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Exceptions;
+using BuildingBlocks.Exceptions;
 using Carter;
 using Mapster;
 using MediatR;
@@ -13,8 +13,8 @@ public record CreateTestResultPdfRequest(
     Guid PatientId,
     Guid TestId,
     List<Guid> SelectedOptionIds,
-    DateTime TakenAt,
-    DateTime CompletedAt
+    DateTimeOffset TakenAt,
+    DateTimeOffset CompletedAt
 );
 
 public class CreateTestResultPdfEndpoint : ICarterModule

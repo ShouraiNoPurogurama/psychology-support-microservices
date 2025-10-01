@@ -1,4 +1,4 @@
-﻿namespace Feed.Domain.UserFeed;
+namespace Feed.Domain.UserFeed;
 
 public sealed class UserFeedItem
 {
@@ -47,7 +47,7 @@ public sealed class UserFeedItem
         DateTimeOffset? createdAt = null)
     {
         var tsUuidValue = tsUuid ?? Guid.NewGuid();
-        var ymdBucketValue = ymdBucket ?? DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        var ymdBucketValue = ymdBucket ?? DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
         
         return new(
             aliasId,

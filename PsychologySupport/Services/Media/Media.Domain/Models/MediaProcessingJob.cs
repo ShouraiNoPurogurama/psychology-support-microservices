@@ -1,4 +1,4 @@
-﻿using Media.Domain.Enums;
+using Media.Domain.Enums;
 using Media.Domain.Exceptions;
 
 namespace Media.Domain.Models;
@@ -9,7 +9,7 @@ public sealed class MediaProcessingJob : AuditableEntity<Guid>
     public JobType JobType { get; private set; }
     public ProcessStatus Status { get; private set; }
     public int Attempt { get; private set; }
-    public DateTime? NextRetryAt { get; private set; }
+    public DateTimeOffset? NextRetryAt { get; private set; }
     public string? ErrorMessage { get; private set; }
 
     public MediaAsset Media { get; private set; } = null!;
@@ -27,7 +27,7 @@ public sealed class MediaProcessingJob : AuditableEntity<Guid>
             JobType = jobType,
             Status = ProcessStatus.Queued,
             Attempt = 0,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
     }
 
@@ -67,7 +67,7 @@ public sealed class MediaProcessingJob : AuditableEntity<Guid>
         else
         {
             Status = ProcessStatus.Queued;
-            NextRetryAt = DateTime.UtcNow.Add(retryDelay ?? CalculateRetryDelay());
+            NextRetryAt = DateTimeOffset.UtcNow.Add(retryDelay ?? CalculateRetryDelay());
         }
     }
 
@@ -82,7 +82,7 @@ public sealed class MediaProcessingJob : AuditableEntity<Guid>
 
     public bool CanRetry => Status == ProcessStatus.Queued &&
                            Attempt < MaxRetryAttempts &&
-                           (NextRetryAt == null || NextRetryAt <= DateTime.UtcNow);
+                           (NextRetryAt == null || NextRetryAt <= DateTimeOffset.UtcNow);
 
     public bool IsFinished => Status == ProcessStatus.Succeeded ||
                              Status == ProcessStatus.Failed ||

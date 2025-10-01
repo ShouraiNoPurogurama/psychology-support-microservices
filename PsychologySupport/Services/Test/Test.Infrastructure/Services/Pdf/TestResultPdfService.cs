@@ -1,4 +1,4 @@
-﻿using QuestPDF.Companion;
+using QuestPDF.Companion;
 using Test.Application.ServiceContracts;
 using Test.Domain.Enums;
 using Test.Domain.ValueObjects;
@@ -10,7 +10,7 @@ using QuestPDF.Fluent;
 public class TestResultPdfService(Dass21PercentileLookup lookup) : ITestResultPdfService
 {
 
-    public byte[] GeneratePdf(string clientName, DateTime testDate, int age, string profileNickname, string profileDescription, List<string> profileHighlights,
+    public byte[] GeneratePdf(string clientName, DateTimeOffset testDate, int age, string profileNickname, string profileDescription, List<string> profileHighlights,
         Score depression, Score anxiety, Score stress, SeverityLevel severityLevel, string completeTime, Recommendation recommendation)
     {
         var document =

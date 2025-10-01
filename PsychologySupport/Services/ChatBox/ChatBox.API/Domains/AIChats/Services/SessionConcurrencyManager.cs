@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using ChatBox.API.Domains.AIChats.Abstractions;
 
 namespace ChatBox.API.Domains.AIChats.Services;
@@ -6,7 +6,7 @@ namespace ChatBox.API.Domains.AIChats.Services;
 public class SessionConcurrencyManager : ISessionConcurrencyManager
 {
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> SessionLocks = new();
-    private static readonly ConcurrentDictionary<Guid, DateTime> ActiveSessions = new();
+    private static readonly ConcurrentDictionary<Guid, DateTimeOffset> ActiveSessions = new();
     private static readonly ConcurrentDictionary<Guid, Queue<string>> PendingMessagesBySession = new();
     
     private readonly ILogger<SessionConcurrencyManager> _logger;
@@ -19,7 +19,7 @@ public class SessionConcurrencyManager : ISessionConcurrencyManager
     public async Task<bool> TryAcquireSessionLockAsync(Guid sessionId, TimeSpan timeout)
     {
         var sessionLock = SessionLocks.GetOrAdd(sessionId, _ => new SemaphoreSlim(1, 1));
-        ActiveSessions.AddOrUpdate(sessionId, DateTime.UtcNow, (key, old) => DateTime.UtcNow);
+        ActiveSessions.AddOrUpdate(sessionId, DateTimeOffset.UtcNow, (key, old) => DateTimeOffset.UtcNow);
 
         var acquired = await sessionLock.WaitAsync(timeout);
         if (!acquired)

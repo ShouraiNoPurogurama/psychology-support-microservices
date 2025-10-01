@@ -1,8 +1,8 @@
-﻿namespace Feed.Application.Abstractions.CursorService;
+namespace Feed.Application.Abstractions.CursorService;
 
 public interface ICursorService
 {
-    string EncodeCursor(int offset, DateTime snapshotTs);
-    (int Offset, DateTime SnapshotTs) DecodeCursor(string cursor);
+    string EncodeCursor(int offset, DateTimeOffset snapshotTs);
+    (int Offset, DateTimeOffset SnapshotTs) DecodeCursor(string cursor);
     bool ValidateCursor(string cursor);
 }

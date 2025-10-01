@@ -14,7 +14,7 @@ public class PaymentDetail
     public PaymentDetailStatus Status { get; set; } = PaymentDetailStatus.Pending;
     
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     
 
     private PaymentDetail(decimal amount, string? externalTransactionCode)

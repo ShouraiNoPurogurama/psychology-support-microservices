@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Web;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -98,7 +98,7 @@ public class VNPayService(
         HttpContext context = contextAccessor.HttpContext!;
         var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById(configuration["TimeZoneId"]!);
         var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
-        var tick = DateTime.Now.Ticks.ToString();
+        var tick = DateTimeOffset.Now.Ticks.ToString();
         var vnPayLibrary = new VnPayLibrary();
         var urlCallBack = $"{configuration["VnPay:CallbackUrl"]}";
 

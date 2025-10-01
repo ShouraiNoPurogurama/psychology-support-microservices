@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using MediatR;
 using Test.Application.Extensions.Utils;
 using Test.Application.ServiceContracts;
@@ -10,8 +10,8 @@ public record CreateTestResultPdfCommand : ICommand<CreateTestResultPdfResult>
     public Guid PatientId { get; set; }
     public Guid TestId { get; set; }
     public List<Guid> SelectedOptionIds { get; set; } = [];
-    public DateTime TakenAt { get; set; }
-    public DateTime CompletedAt { get; set; }
+    public DateTimeOffset TakenAt { get; set; }
+    public DateTimeOffset CompletedAt { get; set; }
 }
 
 public record CreateTestResultPdfResult(byte[] PdfBytes, string FileName);

@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.Queries.Scheduling;
+using BuildingBlocks.Messaging.Events.Queries.Scheduling;
 using BuildingBlocks.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Profile.API.Domains.Public.DoctorProfiles.Dtos;
@@ -13,8 +13,8 @@ public record GetAllDoctorProfilesQuery(
     [FromQuery] string? SortBy = "rating", // sort Rating,YearsOfExperience
     [FromQuery] string? SortOrder = "asc", // asc or desc
     [FromQuery] Guid? Specialties = null, // Specialties.Id - filter
-    [FromQuery] DateTime? StartDate = null,
-    [FromQuery] DateTime? EndDate = null
+    [FromQuery] DateTimeOffset? StartDate = null,
+    [FromQuery] DateTimeOffset? EndDate = null
 ) : IRequest<GetAllDoctorProfilesResult>;
 
 public record GetAllDoctorProfilesResult(PaginatedResult<DoctorProfileDto> DoctorProfiles);
@@ -77,7 +77,7 @@ public class GetAllDoctorProfilesHandler : IRequestHandler<GetAllDoctorProfilesQ
         return new GetAllDoctorProfilesResult(paginatedResult);
     }
 
-    private async Task<IQueryable<DoctorProfile>> FilterAvailableDoctors(IQueryable<DoctorProfile> doctors, DateTime startDate, DateTime endDate)
+    private async Task<IQueryable<DoctorProfile>> FilterAvailableDoctors(IQueryable<DoctorProfile> doctors, DateTimeOffset startDate, DateTimeOffset endDate)
     {
         var doctorIds = await doctors.Select(d => d.Id).ToListAsync(); 
 

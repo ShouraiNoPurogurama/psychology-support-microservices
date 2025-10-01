@@ -1,4 +1,4 @@
-﻿using StackExchange.Redis;
+using StackExchange.Redis;
 using Feed.Application.Abstractions.RankingService;
 
 namespace Feed.Infrastructure.Data.Redis;
@@ -18,7 +18,7 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
         public const string AuthorId = "author_id";
     }
 
-    public async Task<IReadOnlyList<Guid>> GetTrendingPostsAsync(DateTime date, CancellationToken ct)
+    public async Task<IReadOnlyList<Guid>> GetTrendingPostsAsync(DateTimeOffset date, CancellationToken ct)
     {
         var key = GetTrendingKey(date);
         var values = await _database.SortedSetRangeByRankAsync(key, 0, 99, Order.Descending);
@@ -71,7 +71,7 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
             .ToList();
     }
 
-    public async Task AddToTrendingAsync(Guid postId, double score, DateTime date, CancellationToken ct)
+    public async Task AddToTrendingAsync(Guid postId, double score, DateTimeOffset date, CancellationToken ct)
     {
         var key = GetTrendingKey(date);
         await _database.SortedSetAddAsync(key, postId.ToString(), score);
@@ -173,5 +173,5 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
     }
 
     private static string GetRankKey(Guid postId) => $"rank:{postId}";
-    private static string GetTrendingKey(DateTime date) => $"trending:{date:yyyyMMdd}";
+    private static string GetTrendingKey(DateTimeOffset date) => $"trending:{date:yyyyMMdd}";
 }

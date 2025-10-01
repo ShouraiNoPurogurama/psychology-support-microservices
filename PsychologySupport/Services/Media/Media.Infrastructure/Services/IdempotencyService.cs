@@ -1,4 +1,4 @@
-﻿using Media.Application.ServiceContracts;
+using Media.Application.ServiceContracts;
 using Media.Domain.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -50,8 +50,8 @@ namespace Media.Infrastructure.Services
             {
                 Id = Guid.NewGuid(),
                 Key = requestKey,
-                ExpiresAt = DateTime.UtcNow.AddHours(12),
-                CreatedAt = DateTime.UtcNow
+                ExpiresAt = DateTimeOffset.UtcNow.AddHours(12),
+                CreatedAt = DateTimeOffset.UtcNow
             };
 
             _dbContext.Add(idKey);

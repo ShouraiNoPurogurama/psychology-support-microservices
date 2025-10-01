@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Enums;
+using BuildingBlocks.Enums;
 
 namespace Subscription.API.UserSubscriptions.Dtos;
 
@@ -7,6 +7,6 @@ public record CreateUserSubscriptionDto(
     Guid ServicePackageId,
     string? PromoCode,
     Guid? GiftId,
-    DateTime StartDate,
+    DateTimeOffset StartDate,
     PaymentMethodName PaymentMethodName
 );

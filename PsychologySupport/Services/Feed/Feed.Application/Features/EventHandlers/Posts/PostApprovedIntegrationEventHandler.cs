@@ -43,7 +43,7 @@ public sealed class PostApprovedIntegrationEventHandler(
             var shard = ComputeShard(msg.PostId, f.AliasId, _config.FeedShardCount);
             // Recency-first default rank; background jobs will adjust via engagement
             var rankBucket = (sbyte)0;
-            var rankI64 = long.MaxValue - DateTime.UtcNow.Ticks;
+            var rankI64 = long.MaxValue - DateTimeOffset.UtcNow.Ticks;
             var item = UserFeedItem.Create(
                 aliasId: f.AliasId,
                 postId: msg.PostId,

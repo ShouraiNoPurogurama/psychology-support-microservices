@@ -52,7 +52,7 @@ public class TokenService(
             configuration["Jwt:Issuer"],
             configuration["Jwt:Audience"],
             claims,
-            expires: DateTime.UtcNow.AddHours(1),
+            expires: DateTimeOffset.UtcNow.AddHours(1).DateTime,
             signingCredentials: signingCredential
         );
 
@@ -90,7 +90,7 @@ public class TokenService(
             configuration["Jwt:Issuer"],
             configuration["Jwt:Audience"],
             claims,
-            expires: DateTime.Now.AddHours(1),
+            expires: DateTimeOffset.Now.AddHours(1).DateTime,
             signingCredentials: signingCredential
         );
 

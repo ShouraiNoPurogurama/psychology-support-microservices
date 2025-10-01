@@ -1,4 +1,4 @@
-﻿using Billing.Application.Dtos;
+using Billing.Application.Dtos;
 using MediatR;
 
 
@@ -12,7 +12,7 @@ public record GetOrderResponse(
     string Currency,
     string Status,
     string? PromoCode,
-    DateTime CreatedAt,
+    DateTimeOffset CreatedAt,
     InvoiceDto Invoice
 );
 public static class GetOrderEndpoint
