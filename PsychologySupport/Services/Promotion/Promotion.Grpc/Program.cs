@@ -21,7 +21,7 @@ else
 {
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Promotion API v1");
+        c.SwaggerEndpoint("/promotion-service/swagger/v1/swagger.json", "Promotion API v1");
     });
 }
 

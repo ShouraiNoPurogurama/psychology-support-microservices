@@ -59,7 +59,7 @@ public static class DependencyInjection
             });
 
             var url = env.IsProduction() 
-                ? "/post-service/swagger/v1/swagger.json" 
+                ? "/post-service" 
                 : "https://localhost:5510/post-service";
             
             options.AddServer(new OpenApiServer
@@ -107,7 +107,18 @@ public static class DependencyInjection
         app.MapCarter();
         
         app.UseSwagger();
-        app.UseSwaggerUI();
+        
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwaggerUI();
+        }
+        else
+        {
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/post-service/swagger/v1/swagger.json", "Alias API v1");
+            });
+        }
 
         app.UseCors("CorsPolicy");
 

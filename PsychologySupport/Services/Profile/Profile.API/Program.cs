@@ -30,7 +30,14 @@ app.MapCarter();
 
 app.UseSwagger();
 
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwaggerUI();
+}
+else
+{
+    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/profile-service/swagger/v1/swagger.json", "Profile API v1"); });
+}
 
 //Map gRPC services
 app.MapGrpcService<PatientProfileService>();
