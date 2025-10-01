@@ -29,20 +29,24 @@ public static class DependencyInjection
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
         // services.AddScoped<ILegacyPublicDbContext, LegacyPublicDbContext>();
         services.AddScoped<IQueryDbContext, QueryDbContext>();
-        services.AddScoped<IPostDbContext, PostDbContext>();
+        // services.AddScoped<IPostDbContext, PostDbContext>();
+
+        // Dòng này nói rằng: "Khi ai đó hỏi IPostDbContext, hãy đi tìm instance PostDbContext
+        // đã được tạo trong scope này và trả về nó".// Điều này đảm bảo cả hai resolve về cùng một instance.
+        services.AddScoped<IPostDbContext>(sp => sp.GetRequiredService<PostDbContext>());
 
         services.AddScoped<IIdempotencyHashAccessor, IdempotencyHashAccessor>();
-        services.AddScoped<IIdempotencyService, IdempotencyService>();           // store gốc (EF/Db)
-        services.Decorate<IIdempotencyService, LockingIdempotencyService>();     // single-flight
+        services.AddScoped<IIdempotencyService, IdempotencyService>(); // store gốc (EF/Db)
+        services.Decorate<IIdempotencyService, LockingIdempotencyService>(); // single-flight
         services.Decorate<IIdempotencyService, CachingIdempotencyService>();
-        
-        services.AddScoped<IAliasVersionAccessor, AliasVersionAccessor>(); 
+
+        services.AddScoped<IAliasVersionAccessor, AliasVersionAccessor>();
         services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
 
         services.AddScoped<IOutboxWriter, EfOutboxWriter>();
         services.AddScoped<IFollowerCountProvider, FollowerCountProvider>();
-        
-        
+
+
         // services.AddDbContext<LegacyPublicDbContext>((serviceProvider, options) =>
         // {
         //     options.AddInterceptors(serviceProvider.GetServices<ISaveChangesInterceptor>());

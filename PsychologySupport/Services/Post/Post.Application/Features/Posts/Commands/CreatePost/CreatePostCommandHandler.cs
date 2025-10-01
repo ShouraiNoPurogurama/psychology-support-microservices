@@ -62,7 +62,7 @@ public sealed class CreatePostCommandHandler(
         var followerCount = await followerCountProvider.GetFollowerCountAsync(aliasId, cancellationToken);
         await outboxWriter.WriteAsync(new PostCreatedIntegrationEvent(post.Id, aliasId, post.CreatedAt, followerCount), cancellationToken);
 
-        await context.SaveChangesAsync(cancellationToken);
+        var changedNum = await context.SaveChangesAsync(cancellationToken);
 
         // Publish media processing event ONLY when media is present
         if (hasMedia)

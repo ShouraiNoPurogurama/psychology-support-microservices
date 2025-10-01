@@ -54,7 +54,7 @@ public class PostAbandonmentBackgroundService : BackgroundService
         var context = scope.ServiceProvider.GetRequiredService<IPostDbContext>();
         var outboxWriter = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
 
-        var abandonmentThreshold = DateTime.UtcNow.Subtract(_options.AbandonmentThreshold);
+        var abandonmentThreshold = DateTimeOffset.UtcNow.Subtract(_options.AbandonmentThreshold);
 
         var abandonedPosts = await context.Posts
             .Where(p => !p.IsDeleted &&

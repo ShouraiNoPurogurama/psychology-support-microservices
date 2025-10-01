@@ -44,7 +44,7 @@ public sealed record CommentHierarchy
         // 3. Kiểm tra logic lồng cấp
         if (newLevel >= MaxNestingLevel)
         {
-            // User của bạn check > 5 (trong handler) và >= 5 (trong domain)
+            // User check > 5 (trong handler) và >= 5 (trong domain)
             // Thống nhất: >= 5 nghĩa là 0, 1, 2, 3, 4 là 5 cấp. Cấp 5 (newLevel=5) là không hợp lệ.
             throw new InvalidCommentDataException($"Bình luận chỉ có thể lồng tối đa {MaxNestingLevel} cấp.");
         }

@@ -432,3 +432,4 @@ PsychologySupport/Services/Notification/EmailAdvertisement/
 *.md
 *IMPLEMENTATION_COMPLETE.txt
 *FINAL_IMPLEMENTATION*.txt
+*.txt

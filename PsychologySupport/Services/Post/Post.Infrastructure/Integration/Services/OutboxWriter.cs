@@ -12,7 +12,8 @@ public sealed class EfOutboxWriter : IOutboxWriter
 
     public Task WriteAsync(object evt, CancellationToken ct)
     {
-        _db.OutboxMessages.Add(new OutboxMessage {
+        _db.OutboxMessages.Add(new OutboxMessage
+        {
             Id = Guid.NewGuid(),
             Type = evt.GetType().FullName!,
             Content = JsonSerializer.Serialize(evt),
