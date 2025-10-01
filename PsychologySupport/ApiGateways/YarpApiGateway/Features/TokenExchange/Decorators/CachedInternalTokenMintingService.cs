@@ -45,8 +45,10 @@ public class CachedInternalTokenMintingService : IInternalTokenMintingService
             Size = 1 //coi mỗi token = 1 đơn vị trong 200k đơn vị bộ nhớ
         });
 
-        _logger.LogDebug("Cache MISS for key {CacheKey}, minted new token", cacheKey);
+        _logger.LogInformation("Cache MISS for key {CacheKey}, minted new token", cacheKey);
 
+        _logger.LogInformation("*** Exchanged token: {token}", token);
+        
         return token;
     }
 
