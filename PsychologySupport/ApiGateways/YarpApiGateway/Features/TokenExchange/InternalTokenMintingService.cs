@@ -39,7 +39,7 @@ public class InternalTokenMintingService : IInternalTokenMintingService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTimeOffset.UtcNow.UtcDateTime .AddMinutes(15),
+            Expires = DateTimeOffset.UtcNow.UtcDateTime.AddMinutes(15),
             Issuer = issuer,
             Audience = audience,
             SigningCredentials = signingCredential
@@ -47,7 +47,11 @@ public class InternalTokenMintingService : IInternalTokenMintingService
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+        var result = tokenHandler.WriteToken(token);
+
+        _logger.LogInformation("******* Minted new token: {Token}", result);
+
+        return result;
     }
 
     private RsaSecurityKey GetRsaSecurityKey()
