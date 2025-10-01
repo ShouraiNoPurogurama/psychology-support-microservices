@@ -46,9 +46,6 @@ public class CachedInternalTokenMintingService : IInternalTokenMintingService
         });
 
         _logger.LogInformation("Cache MISS for key {CacheKey}, minted new token", cacheKey);
-
-        _logger.LogInformation("*** Exchanged token: {token}", token);
-        
         return token;
     }
 
