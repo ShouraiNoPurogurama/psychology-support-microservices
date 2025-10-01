@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Translation.API.Protos;
 using Wellness.Application.Data;
 using Wellness.Application.Features.Challenges.Dtos;
+using Wellness.Domain.Aggregates.Challenges;
 using Wellness.Domain.Aggregates.Challenges.Enums;
 
 namespace Wellness.Application.Features.Challenges.Queries;
@@ -67,13 +68,13 @@ public class GetChallengesHandler : IQueryHandler<GetChallengesQuery, GetChallen
             }).ToList();
 
             var translationDict = TranslationUtils.CreateBuilder()
-                .AddEntities(challengesWithString, nameof(rawChallenges), x => x.Challenge.Title)
-                .AddEntities(challengesWithString, nameof(rawChallenges), x => x.Challenge.Description)
-                .AddEntities(challengesWithString, nameof(rawChallenges), x => x.ChallengeTypeString)
+                .AddEntities(challengesWithString, nameof(Challenge), x => x.Challenge.Title)
+                .AddEntities(challengesWithString, nameof(Challenge), x => x.Challenge.Description)
+                .AddEntities(challengesWithString, nameof(Challenge), x => x.ChallengeTypeString)
                 // Translate Activities
-                .AddEntities(challengesWithString.SelectMany(c => c.Steps), "Activity", x => x.Step.Activity!.Name)
-                .AddEntities(challengesWithString.SelectMany(c => c.Steps), "Activity", x => x.Step.Activity!.Description)
-                .AddEntities(challengesWithString.SelectMany(c => c.Steps), "Activity", x => x.ActivityTypeString)
+                .AddEntities(challengesWithString.SelectMany(c => c.Steps), nameof(Activity), x => x.Step.Activity!.Name)
+                .AddEntities(challengesWithString.SelectMany(c => c.Steps), nameof(Activity), x => x.Step.Activity!.Description)
+                .AddEntities(challengesWithString.SelectMany(c => c.Steps), nameof(Activity), x => x.ActivityTypeString)
                 .Build();
 
             var translationResponse = await _translationClient.TranslateDataAsync(
@@ -93,15 +94,16 @@ public class GetChallengesHandler : IQueryHandler<GetChallengesQuery, GetChallen
             // Translate Challenge
             var translatedChallenge = translations?.MapTranslatedProperties(
                 c,
-                nameof(c),
+                nameof(Challenge),
                 id: c.Id.ToString(),
                 x => x.Title,
                 x => x.Description,
-                x => x.ChallengeType.ToString()
+                _ => c.ChallengeType.ToString()
             ) ?? c;
 
+            // Convert ChallengeType back
             if (translations != null &&
-                translations.TryGetValue($"{nameof(c)}:{c.Id}:ChallengeType", out var ctStr) &&
+                translations.TryGetValue($"{nameof(Challenge)}:{c.Id}:ChallengeTypeString", out var ctStr) &&
                 Enum.TryParse<ChallengeType>(ctStr, out var parsedChallengeType))
             {
                 translatedChallenge.ChallengeType = parsedChallengeType;
@@ -112,9 +114,9 @@ public class GetChallengesHandler : IQueryHandler<GetChallengesQuery, GetChallen
             {
                 if (s.Activity != null && translations != null)
                 {
-                    var keyName = $"Activity:{s.Activity.Id}:Name";
-                    var keyDesc = $"Activity:{s.Activity.Id}:Description";
-                    var keyType = $"Activity:{s.Activity.Id}:ActivityType";
+                    var keyName = $"{nameof(Activity)}:{s.Activity.Id}:Name";
+                    var keyDesc = $"{nameof(Activity)}:{s.Activity.Id}:Description";
+                    var keyType = $"{nameof(Activity)}:{s.Activity.Id}:ActivityTypeString";
 
                     if (translations.TryGetValue(keyName, out var name)) s.Activity.Name = name;
                     if (translations.TryGetValue(keyDesc, out var desc)) s.Activity.Description = desc;

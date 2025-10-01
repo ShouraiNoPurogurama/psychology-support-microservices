@@ -52,49 +52,54 @@ public class GetActivityHandler : IQueryHandler<GetActivitiesQuery, GetActivitie
             .Take(request.PaginationRequest.PageSize)
             .ToListAsync(cancellationToken);
 
-        // --- Create temporary string property for ActivityType ---
-        var rawWithString = rawActivities.Select(a => new
-        {
-            Activity = a,
-            ActivityTypeString = a.ActivityType.ToString()
-        }).ToList();
+        // --- Build translation dictionary ---
+        var translationDict = TranslationUtils.CreateBuilder()
+            .AddEntities(rawActivities, nameof(Activity), a => a.Name)
+            .AddEntities(rawActivities, nameof(Activity), a => a.Description)
+            .AddEntities(
+                rawActivities.Select(a => new { a.Id, ActivityTypeString = a.ActivityType.ToString() }),
+                nameof(Activity),
+                x => x.ActivityTypeString
+            )
+            .Build();
 
-        // --- Translation ---
         Dictionary<string, string>? translations = null;
         if (!string.IsNullOrEmpty(request.TargetLang))
         {
-            var translationDict = TranslationUtils.CreateBuilder()
-                .AddEntities(rawWithString, nameof(Activity), x => x.Activity.Name)
-                .AddEntities(rawWithString, nameof(Activity), x => x.Activity.Description)
-                .AddEntities(rawWithString, nameof(Activity), x => x.ActivityTypeString)
-                .Build();
+            try
+            {
+                var translationResponse = await _translationClient.TranslateDataAsync(
+                    new TranslateDataRequest
+                    {
+                        Originals = { translationDict },
+                        TargetLanguage = request.TargetLang
+                    },
+                    cancellationToken: cancellationToken
+                );
 
-            var translationResponse = await _translationClient.TranslateDataAsync(
-                new TranslateDataRequest
-                {
-                    Originals = { translationDict },
-                    TargetLanguage = request.TargetLang
-                },
-                cancellationToken: cancellationToken
-            );
-
-            translations = translationResponse.Translations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                translations = translationResponse.Translations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            }
+            catch (Exception ex)
+            {
+                // fallback: không dịch, chỉ log lỗi
+                Console.WriteLine($"[TranslationError] {ex.Message}");
+            }
         }
 
-        var translatedActivities = rawWithString.Select(x =>
+        // --- Apply translations ---
+        var translatedActivities = rawActivities.Select(a =>
         {
             var translated = translations?.MapTranslatedProperties(
-                x.Activity,
+                a,
                 nameof(Activity),
-                id: x.Activity.Id.ToString(),
-                a => a.Name,
-                a => a.Description,
-                _ => x.ActivityTypeString
-            ) ?? x.Activity;
+                id: a.Id.ToString(),
+                x => x.Name,
+                x => x.Description
+            ) ?? a;
 
-            // Convert back to enum
+            // Map ActivityTypeString
             if (translations != null &&
-                translations.TryGetValue($"{nameof(Activity)}:{x.Activity.Id}:ActivityTypeString", out var atStr) &&
+                translations.TryGetValue($"{nameof(Activity)}:{a.Id}:ActivityTypeString", out var atStr) &&
                 Enum.TryParse<ActivityType>(atStr, out var parsed))
             {
                 translated.ActivityType = parsed;
