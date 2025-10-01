@@ -266,7 +266,7 @@ namespace Alias.API.Data.Public.Migrations
 
                             b1.HasKey("AliasId");
 
-                            b1.ToTable("aliases");
+                            b1.ToTable("aliases", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("AliasId")
@@ -305,7 +305,7 @@ namespace Alias.API.Data.Public.Migrations
 
                             b1.HasKey("AliasId");
 
-                            b1.ToTable("aliases");
+                            b1.ToTable("aliases", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("AliasId")

@@ -1,6 +1,7 @@
 ﻿using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Aggregates.Reaction.DomainEvents;
 using Post.Domain.Aggregates.Reaction.ValueObjects;
+using Post.Domain.Aggregates.Reactions.Enums;
 using Post.Domain.Exceptions;
 
 namespace Post.Domain.Aggregates.Reaction;
@@ -33,34 +34,34 @@ public sealed class Reaction : AggregateRoot<Guid>, ISoftDeletable
     /// <param name="emoji">Emoji/icon (lấy từ DB)</param>
     /// <param name="weight">Trọng số (lấy từ DB)</param>
     /// <param name="isEnabled">Trạng thái kích hoạt loại tương tác (lấy từ DB)</param>
-    public static Reaction Create(
-        string targetType,
-        Guid targetId,
-        string reactionCode,
-        string? emoji,
-        int weight,
-        bool isEnabled,
-        Guid authorAliasId,
-        Guid authorAliasVersionId)
-    {
-        var reaction = new Reaction
+        public static Reaction Create(
+            ReactionTargetType targetType,
+            Guid targetId,
+            string reactionCode,
+            string? emoji,
+            int weight,
+            bool isEnabled,
+            Guid authorAliasId,
+            Guid authorAliasVersionId)
         {
-            Id = Guid.NewGuid(),
-            Target = ReactionTarget.Create(targetType, targetId),
-            Type = ReactionType.Create(reactionCode, emoji, weight, isEnabled),
-            Author = AuthorInfo.Create(authorAliasId, authorAliasVersionId),
-            ReactedAt = DateTimeOffset.UtcNow
-        };
+            var reaction = new Reaction
+            {
+                Id = Guid.NewGuid(),
+                Target = ReactionTarget.Create(targetType, targetId),
+                Type = ReactionType.Create(reactionCode, emoji, weight, isEnabled),
+                Author = AuthorInfo.Create(authorAliasId, authorAliasVersionId),
+                ReactedAt = DateTimeOffset.UtcNow
+            };
 
-        reaction.AddDomainEvent(new ReactionCreatedEvent(
-            reaction.Id,
-            reaction.Target.TargetType,
-            reaction.Target.TargetId,
-            reaction.Type.Code,
-            authorAliasId));
+            reaction.AddDomainEvent(new ReactionCreatedEvent(
+                reaction.Id,
+                reaction.Target.TargetType,
+                reaction.Target.TargetId,
+                reaction.Type.Code,
+                authorAliasId));
 
-        return reaction;
-    }
+            return reaction;
+        }
 
     /// <summary>
     /// Đổi loại tương tác (ví dụ: từ 'like' sang 'love').

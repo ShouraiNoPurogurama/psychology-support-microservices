@@ -52,7 +52,7 @@ public class TokenService(
             configuration["Jwt:Issuer"],
             configuration["Jwt:Audience"],
             claims,
-            expires: DateTimeOffset.UtcNow.AddHours(1).DateTime,
+            expires: DateTimeOffset.UtcNow.UtcDateTime .AddHours(1),
             signingCredentials: signingCredential
         );
 
@@ -70,6 +70,7 @@ public class TokenService(
         var onboardingStatus = user.OnboardingStatus.ToString();
 
         var jti = Guid.NewGuid().ToString();
+        
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Jti, jti),
