@@ -57,6 +57,7 @@ public class TokenExchangeService : ITokenExchangeService
             }
         }
 
+        _logger.LogInformation("No matching rule found for audience {Audience}. Returning original token.", destinationAudience);
         //Không tìm thấy quy tắc nào khớp
         return originalToken;
     }
