@@ -47,10 +47,13 @@ public class TokenExchangeService : ITokenExchangeService
 
                 var newClaims = new List<Claim> { new Claim(rule.ClaimType, newId) };
 
-                return _tokenMintingService.MintScopedToken(
+                var exchangedToken = _tokenMintingService.MintScopedToken(
                     new ClaimsPrincipal(new ClaimsIdentity(jwtToken.Claims)),
                     newClaims, destinationAudience
                 );
+                
+                _logger.LogInformation("Exchanged token minted for audience {Audience}: {Token}", destinationAudience, exchangedToken);
+                return exchangedToken;
             }
         }
 
