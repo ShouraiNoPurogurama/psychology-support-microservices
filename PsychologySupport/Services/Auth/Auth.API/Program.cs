@@ -26,6 +26,7 @@ app.UseExceptionHandler(options => { });
 app.UseStaticFiles();
 
 app.UseSwagger();
+
 if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();

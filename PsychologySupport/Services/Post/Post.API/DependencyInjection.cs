@@ -28,6 +28,7 @@ public static class DependencyInjection
         services.AddIdentityServices(config);
         
         ConfigureCORS(services);
+        
         ConfigureSwagger(services, env);
 
         return services;
@@ -58,7 +59,7 @@ public static class DependencyInjection
             });
 
             var url = env.IsProduction() 
-                ? "/post-service" 
+                ? "/post-service/swagger/v1/swagger.json" 
                 : "https://localhost:5510/post-service";
             
             options.AddServer(new OpenApiServer
