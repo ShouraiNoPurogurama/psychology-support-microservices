@@ -106,18 +106,7 @@ public static class DependencyInjection
         app.MapCarter();
         
         app.UseSwagger();
-        if (app.Environment.IsDevelopment())
-        {
-            // app.InitializeDatabaseAsync();
-            app.UseSwaggerUI();
-        }
-        else
-        {
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/post-service", "Post API v1");
-            });
-        }
+        app.UseSwaggerUI();
 
         app.UseCors("CorsPolicy");
 
