@@ -32,7 +32,7 @@ public class CachedInternalTokenMintingService : IInternalTokenMintingService
 
         if (_cache.TryGetValue(cacheKey, out string? token))
         {
-            _logger.LogInformation("[Cache HIT] for key {CacheKey} with value {Value}", cacheKey, token);
+            // _logger.LogInformation("[Cache HIT] for key {CacheKey} with value {Value}", cacheKey, token);
             return token!;
         }
 

@@ -27,7 +27,6 @@ public class InternalTokenMintingService : IInternalTokenMintingService
         var issuer = _configuration["Jwt:Issuer"];
         var rsaKey = GetRsaSecurityKey();
 
-        _logger.LogInformation("[InternalTokenMintingService] Minting new token for audience {Audience} with issuer {Issuer}", audience, issuer);
         
         var signingCredential = new SigningCredentials(rsaKey, SecurityAlgorithms.RsaSha256);
 
@@ -37,8 +36,6 @@ public class InternalTokenMintingService : IInternalTokenMintingService
             .ToList();
 
         claims.AddRange(additionalClaims);
-
-        _logger.LogInformation("Original claims: {OriginalClaims}", string.Join(", ", originalPrincipal.Claims.Select(c => $"{c.Type}:{c.Value}")));
         
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -53,11 +50,9 @@ public class InternalTokenMintingService : IInternalTokenMintingService
         
         var token = tokenHandler.CreateToken(tokenDescriptor);
         
-        _logger.LogInformation("*** New minted token : {Token}", token);
         
         var result = tokenHandler.WriteToken(token);
 
-        _logger.LogInformation("******* Minted new token: {Token}", result);
 
         return result;
     }
