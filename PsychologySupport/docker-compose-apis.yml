@@ -119,46 +119,48 @@ services:
       - ~/.aspnet/https:/https:ro
       - ./Services/ChatBox/ChatBox.API/RSAKeys:/app/RSAKeys
       - ~/gcp/compute-default-sa.json:/app/gcloud/compute-default-sa.json:ro
-  #
-  #  digitalgoods.api:
-  #    image: ${DOCKER_REGISTRY-}digitalgoodsapi
-  #    container_name: digitalgoods.api
-  #    environment:
-  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-  #      - ASPNETCORE_HTTP_PORTS=8080
-  #      - ASPNETCORE_HTTPS_PORTS=8081
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-  #    ports:
-  #      - "5022:8080"
-  #      - "5522:8081"
-  #    build:
-  #      context: .
-  #      dockerfile: Services/DigitalGoods/DigitalGoods.API/Dockerfile
-  #    volumes:
-  #      - ~/.aspnet/https:/https:ro
-  #      - ./Services/DigitalGoods/DigitalGoods.API/RSAKeys:/app/RSAKeys
-  
-  #  feed.api:
-  #    image: ${DOCKER_REGISTRY-}feedapi
-  #    container_name: feed.api
-  #    environment:
-  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-  #      - ASPNETCORE_HTTP_PORTS=8080
-  #      - ASPNETCORE_HTTPS_PORTS=8081
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-  #    ports:
-  #      - "5017:8080"
-  #      - "5517:8081"
-  #    build:
-  #      context: .
-  #      dockerfile: Services/Feed/Feed.API/Dockerfile
-  #    volumes:
-  #      - ~/.aspnet/https:/https:ro
-  #      - ./Services/Feed/Feed.API/RSAKeys:/app/RSAKeys
+    
+    #  digitalgoods.api:
+    #    image: ${DOCKER_REGISTRY-}digitalgoodsapi
+    #    container_name: digitalgoods.api
+    #    environment:
+    #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+    #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+    #      - ASPNETCORE_HTTP_PORTS=8080
+    #      - ASPNETCORE_HTTPS_PORTS=8081
+    #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+    #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    #    ports:
+    #      - "5022:8080"
+    #      - "5522:8081"
+    #    build:
+    #      context: .
+    #      dockerfile: Services/DigitalGoods/DigitalGoods.API/Dockerfile
+    #    volumes:
+    #      - ~/.aspnet/https:/https:ro
+    #      - ./Services/DigitalGoods/DigitalGoods.API/RSAKeys:/app/RSAKeys
+    
+    feed.api:
+      image: ${DOCKER_REGISTRY-}feedapi
+      container_name: feed.api
+      environment:
+        - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+        - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+        - ASPNETCORE_HTTP_PORTS=8080
+        - ASPNETCORE_HTTPS_PORTS=8081
+        - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+        - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      networks:
+        - emoease-net
+      ports:
+        - "5017:8080"
+        - "5517:8081"
+      build:
+        context: .
+        dockerfile: Services/Feed/Feed.API/Dockerfile
+      volumes:
+        - ~/.aspnet/https:/https:ro
+        - ./Services/Feed/Feed.API/RSAKeys:/app/RSAKeys
   
   #  image.api:
   #    image: ${DOCKER_REGISTRY-}imageapi
@@ -223,24 +225,24 @@ services:
       - ~/.aspnet/https:/https:ro
       - ./Services/Media/Media.API/RSAKeys:/app/RSAKeys
   
-#  notification.api:
-#    image: ${DOCKER_REGISTRY-}notificationapi
-#    container_name: notification.api
-#    environment:
-#      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-#      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-#      - ASPNETCORE_HTTP_PORTS=8080
-#      - ASPNETCORE_HTTPS_PORTS=8081
-#      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-#      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-#    ports:
-#      - "5012:8080"
-#      - "5512:8081"
-#    build:
-#      context: .
-#      dockerfile: Services/Notification/Notification.API/Dockerfile
-#    volumes:
-#      - ~/.aspnet/https:/https:ro
+  #  notification.api:
+  #    image: ${DOCKER_REGISTRY-}notificationapi
+  #    container_name: notification.api
+  #    environment:
+  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+  #      - ASPNETCORE_HTTP_PORTS=8080
+  #      - ASPNETCORE_HTTPS_PORTS=8081
+  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+  #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+  #    ports:
+  #      - "5012:8080"
+  #      - "5512:8081"
+  #    build:
+  #      context: .
+  #      dockerfile: Services/Notification/Notification.API/Dockerfile
+  #    volumes:
+  #      - ~/.aspnet/https:/https:ro
 
   payment.api:
     image: ${DOCKER_REGISTRY-}paymentapi
@@ -275,6 +277,8 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    networks:
+      - emoease-net
     ports:
       - "5014:8080"
       - "5514:8081"
