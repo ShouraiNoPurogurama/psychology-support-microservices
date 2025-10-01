@@ -34,6 +34,8 @@ public class TokenExchangeService : ITokenExchangeService
             {
                 var newId = await rule.LookupFunction(subjectRef);
                 
+                _logger.LogInformation($"Found audience for {rule.Keywords.First()}");
+                
                 //Nếu ID bị empty tức là user chưa tạo alias hoặc chưa làm onboarding => trả null cho caller 
                 //viiết 403 vào response
                 if (string.IsNullOrEmpty(newId) || Guid.Parse(newId) == Guid.Empty)
