@@ -1,23 +1,23 @@
 services:
-  aimoderation.api:
-    image: ${DOCKER_REGISTRY-}aimoderationapi
-    container_name: aimoderation.api
-    environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-    ports:
-      - "5015:8080"
-      - "5515:8081"
-    build:
-      context: .
-      dockerfile: Services/AIModeration/AIModeration.API/Dockerfile
-    volumes:
-      - ~/.aspnet/https:/https:ro
-      - ./Services/AIModeration/AIModeration.API/RSAKeys:/app/RSAKeys
+#  aimoderation.api:
+#    image: ${DOCKER_REGISTRY-}aimoderationapi
+#    container_name: aimoderation.api
+#    environment:
+#      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+#      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+#      - ASPNETCORE_HTTP_PORTS=8080
+#      - ASPNETCORE_HTTPS_PORTS=8081
+#      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+#      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+#    ports:
+#      - "5015:8080"
+#      - "5515:8081"
+#    build:
+#      context: .
+#      dockerfile: Services/AIModeration/AIModeration.API/Dockerfile
+#    volumes:
+#      - ~/.aspnet/https:/https:ro
+#      - ./Services/AIModeration/AIModeration.API/RSAKeys:/app/RSAKeys
 
   alias.api:
     image: ${DOCKER_REGISTRY-}aliasapi
@@ -140,28 +140,28 @@ services:
     #      - ~/.aspnet/https:/https:ro
     #      - ./Services/DigitalGoods/DigitalGoods.API/RSAKeys:/app/RSAKeys
     
-    feed.api:
-      image: ${DOCKER_REGISTRY-}feedapi
-      container_name: feed.api
-      environment:
-        - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-        - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-        - ASPNETCORE_HTTP_PORTS=8080
-        - ASPNETCORE_HTTPS_PORTS=8081
-        - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-        - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-      networks:
-        - emoease-net
-      ports:
-        - "5017:8080"
-        - "5517:8081"
-      build:
-        context: .
-        dockerfile: Services/Feed/Feed.API/Dockerfile
-      volumes:
-        - ~/.aspnet/https:/https:ro
-        - ./Services/Feed/Feed.API/RSAKeys:/app/RSAKeys
-  
+#    feed.api:
+#      image: ${DOCKER_REGISTRY-}feedapi
+#      container_name: feed.api
+#      environment:
+#        - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+#        - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+#        - ASPNETCORE_HTTP_PORTS=8080
+#        - ASPNETCORE_HTTPS_PORTS=8081
+#        - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+#        - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+#      networks:
+#        - emoease-net
+#      ports:
+#        - "5017:8080"
+#        - "5517:8081"
+#      build:
+#        context: .
+#        dockerfile: Services/Feed/Feed.API/Dockerfile
+#      volumes:
+#        - ~/.aspnet/https:/https:ro
+#        - ./Services/Feed/Feed.API/RSAKeys:/app/RSAKeys
+#  
   #  image.api:
   #    image: ${DOCKER_REGISTRY-}imageapi
   #    container_name: image.api
