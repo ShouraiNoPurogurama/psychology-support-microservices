@@ -225,14 +225,49 @@ public sealed class GetFeedQueryHandler(
         if (items.Count == 0)
             return items;
 
-        // OPTIMIZED: Batch query instead of N+1 queries
+        // OPTIMIZED: Batch query for suppression check
         var postIds = items.Select(i => i.PostId).ToList();
         var suppressedIds = await moderationRepository.GetSuppressedPostIdsBatchAsync(postIds, cancellationToken);
 
-        // Filter out suppressed posts
-        var filtered = items.Where(item => !suppressedIds.Contains(item.PostId)).ToList();
+        // Get blocked aliases for the viewer
+        var blockedUsers = await blockingRepository.GetAllByViewerAsync(aliasId, cancellationToken);
+        var blockedAliasIds = blockedUsers.Select(b => b.BlockedAliasId).ToHashSet();
 
-        // TODO: When author alias is available on feed item, also filter by blocked/muted authors
+        // Get muted aliases for the viewer
+        var mutedUsers = await mutingRepository.GetAllByViewerAsync(aliasId, cancellationToken);
+        var mutedAliasIds = mutedUsers.Select(m => m.MutedAliasId).ToHashSet();
+
+        // Get author IDs for all posts (batch query to Redis)
+        var postAuthorTasks = postIds.Select(async postId =>
+        {
+            var authorId = await rankingService.GetPostAuthorAsync(postId, cancellationToken);
+            return (postId, authorId);
+        });
+        var postAuthors = await Task.WhenAll(postAuthorTasks);
+        var postAuthorMap = postAuthors
+            .Where(x => x.authorId.HasValue)
+            .ToDictionary(x => x.postId, x => x.authorId!.Value);
+
+        // Apply all filters
+        var filtered = items.Where(item =>
+        {
+            // Filter out suppressed posts
+            if (suppressedIds.Contains(item.PostId))
+                return false;
+
+            // Filter out posts from blocked users
+            if (postAuthorMap.TryGetValue(item.PostId, out var authorId))
+            {
+                if (blockedAliasIds.Contains(authorId))
+                    return false;
+
+                if (mutedAliasIds.Contains(authorId))
+                    return false;
+            }
+
+            return true;
+        }).ToList();
+
         return filtered;
     }
 
@@ -244,14 +279,35 @@ public sealed class GetFeedQueryHandler(
         if (posts.Count == 0)
             return posts;
 
-        // OPTIMIZED: Batch query instead of N+1 queries
+        // OPTIMIZED: Batch query for suppression check
         var postIds = posts.Select(p => p.PostId).ToList();
         var suppressedIds = await moderationRepository.GetSuppressedPostIdsBatchAsync(postIds, cancellationToken);
 
-        // Filter out suppressed posts
-        var filtered = posts.Where(post => !suppressedIds.Contains(post.PostId)).ToList();
+        // Get blocked aliases for the viewer
+        var blockedUsers = await blockingRepository.GetAllByViewerAsync(aliasId, cancellationToken);
+        var blockedAliasIds = blockedUsers.Select(b => b.BlockedAliasId).ToHashSet();
 
-        // TODO: Filter out posts from blocked/muted authors when AuthorAliasId is present
+        // Get muted aliases for the viewer
+        var mutedUsers = await mutingRepository.GetAllByViewerAsync(aliasId, cancellationToken);
+        var mutedAliasIds = mutedUsers.Select(m => m.MutedAliasId).ToHashSet();
+
+        // Apply all filters
+        var filtered = posts.Where(post =>
+        {
+            // Filter out suppressed posts
+            if (suppressedIds.Contains(post.PostId))
+                return false;
+
+            // Filter out posts from blocked users (RankedPost has AuthorAliasId)
+            if (blockedAliasIds.Contains(post.AuthorAliasId))
+                return false;
+
+            if (mutedAliasIds.Contains(post.AuthorAliasId))
+                return false;
+
+            return true;
+        }).ToList();
+
         return filtered;
     }
 }
