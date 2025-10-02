@@ -11,8 +11,7 @@ public class EmailService(
     IEmailRateLimiter rateLimiter,
     IConfiguration configuration,
     IPublishEndpoint publishEndpoint,
-    IWebHostEnvironment env,
-    NotificationService.NotificationServiceClient notificationClient)
+    IWebHostEnvironment env)
     : IEmailService
 {
     public async Task SendEmailConfirmationAsync(User user)
