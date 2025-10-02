@@ -14,6 +14,5 @@ public enum UserOnboardingStatus
 public enum AliasIssueStatus
 {
     Pending = 0,    
-    Completed = 1,      
-    NeedsAction = 2 
+    Completed = 1
 }

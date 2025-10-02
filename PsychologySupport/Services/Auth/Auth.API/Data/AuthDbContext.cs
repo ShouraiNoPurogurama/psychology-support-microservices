@@ -35,6 +35,12 @@ public class AuthDbContext : IdentityDbContext<User, Role, Guid, IdentityUserCla
                     dbStatus => (UserOnboardingStatus)Enum.Parse(typeof(UserOnboardingStatus), dbStatus))
                 .HasSentinel(UserOnboardingStatus.Pending)
                 .HasDefaultValue(UserOnboardingStatus.Pending);
+            
+            entity.Property(u => u.AliasIssueStatus)
+                .HasConversion(s => s.ToString(),
+                    dbStatus => (AliasIssueStatus)Enum.Parse(typeof(AliasIssueStatus), dbStatus))
+                .HasSentinel(AliasIssueStatus.Pending)
+                .HasDefaultValue(AliasIssueStatus.Pending);
 
             entity.HasMany(e => e.UserRoles)
                 .WithOne(e => e.User)
