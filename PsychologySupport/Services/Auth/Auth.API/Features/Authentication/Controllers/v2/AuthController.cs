@@ -1,4 +1,5 @@
 ﻿using Auth.API.Features.Authentication.Dtos.Requests;
+using Auth.API.Features.Authentication.Dtos.Responses;
 using Auth.API.Features.Authentication.ServiceContracts;
 using Auth.API.Features.Authentication.ServiceContracts.Features;
 using Auth.API.Features.Authentication.ServiceContracts.Shared;
@@ -91,11 +92,19 @@ public class AuthController(
     }
 
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    [HttpGet("v2/onboarding/status")]
+    [HttpGet("v2/me/status")]
     public async Task<IActionResult> GetOnboardingStatus()
     {
-        var result = await userOnboardingService.GetOnboardingStatusAsync();
+        var onboardingStatus = await userOnboardingService.GetOnboardingStatusAsync();
 
-        return Ok(result);
+        var aliasIssueStatus = await userOnboardingService.GetAliasIssueStatusAsync();
+
+        var response = new OnboardingStatusDto(
+            PiiCompleted: onboardingStatus.PiiCompleted,
+            PatientProfileCompleted: onboardingStatus.PatientProfileCompleted,
+            AliasIssued: aliasIssueStatus.AliasIssued
+        );
+
+        return Ok(response);
     }
 }

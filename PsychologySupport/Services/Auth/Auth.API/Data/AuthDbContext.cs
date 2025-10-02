@@ -61,9 +61,17 @@ public class AuthDbContext : IdentityDbContext<User, Role, Guid, IdentityUserCla
                 .HasForeignKey<UserOnboarding>(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.Property(x => x.Status)
+            entity.Property(x => x.OnboardingStatus)
                 .HasConversion(s => s.ToString(),
-                    dbStatus => (UserOnboardingStatus)Enum.Parse(typeof(UserOnboardingStatus), dbStatus));
+                    dbStatus => (UserOnboardingStatus)Enum.Parse(typeof(UserOnboardingStatus), dbStatus))
+                .HasDefaultValue(UserOnboardingStatus.Pending)
+                .HasSentinel(UserOnboardingStatus.Pending);
+
+            entity.Property(x => x.AliasIssueStatus)
+                .HasConversion(s => s.ToString(),
+                    dbStatus => (AliasIssueStatus)Enum.Parse(typeof(AliasIssueStatus), dbStatus))
+                .HasDefaultValue(AliasIssueStatus.Pending)
+                .HasSentinel(AliasIssueStatus.Pending);
 
             //Missing[] lưu JSON (Postgres: jsonb; SQL Server: nvarchar(max))
             entity.Property(x => x.Missing)
