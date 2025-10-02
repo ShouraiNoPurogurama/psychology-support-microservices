@@ -35,7 +35,8 @@ jobs:
             git reset --hard HEAD
             git pull origin main
 
-            ALL_SERVICES="auth.api chatbox.api image.api lifestyles.api payment.api profile.api scheduling.api subscription.api test.api translation.api aimoderation.api alias.api billing.api digitalgoods.api feed.api media.api post.api yarpapigateway"
+            # Removed services = image.api lifestyles.api scheduling.api 
+            ALL_SERVICES="auth.api chatbox.api payment.api profile.api subscription.api test.api translation.api aimoderation.api alias.api billing.api digitalgoods.api feed.api media.api post.api yarpapigateway"
 
             HAS_BUILDING_BLOCKS_CHANGE=$(git diff --name-only HEAD^ HEAD \
               | grep -E '^PsychologySupport/BuildingBlocks/|^PsychologySupport/BuildingBlocks.Messaging/' || true)
