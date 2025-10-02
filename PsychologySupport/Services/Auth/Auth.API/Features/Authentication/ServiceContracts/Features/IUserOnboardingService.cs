@@ -8,5 +8,9 @@ public interface IUserOnboardingService
     
     Task<bool> MarkPatientOnboardedAsync(Guid userId, CancellationToken cancellationToken = default);
 
+    Task<bool> MarkMarkAliasIssuedAsync(Guid userId, CancellationToken cancellationToken = default);
+
     Task<UserOnboardingStatusResponse> GetOnboardingStatusAsync(CancellationToken cancellationToken = default);
+    
+    Task<AliasIssueStatusResponse> GetAliasIssueStatusAsync(CancellationToken cancellationToken = default);
 }

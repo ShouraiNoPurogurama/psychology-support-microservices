@@ -9,3 +9,10 @@ public enum UserOnboardingStatus
     Completed = 1,      //Hồ sơ hoàn tất, có thể login full quyền
     NeedsAction = 2 //Lỗi hoặc thiếu dữ liệu, buộc user hoàn tất hồ sơ
 }
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum AliasIssueStatus
+{
+    Pending = 0,    
+    Completed = 1
+}

@@ -3,6 +3,7 @@ using System;
 using Auth.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Auth.API.Data.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
-    partial class AuthDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251002142750_DenormalizeAliasIssueState")]
+    partial class DenormalizeAliasIssueState
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -256,10 +259,6 @@ namespace Auth.API.Data.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text")
                         .HasColumnName("security_stamp");
-
-                    b.Property<string>("SubscriptionPlanName")
-                        .HasColumnType("text")
-                        .HasColumnName("subscription_plan_name");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean")

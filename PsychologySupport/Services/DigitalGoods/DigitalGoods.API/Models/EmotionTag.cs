@@ -47,7 +47,7 @@ public class EmotionTag : AuditableEntity<Guid>
             IsActive = isActive,
             Scope = scope,
             MediaId = mediaId,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTimeOffset.UtcNow,
             CreatedBy = createdBy
         };
     }

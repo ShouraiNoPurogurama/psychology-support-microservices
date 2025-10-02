@@ -59,22 +59,13 @@
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         </Content>
     </ItemGroup>
+    
     <ItemGroup>
-        <Content Include="EmailTemplates/**/*">
+        <Content Include="Features/Authentication/EmailTemplates/**">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
-<!--	<ItemGroup>-->
-<!--		<Protobuf Include="..\..\Notification\Notification.API\Protos\notification.proto" GrpcServices="Client">-->
-<!--			<Link>Protos\notification.proto</Link>-->
-<!--		</Protobuf>-->
-<!--		<Protobuf Include="..\..\Profile\Profile.API\Protos\patient_profile.proto" GrpcServices="Client">-->
-<!--			<Link>Protos\patient_profile.proto</Link>-->
-<!--		</Protobuf>-->
-<!--        <Protobuf Include="..\..\Profile\Profile.API\Protos\pii.proto" GrpcServices="Client">-->
-<!--			<Link>Protos\pii.proto</Link>-->
-<!--		</Protobuf>-->
-<!--	</ItemGroup>-->
+    
 	<ItemGroup>
 	  <Folder Include="Data\Migrations\" />
 	</ItemGroup>
