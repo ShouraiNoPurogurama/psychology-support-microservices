@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DigitalGoods.API.Data.Migrations
 {
     [DbContext(typeof(DigitalGoodsDbContext))]
-    [Migration("20251002063310_EmotionTagScope")]
-    partial class EmotionTagScope
+    [Migration("20251002115423_AddEmotionTagScope")]
+    partial class AddEmotionTagScope
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -153,8 +153,9 @@ namespace DigitalGoods.API.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("media_id");
 
-                    b.Property<int>("Scope")
-                        .HasColumnType("integer")
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(25)")
                         .HasColumnName("scope");
 
                     b.Property<int>("SortOrder")

@@ -10,6 +10,7 @@ namespace BuildingBlocks.Messaging.Events.IntegrationEvents.DigitalGood
         Guid EmotionTagId,
         string Code,
         string DisplayName,
-        string Scope
+        string Scope,
+        Guid? MediaId
     ) : IntegrationEvent;
 }

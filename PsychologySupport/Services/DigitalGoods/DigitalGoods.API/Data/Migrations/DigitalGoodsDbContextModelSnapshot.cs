@@ -150,8 +150,9 @@ namespace DigitalGoods.API.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("media_id");
 
-                    b.Property<int>("Scope")
-                        .HasColumnType("integer")
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(25)")
                         .HasColumnName("scope");
 
                     b.Property<int>("SortOrder")

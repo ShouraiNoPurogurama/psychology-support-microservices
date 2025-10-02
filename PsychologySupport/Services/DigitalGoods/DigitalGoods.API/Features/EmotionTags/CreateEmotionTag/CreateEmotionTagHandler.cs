@@ -101,7 +101,8 @@ public class CreateEmotionTagHandler
             tag.Id,
             tag.Code,
             tag.DisplayName,
-            tag.Scope.ToString()
+            tag.Scope.ToString(),
+            tag.MediaId
         );
 
         await _publishEndpoint.Publish(integrationEvent, cancellationToken);

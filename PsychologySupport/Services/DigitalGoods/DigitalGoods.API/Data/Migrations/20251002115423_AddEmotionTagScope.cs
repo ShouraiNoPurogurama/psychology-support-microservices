@@ -5,7 +5,7 @@
 namespace DigitalGoods.API.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class EmotionTagScope : Migration
+    public partial class AddEmotionTagScope : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -13,17 +13,17 @@ namespace DigitalGoods.API.Data.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "scope",
                 table: "emotion_tags",
-                type: "varchar(25)",
+                type: "VARCHAR(25)",
                 nullable: false,
-                defaultValue: "Global");
+                defaultValue: "");
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
                 name: "scope",
                 table: "emotion_tags");
         }
-
     }
 }

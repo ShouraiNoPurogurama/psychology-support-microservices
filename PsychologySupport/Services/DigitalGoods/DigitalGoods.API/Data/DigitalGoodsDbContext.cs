@@ -1,8 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using DigitalGoods.API.Enums;
 using DigitalGoods.API.Models;
 using Microsoft.Build.Tasks.Deployment.Bootstrapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System;
+using System.Collections.Generic;
 
 namespace DigitalGoods.API.Data;
 
@@ -99,7 +101,12 @@ public partial class DigitalGoodsDbContext : DbContext
 
         modelBuilder.Entity<EmotionTag>(entity =>
         {
-            entity.HasIndex(e => e.Code, "unq_emotion_tags_code").IsUnique(); 
+            entity.HasIndex(e => e.Code, "unq_emotion_tags_code").IsUnique();
+
+            entity.Property(e => e.Scope)
+                       .HasConversion(new EnumToStringConverter<EmotionTagScope>())
+                       .HasColumnType("VARCHAR(25)")
+                       .HasColumnName("scope");
         });
 
         OnModelCreatingPartial(modelBuilder);
