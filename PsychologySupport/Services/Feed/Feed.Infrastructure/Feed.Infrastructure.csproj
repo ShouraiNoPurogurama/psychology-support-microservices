@@ -15,9 +15,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="CassandraCSharpDriver"/>
         <PackageReference Include="Polly" />
         <PackageReference Include="Scrutor"/>
+        <PackageReference Include="ScyllaDBCSharpDriver" />
     </ItemGroup>
 
 </Project>
