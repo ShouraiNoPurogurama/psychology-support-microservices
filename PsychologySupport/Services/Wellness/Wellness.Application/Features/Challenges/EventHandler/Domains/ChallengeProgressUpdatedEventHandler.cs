@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Wellness.Application.Data;
-using Wellness.Domain.Aggregates.Challenges;
 using Wellness.Domain.Aggregates.ProcessHistories;
 using Wellness.Domain.Enums;
 using static Wellness.Domain.Events.ChallengeDomainEvents;
@@ -20,38 +19,16 @@ namespace Wellness.Application.Features.Challenges.EventHandler.Domains
 
         public async Task Handle(ChallengeProgressUpdatedEvent notification, CancellationToken cancellationToken)
         {
-            var stepProgress = await _dbContext.ChallengeStepProgresses
-                .FirstOrDefaultAsync(x => x.ChallengeStepId == notification.ChallengeStepId
-                                        && x.ChallengeProgressId == notification.ChallengeProgressId,
-                                     cancellationToken);
 
-            if (stepProgress is null)
+            if (notification.Status == ProcessStatus.Completed)
             {
-                stepProgress = ChallengeStepProgress.Create(notification.ChallengeProgressId, notification.ChallengeStepId);
-                _dbContext.ChallengeStepProgresses.Add(stepProgress);
+                // Tạo ProcessHistory mới khi hoàn thành step
+                var completedHistory = ProcessHistory.Create(notification.SubjectRef, notification.ActivityId);
+                completedHistory.Update(ProcessStatus.Completed, notification.PostMoodId);
+
+                _dbContext.ProcessHistories.Add(completedHistory);
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
-
-            switch (notification.Status)
-            {
-                case ProcessStatus.Progressing:
-                    stepProgress.Start();
-                    break;
-
-                case ProcessStatus.Completed:
-                    stepProgress.Complete(notification.PostMoodId);
-
-                    // Tạo ProcessHistory mới
-                    var completedHistory = ProcessHistory.Create(notification.SubjectRef, notification.ActivityId);
-                    completedHistory.Update(ProcessStatus.Completed, notification.PostMoodId);
-                    _dbContext.ProcessHistories.Add(completedHistory);
-                    break;
-
-                case ProcessStatus.Skipped:
-                    stepProgress.Skip(notification.PostMoodId);
-                    break;
-            }
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

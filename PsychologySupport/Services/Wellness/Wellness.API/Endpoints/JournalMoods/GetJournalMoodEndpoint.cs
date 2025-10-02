@@ -26,9 +26,9 @@ public class GetJournalMoodEndpoint : ICarterModule
             [AsParameters] GetJournalMoodsRequest request,
             ISender sender, HttpContext httpContext) =>
         {
-            // Authorization check
-            if (!AuthorizationHelpers.CanView(request.SubjectRef, httpContext.User))
-                throw new ForbiddenException();
+            //// Authorization check
+            //if (!AuthorizationHelpers.CanView(request.SubjectRef, httpContext.User))
+            //    throw new ForbiddenException();
 
             var query = new GetJournalMoodsQuery(
                 request.SubjectRef,

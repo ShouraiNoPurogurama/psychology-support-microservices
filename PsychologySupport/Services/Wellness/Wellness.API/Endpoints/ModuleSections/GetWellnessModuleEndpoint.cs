@@ -1,7 +1,6 @@
 ﻿using BuildingBlocks.Exceptions;
 using BuildingBlocks.Pagination;
 using Carter;
-using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Wellness.API.Common;
@@ -9,8 +8,12 @@ using Wellness.Application.Features.ModuleSections.Dtos;
 
 public record GetWellnessModulesRequest(
     int PageIndex = 1,
-    int PageSize = 10
-);
+    int PageSize = 10,
+    string? TargetLang = null
+)
+{
+    public PaginationRequest ToPaginationRequest() => new(PageIndex, PageSize);
+}
 
 public record GetWellnessModulesResponse(PaginatedResult<WellnessModuleDto> Modules);
 
@@ -26,7 +29,7 @@ public class GetWellnessModuleEndpoint : ICarterModule
             //if (!AuthorizationHelpers.HasViewAccess(httpContext.User))
             //    throw new ForbiddenException();
 
-            var query = request.Adapt<GetWellnessModulesQuery>();
+            var query = new GetWellnessModulesQuery(request.ToPaginationRequest(), request.TargetLang);
             var result = await sender.Send(query);
 
             return Results.Ok(new GetWellnessModulesResponse(result.Modules));
