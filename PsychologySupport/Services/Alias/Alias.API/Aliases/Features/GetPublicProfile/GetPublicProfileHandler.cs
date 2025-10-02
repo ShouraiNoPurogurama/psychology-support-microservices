@@ -32,6 +32,7 @@ public class GetPublicProfileHandler : IQueryHandler<GetPublicProfileQuery, GetP
     public async Task<GetPublicProfileResult> Handle(GetPublicProfileQuery request, CancellationToken cancellationToken)
     {
         var alias = await _dbContext.Aliases
+                        .Include(a => a.Versions)
                         .AsNoTracking()
                         .Where(a => a.Id == request.AliasId && !a.IsDeleted)
                         .FirstOrDefaultAsync(cancellationToken)
