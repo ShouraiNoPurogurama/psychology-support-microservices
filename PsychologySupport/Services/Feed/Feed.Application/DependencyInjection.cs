@@ -25,9 +25,13 @@ public static class DependencyInjection
         services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
         services.AddFeatureManagement();
 
-        // Register application services
-        services.AddScoped<IFeedFanOutService, FeedFanOutService>();
+        RegisterServiceDependency(services);
 
         return services;
+    }
+
+    private static void RegisterServiceDependency(IServiceCollection services)
+    {
+        services.AddScoped<IFeedFanOutService, FeedFanOutService>();
     }
 }
