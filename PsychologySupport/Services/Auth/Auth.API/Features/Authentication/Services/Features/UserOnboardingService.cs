@@ -60,6 +60,30 @@ public class UserOnboardingService(
         return true;
     }
 
+    public async Task<bool> MarkMarkAliasIssuedAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await dbContext.Users
+            .Include(u => u.Onboarding)
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken: cancellationToken);
+
+        if (user == null)
+        {
+            logger.LogError($"User {userId} was not found, cannot mark Alias as issued");
+
+            return false;
+        }
+
+        user.Onboarding!.AliasIssued = true;
+
+        if (IsOnboardingComplete(user))
+            user.OnboardingStatus = UserOnboardingStatus.Completed;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
+
+
     public async Task<UserOnboardingStatusResponse> GetOnboardingStatusAsync(CancellationToken cancellationToken = default)
     {
         var subjectRef = actorAccessor.GetRequiredSubjectRef();
@@ -91,10 +115,45 @@ public class UserOnboardingService(
             PiiCompleted: user.Onboarding?.PiiCompleted ?? false,
             PatientProfileCompleted: user.Onboarding?.PatientProfileCompleted ?? false
         );
+        return result;
+    }
+
+    public async Task<AliasIssueStatusResponse> GetAliasIssueStatusAsync(CancellationToken cancellationToken = default)
+    {
+        var subjectRef = actorAccessor.GetRequiredSubjectRef();
+
+        var resolveResponse = await piiClient.ResolveUserIdBySubjectRefAsync(new ResolveUserIdBySubjectRefRequest
+        {
+            SubjectRef = subjectRef.ToString()
+        });
+
+        if (!Guid.TryParse(resolveResponse.UserId, out var userId))
+        {
+            return new AliasIssueStatusResponse
+            (
+                Status: AliasIssueStatus.Pending,
+                AliasIssued: false
+            );
+        }
+
+        var user = await dbContext.Users
+            .Include(u => u.Onboarding)
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken: cancellationToken);
+
+        if (user == null)
+            throw new UserNotFoundException();
+
+        var result = new AliasIssueStatusResponse(
+            Status: user.AliasIssueStatus,
+            AliasIssued: user.Onboarding?.PatientProfileCompleted ?? false
+        );
 
         return result;
     }
 
     private bool IsOnboardingComplete(User user) =>
-        user.Onboarding?.PiiCompleted == true && user.Onboarding?.PatientProfileCompleted == true;
+        user.Onboarding is { PiiCompleted: true, PatientProfileCompleted: true };
+
+    private bool IsAliasOnboardingComplete(User user) =>
+        user.Onboarding is { AliasIssued: true };
 }

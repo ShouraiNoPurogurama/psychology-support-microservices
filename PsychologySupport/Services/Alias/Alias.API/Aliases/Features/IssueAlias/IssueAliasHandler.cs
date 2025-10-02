@@ -5,9 +5,11 @@ using Alias.API.Common.Authentication;
 using Alias.API.Common.Security;
 using Alias.API.Data.Public;
 using BuildingBlocks.CQRS;
+using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Alias;
 using BuildingBlocks.Utils;
 using MassTransit;
+using Pii.API.Protos;
 
 namespace Alias.API.Aliases.Features.IssueAlias;
 
@@ -23,6 +25,7 @@ public record IssueAliasResult(
 
 public class IssueAliasHandler(
     AliasDbContext dbContext,
+    PiiService.PiiServiceClient piiClient,
     IPublishEndpoint publishEndpoint,
     IAliasTokenService aliasTokenService,
     ICurrentActorAccessor currentActorAccessor)
@@ -34,7 +37,7 @@ public class IssueAliasHandler(
 
         if (isAliasExist)
             throw new AliasConflictException("Người dùng đã có bí danh, không thể tạo mới.");
-
+        
         var nicknameSource = ExtractNicknameSourceFromToken(command.ReservationToken, command.Label);
 
         var normalizedUniqueKey = AliasNormalizerUtils.ToUniqueKey(command.Label);
@@ -53,25 +56,49 @@ public class IssueAliasHandler(
             visibility: AliasVisibility.Public,
             isSystemGenerated: false);
 
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        
         dbContext.Aliases.Add(alias);
 
         try
         {
             await dbContext.SaveChangesAsync(cancellationToken);
 
+            var subjectRef = currentActorAccessor.GetRequiredSubjectRef();
+
+            var piiResponse = await piiClient.ResolveUserIdBySubjectRefAsync(
+                new ResolveUserIdBySubjectRefRequest
+                {
+                    SubjectRef = subjectRef.ToString()
+                },
+                cancellationToken: cancellationToken);
+
+            if (!Guid.TryParse(piiResponse.UserId, out var userId))
+            {
+                throw new UnauthorizedException("Yêu cầu không hợp lệ.", "SUBJECT_REF_NOT_FOUND");
+            }
+
             // Publish integration event for cross-service communication
             var aliasIssuedEvent = new AliasIssuedIntegrationEvent(
                 alias.Id,
+                userId,
                 command.SubjectRef,
                 alias.CurrentVersionId!.Value,
                 alias.Label.Value,
                 alias.CreatedAt);
 
             await publishEndpoint.Publish(aliasIssuedEvent, cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
         }
         catch (DbUpdateException ex) when (DbUtils.IsUniqueViolation(ex))
         {
             throw new AliasConflictException("Label đã được sử dụng.", internalDetail: ex.Message);
+        }
+        catch (UnauthorizedException)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
         }
 
         var currentVersion = alias.CurrentVersion!;
