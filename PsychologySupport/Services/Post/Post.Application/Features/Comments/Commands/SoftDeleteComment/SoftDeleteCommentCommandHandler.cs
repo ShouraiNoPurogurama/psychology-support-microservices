@@ -31,20 +31,20 @@ internal sealed class SoftDeleteCommentCommandHandler : ICommandHandler<SoftDele
         var result = await (
                 from c in _context.Comments
                 where c.Id == request.CommentId && !c.IsDeleted
-                // Đây là cách thực hiện LEFT JOIN trong LINQ
-                join pc in _context.Comments 
-                    on c.Hierarchy.ParentCommentId equals pc.Id into pcg
-                from parent in pcg.DefaultIfEmpty() // Nếu không có parent thì `parent` sẽ là null
-                select new { Comment = c, ParentComment = parent } // <-- Select ra anonymous type
+                join pc in _context.Comments
+                    on c.Hierarchy.ParentCommentId equals pc.Id into
+                    pcg //pcg chỉ chứa duy nhất các comment cha (pc) khớp với comment con (c) hiện tại.
+                from parent in pcg.DefaultIfEmpty()
+                select new { Comment = c, ParentComment = parent }
             )
             .FirstOrDefaultAsync(cancellationToken);
 
-        
+
         if (result?.Comment == null)
             throw new NotFoundException("Comment not found or has been deleted.", "COMMENT_NOT_FOUND");
 
         var comment = result.Comment;
-        
+
         // Authorization: Must be author
         if (comment.Author.AliasId != _currentActorAccessor.GetRequiredAliasId())
         {
