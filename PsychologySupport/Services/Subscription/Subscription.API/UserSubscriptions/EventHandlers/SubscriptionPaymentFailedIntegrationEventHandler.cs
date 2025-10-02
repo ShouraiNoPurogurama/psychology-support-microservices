@@ -4,7 +4,7 @@ using MediatR;
 using Promotion.Grpc;
 using Subscription.API.Data;
 using Subscription.API.Data.Common;
-using Subscription.API.UserSubscriptions.Features.v1.UpdateSubscriptionStatus;
+using Subscription.API.UserSubscriptions.Features.v2.UpdateSubscriptionStatus;
 
 namespace Subscription.API.UserSubscriptions.EventHandlers;
 

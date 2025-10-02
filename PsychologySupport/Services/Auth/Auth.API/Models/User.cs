@@ -12,4 +12,6 @@ public class User : IdentityUser<Guid>
     public virtual UserOnboarding? Onboarding { get; set; }
     
     public virtual ICollection<UserRole> UserRoles { get; set; }
+
+    public string? SubscriptionPlanName { get; set; }
 }

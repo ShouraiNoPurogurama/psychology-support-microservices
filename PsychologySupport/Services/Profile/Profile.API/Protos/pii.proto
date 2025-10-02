@@ -40,6 +40,11 @@ service PiiService {
   
 
   rpc EnsureSubjectRef (EnsureSubjectRefRequest) returns (EnsureSubjectRefResponse);
+
+  // Tra user_id từ patient_id
+  rpc ResolveUserIdByPatientId (ResolveUserIdByPatientIdRequest)
+    returns (ResolveUserIdByPatientIdResponse);
+
 }
 
 //=========================
@@ -102,6 +107,16 @@ message ResolvePatientIdByAliasIdResponse {
 message ResolvePersonInfoBySubjectRefRequest {
   string subject_ref = 1; //UUID string
 }
+
+//----- UserId từ PatientId -----
+message ResolveUserIdByPatientIdRequest {
+  string patient_id = 1; // UUID string
+}
+
+message ResolveUserIdByPatientIdResponse {
+  string user_id = 1; // UUID string; empty nếu không tìm thấy
+}
+
 
 message ResolvePersonInfoBySubjectRefResponse {
   string user_id = 1;
