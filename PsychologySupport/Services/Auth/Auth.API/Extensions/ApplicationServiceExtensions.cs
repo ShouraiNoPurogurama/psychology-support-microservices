@@ -208,9 +208,13 @@ public static class ApplicationServiceExtensions
             });
 
         services.AddGrpcClient<PiiService.PiiServiceClient>(options => { options.Address = new Uri(piiUrl!); })
-            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            .ConfigurePrimaryHttpMessageHandler(() =>
             {
-                EnableMultipleHttp2Connections = true
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                return handler;
             });
     }
 }

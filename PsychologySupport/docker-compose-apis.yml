@@ -61,7 +61,7 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - GrpcSettings__PatientProfileUrl=http://profile.api:8081
       - GrpcSettings__PiiUrl=http://profile.api:8081
-      - GrpcSettings__NotificationUrl=http://notification.api:8081
+      - GrpcSettings__NotificationUrl=https://https://emoease-notifications.azurewebsites.net
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
     networks:
       - emoease-net
