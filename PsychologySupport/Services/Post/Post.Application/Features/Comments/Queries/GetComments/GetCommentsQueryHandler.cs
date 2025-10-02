@@ -12,7 +12,7 @@ namespace Post.Application.Features.Comments.Queries.GetComments;
 internal sealed class GetCommentsQueryHandler : IQueryHandler<GetCommentsQuery, PaginatedResult<CommentDto>>
 {
     private readonly IPostDbContext _context;
-    private readonly IQueryDbContext _queryDbContext; // Tốt!
+    private readonly IQueryDbContext _queryDbContext;
 
     public GetCommentsQueryHandler(IPostDbContext context, IQueryDbContext queryDbContext)
     {
@@ -25,18 +25,15 @@ internal sealed class GetCommentsQueryHandler : IQueryHandler<GetCommentsQuery, 
         // Build query như cũ
         var query = _context.Comments
             .Where(c => c.PostId == request.PostId && !c.IsDeleted)
+            .OrderBy(c => c.Hierarchy.Level)
             .AsQueryable();
 
         if (request.ParentCommentId.HasValue)
         {
             query = query.Where(c => c.Hierarchy.ParentCommentId == request.ParentCommentId.Value);
         }
-        else
-        {
-            query = query.Where(c => c.Hierarchy.ParentCommentId == null);
-        }
 
-        query = request.SortBy?.ToLower() switch
+        query = request.SortBy.ToLower() switch
         {
             "createdat" => request.SortDescending
                 ? query.OrderByDescending(c => c.CreatedAt)
@@ -107,7 +104,6 @@ internal sealed class GetCommentsQueryHandler : IQueryHandler<GetCommentsQuery, 
                 ? new AuthorDto(author.AliasId, author.Label, avatarUrl) // <-- Mapping chuẩn
                 : defaultAuthor(comment.Author.AliasId);
 
-            // Gọi hàm helper MỚI (đồng bộ, in-memory)
             var replies = BuildReplyDtos(comment.Id, allCommentsLookup, authorMap, defaultAuthor);
 
             commentDtos.Add(new CommentDto(
@@ -136,9 +132,7 @@ internal sealed class GetCommentsQueryHandler : IQueryHandler<GetCommentsQuery, 
         );
     }
 
-    // XÓA HÀM GetRepliesRecursively (async) CŨ
     
-    // THÊM HÀM HELPER (private, synchronous) NÀY
     private List<CommentDto> BuildReplyDtos(
         Guid parentId,
         ILookup<Guid?, Comment> commentLookup,

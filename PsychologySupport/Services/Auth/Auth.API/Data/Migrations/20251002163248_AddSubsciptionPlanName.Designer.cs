@@ -3,6 +3,7 @@ using System;
 using Auth.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Auth.API.Data.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
-    partial class AuthDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251002163248_AddSubsciptionPlanName")]
+    partial class AddSubsciptionPlanName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -191,13 +194,6 @@ namespace Auth.API.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("access_failed_count");
 
-                    b.Property<string>("AliasIssueStatus")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasDefaultValue("Pending")
-                        .HasColumnName("alias_issue_status");
-
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text")
@@ -290,17 +286,6 @@ namespace Auth.API.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<string>("AliasIssueStatus")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasDefaultValue("Pending")
-                        .HasColumnName("alias_issue_status");
-
-                    b.Property<bool>("AliasIssued")
-                        .HasColumnType("boolean")
-                        .HasColumnName("alias_issued");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -322,13 +307,6 @@ namespace Auth.API.Data.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("missing");
 
-                    b.Property<string>("OnboardingStatus")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasDefaultValue("Pending")
-                        .HasColumnName("onboarding_status");
-
                     b.Property<bool>("PatientProfileCompleted")
                         .HasColumnType("boolean")
                         .HasColumnName("patient_profile_completed");
@@ -340,6 +318,11 @@ namespace Auth.API.Data.Migrations
                     b.Property<string>("ReasonCode")
                         .HasColumnType("text")
                         .HasColumnName("reason_code");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")

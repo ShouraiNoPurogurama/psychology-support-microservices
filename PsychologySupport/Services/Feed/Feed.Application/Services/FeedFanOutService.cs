@@ -82,11 +82,17 @@ public sealed class FeedFanOutService : IFeedFanOutService
         }
 
         // Execute in batches to avoid overwhelming Cassandra
-        const int batchSize = 100;
-        for (int i = 0; i < tasks.Count; i += batchSize)
+        // OPTIMIZED: Use constant and add backpressure delay
+        for (int i = 0; i < tasks.Count; i += FeedConstants.CASSANDRA_BATCH_SIZE)
         {
-            var batch = tasks.Skip(i).Take(batchSize).ToArray();
+            var batch = tasks.Skip(i).Take(FeedConstants.CASSANDRA_BATCH_SIZE).ToArray();
             await Task.WhenAll(batch);
+            
+            // Add backpressure delay between batches if there are more to process
+            if (i + FeedConstants.CASSANDRA_BATCH_SIZE < tasks.Count)
+            {
+                await Task.Delay(FeedConstants.FAN_OUT_BATCH_DELAY_MS, cancellationToken);
+            }
         }
 
         _logger.LogInformation("Successfully fanned out post {PostId} to {Count} followers",
@@ -131,11 +137,17 @@ public sealed class FeedFanOutService : IFeedFanOutService
         }
 
         // Execute in batches
-        const int batchSize = 100;
-        for (int i = 0; i < tasks.Count; i += batchSize)
+        // OPTIMIZED: Use constant and add backpressure delay
+        for (int i = 0; i < tasks.Count; i += FeedConstants.CASSANDRA_BATCH_SIZE)
         {
-            var batch = tasks.Skip(i).Take(batchSize).ToArray();
+            var batch = tasks.Skip(i).Take(FeedConstants.CASSANDRA_BATCH_SIZE).ToArray();
             await Task.WhenAll(batch);
+            
+            // Add backpressure delay between batches if there are more to process
+            if (i + FeedConstants.CASSANDRA_BATCH_SIZE < tasks.Count)
+            {
+                await Task.Delay(FeedConstants.FAN_OUT_BATCH_DELAY_MS, cancellationToken);
+            }
         }
 
         _logger.LogInformation("Successfully removed post {PostId} from followers' feeds", postId);
