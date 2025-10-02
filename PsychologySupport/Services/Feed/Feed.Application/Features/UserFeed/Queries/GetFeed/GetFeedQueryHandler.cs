@@ -222,15 +222,17 @@ public sealed class GetFeedQueryHandler(
         IReadOnlyList<Domain.UserFeed.UserFeedItem> items,
         CancellationToken cancellationToken)
     {
+        if (items.Count == 0)
+            return items;
+
+        // OPTIMIZED: Batch query instead of N+1 queries
+        var postIds = items.Select(i => i.PostId).ToList();
+        var suppressedIds = await moderationRepository.GetSuppressedPostIdsBatchAsync(postIds, cancellationToken);
+
+        // Filter out suppressed posts
+        var filtered = items.Where(item => !suppressedIds.Contains(item.PostId)).ToList();
+
         // TODO: When author alias is available on feed item, also filter by blocked/muted authors
-        var filtered = new List<Domain.UserFeed.UserFeedItem>();
-        foreach (var item in items)
-        {
-            var suppression = await moderationRepository.GetSuppressionAsync(item.PostId, cancellationToken);
-            if (suppression?.IsCurrentlySuppressed == true)
-                continue;
-            filtered.Add(item);
-        }
         return filtered;
     }
 
@@ -239,15 +241,18 @@ public sealed class GetFeedQueryHandler(
         IReadOnlyList<RankedPost> posts,
         CancellationToken cancellationToken)
     {
+        if (posts.Count == 0)
+            return posts;
+
+        // OPTIMIZED: Batch query instead of N+1 queries
+        var postIds = posts.Select(p => p.PostId).ToList();
+        var suppressedIds = await moderationRepository.GetSuppressedPostIdsBatchAsync(postIds, cancellationToken);
+
+        // Filter out suppressed posts
+        var filtered = posts.Where(post => !suppressedIds.Contains(post.PostId)).ToList();
+
         // TODO: Filter out posts from blocked/muted authors when AuthorAliasId is present
-        var list = new List<RankedPost>();
-        foreach (var p in posts)
-        {
-            var suppressed = await moderationRepository.IsCurrentlySuppressedAsync(p.PostId, cancellationToken);
-            if (!suppressed)
-                list.Add(p);
-        }
-        return list;
+        return filtered;
     }
 }
 

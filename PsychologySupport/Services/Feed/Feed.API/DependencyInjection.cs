@@ -3,7 +3,9 @@ using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using Cassandra;
 using Feed.API.Extensions;
+using Feed.API.HealthChecks;
 using Feed.Infrastructure.Data.Options;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using ISession = Cassandra.ISession;
@@ -32,7 +34,16 @@ public static class DependencyInjection
         ConfigureSwagger(services, env);
 
         ConfigureCors(services);
-        
+
+        // OPTIMIZED: Add health checks for monitoring
+        services.AddHealthChecks()
+            .AddCheck<CassandraHealthCheck>("cassandra", 
+                failureStatus: HealthStatus.Unhealthy, 
+                tags: new[] { "db", "cassandra", "ready" })
+            .AddCheck<RedisHealthCheck>("redis", 
+                failureStatus: HealthStatus.Degraded, 
+                tags: new[] { "cache", "redis", "ready" });
+
         return services;
     }
     
@@ -110,10 +121,21 @@ public static class DependencyInjection
             var builder = Cluster.Builder()
                 .AddContactPoints(opt.ContactPoints.Length > 0 ? opt.ContactPoints : new[] { "127.0.0.1" })
                 .WithPort(opt.Port)
+                // OPTIMIZED: Configure connection pooling for better performance
+                .WithPoolingOptions(new PoolingOptions()
+                    .SetCoreConnectionsPerHost(HostDistance.Local, 4)   // Up from default 2
+                    .SetMaxConnectionsPerHost(HostDistance.Local, 8)     // Default is 8, keeping same
+                    .SetMaxSimultaneousRequestsPerConnectionTreshold(HostDistance.Local, 1500) // Default 1500
+                    .SetHeartBeatInterval(30000)) // 30 seconds heartbeat
                 .WithLoadBalancingPolicy(
                     new TokenAwarePolicy(new DCAwareRoundRobinPolicy(opt.LocalDc)))
                 .WithQueryOptions(
-                    new QueryOptions().SetConsistencyLevel(ConsistencyLevel.LocalQuorum));
+                    new QueryOptions()
+                        .SetConsistencyLevel(ConsistencyLevel.LocalQuorum)
+                        .SetDefaultIdempotence(true)
+                        .SetPageSize(5000)) // Optimize fetch size
+                .WithReconnectionPolicy(new ExponentialReconnectionPolicy(1000, 10000)) // 1s to 10s
+                .WithQueryTimeout(10000); // 10 second query timeout
 
             if (!string.IsNullOrWhiteSpace(opt.Username))
                 builder = builder.WithCredentials(opt.Username, opt.Password);
