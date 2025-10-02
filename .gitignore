@@ -428,3 +428,8 @@ Keys/
 *.xml
 PsychologySupport/Services/Notification/Notification.API/.config/dotnet-tools.json
 PsychologySupport/Services/Alias/scaffold.sh
+PsychologySupport/Services/Notification/EmailAdvertisement/
+*.md
+*IMPLEMENTATION_COMPLETE.txt
+*FINAL_IMPLEMENTATION*.txt
+*.txt

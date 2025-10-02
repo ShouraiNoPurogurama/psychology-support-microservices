@@ -1,4 +1,4 @@
-﻿using Post.Domain.Aggregates.Gifts.ValueObjects;
+using Post.Domain.Aggregates.Gifts.ValueObjects;
 using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Exceptions;
 
@@ -11,7 +11,7 @@ public sealed class GiftAttach : AggregateRoot<Guid>, ISoftDeletable
     public AuthorInfo Sender { get; private set; } = null!;
     public long Amount { get; private set; }                 // điểm/đơn vị quy ước
     public string? Message { get; private set; }
-    public DateTime SentAt { get; private set; }
+    public DateTimeOffset SentAt { get; private set; }
 
     // Soft Delete
     public bool IsDeleted { get; set; }
@@ -39,7 +39,7 @@ public sealed class GiftAttach : AggregateRoot<Guid>, ISoftDeletable
             Sender  = AuthorInfo.Create(senderAliasId, senderAliasVersionId),
             Amount  = amount,
             Message = string.IsNullOrWhiteSpace(message) ? null : message.Trim(),
-            SentAt  = DateTime.UtcNow
+            SentAt  = DateTimeOffset.UtcNow
         };
 
         // attach.AddDomainEvent(new GiftAttachedEvent(...)); // nếu có

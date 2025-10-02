@@ -46,7 +46,7 @@ public class DeviceManagementService(AuthDbContext authDbContext, ITokenRevocati
         foreach (var session in sessionsToRevoke)
         {
             session.IsRevoked = true;
-            session.RevokedAt = DateTime.UtcNow;
+            session.RevokedAt = DateTimeOffset.UtcNow;
         }
 
         await authDbContext.SaveChangesAsync();
@@ -102,7 +102,7 @@ public class DeviceManagementService(AuthDbContext authDbContext, ITokenRevocati
         foreach (var session in sessionsToRevoke)
         {
             session.IsRevoked = true;
-            session.RevokedAt = DateTime.UtcNow;
+            session.RevokedAt = DateTimeOffset.UtcNow;
         }
     }
 

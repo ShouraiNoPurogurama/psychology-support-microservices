@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Text;
 using BuildingBlocks.Messaging.Dtos.LifeStyles;
 using BuildingBlocks.Messaging.Events.Queries.LifeStyle;
@@ -24,7 +24,7 @@ public class GeminiClient(
     {
         //0. Thu thập thông tin lối sống của người dùng
         var patientLifeStyleResponse = await requestClient.GetResponse<AggregatePatientLifestyleResponse>(
-            new AggregatePatientLifestyleRequest(patientProfileId, DateTime.Now));
+            new AggregatePatientLifestyleRequest(patientProfileId, DateTimeOffset.Now));
         
         var lifestyle = patientLifeStyleResponse.Message;
         

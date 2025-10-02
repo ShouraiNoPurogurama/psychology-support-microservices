@@ -14,7 +14,7 @@ public class TestResult : AggregateRoot<Guid>
         Id = id;
         PatientId = patientId;
         TestId = testId;
-        TakenAt = DateTime.UtcNow;
+        TakenAt = DateTimeOffset.UtcNow;
         DepressionScore = depressionScore;
         AnxietyScore = anxietyScore;
         StressScore = stressScore;
@@ -28,7 +28,7 @@ public class TestResult : AggregateRoot<Guid>
     
     public Guid PatientId { get; private set; }
     public Guid TestId { get; private set; }
-    public DateTime TakenAt { get; private set; }
+    public DateTimeOffset TakenAt { get; private set; }
     public Score DepressionScore { get; private set; }
     public Score AnxietyScore { get; private set; }
     public Score StressScore { get; private set; }

@@ -13,7 +13,7 @@ public class UnfollowAliasEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/aliases/{followedAliasId:guid}/followers", async (
+        app.MapDelete("/v1/aliases/{followedAliasId:guid}/followers", async (
                 [AsParameters] UnfollowAliasRequest request,
                 ISender sender,
                 CancellationToken ct) =>

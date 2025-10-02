@@ -9,7 +9,7 @@ public class GetAllDoctorProfilesEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/doctors", async ([AsParameters] GetAllDoctorProfilesQuery request, ISender sender) =>
+        app.MapGet("/v1/doctors", async ([AsParameters] GetAllDoctorProfilesQuery request, ISender sender) =>
         {
             var result = await sender.Send(request);
             var response = result.Adapt<GetAllDoctorProfilesResponse>();

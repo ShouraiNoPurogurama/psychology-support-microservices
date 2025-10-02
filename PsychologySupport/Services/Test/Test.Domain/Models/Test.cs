@@ -16,8 +16,8 @@ public class Test : AggregateRoot<Guid>
     {
         Id = id;
         CategoryId = categoryId;
-        CreatedAt = DateTime.UtcNow;
-        LastModified = DateTime.UtcNow;
+        CreatedAt = DateTimeOffset.UtcNow;
+        LastModified = DateTimeOffset.UtcNow;
         CreatedBy = createdBy;
         LastModifiedBy = createdBy;
     }
@@ -29,7 +29,7 @@ public class Test : AggregateRoot<Guid>
     
     public void Update(string lastModifiedBy)
     {
-        LastModified = DateTime.UtcNow;
+        LastModified = DateTimeOffset.UtcNow;
         LastModifiedBy = lastModifiedBy;
     }
     

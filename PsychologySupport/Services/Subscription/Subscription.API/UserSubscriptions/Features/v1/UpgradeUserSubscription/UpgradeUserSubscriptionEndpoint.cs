@@ -16,7 +16,7 @@ public class UpgradeUserSubscriptionEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("user-subscriptions/upgrade", async ([FromBody] UpgradeUserSubscriptionRequest request, ISender sender, HttpContext httpContext) =>
+        app.MapPost("/v1/user-subscriptions/upgrade", async ([FromBody] UpgradeUserSubscriptionRequest request, ISender sender, HttpContext httpContext) =>
                 {
                     // Authorization check
                     if (!AuthorizationHelpers.CanModifyPatientProfile(request.UpgradeUserSubscriptionDto.PatientId, httpContext.User))

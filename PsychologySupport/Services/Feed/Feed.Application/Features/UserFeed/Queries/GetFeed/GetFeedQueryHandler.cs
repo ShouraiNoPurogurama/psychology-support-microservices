@@ -104,7 +104,7 @@ public sealed class GetFeedQueryHandler(
     private static string BuildCacheKey(Guid aliasId, int limit, string? cursor)
         => $"feed:resp:{aliasId}:{limit}:{(cursor ?? "_")}";
 
-    private (int Offset, DateTime Snapshot) DecodeOrInitCursor(string? cursor)
+    private (int Offset, DateTimeOffset Snapshot) DecodeOrInitCursor(string? cursor)
     {
         if (!string.IsNullOrEmpty(cursor))
         {
@@ -115,10 +115,10 @@ public sealed class GetFeedQueryHandler(
             }
             catch { /* ignore invalid cursor */ }
         }
-        return (0, DateTime.UtcNow);
+        return (0, DateTimeOffset.UtcNow);
     }
 
-    private async Task<GetFeedResult> GetVipFeedAsync(GetFeedQuery request, int offset, DateTime snapshot, CancellationToken cancellationToken)
+    private async Task<GetFeedResult> GetVipFeedAsync(GetFeedQuery request, int offset, DateTimeOffset snapshot, CancellationToken cancellationToken)
     {
         using var activity = FeedActivitySource.Instance.StartActivity(FeedActivitySource.Operations.GetVipFeed);
         
@@ -141,7 +141,7 @@ public sealed class GetFeedQueryHandler(
                 DateOnly.FromDateTime(DateTime.UtcNow),
                 0,
                 100,
-                long.MaxValue - DateTime.UtcNow.Ticks,
+                long.MaxValue - DateTimeOffset.UtcNow.Ticks,
                 p.PinnedAt,
                 DateTimeOffset.UtcNow,
                 IsPinned: true
@@ -164,7 +164,7 @@ public sealed class GetFeedQueryHandler(
         return new GetFeedResult(page, nextCursor, hasMore, distinct.Count);
     }
 
-    private async Task<GetFeedResult> GetRegularFeedAsync(GetFeedQuery request, int offset, DateTime snapshot, CancellationToken cancellationToken)
+    private async Task<GetFeedResult> GetRegularFeedAsync(GetFeedQuery request, int offset, DateTimeOffset snapshot, CancellationToken cancellationToken)
     {
         using var activity = FeedActivitySource.Instance.StartActivity(FeedActivitySource.Operations.GetRegularFeed);
         
@@ -172,7 +172,7 @@ public sealed class GetFeedQueryHandler(
         var follows = await followingRepository.GetAllByViewerAsync(request.AliasId, cancellationToken);
         var followedAliasIds = follows.Select(f => f.FollowedAliasId).ToList();
 
-        var trendingPosts = await rankingService.GetTrendingPostsAsync(DateTime.UtcNow, cancellationToken);
+        var trendingPosts = await rankingService.GetTrendingPostsAsync(DateTimeOffset.UtcNow, cancellationToken);
 
         var combinedPosts = await rankingService.RankPostsAsync(
             followedAliasIds,
@@ -191,7 +191,7 @@ public sealed class GetFeedQueryHandler(
                 DateOnly.FromDateTime(DateTime.UtcNow),
                 0,
                 100,
-                long.MaxValue - DateTime.UtcNow.Ticks,
+                long.MaxValue - DateTimeOffset.UtcNow.Ticks,
                 p.PinnedAt,
                 DateTimeOffset.UtcNow,
                 true

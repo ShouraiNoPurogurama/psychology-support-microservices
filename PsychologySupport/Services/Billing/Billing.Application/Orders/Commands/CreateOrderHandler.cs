@@ -1,4 +1,4 @@
-﻿//using Billing.Application.Data;
+//using Billing.Application.Data;
 //using Billing.Application.Dtos;
 //using Billing.Domain.Enums;
 //using Billing.Domain.Models;
@@ -142,7 +142,7 @@
 //            TotalAmount = finalPrice,
 //            TaxAmount = 0m,
 //            CreatedAt = invoice.IssuedAt,
-//            LastModified = DateTime.UtcNow
+//            LastModified = DateTimeOffset.UtcNow
 //            // CreatedBy = dto.AliasId, // Replace with PiiService if needed
 //            // LastModifiedBy = dto.AliasId
 //        };
@@ -163,8 +163,8 @@
 //            UnitPrice = basePrice,
 //            DiscountAmount = totalDiscount,
 //            TotalAmount = finalPrice,
-//            CreatedAt = DateTime.UtcNow,
-//            LastModified = DateTime.UtcNow
+//            CreatedAt = DateTimeOffset.UtcNow,
+//            LastModified = DateTimeOffset.UtcNow
 //            // CreatedBy = dto.AliasId, 
 //            // LastModifiedBy = dto.AliasId
 //        };
@@ -201,7 +201,7 @@
 //                AggregateId = order.Id,
 //                EventType = "OrderCreated",
 //                Payload = JsonSerializer.Serialize(orderCreatedPayload),
-//                OccurredOn = DateTime.UtcNow
+//                OccurredOn = DateTimeOffset.UtcNow
 //            },
 //            new OutboxMessage
 //            {
@@ -210,7 +210,7 @@
 //                AggregateId = invoice.Id,
 //                EventType = "InvoiceIssued",
 //                Payload = JsonSerializer.Serialize(invoiceIssuedPayload),
-//                OccurredOn = DateTime.UtcNow
+//                OccurredOn = DateTimeOffset.UtcNow
 //            }
 //        );
 
@@ -250,6 +250,6 @@
 
 //    private static string GenerateInvoiceCode()
 //    {
-//        return $"INV-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString()[..8]}";
+//        return $"INV-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString()[..8]}";
 //    }
 //}

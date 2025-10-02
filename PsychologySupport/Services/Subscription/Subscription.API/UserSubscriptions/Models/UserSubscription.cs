@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.DDD;
+using BuildingBlocks.DDD;
 using Subscription.API.Data.Common;
 using Subscription.API.ServicePackages.Models;
 
@@ -10,9 +10,9 @@ public class UserSubscription : AggregateRoot<Guid>
 
     public Guid ServicePackageId { get; private set; }
 
-    public DateTime StartDate { get; private set; }
+    public DateTimeOffset StartDate { get; private set; }
 
-    public DateTime EndDate { get; private set; }
+    public DateTimeOffset EndDate { get; private set; }
 
     public Guid? PromoCodeId { get; private set; }
 
@@ -30,7 +30,7 @@ public class UserSubscription : AggregateRoot<Guid>
         ServicePackage = new ServicePackage();
     }
 
-    private UserSubscription(Guid patientId, Guid servicePackageId, DateTime startDate, DateTime endDate, Guid? promoCodeId,
+    private UserSubscription(Guid patientId, Guid servicePackageId, DateTimeOffset startDate, DateTimeOffset endDate, Guid? promoCodeId,
         Guid? giftId, SubscriptionStatus status, ServicePackage servicePackage, decimal finalPrice)
     {
         PatientId = patientId;
@@ -44,7 +44,7 @@ public class UserSubscription : AggregateRoot<Guid>
         FinalPrice = finalPrice;
     }
 
-    public static UserSubscription Create(Guid patientId, Guid servicePackageId, DateTime startDate,
+    public static UserSubscription Create(Guid patientId, Guid servicePackageId, DateTimeOffset startDate,
         Guid? promoCodeId, Guid? giftId, ServicePackage servicePackage, decimal finalPrice)
     {
         #region Validations
@@ -76,7 +76,7 @@ public class UserSubscription : AggregateRoot<Guid>
         return userSubscription;
     }
 
-    public static UserSubscription Activate(Guid patientId, Guid servicePackageId, DateTime startDate,
+    public static UserSubscription Activate(Guid patientId, Guid servicePackageId, DateTimeOffset startDate,
        Guid? promoCodeId, Guid? giftId, ServicePackage servicePackage, decimal finalPrice)
     {
         #region Validations

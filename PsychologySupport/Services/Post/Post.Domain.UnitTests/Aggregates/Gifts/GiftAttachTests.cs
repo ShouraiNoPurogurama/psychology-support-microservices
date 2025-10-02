@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Post.Domain.Aggregates.Gifts;
 using Post.Domain.Exceptions;
 
@@ -39,7 +39,7 @@ public class GiftAttachTests
         giftAttach.Sender.AliasVersionId.Should().Be(senderAliasVersionId);
         giftAttach.Amount.Should().Be(amount);
         giftAttach.Message.Should().Be(message);
-        giftAttach.SentAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        giftAttach.SentAt.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(5));
         giftAttach.IsDeleted.Should().BeFalse();
         giftAttach.DeletedAt.Should().BeNull();
         giftAttach.DeletedByAliasId.Should().BeNull();

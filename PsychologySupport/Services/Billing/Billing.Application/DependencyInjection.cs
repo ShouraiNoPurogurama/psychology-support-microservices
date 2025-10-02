@@ -31,28 +31,20 @@ namespace Billing.Application
         private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
         {
             services.AddGrpcClient<PromotionService.PromotionServiceClient>(options =>
-            {
-                options.Address = new Uri(config["GrpcSettings:PromotionUrl"]!);
-            })
-                .ConfigurePrimaryHttpMessageHandler(() =>
                 {
-                    var handler = new HttpClientHandler
-                    {
-                        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                    };
-                    return handler;
+                    options.Address = new Uri(config["GrpcSettings:PromotionUrl"]!);
+                })
+                .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+                {
+                    EnableMultipleHttp2Connections = true
                 });
             services.AddGrpcClient<TranslationService.TranslationServiceClient>(options =>
-            {
-                options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);
-            })
-                .ConfigurePrimaryHttpMessageHandler(() =>
                 {
-                    var handler = new HttpClientHandler
-                    {
-                        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                    };
-                    return handler;
+                    options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);
+                })
+                .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+                {
+                    EnableMultipleHttp2Connections = true
                 });
         }
     }

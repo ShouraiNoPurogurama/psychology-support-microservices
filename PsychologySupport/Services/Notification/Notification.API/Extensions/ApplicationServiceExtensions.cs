@@ -1,17 +1,18 @@
-﻿using BuildingBlocks.Behaviors;
+using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using FirebaseAdmin;
+using FluentValidation;
 using Google.Apis.Auth.OAuth2;
-using MassTransit;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
-using Notification.API.Data.Processors;
-using Notification.API.Domains.Firebase.ServiceContracts;
-using Notification.API.Domains.Firebase.Services;
-using Notification.API.Domains.Outbox.Services;
+using Notification.API.Contracts;
+using Notification.API.Features.Firebase.Contracts;
+using Notification.API.Infrastructure.Outbox;
+using Notification.API.Features.Firebase.Services;
+using Notification.API.Infrastructure.Repositories;
 
 namespace Notification.API.Extensions;
 
@@ -20,27 +21,45 @@ public static class ApplicationServiceExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
         services.Configure<AppSettings>(config);
-        
+
         services.AddHealthChecks().AddNpgSql(sp =>
             sp.GetRequiredService<IOptions<AppSettings>>().Value.ServiceDbContext.NotificationDb);
-        
+
         services.AddCarter();
-        
-        ConfigureSwagger(services, env); 
+
+        ConfigureSwagger(services, env);
 
         ConfigureCORS(services);
-        
+
         ConfigureMediatR(services);
-        
+
         AddServiceDependencies(services);
 
+        // Add notification-specific services
+        AddNotificationServices(services);
+
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
-        
+
         services.AddHttpContextAccessor();
 
         ConfigureGrpc(services);
 
         return services;
+    }
+
+    private static void AddNotificationServices(IServiceCollection services)
+    {
+        // Register repositories
+        services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<INotificationPreferencesRepository, NotificationPreferencesRepository>();
+        services.AddScoped<IProcessedEventRepository, ProcessedEventRepository>();
+
+        // Register cache
+        services.AddMemoryCache();
+        services.AddScoped<IPreferencesCache, PreferencesCache>();
+
+        // Register FluentValidation validators
+        services.AddValidatorsFromAssembly(typeof(IAssemblyMarker).Assembly);
     }
 
     private static void ConfigureFirebase(IServiceCollection services)
@@ -54,7 +73,7 @@ public static class ApplicationServiceExtensions
     private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
-        
+
         services.AddSwaggerGen(options =>
         {
             options.SwaggerDoc("v1", new OpenApiInfo
@@ -63,10 +82,10 @@ public static class ApplicationServiceExtensions
                 Version = "v1"
             });
 
-            var url = env.IsProduction() 
-                ? "/notification-service" 
+            var url = env.IsProduction()
+                ? "/notification-service"
                 : "https://localhost:5510/notification-service";
-            
+
             options.AddServer(new OpenApiServer
             {
                 Url = url
@@ -138,5 +157,4 @@ public static class ApplicationServiceExtensions
         services.AddGrpc();
         services.AddGrpcReflection();
     }
-
 }

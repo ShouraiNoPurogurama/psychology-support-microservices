@@ -11,7 +11,7 @@ public class UpdateDoctorProfileEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPut("/doctors/{id:guid}",
+        app.MapPut("/v1/doctors/{id:guid}",
             async ([FromRoute] Guid id,
                    [FromBody] UpdateDoctorProfileRequest request,
                    IValidator<UpdateDoctorProfileDto> validator, 

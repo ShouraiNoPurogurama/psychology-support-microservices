@@ -1,4 +1,4 @@
-﻿using System.Timers;
+using System.Timers;
 using Microsoft.EntityFrameworkCore;
 using Promotion.Grpc.Data;
 using Timer = System.Timers.Timer;
@@ -21,7 +21,7 @@ public class UpdatePromotionStatusesBackgroundService(
 
     private void ScheduleNextRun()
     {
-        var now = DateTime.Now;
+        var now = DateTimeOffset.Now;
         var nextRun = now.Date.AddDays(1);
         var timeToNextRun = (nextRun - now).TotalMilliseconds;
 
@@ -49,7 +49,7 @@ public class UpdatePromotionStatusesBackgroundService(
             var dbContext = scope.ServiceProvider.GetRequiredService<PromotionDbContext>();
 
             var expiredPromotions = await dbContext.Promotions
-                .Where(p => p.IsActive && p.EndDate <= DateTime.UtcNow)
+                .Where(p => p.IsActive && p.EndDate <= DateTimeOffset.UtcNow)
                 .Include(p => p.PromoCodes)
                 .Include(p => p.GiftCodes)
                 .ToListAsync();

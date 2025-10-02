@@ -15,7 +15,7 @@ public class CreateScheduleEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/schedules/dummy", async (CreateScheduleRequest request, ISender sender) =>
+        app.MapPost("/v1/schedules/dummy", async (CreateScheduleRequest request, ISender sender) =>
         {
             var command = new CreateScheduleCommand(request.PatientId, request.DoctorId);
             var result = await sender.Send(command);

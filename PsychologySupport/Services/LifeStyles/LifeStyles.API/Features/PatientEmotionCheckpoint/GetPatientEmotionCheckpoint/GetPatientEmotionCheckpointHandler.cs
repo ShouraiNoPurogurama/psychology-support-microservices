@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LifeStyles.API.Features.PatientEmotionCheckpoint.GetPatientEmotionCheckpoint;
 
-public record GetPatientEmotionCheckpointQuery(Guid PatientProfileId, DateTime? Date)  : IQuery<GetPatientEmotionCheckpointResult>;
+public record GetPatientEmotionCheckpointQuery(Guid PatientProfileId, DateTimeOffset? Date)  : IQuery<GetPatientEmotionCheckpointResult>;
 
 public record GetPatientEmotionCheckpointResult(PatientEmotionCheckpointDto? CheckpointDto);
 

@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using Scheduling.API.Dtos;
 
@@ -38,7 +38,7 @@ namespace Scheduling.API.Features.Schedule.EditScheduleActivity
             if (session == null)
                 throw new NotFoundException("Session", request.SessionId);
 
-            /* var vietnamTime = DateTime.UtcNow.AddHours(7); // UTC VietNam
+            /* var vietnamTime = DateTimeOffset.UtcNow.AddHours(7); // UTC VietNam
              if (vietnamTime.AddDays(2) > activity.TimeRange || vietnamTime.AddDays(2) > session.StartDate)
                  throw new ValidationException("The scheduled time and session start date must be at least 2 days after the current time.");
  */

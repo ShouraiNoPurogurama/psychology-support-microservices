@@ -9,7 +9,7 @@ namespace Profile.API.Domains.Public.PatientProfiles.Features.GetAllPhysicalSymp
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/physical-symptoms", async (
+            app.MapGet("/v1/physical-symptoms", async (
                 [AsParameters] GetAllPhysicalSymptomQuery request, ISender sender) =>
             {
                 var result = await sender.Send(request);

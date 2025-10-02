@@ -4,11 +4,15 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Service\**" />
     <Content Remove="Service\**" />
+    <Content Include="..\..\..\.dockerignore">
+      <Link>.dockerignore</Link>
+    </Content>
     <EmbeddedResource Remove="Service\**" />
     <None Remove="Service\**" />
   </ItemGroup>

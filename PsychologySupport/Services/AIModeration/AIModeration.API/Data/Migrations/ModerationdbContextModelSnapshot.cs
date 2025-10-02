@@ -18,7 +18,7 @@ namespace AIModeration.API.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pgcrypto");
@@ -30,7 +30,7 @@ namespace AIModeration.API.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -70,7 +70,7 @@ namespace AIModeration.API.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("content_hash");
 
-                    b.Property<DateTime?>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -78,7 +78,7 @@ namespace AIModeration.API.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("created_by");
 
-                    b.Property<DateTime?>("DecidedAt")
+                    b.Property<DateTimeOffset?>("DecidedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("decided_at");
 
@@ -86,7 +86,7 @@ namespace AIModeration.API.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("decided_by");
 
-                    b.Property<DateTime?>("LastModified")
+                    b.Property<DateTimeOffset?>("LastModified")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified");
 

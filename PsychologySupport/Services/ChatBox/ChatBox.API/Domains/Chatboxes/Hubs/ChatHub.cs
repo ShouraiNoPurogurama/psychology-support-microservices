@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Security.Claims;
 using BuildingBlocks.Messaging.Events.Queries.Profile;
 using ChatBox.API.Data;
@@ -114,7 +114,7 @@ public class ChatHub(
             SenderUserId = Guid.Parse(senderId),
             ReceiverUserId = recipientId,
             IsRead = false,
-            CreatedDate = DateTime.UtcNow,
+            CreatedDate = DateTimeOffset.UtcNow,
             Content = message.Content
         };
 

@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore.Diagnostics;
-using Notification.API.Data;
-using Notification.API.Domains.Emails.ServiceContracts;
-using Notification.API.Domains.Emails.Services;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Notification.API.Features.Emails.Contracts;
+using Notification.API.Features.Emails.Services;
+using Notification.API.Infrastructure.Data;
 
 namespace Notification.API.Extensions;
 

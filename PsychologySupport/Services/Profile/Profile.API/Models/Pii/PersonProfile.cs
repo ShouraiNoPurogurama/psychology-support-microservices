@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Data.Common;
+using BuildingBlocks.Data.Common;
 using BuildingBlocks.DDD;
 using BuildingBlocks.Utils;
 using Profile.API.Domains.Pii.Events;

@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Enums;
+using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
 using Carter;
 using Mapster;
@@ -12,7 +12,7 @@ public record CreateUserSubscriptionV2Request(
     Guid ServicePackageId,
     string? PromoCode,
     Guid? GiftId,
-    DateTime StartDate,
+    DateTimeOffset StartDate,
     PaymentMethodName PaymentMethodName
 );
 

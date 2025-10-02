@@ -11,7 +11,7 @@ public class GetPatientProfileEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/patients/{id:guid}", async (Guid id, ISender sender, HttpContext httpContext) =>
+        app.MapGet("/v1/patients/{id:guid}", async (Guid id, ISender sender, HttpContext httpContext) =>
             {
                 if (!AuthorizationHelpers.CanViewPatientProfile(id, httpContext.User))
                     throw new ForbiddenException();

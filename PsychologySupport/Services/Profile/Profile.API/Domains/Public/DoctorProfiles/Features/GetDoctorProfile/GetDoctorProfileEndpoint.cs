@@ -10,7 +10,7 @@ public class GetDoctorProfileEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/doctors/{id:guid}", async (Guid id, ISender sender) =>
+        app.MapGet("/v1/doctors/{id:guid}", async (Guid id, ISender sender) =>
             {
                 var query = new GetDoctorProfileQuery(id);
                 var result = await sender.Send(query);

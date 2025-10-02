@@ -129,10 +129,10 @@ public static class DatePromptHelper
         return PrependDateTimePrompt(input, timezone.Id);
     }
 
-    private static DateTime GetCurrentTimeByTimezone(string? userTimezone)
+    private static DateTimeOffset GetCurrentTimeByTimezone(string? userTimezone)
     {
         if (string.IsNullOrEmpty(userTimezone))
-            return DateTime.Now;
+            return DateTimeOffset.Now;
 
         try
         {
@@ -143,10 +143,10 @@ public static class DatePromptHelper
         {
             if (TryParseTimezoneOffset(userTimezone, out int offsetHours))
             {
-                return DateTime.UtcNow.AddHours(offsetHours);
+                return DateTimeOffset.UtcNow.AddHours(offsetHours);
             }
 
-            return DateTime.Now;
+            return DateTimeOffset.Now;
         }
     }
     

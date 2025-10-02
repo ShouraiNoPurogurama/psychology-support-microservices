@@ -1,4 +1,4 @@
-﻿using Post.Domain.Aggregates.Posts.DomainEvents;
+using Post.Domain.Aggregates.Posts.DomainEvents;
 using Post.Domain.Aggregates.Posts.Enums;
 using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Exceptions;
@@ -18,8 +18,8 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
     public PostStatus Status { get; private set; } = PostStatus.Creating;
     public bool IsAbandonmentEventEmitted { get; private set; }
     public bool IsCommentsLocked { get; private set; }
-    public DateTime PublishedAt { get; private set; }
-    public DateTime? EditedAt { get; private set; }
+    public DateTimeOffset PublishedAt { get; private set; }
+    public DateTimeOffset? EditedAt { get; private set; }
 
     //Collections
     private readonly List<PostMedia> _media = new();
@@ -56,7 +56,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
             Moderation = ModerationInfo.Pending(),
             Metrics = PostMetrics.Create(),
             Visibility = visibility,
-            PublishedAt = DateTime.UtcNow
+            PublishedAt = DateTimeOffset.UtcNow
         };
         
         post.AddDomainEvent(new PostCreatedEvent(
@@ -122,7 +122,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
 
         var oldContent = Content;
         Content = PostContent.Create(newContent, newTitle);
-        EditedAt = DateTime.UtcNow;
+        EditedAt = DateTimeOffset.UtcNow;
 
         AddDomainEvent(new PostContentUpdatedEvent(Id, oldContent.Value, Content.Value, editorAliasId));
     }

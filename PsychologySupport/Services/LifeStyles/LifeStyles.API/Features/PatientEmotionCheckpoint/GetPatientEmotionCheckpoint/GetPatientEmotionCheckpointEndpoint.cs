@@ -13,7 +13,7 @@ public class GetPatientEmotionCheckpointEndpoint : ICarterModule
     {
         app.MapGet("/patients/{patientProfileId:guid}/emotion-checkpoints",
             async (HttpContext httpContext, [FromRoute] Guid patientProfileId, 
-            [FromQuery] DateTime? date, ISender sender,CancellationToken cancellationToken) =>
+            [FromQuery] DateTimeOffset? date, ISender sender,CancellationToken cancellationToken) =>
             {
                 // Authorization check
                 if (!AuthorizationHelpers.HasAccessToPatientProfile(patientProfileId, httpContext.User))

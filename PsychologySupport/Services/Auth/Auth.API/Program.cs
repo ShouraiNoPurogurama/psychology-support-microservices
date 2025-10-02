@@ -26,12 +26,18 @@ app.UseExceptionHandler(options => { });
 app.UseStaticFiles();
 
 app.UseSwagger();
+
 if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();
 }
 
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+    app.UseSwaggerUI();
+else
+{
+    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/auth-service/swagger/v1/swagger.json", "Auth API v1"); });
+}
 
 app.UseHealthChecks("/health",
     new HealthCheckOptions

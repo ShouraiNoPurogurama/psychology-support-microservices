@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Scheduling.API.Dtos;
 
 namespace Scheduling.API.Validators

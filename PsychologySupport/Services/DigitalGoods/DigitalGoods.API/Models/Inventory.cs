@@ -14,15 +14,15 @@ public partial class Inventory : Entity<Guid>
 
     public string Status { get; set; } = null!;
 
-    public DateTime GrantedAt { get; set; }
+    public DateTimeOffset GrantedAt { get; set; }
 
-    public DateTime? ExpiredAt { get; set; }
+    public DateTimeOffset? ExpiredAt { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 
     public Guid? CreatedBy { get; set; }
 
-    public DateTime LastModified { get; set; }
+    public DateTimeOffset LastModified { get; set; }
 
     public Guid? LastModifiedBy { get; set; }
 

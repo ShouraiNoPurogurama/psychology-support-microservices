@@ -14,7 +14,7 @@ public class GetUserSubscriptionEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/user-subscriptions/{id}", async ([FromRoute]Guid id, ISender sender, HttpContext httpContext) =>
+        app.MapGet("/v1/user-subscriptions/{id}", async ([FromRoute]Guid id, ISender sender, HttpContext httpContext) =>
             {
                 // Authorization check
                 if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))

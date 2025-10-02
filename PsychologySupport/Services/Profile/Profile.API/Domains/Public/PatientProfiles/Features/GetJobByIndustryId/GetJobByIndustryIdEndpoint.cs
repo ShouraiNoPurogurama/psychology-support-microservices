@@ -8,7 +8,7 @@ namespace Profile.API.Domains.Public.PatientProfiles.Features.GetJobByIndustryId
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/industries/{industryId:guid}/jobs", async (Guid industryId, ISender sender) =>
+            app.MapGet("/v1/industries/{industryId:guid}/jobs", async (Guid industryId, ISender sender) =>
             {
                 var query = new GetJobByIndustryIdQuery(industryId);
                 var result = await sender.Send(query);

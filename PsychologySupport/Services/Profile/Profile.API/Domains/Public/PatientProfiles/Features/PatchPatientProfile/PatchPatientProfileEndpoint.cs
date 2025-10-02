@@ -11,7 +11,7 @@ public class PatchPatientProfileEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPatch("patients/{id:guid}",
+        app.MapPatch("/v1/patients/{id:guid}",
             async ([FromRoute] Guid id,
                    [FromBody] PatchPatientProfileRequest request,
                    ISender sender, HttpContext httpContext) =>

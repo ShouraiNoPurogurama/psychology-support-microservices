@@ -8,7 +8,7 @@ public class Device
     public string?  DeviceToken { get; set; }  // FCM firebase token for push notifications
     public DeviceType DeviceType { get; set; }
     public string ClientDeviceId { get; set; } = default!;
-    public DateTime LastUsedAt { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset LastUsedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public virtual User User { get; set; }
     public virtual ICollection<DeviceSession> DeviceSessions { get; set; } = new List<DeviceSession>();

@@ -1,3 +1,3 @@
-﻿namespace ChatBox.API.Domains.AIChats.Dtos.Sessions;
+namespace ChatBox.API.Domains.AIChats.Dtos.Sessions;
 
-public record CreateSessionRequestDto(Guid SessionId, string SessionName, DateTime CreatedDate);
+public record CreateSessionRequestDto(Guid SessionId, string SessionName, DateTimeOffset CreatedDate);

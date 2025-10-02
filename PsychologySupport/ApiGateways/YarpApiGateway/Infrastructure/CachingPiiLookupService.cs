@@ -48,7 +48,7 @@ public class CachingPiiLookupService : IPiiLookupService
             {
                 var options = new DistributedCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
                 await _cache.SetStringAsync(key, realValue, options);
-                _logger.LogInformation("Cache SET for key: {Key}", key);
+                _logger.LogInformation("Cache SET for key: {Key} with value: {Value}", key, realValue);
             }
             else
             {

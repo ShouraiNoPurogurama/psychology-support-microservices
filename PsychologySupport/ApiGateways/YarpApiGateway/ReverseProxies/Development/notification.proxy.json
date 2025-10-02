@@ -28,7 +28,7 @@
       "notification-cluster": {
         "Destinations": {
           "destination1": {
-            "Address": "https://localhost:5512/"
+            "Address": "http://localhost:5512/"
           }
         }
       }

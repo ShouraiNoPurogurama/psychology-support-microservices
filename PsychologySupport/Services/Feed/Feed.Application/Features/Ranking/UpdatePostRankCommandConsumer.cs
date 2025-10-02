@@ -1,4 +1,4 @@
-﻿using Feed.Application.Abstractions.RankingService;
+using Feed.Application.Abstractions.RankingService;
 using Feed.Application.Configuration;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -44,7 +44,7 @@ public sealed class UpdatePostRankCommandConsumer(
         await rankingService.UpdatePostRankAsync(postId, updated, context.CancellationToken);
 
         // Optionally push to today's trending set
-        await rankingService.AddToTrendingAsync(postId, score, DateTime.UtcNow, context.CancellationToken);
+        await rankingService.AddToTrendingAsync(postId, score, DateTimeOffset.UtcNow, context.CancellationToken);
 
         logger.LogDebug("Updated rank for post {PostId}: score={Score}", postId, score);
     }

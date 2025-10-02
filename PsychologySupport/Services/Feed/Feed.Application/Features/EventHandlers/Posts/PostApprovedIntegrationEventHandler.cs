@@ -23,7 +23,7 @@ public sealed class PostApprovedIntegrationEventHandler(
         var msg = context.Message;
         var authorId = msg.AuthorAliasId;
         // Determine VIP by follower threshold
-        var followers = await followerRepo.GetAllFollowersAsync(authorId, context.CancellationToken);
+        var followers = await followerRepo.GetAllFollowersOfAliasAsync(authorId, context.CancellationToken);
         var followerCount = followers.Count;
 
         if (followerCount < _config.VipCriteria.MinFollowers)
@@ -43,7 +43,7 @@ public sealed class PostApprovedIntegrationEventHandler(
             var shard = ComputeShard(msg.PostId, f.AliasId, _config.FeedShardCount);
             // Recency-first default rank; background jobs will adjust via engagement
             var rankBucket = (sbyte)0;
-            var rankI64 = long.MaxValue - DateTime.UtcNow.Ticks;
+            var rankI64 = long.MaxValue - DateTimeOffset.UtcNow.Ticks;
             var item = UserFeedItem.Create(
                 aliasId: f.AliasId,
                 postId: msg.PostId,

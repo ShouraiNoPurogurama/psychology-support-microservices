@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Post.Application.Data;
 using Microsoft.EntityFrameworkCore;
@@ -127,7 +127,7 @@ public class CounterSynchronizationService : ICounterSynchronizationService
         {
             ReactionCount = reactionCount,
             CommentCount = commentCount,
-            LastUpdated = DateTime.UtcNow
+            LastUpdated = DateTimeOffset.UtcNow
         };
 
         var cacheKey = $"post:{postId}:counters";

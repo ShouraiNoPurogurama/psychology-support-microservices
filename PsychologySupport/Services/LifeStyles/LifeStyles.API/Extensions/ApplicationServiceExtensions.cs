@@ -155,13 +155,9 @@ public static class ApplicationServiceExtensions
         {
             options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);
         })
-        .ConfigurePrimaryHttpMessageHandler(() =>
+        .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
         {
-            var handler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
-            return handler;
+            EnableMultipleHttp2Connections = true
         });
     }
 }

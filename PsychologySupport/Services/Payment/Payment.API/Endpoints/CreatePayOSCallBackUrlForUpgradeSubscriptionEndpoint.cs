@@ -16,7 +16,7 @@ public class CreatePayOSCallBackUrlForUpgradeSubscriptionEndpoint : ICarterModul
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/payments/payos/upgrade-subscription", async (
+        app.MapPost("/v1/payments/payos/upgrade-subscription", async (
             [FromBody] CreatePayOSCallBackUrlForUpgradeSubscriptionRequest request,
             ISender sender, HttpContext httpContext) =>
         {

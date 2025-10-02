@@ -8,15 +8,15 @@ namespace Auth.API.Features.Authentication.Services.Shared;
 
 public class EmailService(
     UserManager<User> userManager,
+    IEmailRateLimiter rateLimiter,
     IConfiguration configuration,
     IPublishEndpoint publishEndpoint,
-    IWebHostEnvironment env,
-    NotificationService.NotificationServiceClient notificationClient)
+    IWebHostEnvironment env)
     : IEmailService
 {
     public async Task SendEmailConfirmationAsync(User user)
     {
-        if (await HasSentResetEmailRecentlyAsync(user.Email!))
+        if (await rateLimiter.HasSentRecentlyAsync(user.Email!))
         {
             throw new RateLimitExceededException(
                 "Vui lòng đợi ít nhất 1 phút trước khi gửi lại email xác nhận. Nếu chưa nhận được email, hãy kiểm tra hộp thư rác (spam) hoặc đợi thêm một chút.");
@@ -33,18 +33,19 @@ public class EmailService(
         var confirmBody = RenderTemplate(confirmTemplatePath, new Dictionary<string, string>
         {
             ["ConfirmUrl"] = url,
-            ["Year"] = DateTime.UtcNow.Year.ToString()
+            ["Year"] = DateTimeOffset.UtcNow.Year.ToString()
         });
 
         var sendEmailIntegrationEvent = new SendEmailIntegrationEvent(user.Email, "Xác nhận tài khoản", confirmBody);
 
         user.PhoneNumberConfirmed = true;
         await publishEndpoint.Publish(sendEmailIntegrationEvent);
+        await rateLimiter.MarkAsSentAsync(user.Email!);
     }
 
     public async Task SendPasswordResetEmailAsync(User user)
     {
-        if (await HasSentResetEmailRecentlyAsync(user.Email!))
+        if (await rateLimiter.HasSentRecentlyAsync(user.Email!))
         {
             throw new RateLimitExceededException(
                 "Vui lòng đợi ít nhất 1 phút trước khi gửi lại email đổi mật khẩu. Nếu chưa nhận được email, hãy kiểm tra hộp thư rác (spam) hoặc đợi thêm một chút.");
@@ -60,20 +61,14 @@ public class EmailService(
         var resetBody = RenderTemplate(resetTemplatePath, new Dictionary<string, string>
         {
             ["ResetUrl"] = callbackUrl,
-            ["Year"] = DateTime.UtcNow.Year.ToString()
+            ["Year"] = DateTimeOffset.UtcNow.Year.ToString()
         });
 
         var sendEmailEvent = new SendEmailIntegrationEvent(user.Email, "Khôi phục mật khẩu", resetBody);
         await publishEndpoint.Publish(sendEmailEvent);
+        await rateLimiter.MarkAsSentAsync(user.Email!);
     }
-
-    private async Task<bool> HasSentResetEmailRecentlyAsync(string email)
-    {
-        var grpcRequest = new Notification.API.Protos.HasSentEmailRecentlyRequest { Email = email };
-        var response = await notificationClient.HasSentEmailRecentlyAsync(grpcRequest);
-        return response.IsRecentlySent;
-    }
-
+    
     private string RenderTemplate(string templatePath, Dictionary<string, string> values)
     {
         var template = File.ReadAllText(templatePath);

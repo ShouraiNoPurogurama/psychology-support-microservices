@@ -1,4 +1,4 @@
-﻿using Grpc.Core;
+using Grpc.Core;
 using Notification.API.Protos;
 using Profile.API.Data.Pii;
 using Profile.API.Models.Pii;
@@ -185,7 +185,7 @@ namespace Profile.API.Domains.Public.PatientProfiles.Services
             var body = RenderTemplate(templatePath, new Dictionary<string, string>
             {
                 ["FullName"] = fullName,
-                ["Year"] = DateTime.UtcNow.Year.ToString()
+                ["Year"] = DateTimeOffset.UtcNow.Year.ToString()
             });
 
 

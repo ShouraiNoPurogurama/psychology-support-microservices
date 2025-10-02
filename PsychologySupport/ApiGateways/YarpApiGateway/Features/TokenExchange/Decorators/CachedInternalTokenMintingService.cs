@@ -32,7 +32,7 @@ public class CachedInternalTokenMintingService : IInternalTokenMintingService
 
         if (_cache.TryGetValue(cacheKey, out string? token))
         {
-            _logger.LogInformation("[Cache HIT] for key {CacheKey}", cacheKey);
+            // _logger.LogInformation("[Cache HIT] for key {CacheKey} with value {Value}", cacheKey, token);
             return token!;
         }
 
@@ -45,8 +45,7 @@ public class CachedInternalTokenMintingService : IInternalTokenMintingService
             Size = 1 //coi mỗi token = 1 đơn vị trong 200k đơn vị bộ nhớ
         });
 
-        _logger.LogDebug("Cache MISS for key {CacheKey}, minted new token", cacheKey);
-
+        _logger.LogInformation("Cache MISS for key {CacheKey}, minted new token", cacheKey);
         return token;
     }
 

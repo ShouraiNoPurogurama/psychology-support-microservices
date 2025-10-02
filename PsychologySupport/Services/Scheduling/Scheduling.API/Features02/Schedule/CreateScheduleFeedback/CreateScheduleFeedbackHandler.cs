@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using Scheduling.API.Exceptions;
 using Scheduling.API.Models;
 
@@ -9,7 +9,7 @@ namespace Scheduling.API.Features02.Schedule.CreateScheduleFeedback
         Guid PatientId,
         string? Content,
         int Rating,
-        DateTime FeedbackDate
+        DateTimeOffset FeedbackDate
     ) : ICommand<CreateScheduleFeedbackResult>;
     public record CreateScheduleFeedbackResult(bool IsSucceeded);
     public class CreateScheduleFeedbackHandler : ICommandHandler<CreateScheduleFeedbackCommand, CreateScheduleFeedbackResult>

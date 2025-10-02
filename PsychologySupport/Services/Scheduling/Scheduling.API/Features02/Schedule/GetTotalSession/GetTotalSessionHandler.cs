@@ -21,8 +21,8 @@ namespace Scheduling.API.Features02.Schedule.GetTotalSession
             var activities = await _context.Schedules
                 .Where(s => s.Id == request.ScheduleId)
                 .SelectMany(s => s.Sessions.SelectMany(sess => sess.Activities))
-                .Where(a => DateOnly.FromDateTime(a.TimeRange) >= request.StartDate
-                         && DateOnly.FromDateTime(a.TimeRange) <= request.EndDate)
+                .Where(a => DateOnly.FromDateTime(a.TimeRange.DateTime) >= request.StartDate
+                         && DateOnly.FromDateTime(a.TimeRange.DateTime) <= request.EndDate)
                 .ToListAsync(cancellationToken);
 
             var sessions = activities
@@ -30,7 +30,7 @@ namespace Scheduling.API.Features02.Schedule.GetTotalSession
                 .Select(g => new TotalSessionDto
                 {
                     SessionId = g.Key,
-                    Order = g.Min(a => DateOnly.FromDateTime(a.TimeRange)), 
+                    Order = g.Min(a => DateOnly.FromDateTime(a.TimeRange.DateTime)), 
                     Percentage = g.Any()
                         ? (float)g.Count(a => a.Status == ScheduleActivityStatus.Completed) / g.Count() * 100
                         : 0

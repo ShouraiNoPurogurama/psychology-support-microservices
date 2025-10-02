@@ -1,4 +1,4 @@
-﻿using Test.Domain.Enums;
+using Test.Domain.Enums;
 using Test.Domain.ValueObjects;
 
 namespace Test.Application.Dtos;
@@ -6,7 +6,7 @@ namespace Test.Application.Dtos;
 public record GetAllTestResultDto(Guid Id,
     Guid TestId,
     Guid PatientId,
-    DateTime TakenAt,
+    DateTimeOffset TakenAt,
     SeverityLevel SeverityLevel,
     Score DepressionScore,
     Score AnxietyScore,

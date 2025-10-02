@@ -59,25 +59,17 @@ namespace Billing.API.Extensions
                 {
                     options.Address = new Uri(config["GrpcSettings:PromotionUrl"]!);
                 })
-                .ConfigurePrimaryHttpMessageHandler(() =>
+                .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
                 {
-                    var handler = new HttpClientHandler
-                    {
-                        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                    };
-                    return handler;
+                    EnableMultipleHttp2Connections = true
                 });
             services.AddGrpcClient<TranslationService.TranslationServiceClient>(options =>
                 {
                     options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);
                 })
-                .ConfigurePrimaryHttpMessageHandler(() =>
+                .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
                 {
-                    var handler = new HttpClientHandler
-                    {
-                        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                    };
-                    return handler;
+                    EnableMultipleHttp2Connections = true
                 });
         }
 

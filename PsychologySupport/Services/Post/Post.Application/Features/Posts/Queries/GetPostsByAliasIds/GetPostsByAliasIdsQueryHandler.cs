@@ -19,28 +19,31 @@ internal sealed class GetPostsByAliasIdsQueryHandler : IQueryHandler<GetPostsByA
     public async Task<GetPostsByAliasIdsResult> Handle(GetPostsByAliasIdsQuery request, CancellationToken cancellationToken)
     {
         // Query posts by alias IDs with pagination and AsNoTracking
-        var query = _context.Posts
+        var baseQuery = _context.Posts
             .AsNoTracking()
-            .Where(p => request.AliasIds.Contains(p.Author.AliasId) && 
-                       !p.IsDeleted && 
-                       p.Visibility == PostVisibility.Public)
-            .Select(p => new PostSummaryDto(
-                p.Id,
-                p.Content.Title,
-                p.Content.Value,
-                p.Author.AliasId,
-                p.Visibility,
-                new DateTimeOffset(p.PublishedAt),
-                p.EditedAt.HasValue ? new DateTimeOffset(p.EditedAt.Value) : null,
-                p.Metrics.ReactionCount,
-                p.Metrics.CommentCount,
-                p.Metrics.ViewCount,
-                p.HasMedia
-            ))
-            .OrderByDescending(p => p.PublishedAt);
+            .Where(p => request.AliasIds.Contains(p.Author.AliasId) &&
+                        !p.IsDeleted &&
+                        p.Visibility == PostVisibility.Public);
 
         // Get total count before pagination
-        var totalCount = await query.CountAsync(cancellationToken);
+        var totalCount = await baseQuery.CountAsync(cancellationToken);
+
+
+        var query = baseQuery
+            .OrderByDescending(p => p.PublishedAt)
+            .Select(p => new PostSummaryDto(
+            p.Id,
+            p.Content.Title,
+            p.Content.Value,
+            p.Author.AliasId,
+            p.Visibility,
+            p.PublishedAt,
+            p.EditedAt,
+            p.Metrics.ReactionCount,
+            p.Metrics.CommentCount,
+            p.Metrics.ViewCount,
+            p.HasMedia
+        ));
 
         // Apply Skip/Take for pagination
         var postsData = await query

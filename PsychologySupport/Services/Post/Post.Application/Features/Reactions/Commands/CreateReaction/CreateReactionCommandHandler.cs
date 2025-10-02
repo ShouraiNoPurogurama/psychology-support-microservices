@@ -85,10 +85,11 @@ public sealed class CreateReactionCommandHandler : ICommandHandler<CreateReactio
 
         // Create new reaction
         var reactionType = CreateReactionType(request.ReactionCode);
+        
         var author = AuthorInfo.Create(_currentActorAccessor.GetRequiredAliasId(), aliasVersionId);
 
         var reaction = Reaction.Create(
-            request.TargetType.ToString().ToLower(),
+            request.TargetType,
             request.TargetId,
             reactionType.Code,
             reactionType.Emoji,

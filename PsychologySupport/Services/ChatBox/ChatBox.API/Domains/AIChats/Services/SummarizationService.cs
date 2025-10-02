@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using ChatBox.API.Data;
 using ChatBox.API.Domains.AIChats.Dtos.Gemini;
 using ChatBox.API.Domains.AIChats.Events;
@@ -119,7 +119,7 @@ public class SummarizationService(IOptions<GeminiConfig> config, ChatBoxDbContex
             session.Summarization = string.Join("\n---\n", lastTwo);
         }
 
-        session.LastSummarizedAt = DateTime.UtcNow;
+        session.LastSummarizedAt = DateTimeOffset.UtcNow;
         session.LastSummarizedIndex = (session.LastSummarizedIndex ?? 0) + newMessageCount;
 
         await sessionService.UpdateSessionAsync(session);

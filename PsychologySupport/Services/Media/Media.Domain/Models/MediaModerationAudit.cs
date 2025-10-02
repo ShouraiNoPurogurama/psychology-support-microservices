@@ -32,8 +32,8 @@ public sealed class MediaModerationAudit : AuditableEntity<Guid>
             Score = score,
             PolicyVersion = policyVersion,
             RawJson = rawJson,
-            CheckedAt = DateTime.UtcNow,
-            CreatedAt = DateTime.UtcNow
+            CheckedAt = DateTimeOffset.UtcNow,
+            CreatedAt = DateTimeOffset.UtcNow
         };
     }
     
@@ -43,6 +43,6 @@ public sealed class MediaModerationAudit : AuditableEntity<Guid>
         Score = score;
         PolicyVersion = policyVersion;
         RawJson = rawJson;
-        CheckedAt = DateTime.UtcNow;
+        CheckedAt = DateTimeOffset.UtcNow;
     }
 }

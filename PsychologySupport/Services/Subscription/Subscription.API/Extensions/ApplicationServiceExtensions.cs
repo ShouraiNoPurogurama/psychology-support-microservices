@@ -55,26 +55,18 @@ public static class ApplicationServiceExtensions
             {
                 options.Address = new Uri(config["GrpcSettings:PromotionUrl"]!);
             })
-            .ConfigurePrimaryHttpMessageHandler(() =>
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
-                var handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                };
-                return handler;
+                EnableMultipleHttp2Connections = true
             });
         services.AddGrpcClient<TranslationService.TranslationServiceClient>(options =>
         {
             options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);
         })
-            .ConfigurePrimaryHttpMessageHandler(() =>
-            {
-                var handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                };
-                return handler;
-            });
+        .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+        {
+            EnableMultipleHttp2Connections = true
+        });
     }
 
     private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)

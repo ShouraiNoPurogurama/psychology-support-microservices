@@ -1,25 +1,15 @@
-﻿using BuildingBlocks.Behaviors;
+using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Notification.API.Domains.Emails.Services;
+using Notification.API.Features.Emails.Services;
 using Notification.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.LoadConfiguration(builder.Environment);
-
-builder.WebHost.ConfigureKestrel(options =>
-{
-    //Chỉ set protocols, còn port sẽ lấy từ cấu hình (launchSettings, env vars, appsettings.json)
-    options.ConfigureEndpointDefaults(lo =>
-    {
-        lo.Protocols = HttpProtocols.Http1AndHttp2;
-    });
-});
-
 
 builder.Host.UseCustomSerilog(builder.Configuration, "Notification");
 
@@ -40,18 +30,10 @@ app.UseStaticFiles();
 app.MapCarter();
 
 app.UseSwagger();
-if (app.Environment.IsDevelopment())
-{
-    app.InitializeDatabaseAsync();
-    app.UseSwaggerUI();
-}
-else
-{
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/notification-service/swagger/v1/swagger.json", "Scheduling API v1");
-    });
-}
+
+app.InitializeDatabaseAsync();
+
+app.UseSwaggerUI();
 
 //Map gRPC services
 app.MapGrpcService<NotificationService>();

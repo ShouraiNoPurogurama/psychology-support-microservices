@@ -611,39 +611,6 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasConstraintName("fk_comments_comments_id");
                         });
 
-                    b.OwnsOne("Post.Domain.Aggregates.Posts.ValueObjects.ModerationInfo", "Moderation", b1 =>
-                        {
-                            b1.Property<Guid>("CommentId")
-                                .HasColumnType("uuid")
-                                .HasColumnName("id");
-
-                            b1.Property<DateTimeOffset?>("ModeratedAt")
-                                .HasColumnType("timestamp with time zone")
-                                .HasColumnName("moderated_at");
-
-                            b1.Property<string>("PolicyVersion")
-                                .HasColumnType("text")
-                                .HasColumnName("policy_version");
-
-                            b1.Property<string>("Reasons")
-                                .IsRequired()
-                                .HasColumnType("text")
-                                .HasColumnName("moderation_reasons");
-
-                            b1.Property<string>("Status")
-                                .IsRequired()
-                                .HasColumnType("text")
-                                .HasColumnName("moderation_status");
-
-                            b1.HasKey("CommentId");
-
-                            b1.ToTable("comments", "post");
-
-                            b1.WithOwner()
-                                .HasForeignKey("CommentId")
-                                .HasConstraintName("fk_comments_comments_id");
-                        });
-
                     b.OwnsOne("Post.Domain.Aggregates.Comments.ValueObjects.CommentContent", "Content", b1 =>
                         {
                             b1.Property<Guid>("CommentId")
@@ -702,6 +669,39 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasConstraintName("fk_comments_comments_id");
                         });
 
+                    b.OwnsOne("Post.Domain.Aggregates.Posts.ValueObjects.ModerationInfo", "Moderation", b1 =>
+                        {
+                            b1.Property<Guid>("CommentId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<DateTimeOffset?>("ModeratedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("moderated_at");
+
+                            b1.Property<string>("PolicyVersion")
+                                .HasColumnType("text")
+                                .HasColumnName("policy_version");
+
+                            b1.Property<string>("Reasons")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("moderation_reasons");
+
+                            b1.Property<string>("Status")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("moderation_status");
+
+                            b1.HasKey("CommentId");
+
+                            b1.ToTable("comments", "post");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CommentId")
+                                .HasConstraintName("fk_comments_comments_id");
+                        });
+
                     b.Navigation("Author")
                         .IsRequired();
 
@@ -717,6 +717,25 @@ namespace Post.Infrastructure.Data.Post.Migrations
 
             modelBuilder.Entity("Post.Domain.Aggregates.Gifts.GiftAttach", b =>
                 {
+                    b.OwnsOne("Post.Domain.Aggregates.Gifts.ValueObjects.GiftInfo", "Info", b1 =>
+                        {
+                            b1.Property<Guid>("GiftAttachId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<Guid>("GiftId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("gift_id");
+
+                            b1.HasKey("GiftAttachId");
+
+                            b1.ToTable("gift_attaches", "post");
+
+                            b1.WithOwner()
+                                .HasForeignKey("GiftAttachId")
+                                .HasConstraintName("fk_gift_attaches_gift_attaches_id");
+                        });
+
                     b.OwnsOne("Post.Domain.Aggregates.Posts.ValueObjects.AuthorInfo", "Sender", b1 =>
                         {
                             b1.Property<Guid>("GiftAttachId")
@@ -730,25 +749,6 @@ namespace Post.Infrastructure.Data.Post.Migrations
                             b1.Property<Guid>("AliasVersionId")
                                 .HasColumnType("uuid")
                                 .HasColumnName("sender_alias_version_id");
-
-                            b1.HasKey("GiftAttachId");
-
-                            b1.ToTable("gift_attaches", "post");
-
-                            b1.WithOwner()
-                                .HasForeignKey("GiftAttachId")
-                                .HasConstraintName("fk_gift_attaches_gift_attaches_id");
-                        });
-
-                    b.OwnsOne("Post.Domain.Aggregates.Gifts.ValueObjects.GiftInfo", "Info", b1 =>
-                        {
-                            b1.Property<Guid>("GiftAttachId")
-                                .HasColumnType("uuid")
-                                .HasColumnName("id");
-
-                            b1.Property<Guid>("GiftId")
-                                .HasColumnType("uuid")
-                                .HasColumnName("gift_id");
 
                             b1.HasKey("GiftAttachId");
 
@@ -819,39 +819,6 @@ namespace Post.Infrastructure.Data.Post.Migrations
                                 .HasConstraintName("fk_posts_posts_id");
                         });
 
-                    b.OwnsOne("Post.Domain.Aggregates.Posts.ValueObjects.ModerationInfo", "Moderation", b1 =>
-                        {
-                            b1.Property<Guid>("PostId")
-                                .HasColumnType("uuid")
-                                .HasColumnName("id");
-
-                            b1.Property<DateTimeOffset?>("ModeratedAt")
-                                .HasColumnType("timestamp with time zone")
-                                .HasColumnName("moderated_at");
-
-                            b1.Property<string>("PolicyVersion")
-                                .HasColumnType("text")
-                                .HasColumnName("policy_version");
-
-                            b1.Property<string>("Reasons")
-                                .IsRequired()
-                                .HasColumnType("text")
-                                .HasColumnName("moderation_reasons");
-
-                            b1.Property<string>("Status")
-                                .IsRequired()
-                                .HasColumnType("text")
-                                .HasColumnName("moderation_status");
-
-                            b1.HasKey("PostId");
-
-                            b1.ToTable("posts", "post");
-
-                            b1.WithOwner()
-                                .HasForeignKey("PostId")
-                                .HasConstraintName("fk_posts_posts_id");
-                        });
-
                     b.OwnsOne("Post.Domain.Aggregates.Posts.ValueObjects.PostContent", "Content", b1 =>
                         {
                             b1.Property<Guid>("PostId")
@@ -907,6 +874,39 @@ namespace Post.Infrastructure.Data.Post.Migrations
                             b1.Property<int>("ViewCount")
                                 .HasColumnType("integer")
                                 .HasColumnName("view_count");
+
+                            b1.HasKey("PostId");
+
+                            b1.ToTable("posts", "post");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PostId")
+                                .HasConstraintName("fk_posts_posts_id");
+                        });
+
+                    b.OwnsOne("Post.Domain.Aggregates.Posts.ValueObjects.ModerationInfo", "Moderation", b1 =>
+                        {
+                            b1.Property<Guid>("PostId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<DateTimeOffset?>("ModeratedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("moderated_at");
+
+                            b1.Property<string>("PolicyVersion")
+                                .HasColumnType("text")
+                                .HasColumnName("policy_version");
+
+                            b1.Property<string>("Reasons")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("moderation_reasons");
+
+                            b1.Property<string>("Status")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("moderation_status");
 
                             b1.HasKey("PostId");
 

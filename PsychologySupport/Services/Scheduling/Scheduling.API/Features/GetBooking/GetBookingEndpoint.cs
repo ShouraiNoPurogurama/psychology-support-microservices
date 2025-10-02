@@ -10,7 +10,7 @@ namespace Scheduling.API.Features.GetBooking
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/bookings/{bookingCode}", async (string bookingCode, ISender sender) =>
+            app.MapGet("/v1/bookings/{bookingCode}", async (string bookingCode, ISender sender) =>
             {
                 var query = new GetBookingQuery(bookingCode);
                 var result = await sender.Send(query);

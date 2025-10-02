@@ -17,7 +17,7 @@ public class GetFollowingEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/aliases/{aliasId:guid}/following", async (
+        app.MapGet("/v1/aliases/{aliasId:guid}/following", async (
                 [AsParameters] GetFollowingRequest request,
                 ISender sender,
                 CancellationToken ct) =>

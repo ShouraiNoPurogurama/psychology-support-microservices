@@ -1,4 +1,4 @@
-﻿using Scheduling.API.Models;
+using Scheduling.API.Models;
 
 namespace Scheduling.API.Utils;
 
@@ -38,7 +38,7 @@ public class AiScheduleContextBuilder
 public record ShortActivity(
     string Type,
     Guid? ActivityId,
-    DateTime TimeRange,
+    DateTimeOffset TimeRange,
     string Duration,
     int DateNumber
 );
@@ -47,7 +47,7 @@ public record ShortActivity(
 public record ShortSession(
     int Order,
     string Purpose,
-    DateTime Date,
+    DateTimeOffset Date,
     List<ShortActivity> Activities
 );
 

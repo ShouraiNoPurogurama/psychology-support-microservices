@@ -1,4 +1,4 @@
-﻿namespace Media.Domain.Events;
+namespace Media.Domain.Events;
 
 public sealed record MediaUploadedEvent(
     Guid MediaId,
@@ -35,7 +35,7 @@ public record MediaModerationSucceededEvent(Guid Id,
     string Status, 
     decimal? Score, 
     string PolicyVersion, 
-    DateTime UtcNow)
+    DateTimeOffset UtcNow)
     : IDomainEvent;
 
 public sealed record MediaStateChangedEvent(

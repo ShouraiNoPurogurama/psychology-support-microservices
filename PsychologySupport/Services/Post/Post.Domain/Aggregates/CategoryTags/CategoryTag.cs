@@ -1,4 +1,4 @@
-﻿using Post.Domain.Aggregates.CategoryTags.DomainEvents;
+using Post.Domain.Aggregates.CategoryTags.DomainEvents;
 using Post.Domain.Exceptions;
 
 namespace Post.Domain.Aggregates.CategoryTags;
@@ -49,7 +49,7 @@ public sealed class CategoryTag : AggregateRoot<Guid>
             UnicodeCodepoint = unicodeCodepoint?.Trim(),
             IsActive = true,
             SortOrder = Math.Max(0, sortOrder),
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         categoryTag.AddDomainEvent(new CategoryTagCreatedEvent(categoryTag.Id, categoryTag.Code, categoryTag.DisplayName));

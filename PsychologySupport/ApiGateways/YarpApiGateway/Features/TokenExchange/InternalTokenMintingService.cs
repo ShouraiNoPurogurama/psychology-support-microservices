@@ -27,6 +27,7 @@ public class InternalTokenMintingService : IInternalTokenMintingService
         var issuer = _configuration["Jwt:Issuer"];
         var rsaKey = GetRsaSecurityKey();
 
+        
         var signingCredential = new SigningCredentials(rsaKey, SecurityAlgorithms.RsaSha256);
 
         //copy claims gốc trừ Aud → merge thêm claims mới
@@ -35,19 +36,25 @@ public class InternalTokenMintingService : IInternalTokenMintingService
             .ToList();
 
         claims.AddRange(additionalClaims);
-
+        
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(15),
+            Expires = DateTimeOffset.UtcNow.UtcDateTime.AddMinutes(15),
             Issuer = issuer,
             Audience = audience,
             SigningCredentials = signingCredential
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
+        
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+        
+        
+        var result = tokenHandler.WriteToken(token);
+
+
+        return result;
     }
 
     private RsaSecurityKey GetRsaSecurityKey()

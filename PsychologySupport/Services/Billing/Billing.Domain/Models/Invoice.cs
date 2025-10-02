@@ -9,7 +9,7 @@ public partial class Invoice : AggregateRoot<Guid>
     public Guid SubjectRef { get; private set; }
     public decimal Amount { get; private set; }
     public InvoiceStatus Status { get; private set; }
-    public DateTime IssuedAt { get; private set; }
+    public DateTimeOffset IssuedAt { get; private set; }
 
     public virtual InvoiceSnapshot? InvoiceSnapshot { get; private set; }
     public virtual Order Order { get; private set; } = null!;
@@ -23,7 +23,7 @@ public partial class Invoice : AggregateRoot<Guid>
         Guid subjectRef,
         decimal amount,
         InvoiceStatus status,
-        DateTime issuedAt,
+        DateTimeOffset issuedAt,
         string createdBy)
     {
         Id = id;
@@ -34,9 +34,9 @@ public partial class Invoice : AggregateRoot<Guid>
         Status = status;
         IssuedAt = issuedAt;
 
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = DateTimeOffset.UtcNow;
         CreatedBy = createdBy;
-        LastModified = DateTime.UtcNow;
+        LastModified = DateTimeOffset.UtcNow;
         LastModifiedBy = createdBy;
     }
 
@@ -67,7 +67,7 @@ public partial class Invoice : AggregateRoot<Guid>
             subjectRef: subjectRef,
             amount: amount,
             status: InvoiceStatus.Issued,
-            issuedAt: DateTime.UtcNow,
+            issuedAt: DateTimeOffset.UtcNow,
             createdBy: createdBy
         );
     }
@@ -78,7 +78,7 @@ public partial class Invoice : AggregateRoot<Guid>
             throw new InvalidOperationException("Chỉ hóa đơn ở trạng thái 'Issued' mới có thể thanh toán.");
 
         Status = InvoiceStatus.Paid;
-        LastModified = DateTime.UtcNow;
+        LastModified = DateTimeOffset.UtcNow;
         LastModifiedBy = modifiedBy;
     }
 
@@ -88,7 +88,7 @@ public partial class Invoice : AggregateRoot<Guid>
             throw new InvalidOperationException("Không thể hủy hóa đơn đã thanh toán.");
 
         Status = InvoiceStatus.Cancelled;
-        LastModified = DateTime.UtcNow;
+        LastModified = DateTimeOffset.UtcNow;
         LastModifiedBy = modifiedBy;
     }
 }

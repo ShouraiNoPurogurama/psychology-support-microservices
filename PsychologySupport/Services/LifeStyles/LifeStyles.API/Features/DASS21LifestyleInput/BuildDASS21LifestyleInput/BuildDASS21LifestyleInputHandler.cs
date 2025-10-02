@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using LifeStyles.API.Dtos;
 using LifeStyles.API.Dtos.PatientEmotionCheckpoints;
 using LifeStyles.API.Features.PatientEmotionCheckpoint.GetPatientEmotionCheckpoint;
@@ -9,7 +9,7 @@ namespace LifeStyles.API.Features.DASS21LifestyleInput.BuildDASS21LifestyleInput
 
 public record BuildDASS21LifestyleInputQuery(
     Guid PatientProfileId,
-    DateTime? Date
+    DateTimeOffset? Date
 ) : IQuery<BuildDASS21LifestyleInputResult>;
 
 public record BuildDASS21LifestyleInputResult(
@@ -22,9 +22,9 @@ public class BuildDASS21LifestyleInputHandler(ISender sender) : IQueryHandler<Bu
 {
     public async Task<BuildDASS21LifestyleInputResult> Handle(BuildDASS21LifestyleInputQuery request, CancellationToken cancellationToken)
     {
-        var date = request.Date ?? DateTime.UtcNow;
+        var date = request.Date ?? DateTimeOffset.UtcNow;
         
-        var currentTime = DateOnly.FromDateTime(date);
+        var currentTime = DateOnly.FromDateTime(date.DateTime);
         
         var goalQuery = new GetPatientImprovementGoalQuery(request.PatientProfileId, currentTime);
         var emotionCheckpointQuery = new GetPatientEmotionCheckpointQuery(request.PatientProfileId, date);

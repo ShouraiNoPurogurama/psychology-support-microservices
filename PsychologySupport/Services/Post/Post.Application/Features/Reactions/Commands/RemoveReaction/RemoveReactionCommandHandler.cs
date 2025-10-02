@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Abstractions.Integration;
@@ -39,7 +39,7 @@ public sealed class RemoveReactionCommandHandler : ICommandHandler<RemoveReactio
 
         if (reaction is null)
         {
-            return new RemoveReactionResult(false, DateTime.UtcNow);
+            return new RemoveReactionResult(false, DateTimeOffset.UtcNow);
         }
 
         // Soft delete the reaction

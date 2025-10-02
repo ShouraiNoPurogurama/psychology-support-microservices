@@ -8,7 +8,7 @@ using Post.Application.Features.Posts.Queries.GetPosts;
 namespace Post.API.Endpoints.Posts;
 
 public record GetPostsRequest(
-    int PageIndex = 0,
+    int PageIndex = 1,
     int PageSize = 10,
     string? Visibility = null,
     [FromQuery] Guid[]? CategoryTagIds = null,

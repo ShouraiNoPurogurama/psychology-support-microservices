@@ -50,14 +50,10 @@ namespace DigitalGoods.API.Extensions
             {
                 options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);
             })
-                .ConfigurePrimaryHttpMessageHandler(() =>
-                {
-                    var handler = new HttpClientHandler
-                    {
-                        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                    };
-                    return handler;
-                });
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                EnableMultipleHttp2Connections = true
+            });
         }
 
         private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)

@@ -15,7 +15,7 @@ public class CreateVnPayCallBackUrlForUpgradeSubscriptionEndpoint : ICarterModul
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/payments/vnpay/subscription/upgrade",
+        app.MapPost("/v1/payments/vnpay/subscription/upgrade",
                 async ([FromBody] CreateVnPayCallBackUrlForUpgradeSubscriptionRequest request, ISender sender) =>
                 {
                     var command = new CreateVnPayCallBackUrlForUpgradeSubscriptionCommand(request.UpgradeSubscription);

@@ -10,7 +10,7 @@ public class GetAllPatientProfilesEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/patients", async ([AsParameters] GetAllPatientProfilesQuery request, ISender sender, HttpContext httpContext) =>
+        app.MapGet("/v1/patients", async ([AsParameters] GetAllPatientProfilesQuery request, ISender sender, HttpContext httpContext) =>
             {
                 // Authorization check
                 if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))

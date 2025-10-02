@@ -1,4 +1,4 @@
-﻿namespace Feed.Domain.UserActivity;
+namespace Feed.Domain.UserActivity;
 
 public sealed class FeedSeenEntry
 {
@@ -23,7 +23,7 @@ public sealed class FeedSeenEntry
     public static FeedSeenEntry Create(Guid aliasId, Guid postId, DateOnly? ymd = null, Guid? seenAt = null)
     {
         var seenAtValue = seenAt ?? Guid.NewGuid();
-        var ymdValue = ymd ?? DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        var ymdValue = ymd ?? DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
         
         return new(aliasId, ymdValue, seenAtValue, postId);
     }

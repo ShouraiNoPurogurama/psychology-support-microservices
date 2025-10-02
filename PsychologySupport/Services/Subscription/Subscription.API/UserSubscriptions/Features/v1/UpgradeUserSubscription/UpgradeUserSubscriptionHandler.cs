@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Queries.Profile;
@@ -100,7 +100,7 @@ public class UpgradeUserSubscriptionHandler(
     private decimal CalculatePriceDiff(UserSubscription currentSubscription)
     {
 
-        var remainingDays = (int)Math.Floor((currentSubscription.EndDate - DateTime.UtcNow).TotalDays);
+        var remainingDays = (int)Math.Floor((currentSubscription.EndDate - DateTimeOffset.UtcNow).TotalDays);
         var currSubscriptionFinalPrice = currentSubscription.FinalPrice;
 
         decimal durationDays = currentSubscription.ServicePackage.DurationDays;

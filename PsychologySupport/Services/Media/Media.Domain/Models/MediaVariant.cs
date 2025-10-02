@@ -1,4 +1,4 @@
-﻿using Media.Domain.Enums;
+using Media.Domain.Enums;
 using Media.Domain.Exceptions;
 
 namespace Media.Domain.Models;
@@ -53,7 +53,7 @@ public sealed class MediaVariant : AuditableEntity<Guid>
             Bytes = bytes,
             BucketKey = bucketKey,
             CdnUrl = cdnUrl,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
     }
 

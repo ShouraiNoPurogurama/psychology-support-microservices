@@ -10,8 +10,8 @@ public partial class OutboxMessage : AuditableEntity<Guid>
 
     public string Payload { get; set; } = null!;
 
-    public DateTime OccurredOn { get; set; }
+    public DateTimeOffset OccurredOn { get; set; }
 
-    public DateTime? ProcessedOn { get; set; }
+    public DateTimeOffset? ProcessedOn { get; set; }
 
 }

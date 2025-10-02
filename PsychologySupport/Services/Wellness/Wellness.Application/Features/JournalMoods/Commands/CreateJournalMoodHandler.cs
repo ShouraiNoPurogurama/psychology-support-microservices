@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Wellness.Application.Data;
@@ -40,7 +40,7 @@ namespace Wellness.Application.Features.JournalMoods.Commands
                 SubjectRef = request.SubjectRef,
                 MoodId = request.MoodId,
                 Note = request.Note,
-                CreatedAt = DateTime.UtcNow.AddHours(7),
+                CreatedAt = DateTimeOffset.UtcNow.AddHours(7),
                 CreatedBy = request.SubjectRef.ToString()
             };
 

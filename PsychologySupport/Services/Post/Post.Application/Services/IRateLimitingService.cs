@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
 namespace Post.Application.Services;
@@ -37,7 +37,7 @@ public class MemoryRateLimitingService : IRateLimitingService
         }
 
         // Clean expired attempts
-        attempts.Timestamps.RemoveAll(t => DateTime.UtcNow - t > rule.TimeWindow);
+        attempts.Timestamps.RemoveAll(t => DateTimeOffset.UtcNow - t > rule.TimeWindow);
 
         return Task.FromResult(attempts.Timestamps.Count < rule.MaxAttempts);
     }
@@ -48,10 +48,10 @@ public class MemoryRateLimitingService : IRateLimitingService
         var attempts = _cache.Get<RateLimitEntry>(cacheKey) ?? new RateLimitEntry();
 
         // Clean expired attempts
-        attempts.Timestamps.RemoveAll(t => DateTime.UtcNow - t > rule.TimeWindow);
+        attempts.Timestamps.RemoveAll(t => DateTimeOffset.UtcNow - t > rule.TimeWindow);
 
         // Add current attempt
-        attempts.Timestamps.Add(DateTime.UtcNow);
+        attempts.Timestamps.Add(DateTimeOffset.UtcNow);
 
         // Cache with sliding expiration
         _cache.Set(cacheKey, attempts, rule.TimeWindow);
@@ -61,7 +61,7 @@ public class MemoryRateLimitingService : IRateLimitingService
 
     private class RateLimitEntry
     {
-        public List<DateTime> Timestamps { get; } = new();
+        public List<DateTimeOffset> Timestamps { get; } = new();
     }
 }
 

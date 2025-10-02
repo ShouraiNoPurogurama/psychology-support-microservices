@@ -24,7 +24,7 @@ public class GetUserSubscriptionsEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/user-subscriptions", async (
+        app.MapGet("/v1/user-subscriptions", async (
                 [AsParameters] GetUserSubscriptionsRequest request,
                 ISender sender, HttpContext httpContext) =>
             {

@@ -6,7 +6,7 @@ namespace Billing.Domain.Abstractions
     {
         Guid EventId => Guid.NewGuid();
 
-        public DateTime OccurredOn => DateTime.Now;
+        public DateTimeOffset OccurredOn => DateTimeOffset.Now;
 
         public string EventType => GetType().AssemblyQualifiedName!;
     }
@@ -15,7 +15,7 @@ namespace Billing.Domain.Abstractions
     {
         public DomainEvent() : this(Guid.NewGuid()) { }
 
-        public DateTime OccurredOn => DateTime.Now;
+        public DateTimeOffset OccurredOn => DateTimeOffset.Now;
 
         public string EventType => GetType().AssemblyQualifiedName!;
     }

@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Promotion.Grpc;
 using Subscription.API.Data;
@@ -33,7 +33,7 @@ namespace Subscription.API.UserSubscriptions.Features.v1.ActivateSubscription
                 throw new Exception("Patient already has an active subscription.");
 
             // Create subscription
-            var startDate = DateTime.UtcNow;
+            var startDate = DateTimeOffset.UtcNow;
             var servicePackageId = Guid.Parse(giftCode.ServicePackageId);
 
             var servicePackage = await context.ServicePackages

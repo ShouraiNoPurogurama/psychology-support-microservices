@@ -28,6 +28,7 @@ public static class DependencyInjection
         services.AddIdentityServices(config);
         
         ConfigureCORS(services);
+        
         ConfigureSwagger(services, env);
 
         return services;
@@ -106,16 +107,16 @@ public static class DependencyInjection
         app.MapCarter();
         
         app.UseSwagger();
+        
         if (app.Environment.IsDevelopment())
         {
-            // app.InitializeDatabaseAsync();
             app.UseSwaggerUI();
         }
         else
         {
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/post-service", "Post API v1");
+                c.SwaggerEndpoint("/post-service/swagger/v1/swagger.json", "Alias API v1");
             });
         }
 

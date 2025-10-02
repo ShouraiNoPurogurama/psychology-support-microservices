@@ -20,8 +20,8 @@ namespace Scheduling.API.Features02.Schedule.GetTotalActivities
             var activities = await _context.Schedules
                 .Where(s => s.Id == request.ScheduleId)
                 .SelectMany(s => s.Sessions.SelectMany(sess => sess.Activities))
-                .Where(a => DateOnly.FromDateTime(a.TimeRange) >= request.StartDate
-                    && DateOnly.FromDateTime(a.TimeRange) <= request.EndDate)
+                .Where(a => DateOnly.FromDateTime(a.TimeRange.DateTime) >= request.StartDate
+                    && DateOnly.FromDateTime(a.TimeRange.DateTime) <= request.EndDate)
                 .ToListAsync(cancellationToken);
 
 

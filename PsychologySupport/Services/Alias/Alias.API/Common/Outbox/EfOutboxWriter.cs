@@ -15,7 +15,7 @@ public sealed class EfOutboxWriter : IOutboxWriter
             Id = Guid.NewGuid(),
             Type = evt.GetType().FullName!,
             Content = JsonSerializer.Serialize(evt),
-            OccurredOn = DateTime.UtcNow
+            OccurredOn = DateTimeOffset.UtcNow
         });
         return Task.CompletedTask;
     }

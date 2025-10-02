@@ -1,7 +1,6 @@
 ﻿using BuildingBlocks.Exceptions.Handler;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Profile.API.Domains.Pii.Services;
 using Profile.API.Domains.Public.PatientProfiles.Services;
 using Profile.API.Extensions;
@@ -11,16 +10,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.LoadConfiguration(builder.Environment);
 
 builder.Host.UseStandardSerilog(builder.Configuration, "Profile");
-
-builder.WebHost.ConfigureKestrel(options =>
-{
-    //Chỉ set protocols, còn port sẽ lấy từ cấu hình (launchSettings, env vars, appsettings.json)
-    options.ConfigureEndpointDefaults(lo =>
-    {
-        lo.Protocols = HttpProtocols.Http1AndHttp2;
-    });
-});
-
 
 var services = builder.Services;
 
@@ -41,7 +30,14 @@ app.MapCarter();
 
 app.UseSwagger();
 
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwaggerUI();
+}
+else
+{
+    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/profile-service/swagger/v1/swagger.json", "Profile API v1"); });
+}
 
 //Map gRPC services
 app.MapGrpcService<PatientProfileService>();

@@ -63,22 +63,14 @@ internal sealed class CreateCommentCommandHandler : ICommandHandler<CreateCommen
             }
         }
 
-        // === BỎ TẤT CẢ LOGIC CŨ Ở ĐÂY ===
-        // string path = request.PostId.ToString(); // XÓA
-        // int level = 0; // XÓA
-        // if (request.ParentCommentId.HasValue) { ... } // XÓA TOÀN BỘ KHỐI IF NÀY
-
-        var commentId = Guid.NewGuid();
         var content = CommentContent.Create(request.Content);
         var author = AuthorInfo.Create(_currentActorAccessor.GetRequiredAliasId(), aliasVersionId);
 
-        // === LOGIC MỚI ===
-        // Giao toàn bộ việc tính toán cho Domain Factory
         var hierarchy = CommentHierarchy.Create(parentComment);
 
         var comment = Comment.Create(
-            commentId,
-            request.PostId,
+            post.Id,
+            author.AliasId,
             content.Value,
             author.AliasVersionId,
             hierarchy

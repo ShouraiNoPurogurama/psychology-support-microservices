@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Data.Common;
+using BuildingBlocks.Data.Common;
 using FluentValidation;
 using Profile.API.Data.Pii;
 using Profile.API.Enums.Pii;

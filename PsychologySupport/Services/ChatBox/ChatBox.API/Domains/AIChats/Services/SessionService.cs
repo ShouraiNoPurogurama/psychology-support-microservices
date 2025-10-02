@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Exceptions;
+using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.Queries.Profile;
 using BuildingBlocks.Pagination;
 using ChatBox.API.Data;
@@ -64,7 +64,7 @@ public class SessionService(ChatBoxDbContext dbContext, IRequestClient<Aggregate
             Id = Guid.NewGuid(),
             Name = finalSessionName,
             UserId = userId,
-            CreatedDate = DateTime.UtcNow,
+            CreatedDate = DateTimeOffset.UtcNow,
             IsActive = true,
             PersonaSnapshot = persona
         };
@@ -93,7 +93,7 @@ public class SessionService(ChatBoxDbContext dbContext, IRequestClient<Aggregate
             SenderUserId = null, //từ Emo
             SenderIsEmo = true,
             Content = greeting,
-            CreatedDate = DateTime.UtcNow,
+            CreatedDate = DateTimeOffset.UtcNow,
             IsRead = false
         };
 

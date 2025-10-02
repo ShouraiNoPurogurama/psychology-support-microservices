@@ -22,7 +22,7 @@ public class CreateReplyEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/comments/{commentId:guid}/replies", async (
+        app.MapPost("/v1/comments/{commentId:guid}/replies", async (
                 Guid commentId,
                 CreateReplyRequest request,
                 ISender sender,

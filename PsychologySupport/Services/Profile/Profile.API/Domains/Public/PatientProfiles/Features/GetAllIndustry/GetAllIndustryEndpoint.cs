@@ -9,7 +9,7 @@ public class GetAllIndustryEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/industries", async ([AsParameters] GetAllIndustryQuery request, ISender sender) =>
+        app.MapGet("/v1/industries", async ([AsParameters] GetAllIndustryQuery request, ISender sender) =>
         {
             var result = await sender.Send(request);
             var response = result.Adapt<GetAllIndustryResponse>();

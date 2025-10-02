@@ -10,7 +10,7 @@ public class GetDoctorProfileBySpecialitiesEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/doctors/specialties",
+        app.MapGet("/v1/doctors/specialties",
                 async ([FromQuery] string specialties, [AsParameters] PaginationRequest request, ISender sender) =>
                 {
                     var query = new GetDoctorProfileBySpecialitiesQuery(specialties, request);

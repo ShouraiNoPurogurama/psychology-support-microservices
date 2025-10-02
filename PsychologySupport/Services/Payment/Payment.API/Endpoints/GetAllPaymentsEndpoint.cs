@@ -27,28 +27,28 @@ namespace Payment.API.Endpoints
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/payments", async ([AsParameters] GetAllPaymentsRequest request,
+            app.MapGet("/v1/payments", async ([AsParameters] GetAllPaymentsRequest request,
                 ISender sender, HttpContext httpContext) =>
-            {
-                // Authorization check
-                if (request.PatientProfileId is { } patientId)
                 {
-                    if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User) && !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
-                        throw new ForbiddenException();
-                }
+                    // Authorization check
+                    if (request.PatientProfileId is { } patientId)
+                    {
+                        if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User) && !AuthorizationHelpers.IsExclusiveAccess(httpContext.User))
+                            throw new ForbiddenException();
+                    }
 
-                var query = request.Adapt<GetAllPaymentsQuery>();
-                var result = await sender.Send(query);
-                var response = result.Adapt<GetAllPaymentsResponse>();
-                return Results.Ok(response);
-            })
-            .RequireAuthorization(policy => policy.RequireRole("User","Admin","Manager"))
-            .WithName("GetAllPayments")
-            .WithTags("Dashboard")
-            .Produces<GetAllPaymentsResponse>()
-            .ProducesProblem(StatusCodes.Status400BadRequest)
-            .WithDescription("Get All Payments")
-            .WithSummary("Get All Payments");
+                    var query = request.Adapt<GetAllPaymentsQuery>();
+                    var result = await sender.Send(query);
+                    var response = result.Adapt<GetAllPaymentsResponse>();
+                    return Results.Ok(response);
+                })
+                .RequireAuthorization(policy => policy.RequireRole("User","Admin","Manager"))
+                .WithName("GetAllPayments")
+                .WithTags("Dashboard")
+                .Produces<GetAllPaymentsResponse>()
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .WithDescription("Get All Payments")
+                .WithSummary("Get All Payments");
         }
     }
 }

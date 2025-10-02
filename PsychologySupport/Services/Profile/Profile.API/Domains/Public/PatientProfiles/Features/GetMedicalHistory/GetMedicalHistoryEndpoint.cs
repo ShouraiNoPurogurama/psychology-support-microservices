@@ -11,7 +11,7 @@ public class GetMedicalHistoryEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/patients/{patientId:guid}/medical-history", async (Guid patientId, ISender sender, HttpContext httpContext) =>
+        app.MapGet("/v1/patients/{patientId:guid}/medical-history", async (Guid patientId, ISender sender, HttpContext httpContext) =>
             {
                 // Authorization check
                 if (!AuthorizationHelpers.CanModifyPatientProfile(patientId, httpContext.User))

@@ -157,6 +157,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         services.AddScoped<ITokenRevocationService, TokenRevocationService>();
         services.Decorate<ITokenRevocationService, CachedTokenRevocationService>();
+        services.AddScoped<IEmailRateLimiter, DistributedCacheEmailRateLimiter>();
 
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
@@ -208,9 +209,13 @@ public static class ApplicationServiceExtensions
             });
 
         services.AddGrpcClient<PiiService.PiiServiceClient>(options => { options.Address = new Uri(piiUrl!); })
-            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            .ConfigurePrimaryHttpMessageHandler(() =>
             {
-                EnableMultipleHttp2Connections = true
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                return handler;
             });
     }
 }

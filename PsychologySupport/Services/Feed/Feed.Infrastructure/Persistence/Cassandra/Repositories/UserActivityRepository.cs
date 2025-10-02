@@ -1,4 +1,4 @@
-﻿using Cassandra;
+using Cassandra;
 using Cassandra.Mapping;
 using Feed.Application.Abstractions.UserActivity;
 using Feed.Domain.UserActivity;
@@ -54,7 +54,7 @@ public sealed class UserActivityRepository : IUserActivityRepository
     public async Task<IReadOnlyList<FeedSeenEntry>> GetRecentSeenPostsAsync(Guid aliasId, int days = 7, CancellationToken ct = default)
     {
         var allEntries = new List<FeedSeenEntry>();
-        var currentDate = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        var currentDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
 
         // Query each day separately due to Cassandra's partitioning
         for (int i = 0; i < days; i++)
@@ -69,7 +69,7 @@ public sealed class UserActivityRepository : IUserActivityRepository
 
     public async Task<bool> HasSeenPostTodayAsync(Guid aliasId, Guid postId, CancellationToken ct)
     {
-        var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
         var cassandraToday = CassandraTypeMapper.ToLocalDate(today);
         var cql = @"SELECT AliasId FROM feed_seen_by_day WHERE AliasId = ? AND ymd = ? AND post_id = ? LIMIT 1 ALLOW FILTERING";
         var ps = await _session.PrepareAsync(cql).ConfigureAwait(false);

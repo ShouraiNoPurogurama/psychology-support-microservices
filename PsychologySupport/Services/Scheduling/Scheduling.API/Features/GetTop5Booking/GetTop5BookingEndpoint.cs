@@ -7,7 +7,7 @@ namespace Scheduling.API.Features.GetTop5Booking
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/bookings/top-doctors", async ([AsParameters] GetTopDoctorsQuery request, ISender sender) =>
+            app.MapGet("/v1/bookings/top-doctors", async ([AsParameters] GetTopDoctorsQuery request, ISender sender) =>
             {
                 var result = await sender.Send(request);
                 return Results.Ok(result);

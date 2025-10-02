@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Exceptions;
+using BuildingBlocks.Exceptions;
 using BuildingBlocks.Pagination;
 using ChatBox.API.Data;
 using ChatBox.API.Domains.AIChats.Abstractions;
@@ -61,7 +61,7 @@ public class MessageProcessor(
             SessionId: sessionId,
             SenderIsEmo: true,
             Content: "Bạn đang gửi tin nhắn quá nhanh. Vui lòng chờ một chút trước khi gửi tin nhắn tiếp theo.",
-            CreatedDate: DateTime.UtcNow
+            CreatedDate: DateTimeOffset.UtcNow
         );
     
         return new List<AIMessageResponseDto> { throttleMessage };
@@ -134,7 +134,7 @@ public class MessageProcessor(
     }
 
     //Helpers
-    private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string userMessage, DateTime userMessageSentAt,
+    private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string userMessage, DateTimeOffset userMessageSentAt,
         List<AIMessage> aiResponse)
     {
         var lastSeq = await GetLastMessageBlockIndex(sessionId);
@@ -219,7 +219,7 @@ public class MessageProcessor(
                 SenderUserId = null,
                 SenderIsEmo = true,
                 Content = part,
-                CreatedDate = DateTime.UtcNow,
+                CreatedDate = DateTimeOffset.UtcNow,
                 IsRead = false
             })
             .ToList();

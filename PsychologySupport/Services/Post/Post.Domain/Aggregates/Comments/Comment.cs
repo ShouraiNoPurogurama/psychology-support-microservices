@@ -1,4 +1,4 @@
-﻿using Post.Domain.Aggregates.Comments.DomainEvents;
+using Post.Domain.Aggregates.Comments.DomainEvents;
 using Post.Domain.Aggregates.Comments.ValueObjects;
 using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Exceptions;
@@ -63,7 +63,7 @@ public sealed class Comment : AggregateRoot<Guid>, ISoftDeletable
 
         var oldContent = Content.Value;
         Content = CommentContent.Create(newContent);
-        EditedAt = DateTime.UtcNow;
+        EditedAt = DateTimeOffset.UtcNow;
 
         AddDomainEvent(new CommentContentUpdatedEvent(Id, oldContent, Content.Value));
     }

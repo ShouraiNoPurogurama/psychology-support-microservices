@@ -12,7 +12,7 @@ namespace Scheduling.API.Features.GetDoctorSchedule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/doctor-schedule/{doctorId:guid}/{date}", async (Guid doctorId, DateOnly date, ISender sender) =>
+            app.MapGet("/v1/doctor-schedule/{doctorId:guid}/{date}", async (Guid doctorId, DateOnly date, ISender sender) =>
             {
                 var query = new GetDoctorScheduleQuery(doctorId, date);
                 var result = await sender.Send(query);

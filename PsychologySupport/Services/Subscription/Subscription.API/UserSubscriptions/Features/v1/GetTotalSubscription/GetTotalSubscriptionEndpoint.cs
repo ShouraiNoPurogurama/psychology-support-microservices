@@ -11,7 +11,7 @@ namespace Subscription.API.UserSubscriptions.Features.v1.GetTotalSubscription
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/user-subscriptions/total", async (
+            app.MapGet("/v1/user-subscriptions/total", async (
                     [FromQuery] DateOnly startDate,
                     [FromQuery] DateOnly endDate,
                     [FromQuery] Guid? patientId,
