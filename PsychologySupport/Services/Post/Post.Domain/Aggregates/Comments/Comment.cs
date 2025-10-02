@@ -35,15 +35,19 @@ public sealed class Comment : AggregateRoot<Guid>, ISoftDeletable
         Guid authorAliasId,
         string content,
         Guid authorAliasVersionId,
-        CommentHierarchy hierarchy)
+        Comment? parentComment = null)
     {
+        var hierarchy = CommentHierarchy.Create(parentComment);
+        
+        parentComment?.IncrementReplyCount();
+        
         var comment = new Comment
         {
             Id = Guid.NewGuid(),
             PostId = postId,
             Content = CommentContent.Create(content),
             Hierarchy = hierarchy,
-            Author = AuthorInfo.Create(authorAliasId, (Guid?)authorAliasVersionId),
+            Author = AuthorInfo.Create(authorAliasId, authorAliasVersionId),
             Moderation = ModerationInfo.Pending(),
             ReactionCount = 0,
             ReplyCount = 0
@@ -74,7 +78,7 @@ public sealed class Comment : AggregateRoot<Guid>, ISoftDeletable
     public void Approve(string policyVersion, Guid moderatorId)
     {
         Moderation = Moderation.Approve(policyVersion);
-        AddDomainEvent(new CommentApprovedEvent(Id, moderatorId));
+        // AddDomainEvent(new CommentApprovedEvent(Id, moderatorId));
     }
 
     /// <summary>
@@ -125,9 +129,11 @@ public sealed class Comment : AggregateRoot<Guid>, ISoftDeletable
     /// <summary>
     /// Soft delete comment
     /// </summary>
-    public void SoftDelete(Guid deleterAliasId)
+    public void SoftDelete(Comment? parentComment, Guid deleterAliasId)
     {
         if (IsDeleted) return;
+        
+        parentComment?.DecrementReplyCount();
 
         IsDeleted = true;
         DeletedAt = DateTimeOffset.UtcNow;

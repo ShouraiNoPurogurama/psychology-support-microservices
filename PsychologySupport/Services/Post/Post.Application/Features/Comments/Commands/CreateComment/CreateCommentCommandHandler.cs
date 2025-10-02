@@ -64,22 +64,22 @@ internal sealed class CreateCommentCommandHandler : ICommandHandler<CreateCommen
 
         var content = CommentContent.Create(request.Content);
         var author = AuthorInfo.Create(_currentActorAccessor.GetRequiredAliasId(), aliasVersionId);
-
-        var hierarchy = CommentHierarchy.Create(parentComment);
-
+        
         var comment = Comment.Create(
             post.Id,
             author.AliasId,
             content.Value,
             author.AliasVersionId,
-            hierarchy
+            parentComment
         );
-
+        
+        comment.Approve("bypass-moderation", Guid.Empty);
+        
         _context.Comments.Add(comment);
 
         // Increment comment count on post
         post.IncrementCommentCount();
-
+        
         // Add domain event
         var commentCreatedEvent = new CommentCreatedEvent(
             comment.Id,
@@ -96,7 +96,7 @@ internal sealed class CreateCommentCommandHandler : ICommandHandler<CreateCommen
             request.PostId,
             request.Content,
             request.ParentCommentId,
-            hierarchy.Level, // Lấy level chính xác từ object hierarchy vừa tạo
+            comment.Hierarchy.Level, 
             comment.CreatedAt
         );
     }
