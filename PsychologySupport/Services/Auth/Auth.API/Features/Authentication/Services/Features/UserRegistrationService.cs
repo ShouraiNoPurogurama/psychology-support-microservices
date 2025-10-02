@@ -25,41 +25,63 @@ public class UserRegistrationService(
 {
     public async Task<bool> RegisterAsync(RegisterRequest registerRequest)
     {
-        var existingUser = await userManager.FindByEmailAsync(registerRequest.Email);
-        existingUser ??= await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == registerRequest.PhoneNumber);
+        var existingUser = await userManager.Users.AnyAsync(u =>
+            u.PhoneNumber == registerRequest.PhoneNumber || u.Email == registerRequest.Email);
 
-        if (existingUser is not null) throw new ConflictException("Email hoặc số điện thoại đã tồn tại trong hệ thống");
+        if (existingUser) throw new ConflictException("Email hoặc số điện thoại đã tồn tại trong hệ thống");
 
-        var user = registerRequest.Adapt<User>();
-        user.Email = user.UserName = registerRequest.Email;
+        await using var transaction = await authDbContext.Database.BeginTransactionAsync();
+        User user;
 
-        var result = await userManager.CreateAsync(user, registerRequest.Password);
-        if (!result.Succeeded)
+        try
         {
-            var errors = string.Join("; ", result.Errors.Select(ie => ie.Description));
-            throw new InvalidDataException($"Đăng ký thất bại: {errors}");
+            user = registerRequest.Adapt<User>();
+
+            user.Email = user.UserName = registerRequest.Email;
+
+            var result = await userManager.CreateAsync(user, registerRequest.Password);
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join("; ", result.Errors.Select(ie => ie.Description));
+                throw new InvalidDataException($"Đăng ký thất bại: {errors}");
+            }
+
+            //Tạo pending verification
+            var pendingVerificationUser = new PendingVerificationUser
+            {
+                UserId = user.Id
+            };
+
+            var dto = new PendingSeedDto(
+                registerRequest.FullName,
+                Email: registerRequest.Email,
+                PhoneNumber: registerRequest.PhoneNumber);
+
+            pendingVerificationUser.PayloadProtected = payloadProtector.Protect(dto);
+
+            authDbContext.PendingVerificationUsers.Add(pendingVerificationUser);
+
+            await AssignUserRoleAsync(user);
+            
+            await authDbContext.SaveChangesAsync();
+            
+            await transaction.CommitAsync();
+        }
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync();
+            throw new InvalidDataException($"Đăng ký thất bại. Vui lòng thử lại hoặc liên hệ quản trị viên hệ thống.");
         }
 
-        //Tạo pending verification
-        var pendingVerificationUser = new PendingVerificationUser
+        try
         {
-            UserId = user.Id
-        };
-
-        var dto = new PendingSeedDto(
-            registerRequest.FullName,
-            Email: registerRequest.Email,
-            PhoneNumber: registerRequest.PhoneNumber);
-
-        pendingVerificationUser.PayloadProtected = payloadProtector.Protect(dto);
-
-        authDbContext.PendingVerificationUsers.Add(pendingVerificationUser);
-
-        await authDbContext.SaveChangesAsync();
-
-        await AssignUserRoleAsync(user);
-
-        await emailService.SendEmailConfirmationAsync(user);
+            await emailService.SendEmailConfirmationAsync(user);
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException("Tạo tài khoản thành công nhưng không thể gửi email xác thực.", ex);
+        }
 
         return true;
     }
@@ -74,9 +96,9 @@ public class UserRegistrationService(
         var user = await userManager.FindByEmailAsync(email)
                    ?? throw new UserNotFoundException(email);
 
-        if(user.EmailConfirmed) 
+        if (user.EmailConfirmed)
             throw new ConflictException("Email của bạn đã được xác nhận trước đó.");
-        
+
         var result = await userManager.ConfirmEmailAsync(user, token);
 
         string status = result.Succeeded ? "success" : "failed";
