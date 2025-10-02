@@ -48,7 +48,6 @@ internal sealed class CreateCommentCommandHandler : ICommandHandler<CreateCommen
         if (request.ParentCommentId.HasValue)
         {
             parentComment = await _context.Comments
-                // QUAN TRỌNG: Phải Include Hierarchy để dùng trong factory
                 .Include(c => c.Hierarchy)
                 .FirstOrDefaultAsync(c => c.Id == request.ParentCommentId.Value && !c.IsDeleted, cancellationToken);
 
