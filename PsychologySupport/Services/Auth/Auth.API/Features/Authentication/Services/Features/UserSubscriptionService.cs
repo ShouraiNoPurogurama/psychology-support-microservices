@@ -40,4 +40,41 @@ public class UserSubscriptionService(
 
         return true;
     }
+
+    public async Task<bool> RemoveExpiredSubscriptionAsync(Guid patientId)
+    {
+        // Resolve userId từ patientId qua PiiService
+        var resolveResponse = await piiClient.ResolveUserIdByPatientIdAsync(
+            new ResolveUserIdByPatientIdRequest { PatientId = patientId.ToString() });
+
+        if (string.IsNullOrEmpty(resolveResponse.UserId) ||
+            !Guid.TryParse(resolveResponse.UserId, out var userId))
+        {
+            logger.LogError("Failed to resolve userId from patientId {PatientId}", patientId);
+            throw new UserNotFoundException();
+        }
+
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+        {
+            logger.LogError("User {UserId} was not found when removing expired subscription", userId);
+            throw new UserNotFoundException();
+        }
+
+        if (string.IsNullOrEmpty(user.SubscriptionPlanName))
+        {
+            logger.LogInformation("User {UserId} already has no subscription plan set", userId);
+            return false;
+        }
+
+        user.SubscriptionPlanName = null;
+
+        await dbContext.SaveChangesAsync();
+
+        logger.LogInformation("Removed expired subscription for user {UserId} (patientId {PatientId})",
+            userId, patientId);
+
+        return true;
+    }
 }

@@ -4,5 +4,7 @@
     {
  
         Task<bool> UpdateSubscriptionPlanNameAsync(Guid SubjectRef, string subscriptionPlanName);
+
+        Task<bool> RemoveExpiredSubscriptionAsync(Guid patientId);
     }
 }
