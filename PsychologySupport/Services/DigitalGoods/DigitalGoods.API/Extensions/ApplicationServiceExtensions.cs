@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using Translation.API.Protos;
 using Microsoft.EntityFrameworkCore;
 using DigitalGoods.API.Data;
+using BuildingBlocks.Messaging.MassTransit;
 
 namespace DigitalGoods.API.Extensions
 {
@@ -38,7 +39,7 @@ namespace DigitalGoods.API.Extensions
 
             AddGrpcServiceDependencies(services, config);
 
-            //services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+            services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
 
             return services;
         }
@@ -67,14 +68,14 @@ namespace DigitalGoods.API.Extensions
                     Version = "v1"
                 });
 
-                var url = env.IsProduction() 
-                    ? "/digitalgoods-service" 
-                    : "https://localhost:5510/digitalgoods-service";
+                //var url = env.IsProduction() 
+                //    ? "/digitalgoods-service" 
+                //    : "https://localhost:5510/digitalgoods-service";
                 
-                options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
-                {
-                    Url = url
-                });
+                //options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+                //{
+                //    Url = url
+                //});
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

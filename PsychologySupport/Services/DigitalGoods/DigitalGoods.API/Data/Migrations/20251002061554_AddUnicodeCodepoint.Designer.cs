@@ -3,6 +3,7 @@ using System;
 using DigitalGoods.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DigitalGoods.API.Data.Migrations
 {
     [DbContext(typeof(DigitalGoodsDbContext))]
-    partial class DigitalGoodsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251002061554_AddUnicodeCodepoint")]
+    partial class AddUnicodeCodepoint
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -149,11 +152,6 @@ namespace DigitalGoods.API.Data.Migrations
                     b.Property<Guid?>("MediaId")
                         .HasColumnType("uuid")
                         .HasColumnName("media_id");
-
-                    b.Property<string>("Scope")
-                        .IsRequired()
-                        .HasColumnType("VARCHAR(25)")
-                        .HasColumnName("scope");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer")
