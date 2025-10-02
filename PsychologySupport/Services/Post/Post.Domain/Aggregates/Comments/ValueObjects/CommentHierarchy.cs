@@ -1,6 +1,4 @@
-﻿using Post.Domain.Exceptions;
-
-namespace Post.Domain.Aggregates.Comments.ValueObjects;
+﻿namespace Post.Domain.Aggregates.Comments.ValueObjects;
 
 public sealed record CommentHierarchy
 {
@@ -36,7 +34,7 @@ public sealed record CommentHierarchy
             // Level 0, không có path, không có parentId
             return new CommentHierarchy(null, string.Empty, 0);
         }
-
+        
         // 2. Nếu là comment trả lời (có cha)
         var parentHierarchy = parentComment.Hierarchy;
         var newLevel = parentHierarchy.Level + 1;
@@ -46,9 +44,9 @@ public sealed record CommentHierarchy
         {
             // User check > 5 (trong handler) và >= 5 (trong domain)
             // Thống nhất: >= 5 nghĩa là 0, 1, 2, 3, 4 là 5 cấp. Cấp 5 (newLevel=5) là không hợp lệ.
-            throw new InvalidCommentDataException($"Bình luận chỉ có thể lồng tối đa {MaxNestingLevel} cấp.");
+            newLevel = MaxNestingLevel;
         }
-
+        
         // 4. Tạo path mới
         // Path mới là path của cha, cộng thêm ID của cha
         var parentPath = parentHierarchy.Path.Trim().Trim('/');
