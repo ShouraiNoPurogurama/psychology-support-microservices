@@ -129,9 +129,11 @@ public sealed class Comment : AggregateRoot<Guid>, ISoftDeletable
     /// <summary>
     /// Soft delete comment
     /// </summary>
-    public void SoftDelete(Guid deleterAliasId)
+    public void SoftDelete(Comment? parentComment, Guid deleterAliasId)
     {
         if (IsDeleted) return;
+        
+        parentComment?.DecrementReplyCount();
 
         IsDeleted = true;
         DeletedAt = DateTimeOffset.UtcNow;
