@@ -66,6 +66,8 @@ public class UserRegistrationService(
             
             await authDbContext.SaveChangesAsync();
             
+            await emailService.SendEmailConfirmationAsync(user);
+            
             await transaction.CommitAsync();
         }
         catch (Exception e)
@@ -73,16 +75,7 @@ public class UserRegistrationService(
             await transaction.RollbackAsync();
             throw new InvalidDataException($"Đăng ký thất bại. Vui lòng thử lại hoặc liên hệ quản trị viên hệ thống.");
         }
-
-        try
-        {
-            await emailService.SendEmailConfirmationAsync(user);
-        }
-        catch (Exception ex)
-        {
-            throw new ApplicationException("Tạo tài khoản thành công nhưng không thể gửi email xác thực.", ex);
-        }
-
+        
         return true;
     }
 
