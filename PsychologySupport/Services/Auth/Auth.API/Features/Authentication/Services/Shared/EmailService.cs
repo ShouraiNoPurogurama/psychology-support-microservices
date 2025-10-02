@@ -70,7 +70,6 @@ public class EmailService(
         await rateLimiter.MarkAsSentAsync(user.Email!);
     }
     
-
     private string RenderTemplate(string templatePath, Dictionary<string, string> values)
     {
         var template = File.ReadAllText(templatePath);
