@@ -12,7 +12,7 @@ namespace Wellness.API.Endpoints.ModuleSections
     public record UpdateModuleProgressRequest(
         Guid ModuleSectionId,
         Guid SubjectRef,
-        Guid ArticleId
+        Guid SectionArticleId
     );
 
     public record UpdateModuleProgressResponse(

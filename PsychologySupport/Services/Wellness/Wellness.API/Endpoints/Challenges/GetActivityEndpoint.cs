@@ -14,8 +14,12 @@ namespace Wellness.API.Endpoints.Challenges;
 public record GetActivitiesRequest(
     ActivityType? ActivityType,
     int PageIndex = 1,
-    int PageSize = 10
-);
+    int PageSize = 10,
+    string? TargetLang = null
+)
+{
+    public PaginationRequest ToPaginationRequest() => new(PageIndex, PageSize);
+}
 
 public record GetActivitiesResponse(PaginatedResult<ActivityDto> Activities);
 
@@ -25,30 +29,24 @@ public class GetActivityEndpoint : ICarterModule
     {
         app.MapGet("/v1/activities", async (
             [AsParameters] GetActivitiesRequest request,
-            ISender sender, HttpContext httpContext) =>
+            ISender sender) =>
         {
-            // Authorization check
-            if (!AuthorizationHelpers.HasViewAccess(httpContext.User))
-                throw new ForbiddenException();
-
             var query = new GetActivitiesQuery(
                 request.ActivityType,
-                request.PageIndex,
-                request.PageSize
+                request.ToPaginationRequest(),
+                request.TargetLang
             );
 
             var result = await sender.Send(query);
 
             return Results.Ok(new GetActivitiesResponse(result.Activities));
         })
-        .RequireAuthorization()
         .WithName("GetActivities")
         .WithTags("Activities")
         .Produces<GetActivitiesResponse>(200)
         .ProducesProblem(StatusCodes.Status400BadRequest)
-        .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status404NotFound)
-        .WithSummary("Get paginated Activities")
-        .WithDescription("Returns paginated list of activities filtered by ActivityType, sorted by CreatedAt desc.");
+        .WithSummary("Get paginated Activities with translation")
+        .WithDescription("Returns paginated activities filtered by ActivityType. Name, Description, and ActivityType are translated if TargetLang is provided.");
     }
 }

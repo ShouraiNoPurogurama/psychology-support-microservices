@@ -31,21 +31,30 @@ namespace Wellness.Application.Features.Challenges.Commands
             _dbContext = dbContext;
         }
 
-        public async Task<UpdateChallengeProgressResult> Handle(UpdateChallengeProgressCommand request, CancellationToken cancellationToken)
+        public async Task<UpdateChallengeProgressResult> Handle(
+            UpdateChallengeProgressCommand request,
+            CancellationToken cancellationToken)
         {
             var challengeProgress = await _dbContext.ChallengeProgresses
                 .Include(cp => cp.ChallengeStepProgresses)
                 .Include(cp => cp.Challenge)
-                .ThenInclude(c => c.ChallengeSteps)
+                    .ThenInclude(c => c.ChallengeSteps)
+                .AsSplitQuery() // 👈 tránh query join quá nặng
                 .FirstOrDefaultAsync(
                     cp => cp.Id == request.ChallengeProgressId,
                     cancellationToken);
 
             if (challengeProgress == null)
-                throw new WellnessNotFoundException($"Không tìm thấy ChallengeProgress với Id = {request.ChallengeProgressId}.");
+            {
+                throw new WellnessNotFoundException(
+                    $"Không tìm thấy ChallengeProgress với Id = {request.ChallengeProgressId}.");
+            }
 
             // Cập nhật step
-            challengeProgress.UpdateStep(request.StepId, request.StepStatus, request.PostMoodId);
+            challengeProgress.UpdateStep(
+                request.StepId,
+                request.StepStatus,
+                request.PostMoodId);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 

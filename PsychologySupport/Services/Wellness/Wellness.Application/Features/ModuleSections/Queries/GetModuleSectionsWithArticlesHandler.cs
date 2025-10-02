@@ -1,18 +1,21 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Messaging.Events.Queries.Media;
 using BuildingBlocks.Pagination;
+using BuildingBlocks.Utils;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Translation.API.Protos;
 using Wellness.Application.Data;
-using Wellness.Application.Features.ModuleSections.Dtos;
-using Wellness.Domain.Enums;
 using Wellness.Application.Exceptions;
+using Wellness.Application.Features.ModuleSections.Dtos;
+using Wellness.Domain.Aggregates.ModuleSections;
+using Wellness.Domain.Enums;
 
 public record GetModuleSectionsWithArticlesQuery(
     Guid ModuleId,
     Guid SubjectRef,
-    int PageIndex,
-    int PageSize
+    PaginationRequest PaginationRequest,
+    string? TargetLang = null
 ) : IQuery<GetModuleSectionsWithArticlesResult>;
 
 public record GetModuleSectionsWithArticlesResult(PaginatedResult<ModuleSectionDetailsDto> Sections);
@@ -23,37 +26,51 @@ public class GetModuleSectionsWithArticlesHandler
 {
     private readonly IWellnessDbContext _context;
     private readonly IRequestClient<GetMediaUrlRequest> _getMediaUrlClient;
+    private readonly TranslationService.TranslationServiceClient _translationClient;
 
     public GetModuleSectionsWithArticlesHandler(
         IWellnessDbContext context,
-        IRequestClient<GetMediaUrlRequest> getMediaUrlClient)
+        IRequestClient<GetMediaUrlRequest> getMediaUrlClient,
+        TranslationService.TranslationServiceClient translationClient)
     {
         _context = context;
         _getMediaUrlClient = getMediaUrlClient;
+        _translationClient = translationClient;
     }
 
     public async Task<GetModuleSectionsWithArticlesResult> Handle(GetModuleSectionsWithArticlesQuery request, CancellationToken cancellationToken)
     {
-        var query = _context.ModuleSections
+        int skip = (request.PaginationRequest.PageIndex - 1) * request.PaginationRequest.PageSize;
+        int take = request.PaginationRequest.PageSize;
+
+        var sections = await _context.ModuleSections
             .AsNoTracking()
             .Include(ms => ms.SectionArticles)
                 .ThenInclude(a => a.ArticleProgresses)
+                    .ThenInclude(ap => ap.ModuleProgress)
             .Include(ms => ms.ModuleProgresses)
-            .Where(ms => ms.ModuleId == request.ModuleId);
-
-        var totalCount = await query.CountAsync(cancellationToken);
-        if (totalCount == 0)
-            throw new WellnessNotFoundException($"Không tìm thấy module sections cho ModuleId '{request.ModuleId}'.");
-
-        var sections = await query
+            .Where(ms => ms.Id == request.ModuleId)
             .OrderBy(ms => ms.Title)
-            .Skip((request.PageIndex - 1) * request.PageSize)
-            .Take(request.PageSize)
             .ToListAsync(cancellationToken);
 
-        // Lấy tất cả MediaId (ModuleSection + SectionArticles)
-        var mediaIds = sections.Select(ms => ms.MediaId)
-            .Concat(sections.SelectMany(ms => ms.SectionArticles.Select(a => a.MediaId)))
+        if (!sections.Any())
+            throw new WellnessNotFoundException($"Không tìm thấy module sections cho ModuleId '{request.ModuleId}'.");
+
+        // Flatten tất cả SectionArticles
+        var allArticles = sections
+            .SelectMany(ms => ms.SectionArticles.Select(a => new { ModuleSection = ms, Article = a }))
+            .OrderBy(a => a.Article.OrderIndex)
+            .ToList();
+
+        var totalCount = allArticles.Count;
+
+        // Áp dụng pagination
+        var pagedArticles = allArticles.Skip(skip).Take(take).ToList();
+
+        // Lấy tất cả MediaIds
+        var mediaIds = pagedArticles
+            .Select(a => a.Article.MediaId)
+            .Concat(pagedArticles.Select(a => a.ModuleSection.MediaId))
             .Distinct()
             .ToList();
 
@@ -61,42 +78,79 @@ public class GetModuleSectionsWithArticlesHandler
             .GetResponse<GetMediaUrlResponse>(new GetMediaUrlRequest { MediaIds = mediaIds }, cancellationToken);
         var mediaUrls = mediaResponse.Message.Urls;
 
-        var dtoList = sections.Select(ms =>
+        // Translation
+        Dictionary<string, string>? translations = null;
+        if (!string.IsNullOrEmpty(request.TargetLang))
         {
-            // Progress của module section
+            var translationDict = TranslationUtils.CreateBuilder()
+                .AddEntities(sections, nameof(ModuleSection), ms => ms.Title)
+                .AddEntities(sections, nameof(ModuleSection), ms => ms.Description)
+                .AddEntities(pagedArticles.Select(a => a.Article), nameof(SectionArticle), a => a.Title)
+                .Build();
+
+            var translationRequest = new TranslateDataRequest
+            {
+                Originals = { translationDict },
+                TargetLanguage = request.TargetLang
+            };
+
+            var translationResponse = await _translationClient
+                .TranslateDataAsync(translationRequest, cancellationToken: cancellationToken);
+
+            translations = translationResponse.Translations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        }
+
+        // Map thành DTO
+        var groupedBySection = pagedArticles.GroupBy(a => a.ModuleSection.Id);
+        var dtoList = groupedBySection.Select(g =>
+        {
+            var ms = g.First().ModuleSection;
+
+            // Dùng MapTranslatedProperties cho ModuleSection
+            var translatedSection = translations!.MapTranslatedProperties(
+                ms,
+                nameof(ModuleSection),
+                ms.Id.ToString(),
+                x => x.Title,
+                x => x.Description
+            );
+
             var sectionProgress = ms.ModuleProgresses
                 .FirstOrDefault(p => p.SubjectRef == request.SubjectRef && p.SectionId == ms.Id);
 
             int completedDuration = sectionProgress?.MinutesRead ?? 0;
             bool sectionCompleted = sectionProgress?.ProcessStatus == ProcessStatus.Completed;
 
-            // Danh sách bài viết
-            var articles = ms.SectionArticles
-                .OrderBy(a => a.OrderIndex)
-                .Select(a =>
-                {
-                    var progress = a.ArticleProgresses
-                        .FirstOrDefault(p => p.ModuleProgress != null && p.ModuleProgress.SubjectRef == request.SubjectRef);
+            // Dùng MapTranslatedPropertiesForCollection cho Article
+            var translatedArticles = translations!.MapTranslatedPropertiesForCollection(
+                g.Select(x => x.Article),
+                nameof(SectionArticle),
+                a => a.Title
+            );
 
-                    bool completed = progress?.ProcessStatus == ProcessStatus.Completed;
+            var articles = translatedArticles.Select(a =>
+            {
+                var progress = a.ArticleProgresses
+                    .FirstOrDefault(p => p.ModuleProgress != null && p.ModuleProgress.SubjectRef == request.SubjectRef);
+                bool completed = progress?.ProcessStatus == ProcessStatus.Completed;
 
-                    return new SectionArticleDto(
-                        a.Id,
-                        a.Title,
-                        mediaUrls.TryGetValue(a.MediaId, out var url) ? url : string.Empty,
-                        a.ContentJson,
-                        a.OrderIndex,
-                        a.Duration,
-                        completed,
-                        a.Source
-                    );
-                }).ToList();
+                return new SectionArticleDto(
+                    a.Id,
+                    a.Title, 
+                    mediaUrls.TryGetValue(a.MediaId, out var url) ? url : string.Empty,
+                    a.ContentJson,
+                    a.OrderIndex,
+                    a.Duration,
+                    completed,
+                    a.Source
+                );
+            }).ToList();
 
             return new ModuleSectionDetailsDto(
                 ms.Id,
-                ms.Title,
+                translatedSection.Title,
                 mediaUrls.TryGetValue(ms.MediaId, out var sectionUrl) ? sectionUrl : string.Empty,
-                ms.Description,
+                translatedSection.Description,
                 ms.TotalDuration,
                 completedDuration,
                 sectionCompleted,
@@ -105,9 +159,10 @@ public class GetModuleSectionsWithArticlesHandler
             );
         }).ToList();
 
+
         var paginatedResult = new PaginatedResult<ModuleSectionDetailsDto>(
-            request.PageIndex,
-            request.PageSize,
+            request.PaginationRequest.PageIndex,
+            request.PaginationRequest.PageSize,
             totalCount,
             dtoList
         );

@@ -17,8 +17,8 @@ public class GetMoodEndpoint : ICarterModule
         app.MapGet("/v1/moods", async (ISender sender, HttpContext httpContext) =>
         {
             // Authorization check
-            if (!AuthorizationHelpers.HasViewAccess(httpContext.User))
-                throw new ForbiddenException();
+            //if (!AuthorizationHelpers.HasViewAccess(httpContext.User))
+            //    throw new ForbiddenException();
 
             var result = await sender.Send(new GetMoodsQuery());
             return Results.Ok(new GetMoodsResponse(result.Moods));

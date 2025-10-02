@@ -3,12 +3,8 @@ using BuildingBlocks.Messaging.MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using Translation.API.Protos;
 
 namespace Wellness.Application
 {
@@ -26,7 +22,25 @@ namespace Wellness.Application
             services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
             services.AddFeatureManagement();
 
+            AddGrpcServiceDependencies(services, configuration);
+
             return services;
+        }
+
+        private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
+        {
+            services.AddGrpcClient<TranslationService.TranslationServiceClient>(options =>
+            {
+                options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                return handler;
+            });
         }
     }
 }
