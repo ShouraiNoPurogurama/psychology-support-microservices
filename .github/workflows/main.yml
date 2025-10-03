@@ -1,198 +1,221 @@
-# name: Deploy to VPS on push
+name: Deploy to VPS (Compose Pull+Up + Auto Health)
 
-# on:
-#   push:
-#     branches:
-#       - main
-#   workflow_dispatch:
+on:
+  # Tự động chạy sau workflow build
+  workflow_run:
+    workflows: [ "Build & Push Microservices (GHCR)" ]
+    types: [ completed ]
 
-# jobs:
-#   sync-base-secrets:
-#     uses: ./.github/workflows/sync-secrets.yml
-#     secrets: inherit
+  # Nút bấm thủ công: có input deploy_all
+  workflow_dispatch:
+    inputs:
+      deploy_all:
+        description: "Deploy tất cả services (bỏ qua detect diff)?"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+      image_tag:
+        description: "Tag image để deploy (main hoặc SHA cụ thể)"
+        required: false
+        default: "main"
+        type: string
 
-#   sync-production-appsettings:
-#     uses: ./.github/workflows/sync-production-appsettings.yml
-#     secrets: inherit
+permissions:
+  actions: read
+  contents: read
 
-#   deploy:
-#     runs-on: ubuntu-latest
-#     needs: [sync-base-secrets, sync-production-appsettings]
-#     environment: Production
-#     steps:
-#       - name: Build & deploy updated microservices with health check & rollback
-#         uses: appleboy/ssh-action@master
-#         with:
-#           host: ${{ secrets.VPS_HOST }}
-#           command_timeout: 30m
-#           username: ${{ secrets.VPS_USERNAME }}
-#           password: ${{ secrets.VPS_PASSWORD }}
-#           script: |
-#             set -e
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH (detect diff on VPS + selective OR deploy-all)
+        uses: appleboy/ssh-action@master
+        env:
+          # Khi workflow_run: dùng head_sha của run build; khi bấm tay: dùng input image_tag (mặc định main)
+          EFFECTIVE_TAG: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || inputs.image_tag }}
+          FORCE_ALL: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_all || 'false' }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          command_timeout: 30m
+          script: |
+            set -euo pipefail
 
-#             cd /home/emoease/PsychologySupport
+            WORKDIR="/home/emoease/PsychologySupport"
+            COMPOSE="docker-compose-apis.yml"
 
-#             git reset --hard HEAD
-#             git pull origin main
+            cd "$WORKDIR"
 
-#             # Removed services = image.api lifestyles.api scheduling.api 
-#             ALL_SERVICES="auth.api chatbox.api payment.api profile.api subscription.api test.api translation.api aimoderation.api alias.api billing.api digitalgoods.api feed.api media.api post.api yarpapigateway"
+            echo "📝 Lấy mốc commit cũ (nếu có)"
+            OLD_COMMIT="$(cat .deploy_commit 2>/dev/null || git rev-parse HEAD)"
 
-#             HAS_BUILDING_BLOCKS_CHANGE=$(git diff --name-only HEAD^ HEAD \
-#               | grep -E '^PsychologySupport/BuildingBlocks/|^PsychologySupport/BuildingBlocks.Messaging/' || true)
+            echo "📝 Git pull main"
+            git reset --hard
+            git pull origin main
 
-#             if [ -n "$HAS_BUILDING_BLOCKS_CHANGE" ]; then
-#               echo "Detected changes in BuildingBlocks or Messaging. All microservices will be rebuilt."
-#               CHANGED="$ALL_SERVICES"
-#             else
-#               CHANGED=$(git diff --name-only HEAD^ HEAD \
-#                 | grep -E '^PsychologySupport/Services/[^/]+/|^PsychologySupport/ApiGateways/[^/]+' \
-#                 | awk -F/ '{
-#                     if ($1 == "PsychologySupport" && $2 == "Services") {
-#                       svc = tolower($3);
-#                       ext = ".api";
-#                       if (svc == "promotion") ext = ".grpc";
-#                       print svc ext;
-#                     } else if ($1 == "PsychologySupport" && $2 == "ApiGateways") {
-#                       print tolower($3)
-#                     }
-#                   }' \
-#                 | grep -v '^notification\.api$' \
-#                 | sort -u)
-#             fi
+            NEW_COMMIT="$(git rev-parse HEAD)"
+            echo "Diff range: ${OLD_COMMIT}..${NEW_COMMIT}"
 
-#             echo "================= DEBUGGING ================="
-#             echo "*** Changed Microservices: $CHANGED"
-#             echo "============================================="
+            echo "🔐 Login GHCR"
+            echo "${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}" | docker login ghcr.io -u "${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}" --password-stdin
 
-#             # ----------------- BASH FUNCTIONS -----------------
-#             build_service() {
-#               local svc="$1"
-#               local bake_target="${svc//./_}"
-#               echo "🔨 [$(date +%T)] Building $svc..."
-#               if docker buildx bake --file docker-compose-apis.yml "$svc"; then
-#                 echo "✅ [$(date +%T)] Build succeeded: $svc"
-#                 return 0
-#               else
-#                 echo "❌ [$(date +%T)] Build failed: $svc"
-#                 return 1
-#               fi
-#             }
+            # ====== Image tag ======
+            NEW_TAG="${EFFECTIVE_TAG:-main}"
+            echo "📝 Set IMAGE_TAG=${NEW_TAG}"
+            cp -f .env ".env.backup.$(date +%s)" || true
+            touch .env
+            set_kv () {
+              local k="$1"; local v="$2"
+              if grep -qE "^${k}=" .env; then
+                sed -i "s|^${k}=.*|${k}=${v}|" .env
+              else
+                echo "${k}=${v}" >> .env
+              fi
+            }
+            set_kv IMAGE_TAG "${NEW_TAG}"
+            echo "📄 .env hiện tại:"; cat .env || true
 
-#             up_service() {
-#               local svc="$1"
-#               echo "🚀 [$(date +%T)] Starting $svc..."
-#               if docker compose -f docker-compose-apis.yml up -d "$svc"; then
-#                 echo "✅ [$(date +%T)] $svc is up and running"
-#                 return 0
-#               else
-#                 echo "❌ [$(date +%T)] Failed to start: $svc"
-#                 return 1
-#               fi
-#             }
+            # ====== Danh sách services chuẩn ======
+            ALL_SERVICES=(
+              "alias.api" "auth.api" "chatbox.api" "feed.api" "media.api"
+              "payment.api" "post.api" "profile.api" "promotion.grpc"
+              "subscription.api" "test.api" "translation.api" "yarpapigateway"
+            )
 
-#             get_port() {
-#               local svc="$1"
-#               # Get published host port mapped from container port 8080
-#               if [ "$svc" = "yarpapigateway" ]; then 
-#                 echo 80
-#               else
-#                 docker compose -f docker-compose-apis.yml port "$svc" 8080 | head -n 1 | cut -d: -f2
-#               fi
-#             }
+            # ====== Chế độ deploy-all khi bấm nút ======
+            if [ "${FORCE_ALL}" = "true" ]; then
+              echo "🔘 FORCE_ALL=true → Deploy ALL services (tag: ${NEW_TAG})"
+              mapfile -t SERVICES < <(printf '%s\n' "${ALL_SERVICES[@]}" | sort)
+            else
+              echo "🧮 Tính file thay đổi"
+              mapfile -t CHANGED_FILES < <(git diff --name-only --diff-filter=ACMR "${OLD_COMMIT}".."${NEW_COMMIT}" || true)
 
-#             wait_healthy() {
-#               local svc="$1"
-#               local port="$2"
-#               local max_wait=30
-#               local waited=0
-#               while ! curl -fsS "http://localhost:$port/health" | grep -q '"status":"Healthy"'; do
-#                 if [ "$waited" -ge "$max_wait" ]; then
-#                   echo "❌ $svc is not healthy after $max_wait seconds."
-#                   return 1
-#                 fi
-#                 sleep 2
-#                 waited=$((waited + 2))
-#                 echo "⏳ Waiting for $svc to become healthy... ($waited/$max_wait)"
-#               done
-#               echo "✅ $svc is healthy!"
-#               return 0
-#             }
+              declare -A SVC_SET=()
+              add_svc(){ SVC_SET["$1"]=1; }
 
-#             rollback_service() {
-#               local svc="$1"
-#               local repo=$(echo "$svc" | tr -d '.') #Bỏ dấu chấm để khớp với tên image
-              
-#               echo "🔙 Rolling back $repo to previous image."
-#               docker compose -f docker-compose-apis.yml stop "$svc"
-#               docker tag "$repo:old" "$repo:latest"
-#               docker compose -f docker-compose-apis.yml up -d "$svc"
-#               local port
-#               port=$(get_port "$svc")
-#               if wait_healthy "$svc" "$port"; then
-#                 echo "♻️ Rollback succeeded for $repo!"
-#               else
-#                 echo "🚨 Rollback failed for $repo! Please check manually."
-#               fi
-#             }
+              if [ ${#CHANGED_FILES[@]} -eq 0 ]; then
+                echo "⚠️ Không có file thay đổi (có thể lần đầu deploy) → deploy all"
+                for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
+              else
+                for f in "${CHANGED_FILES[@]}"; do
+                  case "$f" in
+                    Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*)                     add_svc "alias.api" ;;
+                    Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*)                         add_svc "auth.api" ;;
+                    Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*)             add_svc "chatbox.api" ;;
+                    Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*)                         add_svc "feed.api" ;;
+                    Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*)                     add_svc "media.api" ;;
+                    Services/Payment/Payment.API/*|PsychologySupport/Services/Payment/Payment.API/*)             add_svc "payment.api" ;;
+                    Services/Post/Post.API/*|PsychologySupport/Services/Post/Post.API/*)                         add_svc "post.api" ;;
+                    Services/Profile/Profile.API/*|PsychologySupport/Services/Profile/Profile.API/*)             add_svc "profile.api" ;;
+                    Services/Promotion/Promotion.Grpc/*|PsychologySupport/Services/Promotion/Promotion.Grpc/*)   add_svc "promotion.grpc" ;;
+                    Services/Subscription/Subscription.API/*|PsychologySupport/Services/Subscription/Subscription.API/*) add_svc "subscription.api" ;;
+                    Services/Test/Test.API/*|PsychologySupport/Services/Test/Test.API/*)                         add_svc "test.api" ;;
+                    Services/Translation/Translation.API/*|PsychologySupport/Services/Translation/Translation.API/*) add_svc "translation.api" ;;
+                    ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*)                 add_svc "yarpapigateway" ;;
+                    # Động chạm file nền → deploy all để an toàn
+                    Directory.Packages.props|nuget.config|packages.lock.json|.dockerignore|docker-compose-apis.yml|BuildingBlocks/*|BuildingBlocks.Messaging/*|PsychologySupport/BuildingBlocks/*|PsychologySupport/BuildingBlocks.Messaging/*)
+                      for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done ;;
+                  esac
+                done
+              fi
 
-#             # ----------- TAG OLD IMAGE BEFORE BUILDING -------------
-#             for svc in $CHANGED; do
-#               IMAGE_REPO=$(echo "$svc" | tr -d '.')
-#               echo "[DEBUG] Attempting to tag $IMAGE_REPO:latest as $IMAGE_REPO:old"
-#               echo "[DEBUG] svc=$svc, IMAGE_REPO=$IMAGE_REPO"
-#               docker images "$IMAGE_REPO"
-#               if docker images "$IMAGE_REPO:latest" | grep -q latest; then
-#                 docker tag "$IMAGE_REPO:latest" "$IMAGE_REPO:old" || true
-#                 echo "[DEBUG] Tagged $IMAGE_REPO:latest as $IMAGE_REPO:old"
-#               else
-#                 echo "[WARN] No $IMAGE_REPO:latest image found, skipping tag"
-#               fi
-#             done
+              # Nếu vẫn rỗng (edge-case) → deploy all
+              if [ ${#SVC_SET[@]} -eq 0 ]; then
+                echo "⚠️ Không detect service nào → deploy all"
+                for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
+              fi
 
-#             # ------------ DUMMY BUILD TO WARM-UP CACHE -------------
-#             DUMMY_SERVICE=$(echo "$CHANGED" | awk '{print $1}')
-#             if [ -n "$DUMMY_SERVICE" ]; then
-#               echo "🔥 Dummy build ($DUMMY_SERVICE) to warm-up Docker cache..."
-#               build_service "$DUMMY_SERVICE"
-#               echo "🔥 Dummy build for $DUMMY_SERVICE completed. Proceeding to parallel builds..."
-#             fi
+              mapfile -t SERVICES < <(printf '%s\n' "${!SVC_SET[@]}" | sort)
+            fi
 
-#             # ------------ PARALLEL BUILD (max 2 at a time) -------------
-#             COUNT=0
-#             MAX_PARALLEL=2
-#             for svc in $CHANGED; do
-#               (
-#                 build_service "$svc"
-#               ) &
-#               COUNT=$((COUNT + 1))
-#               if [ "$COUNT" -ge "$MAX_PARALLEL" ]; then
-#                 wait
-#                 COUNT=0
-#               fi
-#             done
-#             wait
-#             echo "=== All builds completed ==="
+            echo "🧩 Sẽ deploy các service:"
+            printf ' - %s\n' "${SERVICES[@]}"
 
-#             # ----------- UP, HEALTH CHECK & ROLLBACK -------------
-#             for svc in $CHANGED; do
-#               up_service "$svc"
-#               port=$(get_port "$svc")
-#               if [ -z "$port" ]; then
-#                 echo "⚠️ Port not found for $svc, skipping health check."
-#                 continue
-#               fi
+            echo "📥 Pull + 🚀 Up"
+            for s in "${SERVICES[@]}"; do
+              echo "📥 Pull $s (tag=${NEW_TAG})"
+              docker compose -f "${COMPOSE}" pull "$s" || true
+              echo "🚀 Up $s"
+              docker compose -f "${COMPOSE}" up -d "$s"
+            done
 
-#               if [ "$svc" = "promotiongrpc" ]; then 
-#                 echo "$svc has been excluded from Health Check."
-#               elif wait_healthy "$svc" "$port"; then
-#                 echo "✅ $svc is running and healthy!"
-#               else
-#                 echo "❌ $svc health check failed. Rolling back..."
-#                 rollback_service "$svc"
-#               fi
-#             done
+            # ====== Health-check cho các service vừa deploy ======
+            get_label() {
+              docker inspect -f '{{ index .Config.Labels "'"$2"'" }}' "$1" 2>/dev/null || true
+            }
+            wait_container_healthy() {
+              local name="$1"; local max_wait=60; local waited=0
+              while true; do
+                state="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$name" 2>/dev/null || echo none)"
+                if [ "$state" = "healthy" ]; then
+                  echo "✅ $name HEALTHCHECK: healthy"; return 0
+                fi
+                if [ "$state" = "none" ]; then return 2; fi
+                if [ $waited -ge $max_wait ]; then
+                  echo "❌ $name HEALTHCHECK timeout"; return 1
+                fi
+                sleep 2; waited=$((waited+2))
+                echo "⏳ Waiting $name HEALTHCHECK... ($waited/$max_wait)"
+              done
+            }
+            http_health() {
+              local svc="$1"; local cname="$2"
+              local path="$(get_label "$cname" 'com.emoease.health_path')"
+              local port_override="$(get_label "$cname" 'com.emoease.health_port')"
+              local max_wait=60; local waited=0
+              [ -z "$path" ] && path="/health"
+              local host_port=""
+              if [ -n "$port_override" ]; then
+                host_port="$port_override"
+              else
+                host_port="$(docker compose -f "${COMPOSE}" port "$svc" 8080 | head -n1 | awk -F: '{print $NF}')"
+                if [ -z "$host_port" ]; then
+                  host_port="$(docker compose -f "${COMPOSE}" port "$svc" 80 | head -n1 | awk -F: '{print $NF}')"
+                fi
+              fi
+              [ -z "$host_port" ] && { echo "⚠️ Không tìm thấy host port cho $svc, skip HTTP health."; return 0; }
+              while true; do
+                if curl -fsS "http://localhost:${host_port}${path}" | grep -q '"status":"Healthy"'; then
+                  echo "✅ $svc HTTP ${path} OK (:${host_port})"; return 0
+                fi
+                if [ $waited -ge $max_wait ]; then
+                  echo "❌ $svc HTTP health timeout (${path} on :${host_port})"; return 1
+                fi
+                sleep 2; waited=$((waited+2))
+                echo "⏳ Waiting $svc HTTP health... ($waited/$max_wait)"
+              done
+            }
 
-#             docker image prune -f
+            echo "🩺 Health-check các service vừa deploy"
+            for svc in "${SERVICES[@]}"; do
+              cname="$(docker compose -f "${COMPOSE}" ps -q "$svc" | xargs -r docker inspect --format '{{.Name}}' | sed 's#^/##' || true)"
+              [ -z "$cname" ] && { echo "  ⚠️ Không tìm thấy container cho $svc, bỏ qua health."; continue; }
+              skip="$(get_label "$cname" 'com.emoease.health_skip')"
+              if [ "$skip" = "true" ]; then
+                echo "  Skip health for $svc (label com.emoease.health_skip=true)"; continue
+              fi
+              if wait_container_healthy "$cname"; then
+                continue
+              elif [ $? -eq 2 ]; then
+                http_health "$svc" "$cname" || {
+                  echo "❌ Health fail on $svc → rollback .env (giữ tag ${NEW_TAG})"
+                  cp -f .env.backup.* .env 2>/dev/null || true
+                  docker compose -f "${COMPOSE}" up -d "$svc"
+                  exit 1
+                }
+              else
+                echo "❌ Health fail on $svc → rollback .env (giữ tag ${NEW_TAG})"
+                cp -f .env.backup.* .env 2>/dev/null || true
+                docker compose -f "${COMPOSE}" up -d "$svc"
+                exit 1
+              fi
+            done
 
-#             echo "=== All selected services have been updated (health checks & auto-rollback included) ==="
+            echo "🧭 Ghi mốc commit mới"
+            echo "${NEW_COMMIT}" > .deploy_commit
+
+            echo "🧹 Cleanup dangling"
+            docker image prune -f
