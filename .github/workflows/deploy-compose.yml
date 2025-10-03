@@ -15,38 +15,10 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Download services artifact from triggering run
-        if: ${{ github.event_name == 'workflow_run' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: services
-          path: ./ci-artifacts
-          run-id: ${{ github.event.workflow_run.id }}
-
-      - name: Fallback (manual dispatch) - no artifact available
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: |
-          echo '[]' > ./ci-artifacts/services.json
-
-      - name: Read services list
-        id: svc
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat ./ci-artifacts/services.json
-          # Convert JSON (["a","b"]) -> "a b"
-          if ! command -v jq >/dev/null 2>&1; then
-            sudo apt-get update -y && sudo apt-get install -y jq
-          fi
-          SERVICES_SPACE="$(jq -r 'join(" ")' ./ci-artifacts/services.json)"
-          echo "services_space=${SERVICES_SPACE}" >> "$GITHUB_OUTPUT"
-
-      - name: Deploy via SSH (selective pull/up)
+      - name: Deploy via SSH (detect diff on VPS + selective pull/up)
         uses: appleboy/ssh-action@master
         env:
-          # Danh sách service dạng "auth.api yarpapigateway ..."
-          SERVICES_SPACE: ${{ steps.svc.outputs.services_space }}
-          # Tag image sẽ dùng: head_sha của workflow_run; nếu chạy tay thì dùng github.sha
+          # Dùng 'main' để tránh manifest unknown khi service không build theo SHA
           NEW_TAG: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -55,13 +27,21 @@ jobs:
           command_timeout: 30m
           script: |
             set -euo pipefail
+
             WORKDIR="/home/emoease/PsychologySupport"
             COMPOSE="docker-compose-apis.yml"
+
             cd "$WORKDIR"
 
-            echo "📝 Git pull "
+            echo "📝 Lấy mốc commit cũ (nếu có)"
+            OLD_COMMIT="$(cat .deploy_commit 2>/dev/null || git rev-parse HEAD)"
+
+            echo "📝 Git pull main"
             git reset --hard
             git pull origin main
+
+            NEW_COMMIT="$(git rev-parse HEAD)"
+            echo "Diff range: ${OLD_COMMIT}..${NEW_COMMIT}"
 
             echo "🔐 Login GHCR"
             echo "${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}" | docker login ghcr.io -u "${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}" --password-stdin
@@ -69,36 +49,75 @@ jobs:
             echo "📝 Set IMAGE_TAG=${NEW_TAG}"
             cp -f .env ".env.backup.$(date +%s)" || true
             touch .env
-            if grep -qE "^IMAGE_TAG=" .env; then
-              sed -i "s|^IMAGE_TAG=.*|IMAGE_TAG=${NEW_TAG}|" .env
-            else
-              echo "IMAGE_TAG=${NEW_TAG}" >> .env
-            fi
+            set_kv () {
+              local k="$1"; local v="$2"
+              if grep -qE "^${k}=" .env; then
+                sed -i "s|^${k}=.*|${k}=${v}|" .env
+              else
+                echo "${k}=${v}" >> .env
+              fi
+            }
+            set_kv IMAGE_TAG "${NEW_TAG}"
             echo "📄 .env hiện tại:"; cat .env || true
 
-            # Parse danh sách service (space-separated -> array)
-            SERVICES=()
-            if [ -n "${SERVICES_SPACE:-}" ]; then
-              read -r -a SERVICES <<< "${SERVICES_SPACE}"
+            echo "🧮 Tính file thay đổi"
+            mapfile -t CHANGED_FILES < <(git diff --name-only --diff-filter=ACMR "${OLD_COMMIT}".."${NEW_COMMIT}" || true)
+
+            echo "🧭 Map folder → service (giống logic build)"
+            ALL_SERVICES=(
+              "alias.api" "auth.api" "chatbox.api" "feed.api" "media.api"
+              "payment.api" "post.api" "profile.api" "promotion.grpc"
+              "subscription.api" "test.api" "translation.api" "yarpapigateway"
+            )
+
+            declare -A SVC_SET=()
+            add_svc(){ SVC_SET["$1"]=1; }
+
+            if [ ${#CHANGED_FILES[@]} -eq 0 ]; then
+              echo "⚠️ Không có file thay đổi (có thể lần đầu deploy) → deploy all (tag: ${NEW_TAG})"
+              for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
+            else
+              for f in "${CHANGED_FILES[@]}"; do
+                case "$f" in
+                  Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*)                     add_svc "alias.api" ;;
+                  Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*)                         add_svc "auth.api" ;;
+                  Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*)             add_svc "chatbox.api" ;;
+                  Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*)                         add_svc "feed.api" ;;
+                  Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*)                     add_svc "media.api" ;;
+                  Services/Payment/Payment.API/*|PsychologySupport/Services/Payment/Payment.API/*)             add_svc "payment.api" ;;
+                  Services/Post/Post.API/*|PsychologySupport/Services/Post/Post.API/*)                         add_svc "post.api" ;;
+                  Services/Profile/Profile.API/*|PsychologySupport/Services/Profile/Profile.API/*)             add_svc "profile.api" ;;
+                  Services/Promotion/Promotion.Grpc/*|PsychologySupport/Services/Promotion/Promotion.Grpc/*)   add_svc "promotion.grpc" ;;
+                  Services/Subscription/Subscription.API/*|PsychologySupport/Services/Subscription/Subscription.API/*) add_svc "subscription.api" ;;
+                  Services/Test/Test.API/*|PsychologySupport/Services/Test/Test.API/*)                         add_svc "test.api" ;;
+                  Services/Translation/Translation.API/*|PsychologySupport/Services/Translation/Translation.API/*) add_svc "translation.api" ;;
+                  ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*)                 add_svc "yarpapigateway" ;;
+                  Directory.Packages.props|nuget.config|packages.lock.json|.dockerignore|docker-compose-apis.yml|BuildingBlocks/*|BuildingBlocks.Messaging/*|PsychologySupport/BuildingBlocks/*|PsychologySupport/BuildingBlocks.Messaging/*)
+                    for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done ;;
+                esac
+              done
             fi
 
-            if [ ${#SERVICES[@]} -eq 0 ]; then
-              echo "⚠️ Không có service nào trong artifact. Dừng mà không deploy gì."
-              exit 0
+            # Nếu vẫn rỗng (edge-case) → deploy all
+            if [ ${#SVC_SET[@]} -eq 0 ]; then
+              echo "⚠️ Không detect được service nào → deploy all (tag: ${NEW_TAG})"
+              for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
             fi
 
-            echo "🧩 Services sẽ deploy:"
-            for s in "${SERVICES[@]}"; do echo " - $s"; done
+            # Kết xuất danh sách service
+            mapfile -t SERVICES < <(printf '%s\n' "${!SVC_SET[@]}" | sort)
+            echo "🧩 Sẽ deploy các service:"
+            printf ' - %s\n' "${SERVICES[@]}"
 
-            echo "📥 Pull + 🚀 Up (chỉ services thay đổi)"
+            echo "📥 Pull + 🚀 Up (chỉ services đã chọn)"
             for s in "${SERVICES[@]}"; do
               echo "📥 Pull $s"
-              docker compose -f "${COMPOSE}" pull "$s"
+              docker compose -f "${COMPOSE}" pull "$s" || true
               echo "🚀 Up $s"
               docker compose -f "${COMPOSE}" up -d "$s"
             done
 
-            # ====== (Optional) Health check gọn cho các service vừa up ======
+            # ====== Health-check gọn cho các service vừa deploy ======
             get_label() {
               docker inspect -f '{{ index .Config.Labels "'"$2"'" }}' "$1" 2>/dev/null || true
             }
@@ -157,18 +176,21 @@ jobs:
                 continue
               elif [ $? -eq 2 ]; then
                 http_health "$svc" "$cname" || {
-                  echo "❌ Health fail on $svc → rollback .env"
+                  echo "❌ Health fail on $svc → rollback .env "
                   cp -f .env.backup.* .env 2>/dev/null || true
                   docker compose -f "${COMPOSE}" up -d "$svc"
                   exit 1
                 }
               else
-                echo "❌ Health fail on $svc → rollback .env"
+                echo "❌ Health fail on $svc → rollback .env "
                 cp -f .env.backup.* .env 2>/dev/null || true
                 docker compose -f "${COMPOSE}" up -d "$svc"
                 exit 1
               fi
             done
+
+            echo "🧭 Ghi mốc commit mới"
+            echo "${NEW_COMMIT}" > .deploy_commit
 
             echo "🧹 Cleanup dangling"
             docker image prune -f
