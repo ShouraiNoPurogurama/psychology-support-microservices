@@ -30,21 +30,18 @@
           "Path": "/subscription-service/{**catch-all}"
         },
         "Transforms": [
-          {
-            { "PathPattern": "/{**catch-all}" },
-            { "TokenExchange": "enabled" }
-          }
+          { "PathPattern": "/{**catch-all}" },
+          { "TokenExchange": "enabled" }
         ]
-      }
-    },
-    "Clusters": {
-      "subscription-cluster": {
-        "Destinations": {
-          "destination1": {
-            "Address": "http://subscription.api:8080/"
+      },
+      "Clusters": {
+        "subscription-cluster": {
+          "Destinations": {
+            "destination1": {
+              "Address": "http://subscription.api:8080/"
+            }
           }
         }
       }
     }
-  }
 }
