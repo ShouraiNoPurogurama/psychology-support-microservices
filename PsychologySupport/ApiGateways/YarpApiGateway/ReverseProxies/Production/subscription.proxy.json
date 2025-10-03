@@ -31,7 +31,8 @@
         },
         "Transforms": [
           {
-            "PathPattern": "/{**catch-all}"
+            { "PathPattern": "/{**catch-all}" },
+            { "TokenExchange": "enabled" }
           }
         ]
       }
