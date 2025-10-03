@@ -1,29 +1,15 @@
 services:
   #  aimoderation.api:
-  #    image: ${DOCKER_REGISTRY-}aimoderationapi
+  #    image: ${DOCKER_REGISTRY}aimoderation.api:${IMAGE_TAG}
   #    container_name: aimoderation.api
-  #    environment:
-  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-  #      - ASPNETCORE_HTTP_PORTS=8080
-  #      - ASPNETCORE_HTTPS_PORTS=8081
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-  #    ports:
-  #      - "5015:8080"
-  #      - "5515:8081"
-  #    build:
-  #      context: .
-  #      dockerfile: Services/AIModeration/AIModeration.API/Dockerfile
-  #    volumes:
-  #      - ~/.aspnet/https:/https:ro
-  #      - ./Services/AIModeration/AIModeration.API/RSAKeys:/app/RSAKeys
+  #    ...
 
   alias.api:
-    image: ${DOCKER_REGISTRY-}aliasapi
+    image: ${DOCKER_REGISTRY}alias.api:${IMAGE_TAG}
     container_name: alias.api
-    depends_on:
-      - distributedcache
+    depends_on: [ distributedcache ]
+    labels:
+      com.emoease.health_path: "/health"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
@@ -34,23 +20,18 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - GrpcSettings__PiiUrl=http://profile.api:8081
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
-    networks:
-      - emoease-net
-    ports:
-      - "5013:8080"
-      - "5513:8081"
-    build:
-      context: .
-      dockerfile: Services/Alias/Alias.API/Dockerfile
+    networks: [ emoease-net ]
+    ports: [ "5013:8080", "5513:8081" ]
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Alias/Alias.API/RSAKeys:/app/RSAKeys
 
   auth.api:
-    image: ${DOCKER_REGISTRY-}authapi
-    depends_on:
-      - distributedcache
+    image: ${DOCKER_REGISTRY}auth.api:${IMAGE_TAG}
     container_name: auth.api
+    depends_on: [ distributedcache ]
+    labels:
+      com.emoease.health_path: "/health"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
@@ -63,42 +44,18 @@ services:
       - GrpcSettings__PiiUrl=http://profile.api:8081
       - GrpcSettings__NotificationUrl=https://https://emoease-notifications.azurewebsites.net
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
-    networks:
-      - emoease-net
-    ports:
-      - "5000:8080"
-      - "5500:8081"
-    build:
-      context: .
-      dockerfile: Services/Auth/Auth.API/Dockerfile
+    networks: [ emoease-net ]
+    ports: [ "5000:8080", "5500:8081" ]
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Auth/Auth.API/RSAKeys:/app/RSAKeys
       - /mnt/dpkeys:/home/app/.aspnet/DataProtection-Keys
-  #
-  #  billing.api:
-  #    image: ${DOCKER_REGISTRY-}billingapi
-  #    container_name: billing.api
-  #    environment:
-  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-  #      - ASPNETCORE_HTTP_PORTS=8080
-  #      - ASPNETCORE_HTTPS_PORTS=8081
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-  #        - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-  #    ports:
-  #      - "5018:8080"
-  #      - "5518:8081"
-  #    build:
-  #      context: .
-  #      dockerfile: Services/Billing/Billing.API/Dockerfile
-  #    volumes:
-  #      - ~/.aspnet/https:/https:ro
-  #      - ./Services/Billing/Billing.API/RSAKeys:/app/RSAKeys
-  #
+
   chatbox.api:
-    image: ${DOCKER_REGISTRY-}chatboxapi
+    image: ${DOCKER_REGISTRY}chatbox.api:${IMAGE_TAG}
     container_name: chatbox.api
+    labels:
+      com.emoease.health_path: "/health"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
@@ -108,41 +65,17 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud/compute-default-sa.json
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
-
-    ports:
-      - "5008:8080"
-      - "5508:8081"
-    build:
-      context: .
-      dockerfile: Services/ChatBox/ChatBox.API/Dockerfile
+    ports: [ "5008:8080", "5508:8081" ]
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/ChatBox/ChatBox.API/RSAKeys:/app/RSAKeys
       - ~/gcp/compute-default-sa.json:/app/gcloud/compute-default-sa.json:ro
-      
-      #  digitalgoods.api:
-      #    image: ${DOCKER_REGISTRY-}digitalgoodsapi
-      #    container_name: digitalgoods.api
-      #    environment:
-      #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-      #      - ASPNETCORE_HTTP_PORTS=8080
-      #      - ASPNETCORE_HTTPS_PORTS=8081
-      #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-      #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-      #    ports:
-      #      - "5022:8080"
-      #      - "5522:8081"
-      #    build:
-      #      context: .
-      #      dockerfile: Services/DigitalGoods/DigitalGoods.API/Dockerfile
-      #    volumes:
-      #      - ~/.aspnet/https:/https:ro
-      #      - ./Services/DigitalGoods/DigitalGoods.API/RSAKeys:/app/RSAKeys
-  
+
   feed.api:
-    image: ${DOCKER_REGISTRY-}feedapi
+    image: ${DOCKER_REGISTRY}feed.api:${IMAGE_TAG}
     container_name: feed.api
+    labels:
+      com.emoease.health_path: "/health"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
@@ -150,63 +83,18 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-    networks:
-      - emoease-net
-    ports:
-      - "5017:8080"
-      - "5517:8081"
-    build:
-      context: .
-      dockerfile: Services/Feed/Feed.API/Dockerfile
+    networks: [ emoease-net ]
+    ports: [ "5017:8080", "5517:8081" ]
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Feed/Feed.API/RSAKeys:/app/RSAKeys
-  #  
-  #  image.api:
-  #    image: ${DOCKER_REGISTRY-}imageapi
-  #    container_name: image.api
-  #    environment:
-  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-  #      - ASPNETCORE_HTTP_PORTS=8080
-  #      - ASPNETCORE_HTTPS_PORTS=8081
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-  #    ports:
-  #      - "5011:8080"
-  #      - "5511:8081"
-  #    build:
-  #      context: .
-  #      dockerfile: Services/Image/Image.API/Dockerfile
-  #    volumes:
-  #      - ~/.aspnet/https:/https:ro
-  
-  #  lifestyles.api:
-  #    image: ${DOCKER_REGISTRY-}lifestylesapi
-  #    container_name: lifestyles.api
-  #    environment:
-  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-  #      - ASPNETCORE_HTTP_PORTS=8080
-  #      - ASPNETCORE_HTTPS_PORTS=8081
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-  #
-  #    ports:
-  #      - "5007:8080"
-  #      - "5507:8081"
-  #    build:
-  #      context: .
-  #      dockerfile: Services/LifeStyles/LifeStyles.API/Dockerfile
-  #    volumes:
-  #      - ~/.aspnet/https:/https:ro
-  #      - ./Services/LifeStyles/LifeStyles.API/RSAKeys:/app/RSAKeys
 
   media.api:
-    image: ${DOCKER_REGISTRY-}mediaapi
+    image: ${DOCKER_REGISTRY}media.api:${IMAGE_TAG}
     container_name: media.api
-    depends_on:
-      - distributedcache
+    depends_on: [ distributedcache ]
+    labels:
+      com.emoease.health_path: "/health"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
@@ -215,40 +103,17 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-    networks:
-      - emoease-net
-    ports:
-      - "5020:8080"
-      - "5520:8081"
-    build:
-      context: .
-      dockerfile: Services/Media/Media.API/Dockerfile
+    networks: [ emoease-net ]
+    ports: [ "5020:8080", "5520:8081" ]
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Media/Media.API/RSAKeys:/app/RSAKeys
-  
-  #  notification.api:
-  #    image: ${DOCKER_REGISTRY-}notificationapi
-  #    container_name: notification.api
-  #    environment:
-  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-  #      - ASPNETCORE_HTTP_PORTS=8080
-  #      - ASPNETCORE_HTTPS_PORTS=8081
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-  #    ports:
-  #      - "5012:8080"
-  #      - "5512:8081"
-  #    build:
-  #      context: .
-  #      dockerfile: Services/Notification/Notification.API/Dockerfile
-  #    volumes:
-  #      - ~/.aspnet/https:/https:ro
 
   payment.api:
-    image: ${DOCKER_REGISTRY-}paymentapi
+    image: ${DOCKER_REGISTRY}payment.api:${IMAGE_TAG}
     container_name: payment.api
+    labels:
+      com.emoease.health_path: "/health"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
@@ -256,23 +121,18 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-    networks:
-      - emoease-net
-    ports:
-      - "5004:8080"
-      - "5504:8081"
-    build:
-      context: .
-      dockerfile: Services/Payment/Payment.API/Dockerfile
+    networks: [ emoease-net ]
+    ports: [ "5004:8080", "5504:8081" ]
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Payment/Payment.API/RSAKeys:/app/RSAKeys
 
   post.api:
-    image: ${DOCKER_REGISTRY-}postapi
+    image: ${DOCKER_REGISTRY}post.api:${IMAGE_TAG}
     container_name: post.api
-    depends_on:
-      - distributedcache
+    depends_on: [ distributedcache ]
+    labels:
+      com.emoease.health_path: "/health"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
@@ -281,44 +141,35 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-    networks:
-      - emoease-net
-    ports:
-      - "5014:8080"
-      - "5514:8081"
-    build:
-      context: .
-      dockerfile: Services/Post/Post.API/Dockerfile
+    networks: [ emoease-net ]
+    ports: [ "5014:8080", "5514:8081" ]
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Post/Post.API/RSAKeys:/app/RSAKeys
 
   profile.api:
-    image: ${DOCKER_REGISTRY-}profileapi
+    image: ${DOCKER_REGISTRY}profile.api:${IMAGE_TAG}
     container_name: profile.api
-    depends_on:
-      - distributedcache
+    depends_on: [ distributedcache ]
+    labels:
+      com.emoease.health_path: "/health"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-    networks:
-      - emoease-net
-    ports:
-      - "5001:8080"
-      - "6001:8081"
-    build:
-      context: .
-      dockerfile: Services/Profile/Profile.API/Dockerfile
+    networks: [ emoease-net ]
+    ports: [ "5001:8080", "6001:8081" ]
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Profile/Profile.API/RSAKeys:/app/RSAKeys
 
   promotion.grpc:
-    image: ${DOCKER_REGISTRY-}promotiongrpc
+    image: ${DOCKER_REGISTRY}promotion.grpc:${IMAGE_TAG}
     container_name: promotion.grpc
+    labels:
+      com.emoease.health_skip: "true"   # gRPC only -> skip HTTP health;
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
@@ -326,38 +177,15 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-    ports:
-      - "5003:8080"
-      - "5503:8081"
-    build:
-      context: .
-      dockerfile: Services/Promotion/Promotion.Grpc/Dockerfile
+    ports: [ "5003:8080", "5503:8081" ]
     volumes:
       - ~/.aspnet/https:/https:ro
-  
-  #  scheduling.api:
-  #    image: ${DOCKER_REGISTRY-}schedulingapi
-  #    container_name: scheduling.api
-  #    environment:
-  #      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-  #      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
-  #      - ASPNETCORE_HTTP_PORTS=8080
-  #      - ASPNETCORE_HTTPS_PORTS=8081
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
-  #      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-  #    ports:
-  #      - "5002:8080"
-  #      - "5502:8081"
-  #    build:
-  #      context: .
-  #      dockerfile: Services/Scheduling/Scheduling.API/Dockerfile
-  #    volumes:
-  #      - ~/.aspnet/https:/https:ro
-  #      - ./Services/Scheduling/Scheduling.API/RSAKeys:/app/RSAKeys
-  
+
   subscription.api:
-    image: ${DOCKER_REGISTRY-}subscriptionapi
+    image: ${DOCKER_REGISTRY}subscription.api:${IMAGE_TAG}
     container_name: subscription.api
+    labels:
+      com.emoease.health_path: "/health"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
@@ -365,21 +193,17 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-    networks:
-      - emoease-net
-    ports:
-      - "5005:8080"
-      - "5505:8081"
-    build:
-      context: .
-      dockerfile: Services/Subscription/Subscription.API/Dockerfile
+    networks: [ emoease-net ]
+    ports: [ "5005:8080", "5505:8081" ]
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Subscription/Subscription.API/RSAKeys:/app/RSAKeys
-  
+
   test.api:
-    image: ${DOCKER_REGISTRY-}testapi
+    image: ${DOCKER_REGISTRY}test.api:${IMAGE_TAG}
     container_name: test.api
+    labels:
+      com.emoease.health_path: "/health"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
@@ -390,14 +214,8 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud/compute-default-sa.json
       - GrpcSettings__TranslationUrl=http://translation.api:8081
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
-    networks:
-      - emoease-net
-    ports:
-      - "5006:8080"
-      - "5506:8081"
-    build:
-      context: .
-      dockerfile: Services/Test/Test.API/Dockerfile
+    networks: [ emoease-net ]
+    ports: [ "5006:8080", "5506:8081" ]
     volumes:
       - ~/.aspnet/https:/https:ro
       - ~/gcp/compute-default-sa.json:/app/gcloud/compute-default-sa.json:ro
@@ -406,10 +224,11 @@ services:
       - /usr/share/fonts:/usr/share/fonts:ro
 
   translation.api:
-    image: ${DOCKER_REGISTRY-}translation
+    image: ${DOCKER_REGISTRY}translation.api:${IMAGE_TAG} 
     container_name: translation.api
-    depends_on:
-      - distributedcache
+    depends_on: [ distributedcache ]
+    labels:
+      com.emoease.health_path: "/health"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
@@ -423,24 +242,20 @@ services:
       - ASPNETCORE_Kestrel__Endpoints__Rest__Protocols=Http1
       - ASPNETCORE_Kestrel__Endpoints__GrpcH2c__Url=http://0.0.0.0:8081
       - ASPNETCORE_Kestrel__Endpoints__GrpcH2c__Protocols=Http2
-    networks:
-      - emoease-net
-    ports:
-      - "5009:8080"
-      - "5509:8081"
-    build:
-      context: .
-      dockerfile: Services/Translation/Translation.API/Dockerfile
+    networks: [ emoease-net ]
+    ports: [ "5009:8080", "5509:8081" ]
     volumes:
       - ~/.aspnet/https:/https:ro
       - ~/gcp/compute-default-sa.json:/app/gcloud/compute-default-sa.json:ro
       - ./Services/Translation/Translation.API/RSAKeys:/app/RSAKeys
 
   yarpapigateway:
-    image: ${DOCKER_REGISTRY-}yarpapigateway
+    image: ${DOCKER_REGISTRY}yarpapigateway:${IMAGE_TAG}
     container_name: emoease.yarpapigateway
-    depends_on:
-      - distributedcache
+    depends_on: [ distributedcache ]
+    labels:
+      com.emoease.health_path: "/health"
+      com.emoease.health_port: "8080"   
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
@@ -453,30 +268,23 @@ services:
       - ASPNETCORE_URLS=http://0.0.0.0:8080
       - GrpcSettings__PiiUrl=http://profile.api:8081
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
-    networks:
-      - emoease-net
-
+    networks: [ emoease-net ]
     ports:
-      - "8080:8080"        # chỉ mở nội bộ host, Nginx sẽ proxy vào đây
-    #      - "443:443"
-    build:
-      context: .
-      dockerfile: ApiGateways/YarpApiGateway/Dockerfile
+      - "8080:8080"
     volumes:
       - ./ApiGateways/YarpApiGateway/RSAKeys:/app/RSAKeys
-      #      - /etc/ssl/certs-anhtn:/certs:ro
       - /etc/ssl/api-cert:/certs:ro
       - ~/.aspnet/https:/https:ro
       - /mnt/dpkeys:/home/app/.aspnet/DataProtection-Keys
-  
+
   distributedcache:
     container_name: distributedcache-msa
     image: redis
     restart: always
-    networks:
-      - emoease-net
+    networks: [ emoease-net ]
     ports:
       - "127.0.0.1:6379:6379"
+
 networks:
   emoease-net:
     external: true

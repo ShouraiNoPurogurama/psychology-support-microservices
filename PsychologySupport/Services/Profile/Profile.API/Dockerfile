@@ -2,7 +2,9 @@
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-USER app
+USER root
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
@@ -29,4 +31,8 @@ RUN dotnet publish "./Profile.API.csproj" -c $BUILD_CONFIGURATION -o /app/publis
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+HEALTHCHECK --interval=10s --timeout=3s --retries=6 \
+  CMD curl -fsS http://localhost:8080/health || exit 1
+
 ENTRYPOINT ["dotnet", "Profile.API.dll"]

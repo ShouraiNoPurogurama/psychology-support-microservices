@@ -2,6 +2,8 @@
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+USER root
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
@@ -34,4 +36,8 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 COPY Services/Test/Test.API/Lookup/Dass21Percentiles.csv ./Lookup/Dass21Percentiles.csv
+
+HEALTHCHECK --interval=10s --timeout=3s --retries=6 \
+  CMD curl -fsS http://localhost:8080/health || exit 1
+
 ENTRYPOINT ["dotnet", "Test.API.dll"]
