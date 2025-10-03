@@ -1,26 +1,34 @@
 ﻿using BuildingBlocks.Exceptions.Handler;
 using Carter;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
+using Payment.Infrastructure.Extensions;
 
 namespace Payment.API;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration,
+    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration config,
         IWebHostEnvironment env)
     {
-        var connectionString = configuration.GetConnectionString("PaymentDb")!;
-        
-        services.AddHealthChecks()
-            .AddNpgSql(connectionString);
-        
         services.AddCarter();
+
+        services.AddEndpointsApiExplorer();
+
         services.AddExceptionHandler<CustomExceptionHandler>();
 
-        services.AddAuthorization();
+        services.AddHealthChecks()
+            .AddNpgSql(config.GetConnectionString("PaymentDb")!);
+
         services.AddHttpContextAccessor();
 
+        services.AddAuthorization();
+
+        services.AddIdentityServices(config);
+
         ConfigureCORS(services);
+
         ConfigureSwagger(services, env);
 
         return services;
@@ -49,11 +57,11 @@ public static class DependencyInjection
                 Title = "Payment API",
                 Version = "v1"
             });
-            
-            var url = env.IsProduction() 
-                ? "/payment-service" 
+
+            var url = env.IsProduction()
+                ? "/payment-service"
                 : "https://localhost:5510/payment-service";
-            
+
             options.AddServer(new OpenApiServer
             {
                 Url = url
@@ -91,5 +99,39 @@ public static class DependencyInjection
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables();
+    }
+
+    public static WebApplication UseApiServices(this WebApplication app)
+    {
+        app.UseExceptionHandler(options => { });
+        app.MapCarter();
+
+        app.UseSwagger();
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwaggerUI();
+        }
+        else
+        {
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/payment-service/swagger/v1/swagger.json", "Payment API v1");
+            });
+        }
+
+        app.UseCors("CorsPolicy");
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.UseHealthChecks("/health",
+            new HealthCheckOptions()
+            {
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            }
+        );
+
+        return app;
     }
 }
