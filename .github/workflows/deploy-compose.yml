@@ -44,6 +44,11 @@ jobs:
           script: |
             set -euo pipefail
 
+            FORCE_ALL="${FORCE_ALL:-false}"
+            NEW_TAG="${EFFECTIVE_TAG:-main}"
+            echo "FORCE_ALL=${FORCE_ALL}"
+            echo "EFFECTIVE_TAG=${EFFECTIVE_TAG:-<empty>}  → NEW_TAG=${NEW_TAG}"
+
             WORKDIR="/home/emoease/PsychologySupport"
             COMPOSE="docker-compose-apis.yml"
 
