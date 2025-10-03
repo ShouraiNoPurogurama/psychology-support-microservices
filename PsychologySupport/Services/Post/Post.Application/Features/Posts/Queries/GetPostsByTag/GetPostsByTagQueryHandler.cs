@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Features.Posts.Dtos;
+using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.Application.Features.Posts.Queries.GetPostsByTag;
 
@@ -24,7 +25,7 @@ internal sealed class GetPostsByTagQueryHandler : IQueryHandler<GetPostsByTagQue
     public async Task<GetPostsByTagResult> Handle(GetPostsByTagQuery request, CancellationToken cancellationToken)
     {
         var aliasId = _actorAccessor.GetRequiredAliasId();
-        
+
         // Verify category tag exists
         var categoryExists = await _context.CategoryTags
             .AsNoTracking()
@@ -33,61 +34,80 @@ internal sealed class GetPostsByTagQueryHandler : IQueryHandler<GetPostsByTagQue
         if (!categoryExists)
             throw new NotFoundException("Category tag not found.", "CATEGORY_TAG_NOT_FOUND");
 
-        // Get posts by category tag with pagination and AsNoTracking
-        var query = _context.PostCategories
+        var baseQuery = _context.Posts
+            .Include(p => p.Categories)
+            .Include(p => p.Emotions)
+            .Include(p => p.Media)
             .AsNoTracking()
-            .Where(pc => pc.CategoryTagId == request.CategoryTagId && !pc.IsDeleted)
-            .Join(_context.Posts,
-                pc => pc.PostId,
-                p => p.Id,
-                (pc, p) => p)
-            .Where(p => !p.IsDeleted)
-            .OrderByDescending(p => p.CreatedAt)
-            .Select(p => new
-            {
-                Post = p,
-                IsReacted = _context.Reactions.Any(r => r.IsOnPost
-                && r.Target.TargetId == p.Id
-                && r.Author.AliasId == aliasId)
-            });
+            .Where(p => !p.IsDeleted && p.Categories.Any(c => c.CategoryTagId == request.CategoryTagId && !c.IsDeleted))
+            .OrderByDescending(p => p.CreatedAt);
 
         // Get total count before pagination
-        var totalCount = await query.CountAsync(cancellationToken);
+        var totalCount = await baseQuery.CountAsync(cancellationToken);
 
-        // Get posts data with pagination
-        var postsData = await query
+        var postsData = await baseQuery
             .Skip((request.Page - 1) * request.Size)
             .Take(request.Size)
+            .Select(p => new
+            {
+                PostData = new
+                {
+                    p.Id,
+                    p.Content.Title,
+                    p.Content.Value,
+                    p.Visibility,
+                    p.PublishedAt,
+                    p.EditedAt,
+                    p.Metrics.ReactionCount,
+                    p.Metrics.CommentCount,
+                    p.Metrics.ViewCount,
+                    p.HasMedia,
+                    AuthorAliasId = p.Author.AliasId,
+                    Media = p.Media.Select(m => new MediaItemDto(m.MediaId, m.MediaUrl)).ToList(),
+                    CategoryIds = p.Categories.Select(c => c.CategoryTagId).ToList(),
+                    EmotionIds = p.Emotions.Select(e => e.EmotionTagId).ToList()
+                },
+                IsReacted = _context.Reactions.Any(r => r.Target.TargetType == ReactionTargetType.Post
+                                                        && r.Target.TargetId == p.Id
+                                                        && r.Author.AliasId == aliasId)
+            })
             .ToListAsync(cancellationToken);
+        ;
+
 
         // Get author display names from query context (no EF join)
-        var authorIds = postsData.Select(p => p.Post.Author.AliasId).Distinct().ToList();
+        var authorIds = postsData.Select(p => p.PostData.AuthorAliasId).Distinct().ToList();
         var authorAliases = await _queryContext.AliasVersionReplica
             .AsNoTracking()
             .Where(a => authorIds.Contains(a.AliasId))
-            .ToListAsync(cancellationToken);
+            .ToDictionaryAsync(a => a.AliasId, a => new AuthorDto(a.AliasId, a.Label, a.AvatarUrl), cancellationToken);
 
         // Merge in memory (following manifesto rules)
         var postDtos = postsData.Select(p =>
-        {
-            var author = authorAliases
-                .Select(a => new AuthorDto(a.AliasId, a.Label, a.AvatarUrl))
-                .FirstOrDefault(a => a.AliasId == p.Post.Author.AliasId);
-            
-            return new PostSummaryDto(
-                p.Post.Id,
-                p.Post.Content.Title,
-                p.Post.Content.Value,
-                p.IsReacted,
-                author ?? new AuthorDto(p.Post.Author.AliasId, "Anonymous", null),
-                p.Post.Visibility,
-                p.Post.PublishedAt,
-                p.Post.EditedAt,
-                p.Post.Metrics.ReactionCount,
-                p.Post.Metrics.CommentCount,
-                p.Post.Metrics.ViewCount,
-                p.Post.HasMedia);
-        }).ToList();
+            {
+                var post = p.PostData;
+                var author = authorAliases.GetValueOrDefault(post.AuthorAliasId)
+                             ?? new AuthorDto(post.AuthorAliasId, "Anonymous", null);
+
+                return new PostSummaryDto(
+                    post.Id,
+                    post.Title,
+                    post.Value,
+                    p.IsReacted,
+                    author,
+                    post.Visibility,
+                    post.PublishedAt,
+                    post.EditedAt,
+                    post.ReactionCount,
+                    post.CommentCount,
+                    post.ViewCount,
+                    post.HasMedia,
+                    post.Media,
+                    post.CategoryIds,
+                    post.EmotionIds
+                );
+            })
+            .ToList();
 
         var paginatedResult = new PaginatedResult<PostSummaryDto>(
             request.Page,

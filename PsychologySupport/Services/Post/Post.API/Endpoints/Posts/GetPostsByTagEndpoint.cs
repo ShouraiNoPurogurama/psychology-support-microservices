@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Pagination;
+using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
 using MediatR;
@@ -29,7 +29,7 @@ public class GetPostsByTagEndpoint : ICarterModule
 
                 var result = await sender.Send(query, ct);
 
-                var response = result.Adapt<GetPostsByTagResponse>();
+                var response = new GetPostsByTagResponse(result.Posts);
 
                 return Results.Ok(response);
             })

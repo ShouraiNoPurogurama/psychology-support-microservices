@@ -3,6 +3,7 @@ using BuildingBlocks.Exceptions;
 using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Data;
+using Post.Application.Features.Comments.Dtos;
 using Post.Application.Features.Comments.Queries.GetCommentsByPost;
 
 namespace Post.Application.Features.Comments.Queries.GetCommentReplies;

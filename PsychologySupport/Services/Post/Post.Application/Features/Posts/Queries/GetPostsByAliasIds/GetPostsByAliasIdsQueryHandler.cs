@@ -25,6 +25,9 @@ internal sealed class GetPostsByAliasIdsQueryHandler : IQueryHandler<GetPostsByA
         
         // Query posts by alias IDs with pagination and AsNoTracking
         var baseQuery = _context.Posts
+                .Include(p => p.Media)
+                .Include(p => p.Categories)
+                .Include(p => p.Emotions)
                 .AsNoTracking()
                 .Where(p => request.AliasIds.Contains(p.Author.AliasId) &&
                             !p.IsDeleted &&
@@ -55,7 +58,10 @@ internal sealed class GetPostsByAliasIdsQueryHandler : IQueryHandler<GetPostsByA
             p.Post.Metrics.ReactionCount,
             p.Post.Metrics.CommentCount,
             p.Post.Metrics.ViewCount,
-            p.Post.HasMedia
+            p.Post.HasMedia,
+            p.Post.Media.Select(m => new MediaItemDto(m.Id, m.MediaUrl)).ToList(),
+            p.Post.Categories.Select(c => c.Id).ToList(),
+            p.Post.Emotions.Select(e => e.Id).ToList()
         ));
         
         var postsData = await query

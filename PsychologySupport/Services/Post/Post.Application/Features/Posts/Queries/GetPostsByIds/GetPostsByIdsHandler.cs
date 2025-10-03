@@ -1,15 +1,14 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Features.Posts.Dtos;
-using Post.Application.Features.Posts.Queries.GetPosts;
 using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Features.Posts.Queries.GetPostsByIds;
 
-internal sealed class GetPostsByIdsHandler : IQueryHandler<GetPostsQuery, PaginatedResult<PostSummaryDto>>
+internal sealed class GetPostsByIdsHandler : IQueryHandler<GetPostsByIdsQuery, GetPostsByIdsResult>
 {
     private readonly IPostDbContext _context;
     private readonly IQueryDbContext _queryContext;
@@ -22,12 +21,16 @@ internal sealed class GetPostsByIdsHandler : IQueryHandler<GetPostsQuery, Pagina
         _queryContext = queryContext;
     }
 
-    public async Task<PaginatedResult<PostSummaryDto>> Handle(GetPostsQuery request, CancellationToken cancellationToken)
+    public async Task<GetPostsByIdsResult> Handle(GetPostsByIdsQuery request, CancellationToken cancellationToken)
     {
         var aliasId = _actorAccessor.GetRequiredAliasId();
 
 
         var query = _context.Posts
+            .Include(p => p.Media)
+            .Include(p => p.Categories)
+            .Include(p => p.Emotions)
+            .AsNoTracking()
             .Where(p => !p.IsDeleted)
             .Select(p => new
             {
@@ -39,18 +42,6 @@ internal sealed class GetPostsByIdsHandler : IQueryHandler<GetPostsQuery, Pagina
                 )
             })
             .AsQueryable();
-
-        // Apply filters
-        if (!string.IsNullOrEmpty(request.Visibility) &&
-            Enum.TryParse<PostVisibility>(request.Visibility, true, out var visibility))
-        {
-            query = query.Where(p => p.Post.Visibility == visibility);
-        }
-
-        if (request.CategoryTagIds?.Any() == true)
-        {
-            query = query.Where(p => p.Post.Categories.Any(pc => request.CategoryTagIds.Contains(pc.CategoryTagId)));
-        }
 
         // Apply sorting
         query = request.SortBy?.ToLower() switch
@@ -103,15 +94,21 @@ internal sealed class GetPostsByIdsHandler : IQueryHandler<GetPostsQuery, Pagina
                     p.Post.Metrics.ReactionCount,
                     p.Post.Metrics.CommentCount,
                     p.Post.Metrics.ViewCount,
-                    p.Post.HasMedia);
+                    p.Post.HasMedia,
+                    p.Post.Media.Select(m => new MediaItemDto(m.Id, m.MediaUrl)).ToList(),
+                    p.Post.Categories.Select(c => c.Id).ToList(),
+                    p.Post.Emotions.Select(e => e.Id).ToList()
+                    );
             }
         );
 
-        return new PaginatedResult<PostSummaryDto>(
+        var paginatedResult = new PaginatedResult<PostSummaryDto>(
             request.PageIndex,
             request.PageSize,
             totalCount,
             postDtos
         );
+
+        return new GetPostsByIdsResult(paginatedResult);
     }
 }

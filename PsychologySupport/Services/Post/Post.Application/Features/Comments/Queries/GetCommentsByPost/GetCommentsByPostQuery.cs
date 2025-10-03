@@ -1,5 +1,6 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
+using Post.Application.Features.Comments.Dtos;
 
 namespace Post.Application.Features.Comments.Queries.GetCommentsByPost;
 
@@ -11,17 +12,4 @@ public record GetCommentsByPostQuery(
 
 public record GetCommentsByPostResult(
     PaginatedResult<CommentReplyDto> Comments
-);
-
-public record CommentReplyDto(
-    Guid Id,
-    Guid PostId,
-    string Content,
-    Guid AuthorAliasId,
-    DateTimeOffset CreatedAt,
-    DateTimeOffset? EditedAt,
-    int ReactionCount,
-    int ReplyCount,
-    bool IsDeleted,
-    Guid? ParentCommentId
 );

@@ -3,6 +3,8 @@ using Mapster;
 using MediatR;
 using Post.Application.Features.Posts.Dtos;
 using Post.Application.Features.Posts.Queries.GetPostById;
+using Post.Application.ReadModels.Models;
+using Post.Domain.Aggregates.CategoryTags;
 
 namespace Post.API.Endpoints.Posts;
 
@@ -20,8 +22,8 @@ public sealed record GetPostByIdResponse(
     DateTimeOffset? EditedAt,
     DateTimeOffset PublishedAt,
     IReadOnlyList<string> MediaUrls,
-    IReadOnlyList<string> Categories
-);
+    IReadOnlyList<CategoryTag> CategoryTags,
+    IReadOnlyList<EmotionTagReplica> EmotionTags);
 
 public class GetPostByIdEndpoint : ICarterModule
 {

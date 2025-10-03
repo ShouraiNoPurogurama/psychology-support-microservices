@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.CQRS;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Data;
+using Post.Application.Features.Posts.Dtos;
 
 namespace Post.Application.Features.Posts.Queries.GenerateAIPrompts;
 

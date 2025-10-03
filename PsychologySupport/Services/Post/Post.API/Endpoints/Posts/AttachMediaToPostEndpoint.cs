@@ -4,11 +4,13 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using BuildingBlocks.Exceptions;
 using Post.Application.Features.Posts.Commands.AttachMediaToPost;
+using Post.Application.Features.Posts.Dtos;
 
 namespace Post.API.Endpoints.Posts;
 
 public sealed record AttachMediaToPostRequest(
     Guid MediaId,
+    string MediaUrl,
     int? Position = null
 );
 
@@ -40,7 +42,7 @@ public class AttachMediaToPostEndpoint : ICarterModule
                 var command = new AttachMediaToPostCommand(
                     requestKey.Value,
                     postId,
-                    request.MediaId,
+                    new MediaItemDto(request.MediaId, request.MediaUrl),
                     request.Position
                 );
 

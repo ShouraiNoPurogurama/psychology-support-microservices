@@ -10,7 +10,7 @@ public sealed class AttachMediaToPostCommandValidator : AbstractValidator<Attach
             .NotEmpty()
             .WithMessage("PostId is required.");
 
-        RuleFor(x => x.MediaId)
+        RuleFor(x => x.Media.MediaId)
             .NotEmpty()
             .WithMessage("MediaId is required.");
 

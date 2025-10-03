@@ -37,16 +37,18 @@ internal sealed class GetCommentByIdQueryHandler : IQueryHandler<GetCommentByIdQ
 
         var authorDto = new AuthorDto(authorAlias.AliasId, authorAlias.Label, authorAlias.AvatarUrl);
 
-        var commentDto = new CommentDto(
+        var commentDto = new CommentSummaryDto(
             comment.Id,
             comment.PostId,
             comment.Content.Value,
+            false,
             authorDto,
             new HierarchyDto(
                 comment.Hierarchy.ParentCommentId,
                 comment.Hierarchy.Path,
                 comment.Hierarchy.Level
             ),
+            [], //Không lấy replies ở đây
             comment.CreatedAt,
             comment.EditedAt,
             comment.ReactionCount,

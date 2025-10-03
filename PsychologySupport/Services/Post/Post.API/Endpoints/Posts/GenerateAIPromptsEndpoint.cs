@@ -1,6 +1,7 @@
-﻿using Carter;
+using Carter;
 using Mapster;
 using MediatR;
+using Post.Application.Features.Posts.Dtos;
 using Post.Application.Features.Posts.Queries.GenerateAIPrompts;
 
 namespace Post.API.Endpoints.Posts;
@@ -30,7 +31,7 @@ public class GenerateAIPromptsEndpoint : ICarterModule
 
                 var result = await sender.Send(query, ct);
 
-                var response = result.Adapt<GenerateAIPromptsResponse>();
+                var response = new GenerateAIPromptsResponse(result.Prompts);
 
                 return Results.Ok(response);
             })

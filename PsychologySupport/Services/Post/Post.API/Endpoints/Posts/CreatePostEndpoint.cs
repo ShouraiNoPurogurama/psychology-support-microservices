@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using BuildingBlocks.Exceptions;
 using Post.Application.Features.Posts.Commands.CreatePost;
+using Post.Application.Features.Posts.Dtos;
 
 namespace Post.API.Endpoints.Posts;
 
@@ -12,7 +13,7 @@ public sealed record CreatePostRequest(
     string? Title,
     string Content,
     PostVisibility Visibility,
-    IEnumerable<Guid>? MediaIds = null,
+    IEnumerable<MediaItemDto> Medias,
     Guid? CategoryTagId = null,
     Guid? EmotionId = null
 );
@@ -46,7 +47,7 @@ public class CreatePostEndpoint : ICarterModule
                     request.Title,
                     request.Content,
                     request.Visibility,
-                    request.MediaIds,
+                    request.Medias,
                     request.CategoryTagId,
                     request.EmotionId
                 );

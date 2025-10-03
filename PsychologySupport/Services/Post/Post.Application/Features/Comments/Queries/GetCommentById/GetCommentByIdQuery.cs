@@ -8,5 +8,5 @@ public record GetCommentByIdQuery(
 ) : IQuery<GetCommentByIdResult>;
 
 public record GetCommentByIdResult(
-    CommentDto? Comment
+    CommentSummaryDto? Comment
 );

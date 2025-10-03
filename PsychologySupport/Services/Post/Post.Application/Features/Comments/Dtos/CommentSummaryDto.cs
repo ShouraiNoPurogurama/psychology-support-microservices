@@ -1,10 +1,18 @@
-﻿namespace Post.Application.Features.Comments.Dtos;
+using Post.Application.Features.Posts.Dtos;
+
+namespace Post.Application.Features.Comments.Dtos;
 
 public record CommentSummaryDto(
     Guid Id,
+    Guid PostId,
     string Content,
-    Guid AuthorAliasId,
+    bool IsReactedByCurrentUser,
+    AuthorDto Author,
+    HierarchyDto Hierarchy,
+    IEnumerable<CommentSummaryDto> Replies,
     DateTimeOffset CreatedAt,
+    DateTimeOffset? EditedAt,
     int ReactionCount,
-    bool HasReplies
+    int ReplyCount,
+    bool IsDeleted
 );

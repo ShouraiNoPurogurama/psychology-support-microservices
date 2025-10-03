@@ -187,7 +187,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
         AddDomainEvent(new PostRejectedEvent(Id, reasons, moderatorId));
     }
 
-    public void AddMedia(Guid mediaId, int? position = null)
+    public void AddMedia(Guid mediaId, string mediaUrl, int? position = null)
     {
         ValidateNotDeleted();
 
@@ -197,7 +197,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
         if (_media.Count >= 10)
             throw new InvalidPostDataException("Bài viết chỉ có thể chứa tối đa 10 media.");
 
-        var postMedia = PostMedia.Create(Id, mediaId, position);
+        var postMedia = PostMedia.Create(Id, mediaId, mediaUrl, position);
         _media.Add(postMedia);
 
         AddDomainEvent(new PostMediaAddedEvent(Id, mediaId));

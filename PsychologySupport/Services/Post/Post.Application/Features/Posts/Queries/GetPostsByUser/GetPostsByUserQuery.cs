@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
 using Post.Application.Features.Posts.Dtos;
 
@@ -8,4 +8,8 @@ public record GetPostsByUserQuery(
     Guid AuthorAliasId,
     int PageNumber,
     int PageSize
-) : IQuery<PaginatedResult<PostDto>>;
+) : IQuery<GetPostsByUserResult>;
+
+public record GetPostsByUserResult(
+    PaginatedResult<PostDto> Posts
+);

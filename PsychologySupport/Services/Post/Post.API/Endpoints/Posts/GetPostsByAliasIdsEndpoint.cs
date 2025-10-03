@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Pagination;
+using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
 using MediatR;
@@ -33,7 +33,7 @@ public class GetPostsByAliasIdsEndpoint : ICarterModule
 
                 var result = await sender.Send(query, ct);
 
-                var response = result.Adapt<GetPostsByAliasIdsResponse>();
+                var response = new GetPostsByAliasIdsResponse(result.Posts);
 
                 return Results.Ok(response);
             })

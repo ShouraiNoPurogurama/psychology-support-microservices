@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
+using Post.Application.Features.Posts.Dtos;
 using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Features.Posts.Commands.CreatePost;
@@ -8,7 +9,7 @@ public record CreatePostCommand(
     string? Title,
     string Content,
     PostVisibility Visibility,
-    IEnumerable<Guid>? MediaIds = null,
+    IEnumerable<MediaItemDto> Medias,
     Guid? CategoryTagId = null,
     Guid? EmotionId = null
 ) : IdempotentCommand<CreatePostResult>(IdempotencyKey);
@@ -18,3 +19,4 @@ public record CreatePostResult(
     string ModerationStatus,
     DateTimeOffset CreatedAt
 );
+

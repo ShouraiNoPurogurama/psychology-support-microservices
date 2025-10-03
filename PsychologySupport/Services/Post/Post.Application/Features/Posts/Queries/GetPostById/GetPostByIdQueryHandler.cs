@@ -1,47 +1,79 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
+using Post.Application.Features.CategoryTags.Dtos;
+using Post.Application.Features.Posts.Commands.CreatePost;
 using Post.Application.Features.Posts.Dtos;
+using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.Application.Features.Posts.Queries.GetPostById;
 
-internal sealed class GetPostByIdQueryHandler : IQueryHandler<GetPostByIdQuery, PostDto>
+internal sealed class GetPostByIdQueryHandler : IQueryHandler<GetPostByIdQuery, GetPostByIdResult>
 {
     private readonly IPostDbContext _context;
+    private readonly IQueryDbContext _queryContext;
+    private readonly ICurrentActorAccessor _actorAccessor;
 
-    public GetPostByIdQueryHandler(IPostDbContext context)
+    public GetPostByIdQueryHandler(IPostDbContext context, ICurrentActorAccessor actorAccessor, IQueryDbContext queryContext)
     {
         _context = context;
+        _actorAccessor = actorAccessor;
+        _queryContext = queryContext;
     }
 
-    public async Task<PostDto> Handle(GetPostByIdQuery request, CancellationToken cancellationToken)
+    public async Task<GetPostByIdResult> Handle(GetPostByIdQuery request, CancellationToken cancellationToken)
     {
-        var postDto = await _context.Posts
-            .Where(p => p.Id == request.PostId && !p.IsDeleted)
-            .Select(p => new PostDto(
-                p.Id,
-                p.Content.Value,
-                p.Content.Title,
-                new AuthorDto(p.Author.AliasId, "Anonymous", ""),
-                p.Visibility,
-                p.Moderation.Status,
-                p.Metrics.ReactionCount,
-                p.Metrics.CommentCount,
-                p.Metrics.ViewCount,
-                p.CreatedAt,
-                p.EditedAt,
-                p.PublishedAt,
-                p.Media.Select(m => m.MediaId.ToString()).ToList(),
-                p.Categories.Select(c => c.CategoryTagId.ToString()).ToList()
-            ))
+        var aliasId = _actorAccessor.GetRequiredAliasId();
+
+        var query = _context.Posts
+            .Include(p => p.Media)
+            .Include(p => p.Categories)
+            .ThenInclude(pc => pc.CategoryTag)
+            .Where(p => p.Id == request.PostId && !p.IsDeleted);
+
+        var postData = await query
+            .Select(p => new
+            {
+                Post = p,
+                IsReacted = _context.Reactions.Any(r =>
+                    r.Target.TargetType == ReactionTargetType.Post &&
+                    r.Target.TargetId == p.Id &&
+                    r.Author.AliasId == aliasId)
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (postDto is null)
+        if (postData is null)
         {
             throw new NotFoundException($"Post with ID {request.PostId} not found");
         }
 
-        return postDto;
+        var author = await _queryContext.AliasVersionReplica
+            .Where(ap => ap.AliasId == postData.Post.Author.AliasId)
+            .Select(ap => new AuthorDto(ap.AliasId, ap.Label, ap.AvatarUrl))
+            .FirstOrDefaultAsync(cancellationToken);
+        
+        var postDto = new PostSummaryDto(
+            postData.Post.Id,
+            postData.Post.Content.Title,
+            postData.Post.Content.Value,
+            postData.IsReacted,
+            author ?? new AuthorDto(postData.Post.Author.AliasId, "Anonymous", null),
+            postData.Post.Visibility,
+            postData.Post.PublishedAt,
+            postData.Post.EditedAt,
+            postData.Post.Metrics.ReactionCount,
+            postData.Post.Metrics.CommentCount,
+            postData.Post.Metrics.ViewCount,
+            postData.Post.HasMedia,
+            postData.Post.Media.Select(m => new MediaItemDto(m.Id, m.MediaUrl)).ToList(),
+            postData.Post.Categories.Select(c => c.Id).ToList(),
+            postData.Post.Emotions.Select(e => e.Id).ToList()
+            );
+
+        var result = new GetPostByIdResult(postDto);
+
+        return result;
     }
 }
