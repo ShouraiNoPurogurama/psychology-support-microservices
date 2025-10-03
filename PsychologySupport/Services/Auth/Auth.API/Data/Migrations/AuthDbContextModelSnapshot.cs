@@ -258,7 +258,10 @@ namespace Auth.API.Data.Migrations
                         .HasColumnName("security_stamp");
 
                     b.Property<string>("SubscriptionPlanName")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("text")
+                        .HasDefaultValue("Free Plan")
                         .HasColumnName("subscription_plan_name");
 
                     b.Property<bool>("TwoFactorEnabled")

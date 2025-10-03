@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Auth.API.Data.Migrations
 {
     [DbContext(typeof(AuthDbContext))]
-    [Migration("20251003080204_AddSubsciptionPlanName")]
-    partial class AddSubsciptionPlanName
+    [Migration("20251003083118_DenormalizeAliasIssueStateAndSubscriptionPlan")]
+    partial class DenormalizeAliasIssueStateAndSubscriptionPlan
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -261,7 +261,10 @@ namespace Auth.API.Data.Migrations
                         .HasColumnName("security_stamp");
 
                     b.Property<string>("SubscriptionPlanName")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("text")
+                        .HasDefaultValue("Free Plan")
                         .HasColumnName("subscription_plan_name");
 
                     b.Property<bool>("TwoFactorEnabled")

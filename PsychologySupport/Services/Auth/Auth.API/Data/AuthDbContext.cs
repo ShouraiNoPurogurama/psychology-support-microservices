@@ -42,6 +42,9 @@ public class AuthDbContext : IdentityDbContext<User, Role, Guid, IdentityUserCla
                 .HasSentinel(AliasIssueStatus.Pending)
                 .HasDefaultValue(AliasIssueStatus.Pending);
 
+            entity.Property(u => u.SubscriptionPlanName)
+                .HasDefaultValue("Free Plan");
+
             entity.HasMany(e => e.UserRoles)
                 .WithOne(e => e.User)
                 .HasForeignKey(ur => ur.UserId)
