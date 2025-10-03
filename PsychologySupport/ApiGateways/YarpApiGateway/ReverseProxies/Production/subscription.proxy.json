@@ -30,8 +30,12 @@
           "Path": "/subscription-service/{**catch-all}"
         },
         "Transforms": [
-          { "PathPattern": "/{**catch-all}" },
-          { "TokenExchange": "enabled" }
+          {
+            "PathPattern": "/{**catch-all}"
+          },
+          {
+            "TokenExchange": "enabled"
+          }
         ]
       },
       "Clusters": {
@@ -44,4 +48,5 @@
         }
       }
     }
+  }
 }
