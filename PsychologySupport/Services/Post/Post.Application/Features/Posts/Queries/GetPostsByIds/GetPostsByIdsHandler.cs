@@ -1,15 +1,14 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Features.Posts.Dtos;
-using Post.Application.Features.Posts.Queries.GetPosts;
 using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Features.Posts.Queries.GetPostsByIds;
 
-internal sealed class GetPostsByIdsHandler : IQueryHandler<GetPostsQuery, PaginatedResult<PostSummaryDto>>
+internal sealed class GetPostsByIdsHandler : IQueryHandler<GetPostsByIdsQuery, GetPostsByIdsResult>
 {
     private readonly IPostDbContext _context;
     private readonly IQueryDbContext _queryContext;
@@ -22,7 +21,7 @@ internal sealed class GetPostsByIdsHandler : IQueryHandler<GetPostsQuery, Pagina
         _queryContext = queryContext;
     }
 
-    public async Task<PaginatedResult<PostSummaryDto>> Handle(GetPostsQuery request, CancellationToken cancellationToken)
+    public async Task<GetPostsByIdsResult> Handle(GetPostsByIdsQuery request, CancellationToken cancellationToken)
     {
         var aliasId = _actorAccessor.GetRequiredAliasId();
 
@@ -43,18 +42,6 @@ internal sealed class GetPostsByIdsHandler : IQueryHandler<GetPostsQuery, Pagina
                 )
             })
             .AsQueryable();
-
-        // Apply filters
-        if (!string.IsNullOrEmpty(request.Visibility) &&
-            Enum.TryParse<PostVisibility>(request.Visibility, true, out var visibility))
-        {
-            query = query.Where(p => p.Post.Visibility == visibility);
-        }
-
-        if (request.CategoryTagIds?.Any() == true)
-        {
-            query = query.Where(p => p.Post.Categories.Any(pc => request.CategoryTagIds.Contains(pc.CategoryTagId)));
-        }
 
         // Apply sorting
         query = request.SortBy?.ToLower() switch
@@ -115,11 +102,13 @@ internal sealed class GetPostsByIdsHandler : IQueryHandler<GetPostsQuery, Pagina
             }
         );
 
-        return new PaginatedResult<PostSummaryDto>(
+        var paginatedResult = new PaginatedResult<PostSummaryDto>(
             request.PageIndex,
             request.PageSize,
             totalCount,
             postDtos
         );
+
+        return new GetPostsByIdsResult(paginatedResult);
     }
 }

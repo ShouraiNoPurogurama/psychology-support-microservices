@@ -2,6 +2,7 @@
 using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Data;
+using Post.Application.Features.CategoryTags.Dtos;
 
 namespace Post.Application.Features.CategoryTags.Queries.GetTopCategoryTags;
 

@@ -1,5 +1,6 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
+using Post.Application.Features.CategoryTags.Dtos;
 
 namespace Post.Application.Features.CategoryTags.Queries.GetTopCategoryTags;
 
@@ -9,12 +10,4 @@ public record GetTopCategoryTagsQuery(
 
 public record GetTopCategoryTagsResult(
     PaginatedResult<CategoryTagUsageDto> CategoryTags
-);
-
-public record CategoryTagUsageDto(
-    Guid Id,
-    string DisplayName,
-    string Color,
-    int UsageCount,
-    DateTimeOffset LastUsed
 );

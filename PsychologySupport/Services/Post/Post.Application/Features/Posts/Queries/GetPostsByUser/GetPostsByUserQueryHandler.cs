@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Data;
@@ -6,7 +6,7 @@ using Post.Application.Features.Posts.Dtos;
 
 namespace Post.Application.Features.Posts.Queries.GetPostsByUser;
 
-internal sealed class GetPostsByUserQueryHandler : IQueryHandler<GetPostsByUserQuery, PaginatedResult<PostDto>>
+internal sealed class GetPostsByUserQueryHandler : IQueryHandler<GetPostsByUserQuery, GetPostsByUserResult>
 {
     private readonly IPostDbContext _context;
 
@@ -15,7 +15,7 @@ internal sealed class GetPostsByUserQueryHandler : IQueryHandler<GetPostsByUserQ
         _context = context;
     }
 
-    public async Task<PaginatedResult<PostDto>> Handle(GetPostsByUserQuery request, CancellationToken cancellationToken)
+    public async Task<GetPostsByUserResult> Handle(GetPostsByUserQuery request, CancellationToken cancellationToken)
     {
         var query = _context.Posts
             .Where(p => p.Author.AliasId == request.AuthorAliasId && !p.IsDeleted)
@@ -44,11 +44,13 @@ internal sealed class GetPostsByUserQueryHandler : IQueryHandler<GetPostsByUserQ
             ))
             .ToListAsync(cancellationToken);
 
-        return new PaginatedResult<PostDto>(
+        var paginatedResult = new PaginatedResult<PostDto>(
             request.PageNumber,
             request.PageSize,
             totalCount,
             posts
         );
+
+        return new GetPostsByUserResult(paginatedResult);
     }
 }

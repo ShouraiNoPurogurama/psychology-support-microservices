@@ -1,177 +1,141 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
+using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Features.Comments.Dtos;
 using Post.Application.Features.Posts.Dtos;
-using Post.Application.ReadModels.Models;
 using Post.Domain.Aggregates.Comments;
+using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.Application.Features.Comments.Queries.GetComments;
 
-internal sealed class GetCommentsQueryHandler : IQueryHandler<GetCommentsQuery, PaginatedResult<CommentDto>>
+internal sealed class GetCommentsQueryHandler : IQueryHandler<GetCommentsQuery, GetCommentsResult>
 {
     private readonly IPostDbContext _context;
     private readonly IQueryDbContext _queryDbContext;
+    private readonly ICurrentActorAccessor _actorAccessor;
+    private const int PREVIEW_REPLY_COUNT = 2; // Số lượng reply xem trước
 
-    public GetCommentsQueryHandler(IPostDbContext context, IQueryDbContext queryDbContext)
+    public GetCommentsQueryHandler(IPostDbContext context, IQueryDbContext queryDbContext, ICurrentActorAccessor actorAccessor)
     {
         _context = context;
         _queryDbContext = queryDbContext;
+        _actorAccessor = actorAccessor;
     }
 
-    public async Task<PaginatedResult<CommentDto>> Handle(GetCommentsQuery request, CancellationToken cancellationToken)
+    public async Task<GetCommentsResult> Handle(GetCommentsQuery request, CancellationToken cancellationToken)
     {
-        // Build query như cũ
-        var query = _context.Comments
-            .Where(c => c.PostId == request.PostId && !c.IsDeleted)
-            .OrderBy(c => c.Hierarchy.Level)
-            .AsQueryable();
+        var aliasId = _actorAccessor.GetRequiredAliasId();
 
-        if (request.ParentCommentId.HasValue)
-        {
-            query = query.Where(c => c.Hierarchy.ParentCommentId == request.ParentCommentId.Value);
-        }
+        // --- BƯỚC 1: Lấy một trang các comment gốc (root comments) ---
+        var rootCommentsQuery = _context.Comments
+            .AsNoTracking()
+            .Where(c => c.PostId == request.PostId && !c.IsDeleted && c.Hierarchy.ParentCommentId == null);
 
-        query = request.SortBy.ToLower() switch
+        rootCommentsQuery = request.SortBy?.ToLower() switch
         {
             "createdat" => request.SortDescending
-                ? query.OrderByDescending(c => c.CreatedAt)
-                : query.OrderBy(c => c.CreatedAt),
-            _ => query.OrderBy(c => c.CreatedAt)
+                ? rootCommentsQuery.OrderByDescending(c => c.CreatedAt)
+                : rootCommentsQuery.OrderBy(c => c.CreatedAt),
+            _ => rootCommentsQuery.OrderBy(c => c.CreatedAt)
         };
-        
-        var totalCount = await query.CountAsync(cancellationToken);
 
-        // BƯỚC 1.1: Lấy trang comment gốc
-        var pagedComments = await query
+        var totalCount = await rootCommentsQuery.CountAsync(cancellationToken);
+
+        var rootComments = await rootCommentsQuery
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .ToListAsync(cancellationToken);
 
-        // BƯỚC 1.2: Lấy TẤT CẢ replies (dùng UNION, không cần thư viện)
-        var baseRepliesQuery = _context.Comments
-            .Where(c => !c.IsDeleted && c.PostId == request.PostId);
-
-        // Tạo một IQueryable rỗng để bắt đầu
-        var allRepliesQuery = baseRepliesQuery
-            .Where(c => false); // (c => c.Id == Guid.Empty)
-
-        foreach (var comment in pagedComments)
+        if (!rootComments.Any())
         {
-            // Điều chỉnh format của Path nếu cần
-            var pathFilter = comment.Hierarchy.Path + comment.Id.ToString() + "/"; 
-            var repliesForThisPath = baseRepliesQuery
-                .Where(c => c.Hierarchy.Path.StartsWith(pathFilter));
-            
-            // Nối các query lại với nhau bằng UNION
-            allRepliesQuery = allRepliesQuery.Union(repliesForThisPath);
+            return new GetCommentsResult(PaginatedResult<CommentSummaryDto>.Empty(request.Page, request.PageSize));
         }
 
-        var allReplies = await allRepliesQuery
+        // --- BƯỚC 2: Lấy các replies xem trước (preview replies) trong MỘT query ---
+        var rootCommentIds = rootComments.Select(c => c.Id).ToList();
+
+        // Đây là query "Top-N-per-Group" dùng LINQ thuần túy, EF Core sẽ dịch nó hiệu quả
+        var previewReplies = await _context.Comments
+            .AsNoTracking()
+            .Where(c => c.Hierarchy.ParentCommentId.HasValue && rootCommentIds.Contains(c.Hierarchy.ParentCommentId.Value) &&
+                        !c.IsDeleted)
+            .GroupBy(c => c.Hierarchy.ParentCommentId)
+            .SelectMany(group => group.OrderBy(c => c.CreatedAt).Take(PREVIEW_REPLY_COUNT))
             .ToListAsync(cancellationToken);
 
-        // BƯỚC 1.3: Gộp tất cả comment (gốc + replies)
-        var allComments = pagedComments.Concat(allReplies)
-                                     .DistinctBy(c => c.Id)
-                                     .ToList();
+        // --- BƯỚC 3: Gộp và lấy dữ liệu phụ thuộc trong một batch ---
+        var allCommentsInScope = rootComments.Concat(previewReplies).ToList();
+        var allCommentIds = allCommentsInScope.Select(c => c.Id).ToHashSet();
+        var allAliasIds = allCommentsInScope.Select(c => c.Author.AliasId).Distinct().ToList();
 
-        // BƯỚC 2: Query AliasVersionReplica MỘT LẦN DUY NHẤT
-        var allAliasIds = allComments.Select(c => c.Author.AliasId).Distinct().ToList();
+        // Lấy thông tin reaction
+        var reactedCommentIds = await _context.Reactions
+            .AsNoTracking()
+            .Where(r => r.Target.TargetType == ReactionTargetType.Comment &&
+                        allCommentIds.Contains(r.Target.TargetId) &&
+                        r.Author.AliasId == aliasId &&
+                        !r.IsDeleted)
+            .Select(r => r.Target.TargetId)
+            .ToHashSetAsync(cancellationToken);
 
-        // Giả sử AliasVersionReplica có các trường: AliasId, DisplayName, AvatarUrl
+        // Lấy thông tin author
         var authorMap = await _queryDbContext.AliasVersionReplica
+            .AsNoTracking()
             .Where(a => allAliasIds.Contains(a.AliasId))
-            // Key là AliasId, Value là chính object replica
-            .ToDictionaryAsync(a => a.AliasId, cancellationToken); 
+            .ToDictionaryAsync(a => a.AliasId, a => new AuthorDto(a.AliasId, a.Label, a.AvatarUrl), cancellationToken);
 
-        // BƯỚC 3: Build cây DTO (in-memory)
-        var allCommentsLookup = allComments.ToLookup(c => c.Hierarchy.ParentCommentId);
-        var commentDtos = new List<CommentDto>();
+        // --- BƯỚC 4: Build DTO với cấu trúc hybrid ---
+        var repliesLookup = previewReplies.ToLookup(r => r.Hierarchy.ParentCommentId);
 
-        // Fallback Author DTO (phòng trường hợp data replica bị trễ)
-        var defaultAuthor = (Guid aliasId) => new AuthorDto(aliasId, "Người dùng ẩn", "default_avatar.png");
+        var commentDtos = rootComments.Select(root =>
+            {
+                var repliesForThisRoot = repliesLookup[root.Id]
+                    .Select(reply => MapToDto(reply, authorMap, reactedCommentIds, []))
+                    .ToList();
 
-        //TODO lấy avatarUrl từ authorMap nếu có
-        string? avatarUrl = null;
-        
-        // Lặp qua trang gốc
-        foreach (var comment in pagedComments)
-        {
-            // Lấy author từ map
-            var author = authorMap.GetValueOrDefault(comment.Author.AliasId, null);
-            var authorDto = author != null 
-                ? new AuthorDto(author.AliasId, author.Label, avatarUrl) // <-- Mapping chuẩn
-                : defaultAuthor(comment.Author.AliasId);
+                return MapToDto(root, authorMap, reactedCommentIds, repliesForThisRoot);
+            })
+            .ToList();
 
-            var replies = BuildReplyDtos(comment.Id, allCommentsLookup, authorMap, defaultAuthor);
-
-            commentDtos.Add(new CommentDto(
-                comment.Id,
-                comment.PostId,
-                comment.Content.Value,
-                authorDto, // <-- Dùng DTO đã map
-                new HierarchyDto(
-                    comment.Hierarchy.ParentCommentId,
-                    comment.Hierarchy.Path,
-                    comment.Hierarchy.Level
-                ),
-                comment.CreatedAt,
-                comment.EditedAt,
-                comment.ReactionCount,
-                comment.ReplyCount,
-                comment.IsDeleted
-            ));
-        }
-
-        return new PaginatedResult<CommentDto>(
+        return new GetCommentsResult(new PaginatedResult<CommentSummaryDto>(
             request.Page,
             request.PageSize,
             totalCount,
             commentDtos
-        );
+        ));
     }
 
-    
-    private List<CommentDto> BuildReplyDtos(
-        Guid parentId,
-        ILookup<Guid?, Comment> commentLookup,
-        IReadOnlyDictionary<Guid, AliasVersionReplica> authorMap, // Hoặc DTO replica của bạn
-        Func<Guid, AuthorDto> defaultAuthorFactory)
+    // Hàm helper để map từ Comment entity sang CommentSummaryDto
+    private CommentSummaryDto MapToDto(
+        Comment comment,
+        IReadOnlyDictionary<Guid, AuthorDto> authorMap,
+        IReadOnlySet<Guid> reactedCommentIds,
+        List<CommentSummaryDto> replies) // Nhận danh sách replies đã được map
     {
-        var replyDtos = new List<CommentDto>();
+        var author = authorMap.GetValueOrDefault(comment.Author.AliasId)
+                     ?? new AuthorDto(comment.Author.AliasId, "Người dùng ẩn", null);
 
-        string ?avatar = null; // TODO: Lấy avatar từ authorMap nếu có
-        
-        // Lấy replies từ lookup (đã có sẵn trong memory)
-        foreach (var reply in commentLookup[parentId].OrderBy(c => c.CreatedAt))
-        {
-            // Đệ quy in-memory (rất nhanh)
-            var nestedReplies = BuildReplyDtos(reply.Id, commentLookup, authorMap, defaultAuthorFactory);
-            
-            var author = authorMap.GetValueOrDefault(reply.Author.AliasId, null);
-            var authorDto = author != null
-                ? new AuthorDto(author.AliasId, author.Label, avatar) // <-- Mapping chuẩn
-                : defaultAuthorFactory(reply.Author.AliasId);
+        var isReacted = reactedCommentIds.Contains(comment.Id);
 
-            replyDtos.Add(new CommentDto(
-                reply.Id,
-                reply.PostId,
-                reply.Content.Value,
-                authorDto, // <-- Dùng DTO đã map
-                new HierarchyDto(
-                    reply.Hierarchy.ParentCommentId,
-                    reply.Hierarchy.Path,
-                    reply.Hierarchy.Level
-                ),
-                reply.CreatedAt,
-                reply.EditedAt,
-                reply.ReactionCount,
-                reply.ReplyCount,
-                reply.IsDeleted
-            ));
-        }
-
-        return replyDtos;
+        return new CommentSummaryDto(
+            comment.Id,
+            comment.PostId,
+            comment.Content.Value,
+            isReacted,
+            author,
+            new HierarchyDto(
+                comment.Hierarchy.ParentCommentId,
+                comment.Hierarchy.Path,
+                comment.Hierarchy.Level
+            ),
+            replies, // Gán danh sách replies xem trước
+            comment.CreatedAt,
+            comment.EditedAt,
+            comment.ReactionCount,
+            comment.ReplyCount,
+            comment.IsDeleted
+        );
     }
 }

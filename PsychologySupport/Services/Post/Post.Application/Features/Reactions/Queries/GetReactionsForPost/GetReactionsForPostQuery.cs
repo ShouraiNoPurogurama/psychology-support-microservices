@@ -1,5 +1,6 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
+using Post.Application.Features.Reactions.Dtos;
 
 namespace Post.Application.Features.Reactions.Queries.GetReactionsForPost;
 
@@ -11,13 +12,4 @@ public record GetReactionsForPostQuery(
 
 public record GetReactionsForPostResult(
     PaginatedResult<ReactionDto> Reactions
-);
-
-public record ReactionDto(
-    Guid Id,
-    Guid PostId,
-    Guid AliasId,
-    string AliasDisplayName,
-    string ReactionCode,
-    DateTimeOffset CreatedAt
 );

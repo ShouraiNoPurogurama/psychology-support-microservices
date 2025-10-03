@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
@@ -9,7 +9,7 @@ using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.Application.Features.Posts.Queries.GetPosts;
 
-internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, PaginatedResult<PostSummaryDto>>
+internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, GetPostsResult>
 {
     private readonly IPostDbContext _context;
     private readonly ICurrentActorAccessor _actorAccessor;
@@ -23,7 +23,7 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, Pagina
         _queryContext = queryContext;
     }
 
-    public async Task<PaginatedResult<PostSummaryDto>> Handle(GetPostsQuery request, CancellationToken cancellationToken)
+    public async Task<GetPostsResult> Handle(GetPostsQuery request, CancellationToken cancellationToken)
     {
         var aliasId = _actorAccessor.GetRequiredAliasId();
 
@@ -75,7 +75,7 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, Pagina
                     r.Author.AliasId == aliasId)
             })
             .ToListAsync(cancellationToken);
-        
+
         var authorIds = postsData.Select(p => p.Post.Author.AliasId).Distinct().ToList();
         var authorAliases = await _queryContext.AliasVersionReplica
             .AsNoTracking()
@@ -107,13 +107,15 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, Pagina
                     );
             })
             .ToList();
-        
-        
-        return new PaginatedResult<PostSummaryDto>(
+
+
+        var paginatedResult = new PaginatedResult<PostSummaryDto>(
             request.PageIndex,
             request.PageSize,
             totalCount,
             postDtos
         );
+
+        return new GetPostsResult(paginatedResult);
     }
 }

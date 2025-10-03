@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Pagination;
+using BuildingBlocks.Pagination;
 using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -39,7 +39,7 @@ public class GetPostsEndpoint : ICarterModule
 
                 var result = await sender.Send(query, ct);
 
-                var response = new GetPostsResponse(result);
+                var response = new GetPostsResponse(result.Posts);
 
                 return Results.Ok(response);
             })

@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
+using Post.Application.Features.Posts.Dtos;
 
 namespace Post.Application.Features.Posts.Queries.GenerateAIPrompts;
 
@@ -9,11 +10,4 @@ public record GenerateAIPromptsQuery(
 
 public record GenerateAIPromptsResult(
     List<AIPromptDto> Prompts
-);
-
-public record AIPromptDto(
-    string Title,
-    string Description,
-    List<string> SuggestedTags,
-    string PromptType // "question", "topic", "challenge"
 );

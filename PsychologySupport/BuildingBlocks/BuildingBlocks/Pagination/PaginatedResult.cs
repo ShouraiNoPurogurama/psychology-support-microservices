@@ -54,4 +54,6 @@ public record PaginatedResult<TEntity>(
     /// The 1-based index of the last item on the current page.
     /// </summary>
     public long LastItemIndex => TotalCount > 0 ? Math.Min((long)PageIndex * PageSize, TotalCount) : 0;
+    
+    public static PaginatedResult<TEntity> Empty(int pageIndex, int pageSize) => new(pageIndex, pageSize, 0, Enumerable.Empty<TEntity>());
 }

@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
 using Post.Application.Features.Posts.Dtos;
 
@@ -11,4 +11,8 @@ public record GetPostsQuery(
     List<Guid>? CategoryTagIds = null,
     string? SortBy = "CreatedAt",
     bool SortDescending = true
-) : IQuery<PaginatedResult<PostSummaryDto>>;
+) : IQuery<GetPostsResult>;
+
+public record GetPostsResult(
+    PaginatedResult<PostSummaryDto> Posts
+);

@@ -1,6 +1,6 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
-using Post.Application.Features.Comments.Queries.GetCommentsByPost;
+using Post.Application.Features.Comments.Dtos;
 
 namespace Post.Application.Features.Comments.Queries.GetCommentReplies;
 

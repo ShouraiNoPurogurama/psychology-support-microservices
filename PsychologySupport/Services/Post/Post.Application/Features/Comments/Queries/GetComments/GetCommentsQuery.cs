@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
 using Post.Application.Features.Comments.Dtos;
 
@@ -11,10 +11,8 @@ public record GetCommentsQuery(
     Guid? ParentCommentId = null,
     string SortBy = "CreatedAt",
     bool SortDescending = false
-) : IQuery<PaginatedResult<CommentDto>>;
+) : IQuery<GetCommentsResult>;
 
-public record HierarchyDto(
-    Guid? ParentCommentId,
-    string Path,
-    int Level
+public record GetCommentsResult(
+    PaginatedResult<CommentSummaryDto> Comments
 );
