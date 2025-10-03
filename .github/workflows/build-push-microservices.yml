@@ -159,7 +159,10 @@ jobs:
             *) echo "Unknown service $SVC"; exit 1 ;;
           esac
           echo "CTX=$CTX" >> $GITHUB_OUTPUT
-          echo "IMG=${{ env.REGISTRY }}/${{ env.OWNER }}/${SVC}" >> $GITHUB_OUTPUT
+          OWNER_LC=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
+          SVC_LC=$(echo "$SVC" | tr '[:upper:]' '[:lower:]')
+          echo "CTX=$CTX" >> $GITHUB_OUTPUT
+          echo "IMG=ghcr.io/${OWNER_LC}/${SVC_LC}" >> $GITHUB_OUTPUT
 
       - name: Build & Push ${{ matrix.service }}
         uses: docker/build-push-action@v6
