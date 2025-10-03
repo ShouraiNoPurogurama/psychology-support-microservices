@@ -129,7 +129,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 3
+      # max-parallel: 10
       matrix:
         service: ${{ fromJson(needs.detect-services.outputs.services) }}
     steps:
