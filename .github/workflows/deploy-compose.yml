@@ -27,6 +27,10 @@ jobs:
 
             cd "$WORKDIR"
 
+            echo "📝 Git pull "
+            git reset --hard
+            git pull origin main
+
             echo "🔐 Login GHCR"
             echo "${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}" | docker login ghcr.io -u "${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}" --password-stdin
 
