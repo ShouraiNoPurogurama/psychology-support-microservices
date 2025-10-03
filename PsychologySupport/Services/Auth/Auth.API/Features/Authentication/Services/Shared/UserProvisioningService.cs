@@ -51,7 +51,13 @@ public class UserProvisioningService(
         authDbContext.UserOnboardings.Add(onboardingRecord);
 
         await authDbContext.SaveChangesAsync();
-        
+
+        // fetch
+        user = await userManager.Users
+            .Include(u => u.UserRoles) 
+            .Include(u => u.Onboarding) 
+            .FirstOrDefaultAsync(u => u.Id == user.Id);
+
         return user;
     }
 
