@@ -9,6 +9,8 @@ using Microsoft.OpenApi.Models;
 using Translation.API.Data;
 using Translation.API.Domains.Translations.Services;
 using Translation.API.Models;
+using Grpc.AspNetCore.Web;
+
 
 namespace Translation.API.Extensions;
 
@@ -71,14 +73,14 @@ public static class ApplicationServiceExtensions
                 Version = "v1"
             });
 
-            //var url = env.IsProduction() 
-            //    ? "/translation-service/swagger/v1/swagger.json" 
-            //    : "https://localhost:5510/translation-service";
-            
-            //options.AddServer(new OpenApiServer
-            //{
-            //    Url = url
-            //});
+            var url = env.IsProduction()
+                ? "/translation-service"
+                : "https://localhost:5510/translation-service";
+
+            options.AddServer(new OpenApiServer
+            {
+                Url = url
+            });
 
 
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

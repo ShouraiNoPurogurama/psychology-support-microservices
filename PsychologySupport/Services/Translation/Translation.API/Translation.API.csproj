@@ -28,14 +28,15 @@
         <PackageReference Include="AutoGen.Gemini" />
         <PackageReference Include="Carter" />
         <PackageReference Include="EFCore.NamingConventions" />
+        <PackageReference Include="Grpc.AspNetCore.Web" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
-		<PackageReference Include="Grpc.AspNetCore"/>
-		<PackageReference Include="Grpc.AspNetCore.Server.Reflection"/>
+		<PackageReference Include="Grpc.AspNetCore" />
+		<PackageReference Include="Grpc.AspNetCore.Server.Reflection" />
     </ItemGroup>
 	<ItemGroup>
 		<Protobuf Include="Protos\translation.proto" GrpcServices="Server" />
