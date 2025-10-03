@@ -25,6 +25,8 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Alias/Alias.API/RSAKeys:/app/RSAKeys
+      - ./Services/Alias/Alias.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/Alias/Alias.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   auth.api:
     image: ${DOCKER_REGISTRY}auth.api:${IMAGE_TAG}
@@ -50,6 +52,8 @@ services:
       - ~/.aspnet/https:/https:ro
       - ./Services/Auth/Auth.API/RSAKeys:/app/RSAKeys
       - /mnt/dpkeys:/home/app/.aspnet/DataProtection-Keys
+      - ./Services/Auth/Auth.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/Auth/Auth.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   chatbox.api:
     image: ${DOCKER_REGISTRY}chatbox.api:${IMAGE_TAG}
@@ -70,6 +74,8 @@ services:
       - ~/.aspnet/https:/https:ro
       - ./Services/ChatBox/ChatBox.API/RSAKeys:/app/RSAKeys
       - ~/gcp/compute-default-sa.json:/app/gcloud/compute-default-sa.json:ro
+      - ./Services/ChatBox/ChatBox.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/ChatBox/ChatBox.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   feed.api:
     image: ${DOCKER_REGISTRY}feed.api:${IMAGE_TAG}
@@ -88,6 +94,8 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Feed/Feed.API/RSAKeys:/app/RSAKeys
+      - ./Services/Feed/Feed.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/Feed/Feed.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   media.api:
     image: ${DOCKER_REGISTRY}media.api:${IMAGE_TAG}
@@ -108,6 +116,8 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Media/Media.API/RSAKeys:/app/RSAKeys
+      - ./Services/Media/Media.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/Media/Media.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   payment.api:
     image: ${DOCKER_REGISTRY}payment.api:${IMAGE_TAG}
@@ -126,6 +136,8 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Payment/Payment.API/RSAKeys:/app/RSAKeys
+      - ./Services/Payment/Payment.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/Payment/Payment.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   post.api:
     image: ${DOCKER_REGISTRY}post.api:${IMAGE_TAG}
@@ -146,6 +158,8 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Post/Post.API/RSAKeys:/app/RSAKeys
+      - ./Services/Post/Post.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/Post/Post.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   profile.api:
     image: ${DOCKER_REGISTRY}profile.api:${IMAGE_TAG}
@@ -164,6 +178,8 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Profile/Profile.API/RSAKeys:/app/RSAKeys
+      - ./Services/Profile/Profile.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/Profile/Profile.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   promotion.grpc:
     image: ${DOCKER_REGISTRY}promotion.grpc:${IMAGE_TAG}
@@ -180,6 +196,8 @@ services:
     ports: [ "5003:8080", "5503:8081" ]
     volumes:
       - ~/.aspnet/https:/https:ro
+      - ./Services/Promotion/Promotion.Grpc/appsettings.json:/app/appsettings.json:ro
+      - ./Services/Promotion/Promotion.Grpc/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   subscription.api:
     image: ${DOCKER_REGISTRY}subscription.api:${IMAGE_TAG}
@@ -198,6 +216,8 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/Subscription/Subscription.API/RSAKeys:/app/RSAKeys
+      - ./Services/Subscription/Subscription.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/Subscription/Subscription.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   test.api:
     image: ${DOCKER_REGISTRY}test.api:${IMAGE_TAG}
@@ -222,6 +242,8 @@ services:
       - ./Services/Test/Test.API/RSAKeys:/app/RSAKeys
       - ./Services/Test/Test.Infrastructure/Assets:/app/Assets
       - /usr/share/fonts:/usr/share/fonts:ro
+      - ./Services/Test/Test.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/Test/Test.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   translation.api:
     image: ${DOCKER_REGISTRY}translation.api:${IMAGE_TAG} 
@@ -248,6 +270,8 @@ services:
       - ~/.aspnet/https:/https:ro
       - ~/gcp/compute-default-sa.json:/app/gcloud/compute-default-sa.json:ro
       - ./Services/Translation/Translation.API/RSAKeys:/app/RSAKeys
+      - ./Services/Translation/Translation.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/Translation/Translation.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   yarpapigateway:
     image: ${DOCKER_REGISTRY}yarpapigateway:${IMAGE_TAG}
@@ -276,6 +300,8 @@ services:
       - /etc/ssl/api-cert:/certs:ro
       - ~/.aspnet/https:/https:ro
       - /mnt/dpkeys:/home/app/.aspnet/DataProtection-Keys
+      - ./ApiGateways/YarpApiGateway/appsettings.json:/app/appsettings.json:ro
+      - ./ApiGateways/YarpApiGateway/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   distributedcache:
     container_name: distributedcache-msa
