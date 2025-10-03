@@ -1,0 +1,141 @@
+name: Deploy to VPS (Compose Pull+Up + Auto Health)
+
+on:
+  workflow_run:
+    workflows: [ "Build & Push Microservices (GHCR)" ]
+    types: [ completed ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          command_timeout: 30m
+          script: |
+            set -euo pipefail
+
+            WORKDIR="/home/emoease/PsychologySupport"
+            COMPOSE="docker-compose-apis.yml"
+            NEW_TAG="${{ github.sha }}"
+
+            cd "$WORKDIR"
+
+            echo "🔐 Login GHCR"
+            echo "${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}" | docker login ghcr.io -u "${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}" --password-stdin
+
+            echo "📝 Backup .env và cập nhật IMAGE_TAG=${NEW_TAG}"
+            cp -f .env ".env.backup.$(date +%s)" || true
+            touch .env
+
+            set_kv () {
+              # set_kv KEY VALUE  -> update nếu tồn tại, append nếu chưa
+              local k="$1"; local v="$2"
+              if grep -qE "^${k}=" .env; then
+                sed -i "s|^${k}=.*|${k}=${v}|" .env
+              else
+                echo "${k}=${v}" >> .env
+              fi
+            }
+
+            # ⚠️ Nếu còn dùng DOCKER_REGISTRY/ASPNETCORE_ENVIRONMENT trong compose, KHÔNG xóa—chỉ set IMAGE_TAG
+            set_kv IMAGE_TAG "${NEW_TAG}"
+
+            echo "📄 .env hiện tại:"
+            cat .env || true
+
+            echo "📥 Pull images"
+            docker compose -f "${COMPOSE}" pull
+
+            echo "🚀 Up (no-build)"
+            docker compose -f "${COMPOSE}" up -d
+
+            # ====== Auto health ======
+            get_label() {
+              docker inspect -f '{{ index .Config.Labels "'"$2"'" }}' "$1" 2>/dev/null || true
+            }
+
+            wait_container_healthy() {
+              local name="$1"; local max_wait=60; local waited=0
+              while true; do
+                state="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$name" 2>/dev/null || echo none)"
+                if [ "$state" = "healthy" ]; then
+                  echo "✅ $name container HEALTHCHECK: healthy"; return 0
+                fi
+                if [ "$state" = "none" ]; then return 2; fi
+                if [ $waited -ge $max_wait ]; then
+                  echo "❌ $name container HEALTHCHECK timeout"; return 1
+                fi
+                sleep 2; waited=$((waited+2))
+                echo "⏳ Waiting $name HEALTHCHECK... ($waited/$max_wait)"
+              done
+            }
+
+            http_health() {
+              local svc="$1"; local cname="$2"
+              local path="$(get_label "$cname" 'com.emoease.health_path')"
+              local port_override="$(get_label "$cname" 'com.emoease.health_port')"
+              local max_wait=60; local waited=0
+              [ -z "$path" ] && path="/health"
+
+              local host_port=""
+              if [ -n "$port_override" ]; then
+                host_port="$port_override"
+              else
+                host_port="$(docker compose -f "${COMPOSE}" port "$svc" 8080 | head -n1 | awk -F: '{print $NF}')"
+                if [ -z "$host_port" ]; then
+                  host_port="$(docker compose -f "${COMPOSE}" port "$svc" 80 | head -n1 | awk -F: '{print $NF}')"
+                fi
+              fi
+              [ -z "$host_port" ] && { echo "⚠️ Không tìm thấy host port cho $svc, skip HTTP health."; return 0; }
+
+              while true; do
+                if curl -fsS "http://localhost:${host_port}${path}" | grep -q '"status":"Healthy"'; then
+                  echo "✅ $svc HTTP ${path} OK (:${host_port})"; return 0
+                fi
+                if [ $waited -ge $max_wait ]; then
+                  echo "❌ $svc HTTP health timeout (${path} on :${host_port})"; return 1
+                fi
+                sleep 2; waited=$((waited+2))
+                echo "⏳ Waiting $svc HTTP health... ($waited/$max_wait)"
+              done
+            }
+
+            echo "🔎 Liệt kê services từ compose"
+            mapfile -t SERVICES < <(docker compose -f "${COMPOSE}" config --services)
+
+            for svc in "${SERVICES[@]}"; do
+              cname="$(docker compose -f "${COMPOSE}" ps -q "$svc" | xargs -r docker inspect --format '{{.Name}}' | sed 's#^/##' || true)"
+              [ -z "$cname" ] && { echo "  Không tìm thấy container cho $svc, bỏ qua."; continue; }
+
+              skip="$(get_label "$cname" 'com.emoease.health_skip')"
+              if [ "$skip" = "true" ]; then
+                echo "  Skip health for $svc (label com.emoease.health_skip=true)"; continue
+              fi
+
+              if wait_container_healthy "$cname"; then
+                continue
+              elif [ $? -eq 2 ]; then
+                if ! http_health "$svc" "$cname"; then
+                  echo " Health fail on $svc → rollback .env"
+                  cp -f .env.backup.* .env 2>/dev/null || true
+                  docker compose -f "${COMPOSE}" up -d
+                  exit 1
+                fi
+              else
+                echo " Health fail on $svc → rollback .env"
+                cp -f .env.backup.* .env 2>/dev/null || true
+                docker compose -f "${COMPOSE}" up -d
+                exit 1
+              fi
+            done
+
+            echo "🧹 Cleanup dangling"
+            docker image prune -f
+            echo "✅ Deploy OK @ ${NEW_TAG}"

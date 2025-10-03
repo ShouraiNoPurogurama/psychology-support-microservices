@@ -1,0 +1,216 @@
+name: Build & Push Microservices (GHCR)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: ${{ github.repository_owner }}
+
+jobs:
+  detect-services:
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.out.outputs.services }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute smart diff & map to services
+        id: out
+        shell: bash
+        env:
+          BEFORE: ${{ github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+
+          ALL_SERVICES=(
+            "alias.api" "auth.api" "chatbox.api" "feed.api" "media.api"
+            "payment.api" "post.api" "profile.api" "promotion.grpc"
+            "subscription.api" "test.api" "translation.api" "yarpapigateway"
+          )
+
+          git fetch --no-tags --prune origin main
+
+          # Build-all khi chạy tay để tránh skip
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
+            BUILD_ALL=1
+          else
+            BUILD_ALL=0
+          fi
+
+          # Chọn BASE hợp lý
+          if [[ -n "${BEFORE:-}" && "${BEFORE}" != "0000000000000000000000000000000000000000" ]]; then
+            BASE="${BEFORE}"
+          else
+            if git rev-parse -q --verify HEAD~1 >/dev/null; then
+              BASE="$(git rev-parse HEAD~1)"
+            else
+              BASE="$(git merge-base origin/main HEAD)"
+            fi
+          fi
+
+          echo "Diff range: ${BASE}..HEAD"
+
+          # Lấy file thay đổi (Add/Copy/Modify/Rename)
+          mapfile -t CHANGED_FILES < <(git diff --name-only --diff-filter=ACMR "${BASE}"..HEAD || true)
+
+          # Nếu diff rỗng -> build all (tránh skip)
+          if [[ ${#CHANGED_FILES[@]} -eq 0 ]]; then
+            BUILD_ALL=1
+          fi
+
+          # Thay đổi "nền" -> build all
+          if [[ $BUILD_ALL -eq 0 ]]; then
+            for f in "${CHANGED_FILES[@]}"; do
+              case "$f" in
+                Directory.Packages.props|nuget.config|packages.lock.json|.dockerignore|docker-compose-apis.yml|\
+                BuildingBlocks/*|BuildingBlocks.Messaging/*|\
+                PsychologySupport/BuildingBlocks/*|PsychologySupport/BuildingBlocks.Messaging/*)
+                  BUILD_ALL=1; break ;;
+              esac
+            done
+          fi
+
+          declare -A SVC_SET=()
+          add_svc(){ SVC_SET["$1"]=1; }
+
+          if [[ $BUILD_ALL -eq 1 ]]; then
+            for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
+          else
+            for f in "${CHANGED_FILES[@]}"; do
+              case "$f" in
+                Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*)                     add_svc "alias.api" ;;
+                Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*)                         add_svc "auth.api" ;;
+                Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*)             add_svc "chatbox.api" ;;
+                Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*)                         add_svc "feed.api" ;;
+                Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*)                     add_svc "media.api" ;;
+                Services/Payment/Payment.API/*|PsychologySupport/Services/Payment/Payment.API/*)             add_svc "payment.api" ;;
+                Services/Post/Post.API/*|PsychologySupport/Services/Post/Post.API/*)                         add_svc "post.api" ;;
+                Services/Profile/Profile.API/*|PsychologySupport/Services/Profile/Profile.API/*)             add_svc "profile.api" ;;
+                Services/Promotion/Promotion.Grpc/*|PsychologySupport/Services/Promotion/Promotion.Grpc/*)   add_svc "promotion.grpc" ;;
+                Services/Subscription/Subscription.API/*|PsychologySupport/Services/Subscription/Subscription.API/*) add_svc "subscription.api" ;;
+                Services/Test/Test.API/*|PsychologySupport/Services/Test/Test.API/*)                         add_svc "test.api" ;;
+                Services/Translation/Translation.API/*|PsychologySupport/Services/Translation/Translation.API/*) add_svc "translation.api" ;;
+                ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*)                 add_svc "yarpapigateway" ;;
+              esac
+            done
+          fi
+
+          # Nếu vẫn rỗng -> build all
+          if [[ ${#SVC_SET[@]} -eq 0 ]]; then
+            for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
+          fi
+
+          # Xuất JSON sort ổn định
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update -y && sudo apt-get install -y jq
+          fi
+          printf '%s\n' "${!SVC_SET[@]}" | sort | jq -R -s -c 'split("\n") - [""]' > services.json
+          echo "Detected services: $(cat services.json)"
+          echo "services=$(cat services.json)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: detect-services
+    if: ${{ needs.detect-services.outputs.services != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      # max-parallel: 10
+      matrix:
+        service: ${{ fromJson(needs.detect-services.outputs.services) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR (using your PAT secrets)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}
+          password: ${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}
+
+      - name: Resolve context & dockerfile
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          SVC="${{ matrix.service }}"
+
+          # Candidates: có/không prefix PsychologySupport
+          case "$SVC" in
+            alias.api)        CANDS=( "Services/Alias/Alias.API/Dockerfile" "PsychologySupport/Services/Alias/Alias.API/Dockerfile" ) ;;
+            auth.api)         CANDS=( "Services/Auth/Auth.API/Dockerfile" "PsychologySupport/Services/Auth/Auth.API/Dockerfile" ) ;;
+            chatbox.api)      CANDS=( "Services/ChatBox/ChatBox.API/Dockerfile" "PsychologySupport/Services/ChatBox/ChatBox.API/Dockerfile" ) ;;
+            feed.api)         CANDS=( "Services/Feed/Feed.API/Dockerfile" "PsychologySupport/Services/Feed/Feed.API/Dockerfile" ) ;;
+            media.api)        CANDS=( "Services/Media/Media.API/Dockerfile" "PsychologySupport/Services/Media/Media.API/Dockerfile" ) ;;
+            payment.api)      CANDS=( "Services/Payment/Payment.API/Dockerfile" "PsychologySupport/Services/Payment/Payment.API/Dockerfile" ) ;;
+            post.api)         CANDS=( "Services/Post/Post.API/Dockerfile" "PsychologySupport/Services/Post/Post.API/Dockerfile" ) ;;
+            profile.api)      CANDS=( "Services/Profile/Profile.API/Dockerfile" "PsychologySupport/Services/Profile/Profile.API/Dockerfile" ) ;;
+            promotion.grpc)   CANDS=( "Services/Promotion/Promotion.Grpc/Dockerfile" "PsychologySupport/Services/Promotion/Promotion.Grpc/Dockerfile" ) ;;
+            subscription.api) CANDS=( "Services/Subscription/Subscription.API/Dockerfile" "PsychologySupport/Services/Subscription/Subscription.API/Dockerfile" ) ;;
+            test.api)         CANDS=( "Services/Test/Test.API/Dockerfile" "PsychologySupport/Services/Test/Test.API/Dockerfile" ) ;;
+            translation.api)  CANDS=( "Services/Translation/Translation.API/Dockerfile" "PsychologySupport/Services/Translation/Translation.API/Dockerfile" ) ;;
+            yarpapigateway)   CANDS=( "ApiGateways/YarpApiGateway/Dockerfile" "PsychologySupport/ApiGateways/YarpApiGateway/Dockerfile" ) ;;
+            *) echo "Unknown service $SVC"; exit 1 ;;
+          esac
+
+          DF=""
+          for p in "${CANDS[@]}"; do
+            if [[ -f "$p" ]]; then DF="$p"; break; fi
+          done
+
+          if [[ -z "$DF" ]]; then
+            echo "❌ Dockerfile not found for $SVC"; printf 'Tried:\n- %s\n' "${CANDS[@]}"; exit 1
+          fi
+
+          # Nếu DF nằm trong PsychologySupport/... thì đặt context=PsychologySupport, ngược lại context=.
+          if [[ "$DF" == PsychologySupport/* ]]; then
+            CTX="PsychologySupport"
+          else
+            CTX="."
+          fi
+
+          echo "CTX=$CTX" >> $GITHUB_OUTPUT
+          echo "DF=$DF" >> $GITHUB_OUTPUT
+
+          OWNER_LC=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
+          SVC_LC=$(echo "$SVC" | tr '[:upper:]' '[:lower:]')
+          echo "IMG=ghcr.io/${OWNER_LC}/${SVC_LC}" >> $GITHUB_OUTPUT
+
+          # Registry cache ref riêng cho mỗi service
+          echo "CACHE_REF=ghcr.io/${OWNER_LC}/cache-${SVC_LC}:buildcache" >> $GITHUB_OUTPUT
+
+      - name: Build & Push ${{ matrix.service }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ steps.meta.outputs.CTX }}
+          file: ${{ steps.meta.outputs.DF }}
+          platforms: linux/amd64
+          push: true
+          provenance: false
+          tags: |
+            ${{ steps.meta.outputs.IMG }}:${{ github.sha }}
+            ${{ steps.meta.outputs.IMG }}:latest
+            ${{ steps.meta.outputs.IMG }}:main
+          # Cache kết hợp: GHA + GHCR registry cache
+          cache-from: |
+            type=gha,scope=${{ matrix.service }}
+            type=registry,ref=${{ steps.meta.outputs.CACHE_REF }}
+          cache-to: |
+            type=gha,mode=max,scope=${{ matrix.service }}
+            type=registry,ref=${{ steps.meta.outputs.CACHE_REF }},mode=max,compression=zstd
