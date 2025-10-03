@@ -43,19 +43,19 @@ jobs:
             "subscription.api" "test.api" "translation.api" "yarpapigateway"
           )
 
-          # 1) Chọn BASE commit hợp lý
           git fetch --no-tags --prune origin main
 
+          # Build-all khi chạy tay để tránh skip
           if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
             BUILD_ALL=1
           else
             BUILD_ALL=0
           fi
 
+          # Chọn BASE hợp lý
           if [[ -n "${BEFORE:-}" && "${BEFORE}" != "0000000000000000000000000000000000000000" ]]; then
             BASE="${BEFORE}"
           else
-            # Fallback: dùng HEAD~1 nếu có, nếu không thì merge-base
             if git rev-parse -q --verify HEAD~1 >/dev/null; then
               BASE="$(git rev-parse HEAD~1)"
             else
@@ -65,16 +65,15 @@ jobs:
 
           echo "Diff range: ${BASE}..HEAD"
 
-          # 2) Lấy file thay đổi (bắt cả rename/move)
+          # Lấy file thay đổi (Add/Copy/Modify/Rename)
           mapfile -t CHANGED_FILES < <(git diff --name-only --diff-filter=ACMR "${BASE}"..HEAD || true)
 
-          # 3) Nếu diff rỗng -> build all (tránh skip)
+          # Nếu diff rỗng -> build all (tránh skip)
           if [[ ${#CHANGED_FILES[@]} -eq 0 ]]; then
             BUILD_ALL=1
           fi
 
-          # 4) Nếu có thay đổi "nền" -> build all
-          #    (không lệ thuộc tiền tố PsychologySupport/)
+          # Thay đổi "nền" -> build all
           if [[ $BUILD_ALL -eq 0 ]]; then
             for f in "${CHANGED_FILES[@]}"; do
               case "$f" in
@@ -89,7 +88,6 @@ jobs:
           declare -A SVC_SET=()
           add_svc(){ SVC_SET["$1"]=1; }
 
-          # 5) Map đường dẫn -> service
           if [[ $BUILD_ALL -eq 1 ]]; then
             for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
           else
@@ -112,12 +110,12 @@ jobs:
             done
           fi
 
-          # 6) Nếu vì lý do gì vẫn rỗng -> build all (chắc kèo)
+          # Nếu vẫn rỗng -> build all
           if [[ ${#SVC_SET[@]} -eq 0 ]]; then
             for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
           fi
 
-          # 7) Xuất JSON (sort để ổn định)
+          # Xuất JSON sort ổn định
           if ! command -v jq >/dev/null 2>&1; then
             sudo apt-get update -y && sudo apt-get install -y jq
           fi
@@ -125,14 +123,12 @@ jobs:
           echo "Detected services: $(cat services.json)"
           echo "services=$(cat services.json)" >> "$GITHUB_OUTPUT"
 
-
   build:
     needs: detect-services
     if: ${{ needs.detect-services.outputs.services != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      # Có thể giới hạn parallel cho hợp lý, ví dụ:
       max-parallel: 3
       matrix:
         service: ${{ fromJson(needs.detect-services.outputs.services) }}
@@ -155,7 +151,7 @@ jobs:
           set -euo pipefail
           SVC="${{ matrix.service }}"
 
-          # Map service -> các khả năng đường dẫn Dockerfile (có/không tiền tố PsychologySupport)
+          # Candidates: có/không prefix PsychologySupport
           case "$SVC" in
             alias.api)        CANDS=( "Services/Alias/Alias.API/Dockerfile" "PsychologySupport/Services/Alias/Alias.API/Dockerfile" ) ;;
             auth.api)         CANDS=( "Services/Auth/Auth.API/Dockerfile" "PsychologySupport/Services/Auth/Auth.API/Dockerfile" ) ;;
@@ -179,25 +175,28 @@ jobs:
           done
 
           if [[ -z "$DF" ]]; then
-            echo "❌ Dockerfile not found for $SVC in any known location"
-            printf 'Tried:\n- %s\n' "${CANDS[@]}"
-            exit 1
+            echo "❌ Dockerfile not found for $SVC"; printf 'Tried:\n- %s\n' "${CANDS[@]}"; exit 1
           fi
 
-          # Build context: repo root cho chắc (đủ file solution, props, v.v.)
-          echo "CTX=." >> $GITHUB_OUTPUT
+          # Nếu DF nằm trong PsychologySupport/... thì đặt context=PsychologySupport, ngược lại context=.
+          if [[ "$DF" == PsychologySupport/* ]]; then
+            CTX="PsychologySupport"
+          else
+            CTX="."
+          fi
+
+          echo "CTX=$CTX" >> $GITHUB_OUTPUT
           echo "DF=$DF" >> $GITHUB_OUTPUT
 
           OWNER_LC=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
           SVC_LC=$(echo "$SVC" | tr '[:upper:]' '[:lower:]')
           echo "IMG=ghcr.io/${OWNER_LC}/${SVC_LC}" >> $GITHUB_OUTPUT
 
-
       - name: Build & Push ${{ matrix.service }}
         uses: docker/build-push-action@v6
         with:
-          context: ${{ steps.meta.outputs.CTX }}     
-          file: ${{ steps.meta.outputs.DF }}           
+          context: ${{ steps.meta.outputs.CTX }}
+          file: ${{ steps.meta.outputs.DF }}
           platforms: linux/amd64
           push: true
           provenance: false
