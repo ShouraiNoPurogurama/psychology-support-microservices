@@ -192,6 +192,9 @@ jobs:
           SVC_LC=$(echo "$SVC" | tr '[:upper:]' '[:lower:]')
           echo "IMG=ghcr.io/${OWNER_LC}/${SVC_LC}" >> $GITHUB_OUTPUT
 
+          # Registry cache ref riêng cho mỗi service
+          echo "CACHE_REF=ghcr.io/${OWNER_LC}/_cache-${SVC_LC}:buildcache" >> $GITHUB_OUTPUT
+
       - name: Build & Push ${{ matrix.service }}
         uses: docker/build-push-action@v6
         with:
@@ -204,5 +207,10 @@ jobs:
             ${{ steps.meta.outputs.IMG }}:${{ github.sha }}
             ${{ steps.meta.outputs.IMG }}:latest
             ${{ steps.meta.outputs.IMG }}:main
-          cache-from: type=gha,scope=${{ matrix.service }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+          # Cache kết hợp: GHA + GHCR registry cache
+          cache-from: |
+            type=gha,scope=${{ matrix.service }}
+            type=registry,ref=${{ steps.meta.outputs.CACHE_REF }}
+          cache-to: |
+            type=gha,mode=max,scope=${{ matrix.service }}
+            type=registry,ref=${{ steps.meta.outputs.CACHE_REF }},mode=max,compression=zstd
