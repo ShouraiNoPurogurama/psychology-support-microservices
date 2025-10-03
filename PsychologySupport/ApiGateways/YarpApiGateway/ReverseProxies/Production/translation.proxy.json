@@ -3,35 +3,36 @@
     "Routes": {
       "translation-health": {
         "ClusterId": "translation-cluster",
-        "Match": { "Path": "/translation-service/health" },
+        "Match": {
+          "Path": "/translation-service/health"
+        },
         "Transforms": [ { "PathPattern": "/health" } ]
       },
       "translation-swagger": {
         "ClusterId": "translation-cluster",
-        "Match": { "Path": "/translation-service/swagger/{**catch-all}" },
+        "Match": {
+          "Path": "/translation-service/swagger/{**catch-all}"
+        },
         "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
       },
-      "translation-rest": {
+      "translation-route": {
         "ClusterId": "translation-cluster",
-        "Match": { "Path": "/translation-service/rest/{**catch-all}" },
-        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
-      },
-      "translation-grpc": {
-        "ClusterId": "translation-cluster-grpc",
-        "Match": { "Path": "/translation-service/grpc/{**catch-all}" },
-        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+        "RateLimiterPolicy": "fixed",
+        "Match": {
+          "Path": "/translation-service/{**catch-all}"
+        },
+        "Transforms": [
+          { "PathPattern": "/{**catch-all}" },
+          { "TokenExchange": "enabled" }
+        ]
       }
     },
     "Clusters": {
       "translation-cluster": {
         "Destinations": {
-          "destination1": { "Address": "http://translation.api:8080/" }
-        }
-      },
-      "translation-cluster-grpc": {
-        "HttpVersion": "2.0",
-        "Destinations": {
-          "destination1": { "Address": "http://translation.api:8081/" }
+          "destination1": {
+            "Address": "http://translation.api:8080/"
+          }
         }
       }
     }
