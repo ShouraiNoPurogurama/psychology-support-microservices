@@ -4,18 +4,18 @@ using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Features.Posts.Dtos;
+using Post.Application.Features.Posts.Queries.GetPosts;
 using Post.Domain.Aggregates.Posts.Enums;
 
-namespace Post.Application.Features.Posts.Queries.GetPosts;
+namespace Post.Application.Features.Posts.Queries.GetPostsByIds;
 
-internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, PaginatedResult<PostSummaryDto>>
+internal sealed class GetPostsByIdsHandler : IQueryHandler<GetPostsQuery, PaginatedResult<PostSummaryDto>>
 {
     private readonly IPostDbContext _context;
-    private readonly ICurrentActorAccessor _actorAccessor;
     private readonly IQueryDbContext _queryContext;
+    private readonly ICurrentActorAccessor _actorAccessor;
 
-
-    public GetPostsQueryHandler(IPostDbContext context, ICurrentActorAccessor actorAccessor, IQueryDbContext queryContext)
+    public GetPostsByIdsHandler(IPostDbContext context, ICurrentActorAccessor actorAccessor, IQueryDbContext queryContext)
     {
         _context = context;
         _actorAccessor = actorAccessor;
@@ -26,17 +26,19 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, Pagina
     {
         var aliasId = _actorAccessor.GetRequiredAliasId();
 
+
         var query = _context.Posts
             .Where(p => !p.IsDeleted)
             .Select(p => new
             {
                 Post = p,
                 IsReacted = _context.Reactions.Any(r =>
-                    r.IsOnPost &&
-                    r.Target.TargetId == p.Id &&
-                    r.Author.AliasId == aliasId)
-            });
-
+                    r.IsOnPost
+                    && r.Target.TargetId == p.Id
+                    && r.Author.AliasId == aliasId
+                )
+            })
+            .AsQueryable();
 
         // Apply filters
         if (!string.IsNullOrEmpty(request.Visibility) &&
@@ -73,14 +75,16 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, Pagina
             .Include(p => p.Post.Media)
             .Include(p => p.Post.Categories)
             .ThenInclude(pc => pc.CategoryTag)
-            .ToListAsync(cancellationToken);
-        
+            .ToListAsync(cancellationToken: cancellationToken);
+
+        // Get author display names from query context (no EF join)
         var authorIds = posts.Select(p => p.Post.Author.AliasId).Distinct().ToList();
         var authorAliases = await _queryContext.AliasVersionReplica
             .AsNoTracking()
             .Where(a => authorIds.Contains(a.AliasId))
             .ToListAsync(cancellationToken);
 
+        // Merge in memory (following manifesto rules)
         var postDtos = posts.Select(p =>
             {
                 var author = authorAliases
@@ -100,10 +104,9 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, Pagina
                     p.Post.Metrics.CommentCount,
                     p.Post.Metrics.ViewCount,
                     p.Post.HasMedia);
-            })
-            .ToList();
-        
-        
+            }
+        );
+
         return new PaginatedResult<PostSummaryDto>(
             request.PageIndex,
             request.PageSize,

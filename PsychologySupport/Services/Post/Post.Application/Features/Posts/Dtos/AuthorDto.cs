@@ -3,5 +3,5 @@
 public sealed record AuthorDto(
     Guid AliasId,
     string DisplayName,
-    string AvatarUrl //todo gắn default url sau
+    string? AvatarUrl //todo gắn default url sau
 );

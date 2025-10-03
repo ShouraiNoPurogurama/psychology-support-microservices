@@ -2,13 +2,13 @@
 using BuildingBlocks.Pagination;
 using Post.Application.Features.Posts.Dtos;
 
-namespace Post.Application.Features.Posts.Queries.GetPosts;
+namespace Post.Application.Features.Posts.Queries.GetPostsByIds;
 
-public record GetPostsQuery(
+public record GetPostsByIdsQuery(
     int PageIndex = 1,
     int PageSize = 20,
-    string? Visibility = null,
-    List<Guid>? CategoryTagIds = null,
+    
     string? SortBy = "CreatedAt",
     bool SortDescending = true
 ) : IQuery<PaginatedResult<PostSummaryDto>>;
+

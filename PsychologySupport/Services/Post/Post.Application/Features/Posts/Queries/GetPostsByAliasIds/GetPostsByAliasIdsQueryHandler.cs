@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
+using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Features.Posts.Dtos;
 using Post.Domain.Aggregates.Posts.Enums;
@@ -10,42 +11,53 @@ namespace Post.Application.Features.Posts.Queries.GetPostsByAliasIds;
 internal sealed class GetPostsByAliasIdsQueryHandler : IQueryHandler<GetPostsByAliasIdsQuery, GetPostsByAliasIdsResult>
 {
     private readonly IPostDbContext _context;
+    private readonly ICurrentActorAccessor _actorAccessor;
 
-    public GetPostsByAliasIdsQueryHandler(IPostDbContext context)
+    public GetPostsByAliasIdsQueryHandler(IPostDbContext context, ICurrentActorAccessor actorAccessor)
     {
         _context = context;
+        _actorAccessor = actorAccessor;
     }
 
     public async Task<GetPostsByAliasIdsResult> Handle(GetPostsByAliasIdsQuery request, CancellationToken cancellationToken)
     {
+        var aliasId = _actorAccessor.GetRequiredAliasId();
+        
         // Query posts by alias IDs with pagination and AsNoTracking
         var baseQuery = _context.Posts
-            .AsNoTracking()
-            .Where(p => request.AliasIds.Contains(p.Author.AliasId) &&
-                        !p.IsDeleted &&
-                        p.Visibility == PostVisibility.Public);
+                .AsNoTracking()
+                .Where(p => request.AliasIds.Contains(p.Author.AliasId) &&
+                            !p.IsDeleted &&
+                            p.Visibility == PostVisibility.Public)
+                .Select(p => new
+                {
+                    Post = p,
+                    IsReacted = _context.Reactions.Any(r =>
+                        r.IsOnPost
+                        && r.Target.TargetId == p.Id
+                        && r.Author.AliasId == aliasId)
+                })
+                .OrderByDescending(p => p.Post.PublishedAt)
+            ;
 
         // Get total count before pagination
         var totalCount = await baseQuery.CountAsync(cancellationToken);
 
-
-        var query = baseQuery
-            .OrderByDescending(p => p.PublishedAt)
-            .Select(p => new PostSummaryDto(
-            p.Id,
-            p.Content.Title,
-            p.Content.Value,
-            p.Author.AliasId,
-            p.Visibility,
-            p.PublishedAt,
-            p.EditedAt,
-            p.Metrics.ReactionCount,
-            p.Metrics.CommentCount,
-            p.Metrics.ViewCount,
-            p.HasMedia
+        var query = baseQuery.Select(p => new PostSummaryDto(
+            p.Post.Id,
+            p.Post.Content.Title,
+            p.Post.Content.Value,
+            p.IsReacted,
+            new AuthorDto(aliasId, "", ""),
+            p.Post.Visibility,
+            p.Post.PublishedAt,
+            p.Post.EditedAt,
+            p.Post.Metrics.ReactionCount,
+            p.Post.Metrics.CommentCount,
+            p.Post.Metrics.ViewCount,
+            p.Post.HasMedia
         ));
-
-        // Apply Skip/Take for pagination
+        
         var postsData = await query
             .Skip((request.Page - 1) * request.Size)
             .Take(request.Size)
