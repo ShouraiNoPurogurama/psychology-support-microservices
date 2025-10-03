@@ -193,7 +193,7 @@ jobs:
           echo "IMG=ghcr.io/${OWNER_LC}/${SVC_LC}" >> $GITHUB_OUTPUT
 
           # Registry cache ref riêng cho mỗi service
-          echo "CACHE_REF=ghcr.io/${OWNER_LC}/_cache-${SVC_LC}:buildcache" >> $GITHUB_OUTPUT
+          echo "CACHE_REF=ghcr.io/${OWNER_LC}/cache-${SVC_LC}:buildcache" >> $GITHUB_OUTPUT
 
       - name: Build & Push ${{ matrix.service }}
         uses: docker/build-push-action@v6
