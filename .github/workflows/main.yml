@@ -158,9 +158,9 @@ jobs:
               echo "🔥 Dummy build for $DUMMY_SERVICE completed. Proceeding to parallel builds..."
             fi
 
-            # ------------ PARALLEL BUILD (max 3 at a time) -------------
+            # ------------ PARALLEL BUILD (max 2 at a time) -------------
             COUNT=0
-            MAX_PARALLEL=3
+            MAX_PARALLEL=2
             for svc in $CHANGED; do
               (
                 build_service "$svc"
