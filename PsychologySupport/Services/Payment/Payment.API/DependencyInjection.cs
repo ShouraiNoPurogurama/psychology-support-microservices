@@ -25,8 +25,6 @@ public static class DependencyInjection
 
         services.AddAuthorization();
 
-        services.AddIdentityServices(config);
-
         ConfigureCORS(services);
 
         ConfigureSwagger(services, env);
