@@ -2,7 +2,5 @@
 
 public record CategoryTagDto(
     Guid Id,
-    string Name,
-    string? Description,
-    DateTimeOffset AssignedAt
+    string DisplayName
 );

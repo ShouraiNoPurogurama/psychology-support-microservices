@@ -62,6 +62,7 @@ public sealed class EditPostCommandHandler : ICommandHandler<EditPostCommand, Ed
                 var postMedia = PostMedia.Create(
                     request.PostId,
                     Guid.NewGuid(),
+                    mediaUrl,
                     index,
                     null, // caption
                     null  // altText

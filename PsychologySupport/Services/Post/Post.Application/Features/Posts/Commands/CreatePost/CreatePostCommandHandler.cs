@@ -41,12 +41,12 @@ public sealed class CreatePostCommandHandler(
 
         await AttachCategoryTagToPost(request, cancellationToken, post);
 
-        var hasMedia = request.MediaIds?.Any() == true;
+        var hasMedia = request.Medias.Any();
         if (hasMedia)
         {
-            foreach (var mediaId in request.MediaIds!)
+            foreach (var media in request.Medias)
             {
-                post.AddMedia(mediaId);
+                post.AddMedia(media.MediaId, media.Url);
             }
         }
 
@@ -62,12 +62,12 @@ public sealed class CreatePostCommandHandler(
         var followerCount = await followerCountProvider.GetFollowerCountAsync(aliasId, cancellationToken);
         await outboxWriter.WriteAsync(new PostCreatedIntegrationEvent(post.Id, aliasId, post.CreatedAt, followerCount), cancellationToken);
 
-        var changedNum = await context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         // Publish media processing event ONLY when media is present
         if (hasMedia)
         {
-            var integrationEvent = new PostCreatedWithMediaPendingIntegrationEvent(post.Id, "Post", request.MediaIds);
+            var integrationEvent = new PostCreatedWithMediaPendingIntegrationEvent(post.Id, "Post", request.Medias!.Select(x => x.MediaId));
             await publishEndpoint.Publish(integrationEvent, cancellationToken);
         }
 

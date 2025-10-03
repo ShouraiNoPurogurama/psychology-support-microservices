@@ -21,15 +21,15 @@ public class CreatePostCommandValidator : AbstractValidator<CreatePostCommand>
             .WithMessage("Title cannot exceed 255 characters")
             .When(x => !string.IsNullOrEmpty(x.Title));
 
-        RuleFor(x => x.MediaIds)
+        RuleFor(x => x.Medias.Select(m => m.MediaId))
             .Must(HaveUniqueMediaIds)
             .WithMessage("Media IDs must be unique")
-            .When(x => x.MediaIds != null);
+            .When(x => x.Medias.Any());
 
-        RuleForEach(x => x.MediaIds)
+        RuleForEach(x => x.Medias.Select(m => m.MediaId))
             .NotEmpty()
             .WithMessage("Media ID cannot be empty")
-            .When(x => x.MediaIds != null);
+            .When(x => x.Medias.Any());
     }
 
     private static bool HaveUniqueMediaIds(IEnumerable<Guid>? mediaIds)

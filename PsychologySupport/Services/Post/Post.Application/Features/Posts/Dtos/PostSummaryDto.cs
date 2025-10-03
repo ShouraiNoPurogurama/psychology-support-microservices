@@ -1,4 +1,5 @@
-﻿using Post.Domain.Aggregates.Posts.Enums;
+﻿using Post.Application.Features.Posts.Commands.CreatePost;
+using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Features.Posts.Dtos;
 
@@ -14,5 +15,9 @@ public record PostSummaryDto(
     int ReactionCount,
     int CommentCount,
     int ViewCount,
-    bool HasMedia
+    bool HasMedia,
+    IReadOnlyList<MediaItemDto> Medias,
+    IReadOnlyList<Guid> CategoryTagIds,
+    IReadOnlyList<Guid> EmotionTagIds
 );
+

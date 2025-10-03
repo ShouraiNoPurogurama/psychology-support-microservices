@@ -28,6 +28,10 @@ internal sealed class GetPostsByIdsHandler : IQueryHandler<GetPostsQuery, Pagina
 
 
         var query = _context.Posts
+            .Include(p => p.Media)
+            .Include(p => p.Categories)
+            .Include(p => p.Emotions)
+            .AsNoTracking()
             .Where(p => !p.IsDeleted)
             .Select(p => new
             {
@@ -103,7 +107,11 @@ internal sealed class GetPostsByIdsHandler : IQueryHandler<GetPostsQuery, Pagina
                     p.Post.Metrics.ReactionCount,
                     p.Post.Metrics.CommentCount,
                     p.Post.Metrics.ViewCount,
-                    p.Post.HasMedia);
+                    p.Post.HasMedia,
+                    p.Post.Media.Select(m => new MediaItemDto(m.Id, m.MediaUrl)).ToList(),
+                    p.Post.Categories.Select(c => c.Id).ToList(),
+                    p.Post.Emotions.Select(e => e.Id).ToList()
+                    );
             }
         );
 

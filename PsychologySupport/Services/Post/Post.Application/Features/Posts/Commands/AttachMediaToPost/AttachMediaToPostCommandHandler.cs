@@ -34,7 +34,7 @@ public sealed class AttachMediaToPostCommandHandler : ICommandHandler<AttachMedi
         if (post == null)
             throw new NotFoundException("Post not found or has been deleted.", "POST_NOT_FOUND");
 
-        post.AddMedia(request.MediaId, request.Position);
+        post.AddMedia(request.Media.MediaId, request.Media.Url);
 
         await _context.SaveChangesAsync(cancellationToken);
         //
@@ -49,7 +49,7 @@ public sealed class AttachMediaToPostCommandHandler : ICommandHandler<AttachMedi
 
         return new AttachMediaToPostResult(
             post.Id,
-            request.MediaId,
+            request.Media,
             DateTimeOffset.UtcNow
         );
     }

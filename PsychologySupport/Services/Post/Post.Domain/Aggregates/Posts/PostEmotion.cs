@@ -9,7 +9,9 @@ public sealed class PostEmotion : Entity<Guid>, ISoftDeletable
 
     // Soft Delete
     public bool IsDeleted { get; set; }
+    
     public DateTimeOffset? DeletedAt { get; set; }
+    
     public string? DeletedByAliasId { get; set; }
 
     private PostEmotion()
