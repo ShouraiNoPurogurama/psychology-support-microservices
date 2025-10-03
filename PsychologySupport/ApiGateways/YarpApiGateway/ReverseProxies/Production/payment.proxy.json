@@ -4,14 +4,14 @@
       "payment-health": {
         "ClusterId": "payment-cluster",
         "Match": {
-          "Path": "/billing-service/health"
+          "Path": "/payment-service/health"
         },
         "Transforms": [ { "PathPattern": "/health" } ]
       },
       "payment-swagger": {
         "ClusterId": "payment-cluster",
         "Match": {
-          "Path": "/billing-service/swagger/{**catch-all}"
+          "Path": "/payment-service/swagger/{**catch-all}"
         },
         "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
       },
@@ -19,7 +19,7 @@
         "ClusterId": "payment-cluster",
         "RateLimiterPolicy": "fixed",
         "Match": {
-          "Path": "/billing-service/{**catch-all}"
+          "Path": "/payment-service/{**catch-all}"
         },
         "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
       }
@@ -28,7 +28,7 @@
       "payment-cluster": {
         "Destinations": {
           "destination1": {
-            "Address": "http://billing.api:8080/"
+            "Address": "http://payment.api:8080/"
           }
         }
       }
