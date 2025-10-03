@@ -5,7 +5,7 @@ public sealed class PostMedia : Entity<Guid>, ISoftDeletable
     public Guid PostId { get; set; }
     public Guid MediaId { get; set; }
     
-    public string MediaUrl { get; set; } 
+    public string? MediaUrl { get; set; } 
     public int? Position { get; set; }
     public string? Caption { get; set; }
     public string? AltText { get; set; }
@@ -20,7 +20,7 @@ public sealed class PostMedia : Entity<Guid>, ISoftDeletable
     {
     }
 
-    public static PostMedia Create(Guid postId, Guid mediaId, string mediaUrl, int? position, string? caption = null, string? altText = null)
+    public static PostMedia Create(Guid postId, Guid mediaId, string? mediaUrl, int? position, string? caption = null, string? altText = null)
     {
         return new PostMedia
         {
