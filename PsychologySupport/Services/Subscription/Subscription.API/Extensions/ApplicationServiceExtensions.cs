@@ -82,7 +82,7 @@ public static class ApplicationServiceExtensions
             });
 
             var url = env.IsProduction() 
-                ? "/subscription-service/swagger/v1/swagger.json" 
+                ? "/subscription-service" 
                 : "https://localhost:5510/subscription-service";
             
             options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
