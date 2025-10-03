@@ -53,16 +53,19 @@ internal sealed class GetCommentsQueryHandler : IQueryHandler<GetCommentsQuery, 
             return new GetCommentsResult(PaginatedResult<CommentSummaryDto>.Empty(request.Page, request.PageSize));
         }
 
-        // --- BƯỚC 2: Lấy các replies xem trước (preview replies) trong MỘT query ---
+        // --- BƯỚC 2: Lấy các replies xem trước (preview replies) 
         var rootCommentIds = rootComments.Select(c => c.Id).ToList();
 
-        // Đây là query "Top-N-per-Group" dùng LINQ thuần túy, EF Core sẽ dịch nó hiệu quả
         var previewReplies = await _context.Comments
             .AsNoTracking()
-            .Where(c => c.Hierarchy.ParentCommentId.HasValue && rootCommentIds.Contains(c.Hierarchy.ParentCommentId.Value) &&
-                        !c.IsDeleted)
-            .GroupBy(c => c.Hierarchy.ParentCommentId)
-            .SelectMany(group => group.OrderBy(c => c.CreatedAt).Take(PREVIEW_REPLY_COUNT))
+            .Where(parentComment => rootCommentIds.Contains(parentComment.Id))
+            .SelectMany(parentComment =>
+                _context.Comments
+                    .AsNoTracking()
+                    .Where(reply => reply.Hierarchy.ParentCommentId == parentComment.Id && !reply.IsDeleted)
+                    .OrderBy(reply => reply.CreatedAt)
+                    .Take(PREVIEW_REPLY_COUNT)
+            )
             .ToListAsync(cancellationToken);
 
         // --- BƯỚC 3: Gộp và lấy dữ liệu phụ thuộc trong một batch ---
