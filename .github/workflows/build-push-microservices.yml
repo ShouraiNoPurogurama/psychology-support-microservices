@@ -152,33 +152,52 @@ jobs:
         id: meta
         shell: bash
         run: |
+          set -euo pipefail
           SVC="${{ matrix.service }}"
+
+          # Map service -> các khả năng đường dẫn Dockerfile (có/không tiền tố PsychologySupport)
           case "$SVC" in
-            alias.api)        CTX=Services/Alias/Alias.API ;;
-            auth.api)         CTX=Services/Auth/Auth.API ;;
-            chatbox.api)      CTX=Services/ChatBox/ChatBox.API ;;
-            feed.api)         CTX=Services/Feed/Feed.API ;;
-            media.api)        CTX=Services/Media/Media.API ;;
-            payment.api)      CTX=Services/Payment/Payment.API ;;
-            post.api)         CTX=Services/Post/Post.API ;;
-            profile.api)      CTX=Services/Profile/Profile.API ;;
-            promotion.grpc)   CTX=Services/Promotion/Promotion.Grpc ;;
-            subscription.api) CTX=Services/Subscription/Subscription.API ;;
-            test.api)         CTX=Services/Test/Test.API ;;
-            translation.api)  CTX=Services/Translation/Translation.API ;;
-            yarpapigateway)   CTX=ApiGateways/YarpApiGateway ;;
+            alias.api)        CANDS=( "Services/Alias/Alias.API/Dockerfile" "PsychologySupport/Services/Alias/Alias.API/Dockerfile" ) ;;
+            auth.api)         CANDS=( "Services/Auth/Auth.API/Dockerfile" "PsychologySupport/Services/Auth/Auth.API/Dockerfile" ) ;;
+            chatbox.api)      CANDS=( "Services/ChatBox/ChatBox.API/Dockerfile" "PsychologySupport/Services/ChatBox/ChatBox.API/Dockerfile" ) ;;
+            feed.api)         CANDS=( "Services/Feed/Feed.API/Dockerfile" "PsychologySupport/Services/Feed/Feed.API/Dockerfile" ) ;;
+            media.api)        CANDS=( "Services/Media/Media.API/Dockerfile" "PsychologySupport/Services/Media/Media.API/Dockerfile" ) ;;
+            payment.api)      CANDS=( "Services/Payment/Payment.API/Dockerfile" "PsychologySupport/Services/Payment/Payment.API/Dockerfile" ) ;;
+            post.api)         CANDS=( "Services/Post/Post.API/Dockerfile" "PsychologySupport/Services/Post/Post.API/Dockerfile" ) ;;
+            profile.api)      CANDS=( "Services/Profile/Profile.API/Dockerfile" "PsychologySupport/Services/Profile/Profile.API/Dockerfile" ) ;;
+            promotion.grpc)   CANDS=( "Services/Promotion/Promotion.Grpc/Dockerfile" "PsychologySupport/Services/Promotion/Promotion.Grpc/Dockerfile" ) ;;
+            subscription.api) CANDS=( "Services/Subscription/Subscription.API/Dockerfile" "PsychologySupport/Services/Subscription/Subscription.API/Dockerfile" ) ;;
+            test.api)         CANDS=( "Services/Test/Test.API/Dockerfile" "PsychologySupport/Services/Test/Test.API/Dockerfile" ) ;;
+            translation.api)  CANDS=( "Services/Translation/Translation.API/Dockerfile" "PsychologySupport/Services/Translation/Translation.API/Dockerfile" ) ;;
+            yarpapigateway)   CANDS=( "ApiGateways/YarpApiGateway/Dockerfile" "PsychologySupport/ApiGateways/YarpApiGateway/Dockerfile" ) ;;
             *) echo "Unknown service $SVC"; exit 1 ;;
           esac
-          echo "CTX=$CTX" >> $GITHUB_OUTPUT
+
+          DF=""
+          for p in "${CANDS[@]}"; do
+            if [[ -f "$p" ]]; then DF="$p"; break; fi
+          done
+
+          if [[ -z "$DF" ]]; then
+            echo "❌ Dockerfile not found for $SVC in any known location"
+            printf 'Tried:\n- %s\n' "${CANDS[@]}"
+            exit 1
+          fi
+
+          # Build context: repo root cho chắc (đủ file solution, props, v.v.)
+          echo "CTX=." >> $GITHUB_OUTPUT
+          echo "DF=$DF" >> $GITHUB_OUTPUT
+
           OWNER_LC=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
           SVC_LC=$(echo "$SVC" | tr '[:upper:]' '[:lower:]')
           echo "IMG=ghcr.io/${OWNER_LC}/${SVC_LC}" >> $GITHUB_OUTPUT
 
+
       - name: Build & Push ${{ matrix.service }}
         uses: docker/build-push-action@v6
         with:
-          context: ./${{ steps.meta.outputs.CTX }}
-          file: ./${{ steps.meta.outputs.CTX }}/Dockerfile
+          context: ${{ steps.meta.outputs.CTX }}     
+          file: ${{ steps.meta.outputs.DF }}           
           platforms: linux/amd64
           push: true
           provenance: false
