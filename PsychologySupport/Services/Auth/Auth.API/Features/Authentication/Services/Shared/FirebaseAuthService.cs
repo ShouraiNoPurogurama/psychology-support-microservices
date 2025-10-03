@@ -44,7 +44,9 @@ namespace Auth.API.Features.Authentication.Services.Shared
             string email = decodedToken.Claims.ContainsKey("email") ? decodedToken.Claims["email"].ToString() : null;
             string fullName = decodedToken.Claims.ContainsKey("name") ? decodedToken.Claims["name"].ToString() : null;
 
-            var user = await userManager.Users.FirstOrDefaultAsync(u =>
+            var user = await userManager.Users
+                .Include(u => u.UserRoles)
+                .FirstOrDefaultAsync(u =>
                 u.FirebaseUserId == firebaseUserId || u.Email == email);
 
             if (user == null)
