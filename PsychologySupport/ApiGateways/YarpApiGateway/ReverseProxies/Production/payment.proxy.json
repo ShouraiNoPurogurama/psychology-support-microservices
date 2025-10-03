@@ -6,14 +6,18 @@
         "Match": {
           "Path": "/payment-service/health"
         },
-        "Transforms": [ { "PathPattern": "/health" } ]
+        "Transforms": [
+          { "PathPattern": "/health" }
+        ]
       },
       "payment-swagger": {
         "ClusterId": "payment-cluster",
         "Match": {
           "Path": "/payment-service/swagger/{**catch-all}"
         },
-        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+        "Transforms": [
+          { "PathPattern": "/swagger/{**catch-all}" }
+        ]
       },
       "payment-route": {
         "ClusterId": "payment-cluster",
@@ -21,7 +25,9 @@
         "Match": {
           "Path": "/payment-service/{**catch-all}"
         },
-        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+        "Transforms": [
+          { "PathPattern": "/{**catch-all}" }
+        ]
       }
     },
     "Clusters": {
