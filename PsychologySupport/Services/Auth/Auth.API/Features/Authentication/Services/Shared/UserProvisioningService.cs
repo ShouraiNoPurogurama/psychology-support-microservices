@@ -82,6 +82,7 @@ public class UserProvisioningService(
     {
         return await userManager.Users
             .Include(u => u.UserRoles)
+               .ThenInclude(ur => ur.Role)
             .Include(u => u.Onboarding)
             .FirstOrDefaultAsync(u => u.Id == userId)
             ?? throw new InvalidOperationException("User not found after creation");
