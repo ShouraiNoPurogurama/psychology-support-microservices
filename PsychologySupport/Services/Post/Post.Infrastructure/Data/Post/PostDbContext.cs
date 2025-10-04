@@ -11,6 +11,7 @@ using Post.Domain.Aggregates.Posts;
 using Post.Domain.Aggregates.Posts.Enums;
 using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Aggregates.Reaction;
+using Post.Domain.Aggregates.Reaction.ValueObjects;
 using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.Infrastructure.Data.Post;

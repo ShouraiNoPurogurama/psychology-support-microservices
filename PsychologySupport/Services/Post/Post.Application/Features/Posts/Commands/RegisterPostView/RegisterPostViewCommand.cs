@@ -1,14 +1,15 @@
 ﻿using BuildingBlocks.CQRS;
+using System;
+using System.Collections.Generic;
 
 namespace Post.Application.Features.Posts.Commands.RegisterPostView;
 
 public record RegisterPostViewCommand(
     Guid IdempotencyKey,
-    Guid PostId
+    IReadOnlyList<Guid> PostIds 
 ) : IdempotentCommand<RegisterPostViewResult>(IdempotencyKey);
 
 public record RegisterPostViewResult(
-    Guid PostId,
-    int NewViewCount,
+    int PostsUpdatedCount, 
     DateTimeOffset ViewedAt
 );
