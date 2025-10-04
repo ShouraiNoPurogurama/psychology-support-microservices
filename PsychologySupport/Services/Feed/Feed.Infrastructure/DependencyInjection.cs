@@ -53,7 +53,11 @@ public static class DependencyInjection
             q.AddTrigger(opts => opts
                 .ForJob(jobKey)
                 .WithIdentity($"{UpdateGlobalFallbackJobConfiguration.JobName}-trigger")
-                .WithCronSchedule(UpdateGlobalFallbackJobConfiguration.CronExpression));
+                .StartNow()
+                // .WithCronSchedule(UpdateGlobalFallbackJobConfiguration.CronExpression));
+                .WithSimpleSchedule(s => s
+                    .WithIntervalInSeconds(30)
+                    .RepeatForever())); 
         });
 
         
