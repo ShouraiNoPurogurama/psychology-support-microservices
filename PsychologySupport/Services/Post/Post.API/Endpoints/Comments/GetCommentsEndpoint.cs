@@ -9,7 +9,6 @@ namespace Post.API.Endpoints.Comments;
 public sealed record GetCommentsRequest(
     int PageIndex = 1,
     int PageSize = 20,
-    Guid? ParentCommentId = null,
     string SortBy = "CreatedAt",
     bool SortDescending = false
 );
@@ -32,7 +31,6 @@ public class GetCommentsEndpoint : ICarterModule
                     postId,
                     request.PageIndex,
                     request.PageSize,
-                    request.ParentCommentId,
                     request.SortBy,
                     request.SortDescending
                 );

@@ -8,7 +8,6 @@ public record GetCommentsQuery(
     Guid PostId,
     int Page = 1,
     int PageSize = 20,
-    Guid? ParentCommentId = null,
     string SortBy = "CreatedAt",
     bool SortDescending = false
 ) : IQuery<GetCommentsResult>;
