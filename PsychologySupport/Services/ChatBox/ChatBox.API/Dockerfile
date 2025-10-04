@@ -8,7 +8,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/* \
   && mkdir -p /app/gcloud /https \
   && chmod 755 /app /app/gcloud /https \
-  && chown -R $APP_UID:$APP_GID /app /https
+  && if [ -n "$APP_GID" ]; then chown -R "$APP_UID:$APP_GID" /app /https; else chown -R "$APP_UID" /app /https; fi
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
