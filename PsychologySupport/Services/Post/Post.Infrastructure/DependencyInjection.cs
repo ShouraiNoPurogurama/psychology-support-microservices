@@ -69,8 +69,12 @@ public static class DependencyInjection
         {
             options.AddInterceptors(serviceProvider.GetServices<ISaveChangesInterceptor>());
             options.UseSnakeCaseNamingConvention();
-            options.UseNpgsql(connectionString);
+            options.UseNpgsql(connectionString, x =>
+            {
+                x.MigrationsHistoryTable("__EFMigrationsHistory", "query"); // thêm schema
+            });
         });
+
 
         return services;
     }

@@ -12,4 +12,6 @@ public class EmotionTagReplica
     public bool IsActive { get; set; }
     
     public DateTimeOffset LastSyncedAt { get; set; }
+
+    public string? UnicodeCodepoint { get; private set; }
 }
