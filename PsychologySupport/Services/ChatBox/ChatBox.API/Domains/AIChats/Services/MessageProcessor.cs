@@ -16,11 +16,11 @@ public class MessageProcessor(
     ISessionConcurrencyManager concurrencyManager,
     ChatBoxDbContext dbContext,
     SummarizationService summarizationService,
+    IInstructionGenerator instructionGenerator,
     ILogger<MessageProcessor> logger
-    )
+)
     : IMessageProcessor
 {
-
     public async Task<List<AIMessageResponseDto>> ProcessMessageAsync(AIMessageRequestDto request, Guid userId)
     {
         await ValidateSessionOwnershipAsync(request.SessionId, userId);
@@ -63,10 +63,10 @@ public class MessageProcessor(
             Content: "Bạn đang gửi tin nhắn quá nhanh. Vui lòng chờ một chút trước khi gửi tin nhắn tiếp theo.",
             CreatedDate: DateTimeOffset.UtcNow
         );
-    
+
         return new List<AIMessageResponseDto> { throttleMessage };
     }
-    
+
     private async Task<List<AIMessageResponseDto>> ProcessMessageInternal(AIMessageRequestDto request, Guid userId)
     {
         var session = await dbContext.AIChatSessions
@@ -74,10 +74,41 @@ public class MessageProcessor(
             .FirstAsync(s => s.Id == request.SessionId);
 
         var userMessageWithDateTime = DatePromptHelper.PrependDateTimePrompt(request.UserMessage, 7);
-        var context = await contextBuilder.BuildContextAsync(request.SessionId, userMessageWithDateTime);
-        
-        var payload = await BuildAIPayload(request, session, context);
-        
+
+        // BƯỚC 1: Xây dựng ngữ cảnh ban đầu
+        var initialContext = await contextBuilder.BuildContextAsync(request.SessionId, userMessageWithDateTime);
+
+        // BƯỚC 2 (MỚI): Gọi "Instructor" để lấy gợi ý
+        var instruction = await instructionGenerator.GenerateInstructionAsync(
+            userMessageWithDateTime,
+            session.Summarization,
+            session.PersonaSnapshot.ToPromptText()
+        );
+
+        // BƯỚC 3 (MỚI): Chèn gợi ý vào ngữ cảnh
+        // Nếu có instruction, chèn nó vào giữa phần persona/context và tin nhắn của người dùng
+        // Điều này giúp AI chính đọc được chỉ dẫn ngay trước khi "thấy" tin nhắn cần trả lời
+        var augmentedContext = initialContext;
+        if (!string.IsNullOrWhiteSpace(instruction))
+        {
+            // Tách phần tin nhắn người dùng ra khỏi context
+            var userMessageMarker = "[User]\n";
+            var markerIndex = initialContext.IndexOf(userMessageMarker, StringComparison.Ordinal);
+            if (markerIndex != -1)
+            {
+                var contextWithoutUserMessage = initialContext.Substring(0, markerIndex);
+                var userMessagePart = initialContext.Substring(markerIndex);
+
+                // Ghép lại với instruction ở giữa
+                augmentedContext = $"{contextWithoutUserMessage}{instruction}\n\n{userMessagePart}";
+            }
+        }
+
+        logger.LogInformation("Augmented context with instruction: {Context}", augmentedContext);
+
+        // BƯỚC 4: Xây dựng payload với ngữ cảnh đã tăng cường
+        var payload = await BuildAIPayload(request, session, augmentedContext);
+
         var responseText = await aiProvider.GenerateResponseAsync(payload, session.Id);
 
         if (string.IsNullOrWhiteSpace(responseText))
@@ -88,9 +119,11 @@ public class MessageProcessor(
         await summarizationService.MaybeSummarizeSessionAsync(userId, request.SessionId);
 
         return aiMessages.Select(m => new AIMessageResponseDto(
-            m.SessionId, m.SenderIsEmo, m.Content, m.CreatedDate)).ToList();
+                m.SessionId, m.SenderIsEmo, m.Content, m.CreatedDate))
+            .ToList();
     }
-    
+
+
     public async Task MarkMessagesAsReadAsync(Guid sessionId, Guid userId)
     {
         await ValidateSessionOwnershipAsync(sessionId, userId);
@@ -106,7 +139,7 @@ public class MessageProcessor(
 
         await dbContext.SaveChangesAsync();
     }
-    
+
     public async Task<PaginatedResult<AIMessageDto>> GetMessagesAsync(Guid sessionId, Guid userId,
         PaginationRequest paginationRequest)
     {
@@ -164,18 +197,18 @@ public class MessageProcessor(
         await dbContext.SaveChangesAsync();
     }
 
-    private async Task<AIRequestPayload> BuildAIPayload(AIMessageRequestDto request, AIChatSession session, string context)
+    private async Task<AIRequestPayload> BuildAIPayload(AIMessageRequestDto request, AIChatSession session, string augmentedContext)
     {
         var summarization = await GetSessionSummarizationAsync(session.Id);
         var historyMessages = await GetHistoryMessagesAsync(session.Id);
     
         return new AIRequestPayload(
-            Context: context,                   
+            Context: augmentedContext, 
             Summarization: summarization,        
             HistoryMessages: historyMessages     
         );
     }
-    
+
     private async Task<string?> GetSessionSummarizationAsync(Guid sessionId)
     {
         var session = await dbContext.AIChatSessions
@@ -183,31 +216,31 @@ public class MessageProcessor(
             .Where(s => s.Id == sessionId)
             .Select(s => s.Summarization)
             .FirstOrDefaultAsync();
-    
+
         return session;
     }
-    
+
     private async Task<List<HistoryMessage>> GetHistoryMessagesAsync(Guid sessionId)
     {
         const int maxHistoryMessages = 10;
-    
+
         var session = await dbContext.AIChatSessions
             .AsNoTracking()
             .FirstAsync(s => s.Id == sessionId);
-    
+
         var lastSummarizedIndex = session.LastSummarizedIndex ?? 0;
-    
+
         var messages = await dbContext.AIChatMessages
             .Where(m => m.SessionId == sessionId)
             .OrderBy(m => m.CreatedDate)
-            .Skip(lastSummarizedIndex + 1) 
+            .Skip(lastSummarizedIndex + 1)
             .Take(maxHistoryMessages)
             .Select(m => new HistoryMessage(m.Content, m.SenderIsEmo))
             .ToListAsync();
-    
+
         return messages;
     }
-    
+
     private static List<AIMessage> SplitAIResponse(Guid sessionId, string responseText)
     {
         var aiMessages = responseText
@@ -227,7 +260,7 @@ public class MessageProcessor(
         return aiMessages;
     }
 
-    
+
     private static void ValidatePaginationRequest(int pageIndex, int pageSize)
     {
         if (pageIndex <= 0 || pageSize <= 0)
@@ -245,7 +278,7 @@ public class MessageProcessor(
                 "Không tìm thấy phiên trò chuyện hoặc phiên trò chuyện này không thuộc về người dùng.");
     }
 
-    
+
     private async Task<int> GetLastMessageBlockIndex(Guid sessionId)
     {
         var lastBlock = await dbContext.AIChatMessages
@@ -256,5 +289,4 @@ public class MessageProcessor(
 
         return lastBlock;
     }
-    
 }
