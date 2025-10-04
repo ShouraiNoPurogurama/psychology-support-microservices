@@ -69,6 +69,7 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud/compute-default-sa.json
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
+      - GrpcSettings__PiiUrl=http://profile.api:8081
     networks: [ emoease-net ]
     ports: [ "5008:8080", "5508:8081" ]
     volumes:

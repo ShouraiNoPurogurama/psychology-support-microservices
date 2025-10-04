@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using BuildingBlocks.Behaviors;
+﻿using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Filters;
 using BuildingBlocks.Messaging.MassTransit;
@@ -13,6 +12,9 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
+using Pii.API.Protos;
+using System.Configuration;
+using System.Reflection;
 
 namespace ChatBox.API.Extensions;
 
@@ -52,7 +54,9 @@ public static class ApplicationServiceExtensions
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "chatbox");
 
         services.AddHttpContextAccessor();
-        
+
+        AddGrpcServiceDependencies(services, config);
+
         return services;
     }
 
@@ -171,5 +175,17 @@ public static class ApplicationServiceExtensions
     private static void ConfigureGemini(IServiceCollection services, IConfiguration config)
     {
         services.Configure<GeminiConfig>(config.GetSection("GeminiConfig"));
+    }
+
+    private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
+    {
+        services.AddGrpcClient<PiiService.PiiServiceClient>(options =>
+        {
+            options.Address = new Uri(config["GrpcSettings:PiiUrl"]!);
+        })
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                EnableMultipleHttp2Connections = true
+            });
     }
 }
