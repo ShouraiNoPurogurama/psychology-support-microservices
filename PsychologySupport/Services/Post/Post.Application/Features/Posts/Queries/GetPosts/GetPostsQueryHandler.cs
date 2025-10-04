@@ -34,6 +34,11 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, GetPos
             .Where(p => !p.IsDeleted);
 
 
+        if (request.Ids.Any())
+        {
+            query = query.Where(p => request.Ids.Contains(p.Id));
+        }
+
         // Apply filters
         if (!string.IsNullOrEmpty(request.Visibility) &&
             Enum.TryParse<PostVisibility>(request.Visibility, true, out var visibility))

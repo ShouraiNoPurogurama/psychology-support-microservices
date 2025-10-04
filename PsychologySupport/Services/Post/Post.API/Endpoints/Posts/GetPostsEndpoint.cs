@@ -8,6 +8,7 @@ using Post.Application.Features.Posts.Queries.GetPosts;
 namespace Post.API.Endpoints.Posts;
 
 public record GetPostsRequest(
+    [FromQuery] Guid[] Ids,
     int PageIndex = 1,
     int PageSize = 10,
     string? Visibility = null,
@@ -29,6 +30,7 @@ public class GetPostsEndpoint : ICarterModule
                 CancellationToken ct) =>
             {
                 var query = new GetPostsQuery(
+                    request.Ids.ToList(),
                     request.PageIndex,
                     request.PageSize,
                     request.Visibility,
