@@ -6,5 +6,6 @@ public record EmotionTagDto(
     string DisplayName,
     Guid? MediaId,
     bool IsActive,
-    bool IsOwnedByUser
+    bool IsOwnedByUser,
+    string? UnicodeCodepoint
 );

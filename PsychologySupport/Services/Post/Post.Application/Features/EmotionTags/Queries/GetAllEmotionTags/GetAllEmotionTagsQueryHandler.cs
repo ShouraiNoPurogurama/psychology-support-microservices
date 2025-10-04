@@ -47,7 +47,8 @@ internal sealed class GetAllEmotionTagsQueryHandler : IQueryHandler<GetAllEmotio
             et.DisplayName,
             et.MediaId,
             et.IsActive,
-            request.AliasId.HasValue && ownedTagIdsSet.Contains(et.Id)
+            request.AliasId.HasValue && ownedTagIdsSet.Contains(et.Id),
+            et.UnicodeCodepoint
         )).ToList();
 
         return new GetAllEmotionTagsResult(result);
