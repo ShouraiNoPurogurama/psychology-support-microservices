@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.Extensions;
-using BuildingBlocks.Idempotency;
+﻿using BuildingBlocks.Idempotency;
 using Feed.Application.Abstractions.CursorService;
 using Feed.Application.Abstractions.FeedConfiguration;
 using Feed.Application.Abstractions.FollowerTracking;
@@ -15,6 +14,7 @@ using Feed.Application.Abstractions.ViewerBlocking;
 using Feed.Application.Abstractions.ViewerFollowing;
 using Feed.Application.Abstractions.ViewerMuting;
 using Feed.Application.Abstractions.VipService;
+using Feed.Infrastructure.BackgroundJobs;
 using Feed.Infrastructure.Data.Redis;
 using Feed.Infrastructure.Data.Redis.Decorators;
 using Feed.Infrastructure.Data.Redis.Providers;
@@ -25,6 +25,7 @@ using Feed.Infrastructure.Resilience.Decorators;
 using Feed.Infrastructure.Resilience.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Quartz;
 using StackExchange.Redis;
 
 namespace Feed.Infrastructure;
@@ -43,6 +44,22 @@ public static class DependencyInjection
         
         // Register application services
         AddServiceDependencies(services);
+        
+        services.AddQuartz(q =>
+        {
+            var jobKey = new JobKey(UpdateGlobalFallbackJobConfiguration.JobName);
+            q.AddJob<UpdateGlobalFallbackJob>(opts => opts.WithIdentity(jobKey));
+
+            q.AddTrigger(opts => opts
+                .ForJob(jobKey)
+                .WithIdentity($"{UpdateGlobalFallbackJobConfiguration.JobName}-trigger")
+                .StartNow()
+                // .WithCronSchedule(UpdateGlobalFallbackJobConfiguration.CronExpression));
+                .WithSimpleSchedule(s => s
+                    .WithIntervalInSeconds(30)
+                    .RepeatForever())); 
+        });
+
         
         return services;
     }
@@ -72,6 +89,8 @@ public static class DependencyInjection
         
         return services;
     }
+    
+    
     
     public static IServiceCollection AddCassandraServices(this IServiceCollection services)
     {

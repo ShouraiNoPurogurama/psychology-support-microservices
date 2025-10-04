@@ -8,12 +8,12 @@ public sealed class PostReplicaById
 {
     public Guid PostId { get; }
     public DateOnly YmdBucket { get; }
-    public Guid CreatedAt { get; } // TimeUUID
+    public DateTimeOffset CreatedAt { get; } 
 
     private PostReplicaById(
         Guid postId,
         DateOnly ymdBucket,
-        Guid createdAt)
+        DateTimeOffset createdAt)
     {
         if (postId == Guid.Empty)
             throw new ArgumentException("PostId is required", nameof(postId));
@@ -26,10 +26,10 @@ public sealed class PostReplicaById
     public static PostReplicaById Create(
         Guid postId,
         DateOnly? ymdBucket = null,
-        Guid? createdAt = null)
+        DateTimeOffset? createdAt = null)
     {
         var ymdBucketValue = ymdBucket ?? DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
-        var createdAtValue = createdAt ?? Guid.NewGuid(); // Will be converted to TimeUUID
+        var createdAtValue = createdAt ?? DateTimeOffset.UtcNow;
 
         return new(
             postId,

@@ -51,6 +51,9 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageVersion Include="OpenAI" Version="2.1.0" />
     <PackageVersion Include="payOS" Version="1.0.9" />
+    <PackageVersion Include="Quartz" Version="3.15.0" />
+    <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.15.0" />
+    <PackageVersion Include="Quartz.Serialization.SystemTextJson" Version="3.15.0" />
     <PackageVersion Include="QuestPDF" Version="2025.7.0" />
     <PackageVersion Include="Scrutor" Version="6.0.1" />
     <PackageVersion Include="ScyllaDBCSharpDriver" Version="3.22.0.1" />

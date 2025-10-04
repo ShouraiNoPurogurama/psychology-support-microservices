@@ -7,7 +7,7 @@ namespace Feed.Domain.PostReplica;
 public sealed class PostReplica
 {
     public DateOnly YmdBucket { get; }
-    public Guid CreatedAt { get; } // TimeUUID
+    public DateTimeOffset CreatedAt { get; } // TimeUUID
     public Guid PostId { get; }
     public Guid AuthorAliasId { get; }
     public string Visibility { get; }
@@ -15,7 +15,7 @@ public sealed class PostReplica
 
     private PostReplica(
         DateOnly ymdBucket,
-        Guid createdAt,
+        DateTimeOffset createdAt,
         Guid postId,
         Guid authorAliasId,
         string visibility,
@@ -44,10 +44,10 @@ public sealed class PostReplica
         string visibility,
         string status,
         DateOnly? ymdBucket = null,
-        Guid? createdAt = null)
+        DateTimeOffset? createdAt = null)
     {
         var ymdBucketValue = ymdBucket ?? DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
-        var createdAtValue = createdAt ?? Guid.NewGuid(); // Will be converted to TimeUUID
+        var createdAtValue = createdAt ?? DateTimeOffset.UtcNow; 
 
         return new(
             ymdBucketValue,

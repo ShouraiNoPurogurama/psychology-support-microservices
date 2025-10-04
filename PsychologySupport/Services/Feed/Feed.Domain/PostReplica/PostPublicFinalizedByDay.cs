@@ -7,13 +7,13 @@ namespace Feed.Domain.PostReplica;
 public sealed class PostPublicFinalizedByDay
 {
     public DateOnly YmdBucket { get; }
-    public Guid CreatedAt { get; } // TimeUUID
+    public DateTimeOffset CreatedAt { get; } // TimeUUID
     public Guid PostId { get; }
     public Guid AuthorAliasId { get; }
 
     private PostPublicFinalizedByDay(
         DateOnly ymdBucket,
-        Guid createdAt,
+        DateTimeOffset createdAt,
         Guid postId,
         Guid authorAliasId)
     {
@@ -32,10 +32,10 @@ public sealed class PostPublicFinalizedByDay
         Guid postId,
         Guid authorAliasId,
         DateOnly? ymdBucket = null,
-        Guid? createdAt = null)
+        DateTimeOffset? createdAt = null)
     {
         var ymdBucketValue = ymdBucket ?? DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
-        var createdAtValue = createdAt ?? Guid.NewGuid(); // Will be converted to TimeUUID
+        var createdAtValue = createdAt ??DateTimeOffset.UtcNow; 
 
         return new(
             ymdBucketValue,

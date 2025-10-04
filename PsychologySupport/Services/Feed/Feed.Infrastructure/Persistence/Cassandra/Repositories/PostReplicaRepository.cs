@@ -2,7 +2,6 @@ using Cassandra;
 using Feed.Application.Abstractions.PostRepository;
 using Feed.Domain.PostReplica;
 using Feed.Infrastructure.Persistence.Cassandra.Mappings;
-using Feed.Infrastructure.Persistence.Cassandra.Models;
 using Feed.Infrastructure.Persistence.Cassandra.Utils;
 using Microsoft.Extensions.Logging;
 
@@ -76,7 +75,7 @@ public sealed class PostReplicaRepository : IPostReplicaRepository
         string visibility,
         string status,
         DateOnly? ymdBucket = null,
-        Guid? createdAt = null,
+        DateTimeOffset? createdAt = null,
         CancellationToken ct = default)
     {
         try

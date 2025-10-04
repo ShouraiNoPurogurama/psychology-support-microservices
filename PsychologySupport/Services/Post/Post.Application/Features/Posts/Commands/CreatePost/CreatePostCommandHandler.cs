@@ -1,3 +1,4 @@
+using BuildingBlocks.Constants;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
@@ -54,6 +55,7 @@ public sealed class CreatePostCommandHandler(
         if (post.CanBePublished)
         {
             post.ChangeVisibility(PostVisibility.Public, editorAliasId: post.Author.AliasId);
+            await outboxWriter.WriteAsync(new PostApprovedIntegrationEvent(post.Id, aliasId, SystemActors.SystemUUID, DateTimeOffset.UtcNow), cancellationToken);
         }
 
         context.Posts.Add(post);

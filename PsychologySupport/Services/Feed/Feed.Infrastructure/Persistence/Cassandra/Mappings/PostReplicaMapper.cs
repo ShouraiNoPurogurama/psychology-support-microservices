@@ -27,7 +27,7 @@ public static class PostReplicaMapper
             row.Visibility,
             row.Status,
             CassandraTypeMapper.ToDateOnly(row.YmdBucket),
-            CassandraTypeMapper.ToGuid(row.CreatedAt)
+            CassandraTypeMapper.ToDateTimeOffset(row.CreatedAt)
         );
 
     // PostPublicFinalizedByDay mappings
@@ -44,7 +44,7 @@ public static class PostReplicaMapper
             row.PostId,
             row.AuthorAliasId,
             CassandraTypeMapper.ToDateOnly(row.YmdBucket),
-            CassandraTypeMapper.ToGuid(row.CreatedAt)
+            CassandraTypeMapper.ToDateTimeOffset(row.CreatedAt)
         );
 
     // PostReplicaById mappings
@@ -59,6 +59,6 @@ public static class PostReplicaMapper
         => PostReplicaById.Create(
             row.PostId,
             CassandraTypeMapper.ToDateOnly(row.YmdBucket),
-            CassandraTypeMapper.ToGuid(row.CreatedAt)
+            CassandraTypeMapper.ToDateTimeOffset(row.CreatedAt)
         );
 }

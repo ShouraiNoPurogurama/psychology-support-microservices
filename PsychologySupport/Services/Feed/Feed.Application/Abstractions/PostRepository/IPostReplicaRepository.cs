@@ -27,7 +27,7 @@ public interface IPostReplicaRepository
         string visibility,
         string status,
         DateOnly? ymdBucket = null,
-        Guid? createdAt = null,
+        DateTimeOffset? createdAt = null,
         CancellationToken ct = default);
 
     /// <summary>
