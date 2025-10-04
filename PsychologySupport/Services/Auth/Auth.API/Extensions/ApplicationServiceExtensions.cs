@@ -119,15 +119,15 @@ public static class ApplicationServiceExtensions
                 Title = "Auth API",
                 Version = "v1"
             });
-            
-            var url = env.IsProduction()
-                ? "/auth-service"
-                : "https://localhost:5510/auth-service";
 
-            options.AddServer(new OpenApiServer
-            {
-                Url = url
-            });
+            //var url = env.IsProduction()
+            //    ? "/auth-service"
+            //    : "https://localhost:5510/auth-service";
+
+            //options.AddServer(new OpenApiServer
+            //{
+            //    Url = url
+            //});
         });
     }
 
@@ -177,6 +177,7 @@ public static class ApplicationServiceExtensions
             opt.UseNpgsql(connectionString);
             opt.UseSnakeCaseNamingConvention();
         });
+
     }
 
     private static string? GetConnectionString(IConfiguration config)

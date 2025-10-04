@@ -21,6 +21,8 @@ public class UserProvisioningService(
     {
         var user = await userManager.FindByEmailAsync(payload.Email);
 
+        if (user != null) return await LoadFullUserAsync(user.Id);
+
         if (user is not null) return user;
 
         //Tạo user mới
@@ -52,13 +54,7 @@ public class UserProvisioningService(
 
         await authDbContext.SaveChangesAsync();
 
-        // fetch
-        user = await userManager.Users
-            .Include(u => u.UserRoles) 
-            .Include(u => u.Onboarding) 
-            .FirstOrDefaultAsync(u => u.Id == user.Id);
-
-        return user;
+        return await LoadFullUserAsync(user.Id);
     }
 
     private async Task AssignUserRoleAsync(User user)
@@ -80,5 +76,14 @@ public class UserProvisioningService(
         );
 
         await publishEndpoint.Publish(userRegisteredIntegrationEvent);
+    }
+
+    private async Task<User> LoadFullUserAsync(Guid userId)
+    {
+        return await userManager.Users
+            .Include(u => u.UserRoles)
+            .Include(u => u.Onboarding)
+            .FirstOrDefaultAsync(u => u.Id == userId)
+            ?? throw new InvalidOperationException("User not found after creation");
     }
 }
