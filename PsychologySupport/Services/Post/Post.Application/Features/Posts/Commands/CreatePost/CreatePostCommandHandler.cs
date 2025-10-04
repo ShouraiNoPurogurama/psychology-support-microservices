@@ -108,10 +108,12 @@ public sealed class CreatePostCommandHandler(
         var userOwnsEmotionQuery = queryContext.UserOwnedTagReplicas
             .Where(u => u.AliasId == aliasId);
 
-        var resultQuery = from emotion in emotionQuery
-            join userTag in userOwnsEmotionQuery
-                on emotion.Id equals userTag.EmotionTagId
-            select emotion;
+        // var resultQuery = from emotion in emotionQuery
+        //     join userTag in userOwnsEmotionQuery
+        //         on emotion.Id equals userTag.EmotionTagId
+        //     select emotion;
+
+        var resultQuery = emotionQuery;
 
         var ownedEmotion = await resultQuery.FirstOrDefaultAsync(cancellationToken)
                            ?? throw new NotFoundException("Tag cảm xúc không tồn tại.");

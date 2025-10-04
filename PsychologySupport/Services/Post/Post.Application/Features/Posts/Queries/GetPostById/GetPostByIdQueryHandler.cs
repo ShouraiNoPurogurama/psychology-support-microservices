@@ -28,6 +28,7 @@ internal sealed class GetPostByIdQueryHandler : IQueryHandler<GetPostByIdQuery, 
         var aliasId = _actorAccessor.GetRequiredAliasId();
 
         var query = _context.Posts
+            .Include(p => p.Emotions)
             .Include(p => p.Media)
             .Include(p => p.Categories)
             .ThenInclude(pc => pc.CategoryTag)
