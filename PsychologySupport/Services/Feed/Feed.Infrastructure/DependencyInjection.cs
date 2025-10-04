@@ -54,10 +54,7 @@ public static class DependencyInjection
                 .ForJob(jobKey)
                 .WithIdentity($"{UpdateGlobalFallbackJobConfiguration.JobName}-trigger")
                 .StartNow()
-                // .WithCronSchedule(UpdateGlobalFallbackJobConfiguration.CronExpression));
-                .WithSimpleSchedule(s => s
-                    .WithIntervalInSeconds(30)
-                    .RepeatForever())); 
+                .WithCronSchedule(UpdateGlobalFallbackJobConfiguration.CronExpression));
         });
 
         

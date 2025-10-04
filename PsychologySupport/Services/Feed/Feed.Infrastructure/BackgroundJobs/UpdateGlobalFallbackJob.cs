@@ -170,7 +170,7 @@ public sealed class UpdateGlobalFallbackJob : IJob // <-- Implement IJob
 public static class UpdateGlobalFallbackJobConfiguration
 {
     public const string JobName = "UpdateGlobalFallbackJob";
-    public const string CronExpression = "0 0 * * * ?"; // Every hour at minute 0
+    public const string CronExpression = "0 0/5 * * * ?";
     public static readonly TimeSpan LookbackPeriod = TimeSpan.FromHours(72);
     public const int TopPostsLimit = 500;
     
