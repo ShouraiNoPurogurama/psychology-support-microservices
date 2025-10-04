@@ -61,8 +61,8 @@ internal sealed class GetPostsByAliasIdsQueryHandler : IQueryHandler<GetPostsByA
             p.Post.Metrics.ViewCount,
             p.Post.HasMedia,
             p.Post.Media.Select(m => new MediaItemDto(m.Id, m.MediaUrl)).ToList(),
-            p.Post.Categories.Select(c => c.Id).ToList(),
-            p.Post.Emotions.Select(e => e.Id).ToList()
+            p.Post.Categories.Select(c => c.CategoryTagId).ToList(),
+            p.Post.Emotions.Select(e => e.EmotionTagId).ToList()
         ));
         
         var postsData = await query
