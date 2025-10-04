@@ -18,6 +18,10 @@ internal sealed class GetPostsByUserQueryHandler : IQueryHandler<GetPostsByUserQ
     public async Task<GetPostsByUserResult> Handle(GetPostsByUserQuery request, CancellationToken cancellationToken)
     {
         var query = _context.Posts
+            .Include(p => p.Media)
+            .Include(p => p.Categories)
+            .ThenInclude(pc => pc.CategoryTag)
+            .Include(p => p.Emotions)
             .Where(p => p.Author.AliasId == request.AuthorAliasId && !p.IsDeleted)
             .OrderByDescending(p => p.PublishedAt);
 
