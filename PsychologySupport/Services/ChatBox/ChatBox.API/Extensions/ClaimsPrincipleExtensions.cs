@@ -56,4 +56,14 @@ public static class ClaimsPrincipalExtensions
 
         return roleClaims.Value;
     }
+
+    public static string GetSub(this ClaimsPrincipal user)
+    {
+        var sub = user.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(sub))
+            throw new UnauthorizedAccessException("Token không hợp lệ: Không tìm thấy claim sub.");
+
+        return sub;
+    }
 }
