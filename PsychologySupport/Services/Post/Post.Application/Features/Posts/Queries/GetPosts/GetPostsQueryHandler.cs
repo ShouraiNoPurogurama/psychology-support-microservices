@@ -70,9 +70,10 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, GetPos
             {
                 Post = p,
                 IsReacted = _context.Reactions.Any(r =>
+                    r.Author.AliasId == aliasId &&
+                    !r.IsDeleted &&
                     r.Target.TargetType == ReactionTargetType.Post &&
-                    r.Target.TargetId == p.Id &&
-                    r.Author.AliasId == aliasId)
+                    r.Target.TargetId == p.Id)
             })
             .ToListAsync(cancellationToken);
 

@@ -36,9 +36,10 @@ internal sealed class GetPostsByIdsHandler : IQueryHandler<GetPostsByIdsQuery, G
             {
                 Post = p,
                 IsReacted = _context.Reactions.Any(r =>
-                    r.IsOnPost
+                    r.Author.AliasId == aliasId
+                    && !r.IsDeleted
                     && r.Target.TargetId == p.Id
-                    && r.Author.AliasId == aliasId
+                    && r.IsOnPost
                 )
             })
             .AsQueryable();

@@ -37,6 +37,7 @@ internal sealed class GetPostsByAliasIdsQueryHandler : IQueryHandler<GetPostsByA
                     Post = p,
                     IsReacted = _context.Reactions.Any(r =>
                         r.IsOnPost
+                        && !r.IsDeleted
                         && r.Target.TargetId == p.Id
                         && r.Author.AliasId == aliasId)
                 })
