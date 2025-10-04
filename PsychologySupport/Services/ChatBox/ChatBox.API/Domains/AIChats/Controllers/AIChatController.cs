@@ -37,14 +37,7 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
             throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
         }
 
-        var profileIdStr = User.Claims.FirstOrDefault(c => c.Type == "patientId")?.Value;
-
-        if (string.IsNullOrEmpty(profileIdStr) || !Guid.TryParse(profileIdStr, out var profileId))
-        {
-            throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy profileId.", "CLAIMS_MISSING");
-        }
-
-        var session = await sessionService.CreateSessionAsync(sessionName, userId, profileId);
+        var session = await sessionService.CreateSessionAsync(sessionName, userId);
         return Ok(session);
     }
 
