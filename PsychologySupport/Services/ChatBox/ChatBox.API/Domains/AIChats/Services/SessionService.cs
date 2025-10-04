@@ -9,18 +9,40 @@ using ChatBox.API.Models;
 using Mapster;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Pii.API.Protos;
 
 namespace ChatBox.API.Domains.AIChats.Services;
 
-public class SessionService(ChatBoxDbContext dbContext, IRequestClient<AggregatePatientProfileRequest> requestClient)
+public class SessionService(
+    ChatBoxDbContext dbContext,
+    IRequestClient<AggregatePatientProfileRequest> requestClient,
+    PiiService.PiiServiceClient piiClient) 
 {
-    public async Task<CreateSessionResponseDto> CreateSessionAsync(string sessionName, Guid userId, Guid profileId)
+    public async Task<CreateSessionResponseDto> CreateSessionAsync(string sessionName, Guid userId)
     {
-        var profileResponse =
-            await requestClient.GetResponse<AggregatePatientProfileResponse>(new AggregatePatientProfileRequest(profileId));
+        // 1. Resolve SubjectRef từ UserId
+        var subjectRefResponse = await piiClient.ResolveSubjectRefByUserIdAsync(
+            new ResolveSubjectRefByUserIdRequest { UserId = userId.ToString() });
+
+        var subjectRef = subjectRefResponse.SubjectRef;
+        if (string.IsNullOrEmpty(subjectRef) || subjectRef == Guid.Empty.ToString())
+            throw new NotFoundException($"Không tìm thấy SubjectRef cho UserId {userId}");
+
+        // 2. Resolve PatientId từ SubjectRef
+        var patientResponse = await piiClient.ResolvePatientIdBySubjectRefAsync(
+            new ResolvePatientIdBySubjectRefRequest { SubjectRef = subjectRef });
+
+        var patientId = patientResponse.PatientId;
+        if (string.IsNullOrEmpty(patientId))
+            throw new NotFoundException($"Không tìm thấy PatientId cho SubjectRef {subjectRef}");
+
+        // 3. Gọi AggregatePatientProfileRequest với PatientId
+        var profileResponse = await requestClient.GetResponse<AggregatePatientProfileResponse>(
+            new AggregatePatientProfileRequest(Guid.Parse(patientId)));
 
         var profile = profileResponse.Message;
 
+        // 4. Tạo PersonaSnapshot
         var persona = new PersonaSnapshot
         {
             FullName = profile.FullName,
@@ -33,14 +55,13 @@ public class SessionService(ChatBoxDbContext dbContext, IRequestClient<Aggregate
             Allergies = profile.Allergies ?? "Không rõ"
         };
 
+        // 5. Xử lý tên session như cũ...
         sessionName = sessionName.Trim();
-
         var sessions = await dbContext.AIChatSessions
             .Where(s => s.UserId == userId && s.IsActive == true &&
                         (s.Name == sessionName || s.Name.StartsWith(sessionName + " ")))
             .ToListAsync();
 
-        //2. Tìm số lớn nhất ở đuôi
         var maxSuffix = 1;
         var finalSessionName = sessionName;
 
@@ -53,7 +74,6 @@ public class SessionService(ChatBoxDbContext dbContext, IRequestClient<Aggregate
             }
         }
 
-        //3. Nếu trùng tên, tăng số đuôi
         if (sessions.Any(s => s.Name == sessionName))
         {
             finalSessionName = $"{sessionName} {maxSuffix + 1}";
@@ -70,7 +90,6 @@ public class SessionService(ChatBoxDbContext dbContext, IRequestClient<Aggregate
         };
 
         dbContext.AIChatSessions.Add(session);
-
         var initialGreeting = AddInitialGreeting(session);
 
         await dbContext.SaveChangesAsync();
@@ -81,7 +100,6 @@ public class SessionService(ChatBoxDbContext dbContext, IRequestClient<Aggregate
             initialGreeting
         );
     }
-
     private AIMessageResponseDto AddInitialGreeting(AIChatSession session)
     {
         var greeting = EmoGreetingsUtil.GetRandomGreeting(session.PersonaSnapshot?.FullName);
