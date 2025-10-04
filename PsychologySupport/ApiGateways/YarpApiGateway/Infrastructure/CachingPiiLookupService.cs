@@ -29,6 +29,13 @@ public class CachingPiiLookupService : IPiiLookupService
         return GetOrSetCacheAsync(cacheKey, () => _decorated.ResolvePatientIdBySubjectRefAsync(subjectRef));
     }
 
+    public Task<string?> ResolveUserIdBySubjectRefAsync(string subjectRef)
+    {
+        string cacheKey = $"map:sub_user:{subjectRef}";
+        return GetOrSetCacheAsync(cacheKey, () => _decorated.ResolveUserIdBySubjectRefAsync(subjectRef));
+    }
+    
+
     private async Task<string?> GetOrSetCacheAsync(string key, Func<Task<string?>> factory)
     {
         try

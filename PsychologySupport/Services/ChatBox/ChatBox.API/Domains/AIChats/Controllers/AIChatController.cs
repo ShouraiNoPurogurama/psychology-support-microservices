@@ -15,8 +15,13 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
     [HttpPost("messages")]
     public async Task<IActionResult> SendMessage([FromBody] AIMessageRequestDto request)
     {
-        var userId = Guid.Parse(User.GetSub());
-        
+        var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+
+        if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+        {
+            throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
+        }
+
         var response = await messageProcessor.ProcessMessageAsync(request, userId);
 
         return Ok(response);
@@ -25,7 +30,12 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
     [HttpPost("sessions")]
     public async Task<IActionResult> CreateSession(string sessionName = "Đoạn chat mới")
     {
-        var userId = Guid.Parse(User.GetSub());
+        var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+
+        if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+        {
+            throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
+        }
 
         var profileIdStr = User.Claims.FirstOrDefault(c => c.Type == "patientId")?.Value;
 
@@ -41,7 +51,12 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
     [HttpGet("sessions")]
     public async Task<IActionResult> GetSessions([AsParameters] PaginationRequest paginationRequest)
     {
-        var userId = Guid.Parse(User.GetSub());
+        var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+
+        if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+        {
+            throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
+        }
 
         var sessions = await sessionService.GetSessionsAsync(userId, paginationRequest);
         return Ok(sessions);
@@ -50,7 +65,12 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
     [HttpDelete("sessions/{id}")]
     public async Task<IActionResult> DeleteSession(Guid id)
     {
-        var userId = Guid.Parse(User.GetSub());
+        var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+
+        if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+        {
+            throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
+        }
 
         var success = await sessionService.DeleteSessionAsync(id, userId);
         return success ? Ok() : NotFound();
@@ -59,7 +79,12 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
     [HttpGet("sessions/{id}/messages")]
     public async Task<IActionResult> GetMessages(Guid id, [AsParameters] PaginationRequest paginationRequest)
     {
-        var userId = Guid.Parse(User.GetSub());
+        var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+
+        if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+        {
+            throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
+        }
 
         var messages = await messageProcessor.GetMessagesAsync(id, userId, paginationRequest);
         return Ok(messages);
@@ -77,8 +102,13 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
     [HttpPut("sessions/{id}/messages/read")]
     public async Task<IActionResult> MarkAsRead(Guid id)
     {
-        var userId = Guid.Parse(User.GetSub());
-        
+        var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+
+        if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+        {
+            throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
+        }
+
         await messageProcessor.MarkMessagesAsReadAsync(id, userId);
         return Ok();
     }
