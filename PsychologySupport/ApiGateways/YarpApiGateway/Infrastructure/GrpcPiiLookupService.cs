@@ -41,4 +41,20 @@ public class GrpcPiiLookupService(PiiService.PiiServiceClient piiClient, ILogger
             return null;
         }
     }
+
+    public async Task<string?> ResolveUserIdBySubjectRefAsync(string subjectRef)
+    {
+        try
+        {
+            var request = new ResolveUserIdBySubjectRefRequest { SubjectRef = subjectRef };
+
+            var response = await piiClient.ResolveUserIdBySubjectRefAsync(request);
+
+            return string.IsNullOrEmpty(response.UserId) ? null : response.UserId;
+        }
+        catch (RpcException ex) when (ex.StatusCode == StatusCode.NotFound)
+        {
+            return null;
+        }
+    }
 }
