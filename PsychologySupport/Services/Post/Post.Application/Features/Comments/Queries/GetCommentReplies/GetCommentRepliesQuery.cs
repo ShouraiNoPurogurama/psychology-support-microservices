@@ -6,10 +6,10 @@ namespace Post.Application.Features.Comments.Queries.GetCommentReplies;
 
 public record GetCommentRepliesQuery(
     Guid ParentCommentId,
-    int Page = 1,
-    int Size = 10
+    int PageIndex = 1,
+    int PageSize = 10
 ) : IQuery<GetCommentRepliesResult>;
 
 public record GetCommentRepliesResult(
-    PaginatedResult<CommentReplyDto> Replies
+    PaginatedResult<ReplySummaryDto> Replies
 );
