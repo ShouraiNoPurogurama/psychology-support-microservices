@@ -3,37 +3,31 @@
 namespace Feed.Infrastructure.Data.Repository;
 
 /// <summary>
-/// Stub implementation for IPostReadRepository.
-/// This serves as the deepest fallback tier to retrieve posts from the database.
+/// Implementation for IPostReadRepository that delegates to Cassandra post replica repository.
+/// This serves as the deepest fallback tier to retrieve posts from Cassandra.
 /// </summary>
 public sealed class PostReadRepository : IPostReadRepository
 {
-    private readonly FeedDbContext _dbContext;
+    private readonly IPostReplicaRepository _postReplicaRepository;
 
-    public PostReadRepository(FeedDbContext dbContext)
+    public PostReadRepository(IPostReplicaRepository postReplicaRepository)
     {
-        _dbContext = dbContext;
+        _postReplicaRepository = postReplicaRepository;
     }
 
     /// <summary>
-    /// Get the most recent public posts from the database.
+    /// Get the most recent public posts from the Cassandra replica tables.
     /// This is a SLOW PATH and should only be used when all Redis caches are empty.
-    /// TODO: Implement actual database query when Post replica tables are available.
+    /// Queries the optimized posts_public_finalized_by_day table.
     /// </summary>
-    public Task<IReadOnlyList<Guid>> GetMostRecentPublicPostsAsync(int limit, CancellationToken ct)
+    public async Task<IReadOnlyList<Guid>> GetMostRecentPublicPostsAsync(int limit)
     {
-        // Stub implementation - returns empty list
-        // In production, this would query the post replica table:
-        // 
-        // var posts = await _dbContext.PostReplicas
-        //     .Where(p => p.Visibility == "Public" && p.Status == "Published")
-        //     .OrderByDescending(p => p.CreatedAt)
-        //     .Take(limit)
-        //     .Select(p => p.Id)
-        //     .ToListAsync(ct);
-        //
-        // return posts;
-
-        return Task.FromResult<IReadOnlyList<Guid>>(Array.Empty<Guid>());
+        // Query the optimized Cassandra table for recent public/finalized posts
+        // Default to 7 days lookback, which should cover most fallback scenarios
+        const int daysToQuery = 7;
+        
+        return await _postReplicaRepository.GetMostRecentPublicPostsAsync(
+            days: daysToQuery,
+            limit: limit);
     }
 }

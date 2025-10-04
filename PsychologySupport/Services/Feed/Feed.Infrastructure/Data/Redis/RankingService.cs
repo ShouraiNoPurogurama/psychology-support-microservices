@@ -28,7 +28,7 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
             .ToList();
     }
 
-    public async Task UpdatePostRankAsync(Guid postId, PostRankData rankData, CancellationToken ct)
+    public async Task UpdatePostRankAsync(Guid postId, PostRankData rankData)
     {
         var key = GetRankKey(postId);
         var hash = new HashEntry[]
@@ -53,7 +53,7 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
         var allPostIds = followedAliasIds.Concat(trendingPostIds).Distinct().ToList();
         var tasks = allPostIds.Select(async postId =>
         {
-            var rank = await GetPostRankAsync(postId, ct);
+            var rank = await GetPostRankAsync(postId);
             var score = rank?.Score ?? 0;
             var authorId = await GetPostAuthorAsync(postId, ct) ?? Guid.Empty;
             return new RankedPost(
@@ -93,7 +93,7 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
         await _database.KeyExpireAsync(key, TimeSpan.FromDays(7));
     }
 
-    public async Task<PostRankData?> GetPostRankAsync(Guid postId, CancellationToken ct)
+    public async Task<PostRankData?> GetPostRankAsync(Guid postId)
     {
         var key = GetRankKey(postId);
         var hash = await _database.HashGetAllAsync(key);
@@ -172,7 +172,7 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
         return null;
     }
 
-    public async Task<IReadOnlyList<Guid>> GetGlobalFallbackPostsAsync(int limit, CancellationToken ct)
+    public async Task<IReadOnlyList<Guid>> GetGlobalFallbackPostsAsync(int limit)
     {
         const string key = "trending:global_fallback";
         var values = await _database.SortedSetRangeByRankAsync(key, 0, limit - 1, Order.Descending);
@@ -196,7 +196,7 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
         return Array.Empty<Guid>();
     }
 
-    public async Task UpdateGlobalFallbackAsync(IReadOnlyList<(Guid PostId, double Score)> posts, CancellationToken ct)
+    public async Task UpdateGlobalFallbackAsync(IReadOnlyList<(Guid PostId, double Score)> posts)
     {
         const string key = "trending:global_fallback";
         

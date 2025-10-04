@@ -34,7 +34,7 @@ public record RankedPost(
 public interface IRankingService
 {
     Task<IReadOnlyList<Guid>> GetTrendingPostsAsync(DateTimeOffset date, CancellationToken ct);
-    Task UpdatePostRankAsync(Guid postId, PostRankData rankData, CancellationToken ct);
+    Task UpdatePostRankAsync(Guid postId, PostRankData rankData);
 
     Task<IReadOnlyList<RankedPost>> RankPostsAsync(IReadOnlyList<Guid> followedAliasIds, IReadOnlyList<Guid> trendingPostIds,
         int limit, CancellationToken ct);
@@ -45,7 +45,7 @@ public interface IRankingService
 
     // Helpers to support background rank updates and filtering
     Task InitializePostRankAsync(Guid postId, DateTimeOffset createdAt, CancellationToken ct);
-    Task<PostRankData?> GetPostRankAsync(Guid postId, CancellationToken ct);
+    Task<PostRankData?> GetPostRankAsync(Guid postId);
     Task IncrementReactionsAsync(Guid postId, int delta, CancellationToken ct);
     Task IncrementCommentsAsync(Guid postId, int delta, CancellationToken ct);
 
@@ -57,7 +57,7 @@ public interface IRankingService
     /// Get global fallback posts when daily trending is empty.
     /// Reads from Redis Sorted Set: trending:global_fallback
     /// </summary>
-    Task<IReadOnlyList<Guid>> GetGlobalFallbackPostsAsync(int limit, CancellationToken ct);
+    Task<IReadOnlyList<Guid>> GetGlobalFallbackPostsAsync(int limit);
     
     /// <summary>
     /// Get personalized fallback posts based on user's category interests.
@@ -69,5 +69,5 @@ public interface IRankingService
     /// Update the global fallback Redis Sorted Set with top posts.
     /// Used by background jobs to maintain stable fallback content.
     /// </summary>
-    Task UpdateGlobalFallbackAsync(IReadOnlyList<(Guid PostId, double Score)> posts, CancellationToken ct);
+    Task UpdateGlobalFallbackAsync(IReadOnlyList<(Guid PostId, double Score)> posts);
 }

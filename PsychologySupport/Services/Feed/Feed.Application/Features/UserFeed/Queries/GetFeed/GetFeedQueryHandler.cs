@@ -206,7 +206,7 @@ public sealed class GetFeedQueryHandler(
             else
             {
                 // Tier 2 Fallback: Global fallback from trending:global_fallback
-                var globalFallback = await rankingService.GetGlobalFallbackPostsAsync(100, cancellationToken);
+                var globalFallback = await rankingService.GetGlobalFallbackPostsAsync(100);
                 
                 if (globalFallback.Count > 0)
                 {
@@ -225,7 +225,7 @@ public sealed class GetFeedQueryHandler(
                     logger.LogWarning("Global fallback is empty for user {AliasId}, attempting database fallback (slow path)", 
                         request.AliasId);
                     
-                    var dbFallback = await postReadRepository.GetMostRecentPublicPostsAsync(100, cancellationToken);
+                    var dbFallback = await postReadRepository.GetMostRecentPublicPostsAsync(100);
                     
                     if (dbFallback.Count > 0)
                     {

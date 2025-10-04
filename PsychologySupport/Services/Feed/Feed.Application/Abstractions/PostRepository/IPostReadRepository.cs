@@ -11,7 +11,6 @@ public interface IPostReadRepository
     /// This is a slow path and should only be used as last resort fallback.
     /// </summary>
     /// <param name="limit">Maximum number of posts to retrieve</param>
-    /// <param name="ct">Cancellation token</param>
     /// <returns>List of post IDs ordered by creation date descending</returns>
-    Task<IReadOnlyList<Guid>> GetMostRecentPublicPostsAsync(int limit, CancellationToken ct);
+    Task<IReadOnlyList<Guid>> GetMostRecentPublicPostsAsync(int limit);
 }

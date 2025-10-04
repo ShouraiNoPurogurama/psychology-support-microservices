@@ -433,3 +433,4 @@ PsychologySupport/Services/Notification/EmailAdvertisement/
 *IMPLEMENTATION_COMPLETE.txt
 *FINAL_IMPLEMENTATION*.txt
 *.txt
+*.cql

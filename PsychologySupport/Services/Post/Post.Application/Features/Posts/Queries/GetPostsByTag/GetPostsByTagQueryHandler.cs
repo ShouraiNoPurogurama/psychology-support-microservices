@@ -67,9 +67,12 @@ internal sealed class GetPostsByTagQueryHandler : IQueryHandler<GetPostsByTagQue
                     CategoryIds = p.Categories.Select(c => c.CategoryTagId).ToList(),
                     EmotionIds = p.Emotions.Select(e => e.EmotionTagId).ToList()
                 },
-                IsReacted = _context.Reactions.Any(r => r.Target.TargetType == ReactionTargetType.Post
-                                                        && r.Target.TargetId == p.Id
-                                                        && r.Author.AliasId == aliasId)
+                IsReacted = _context.Reactions.Any(r =>
+                    r.Author.AliasId == aliasId
+                    && !r.IsDeleted
+                    && r.Target.TargetId == p.Id
+                    && r.Target.TargetType == ReactionTargetType.Post
+                )
             })
             .ToListAsync(cancellationToken);
         ;

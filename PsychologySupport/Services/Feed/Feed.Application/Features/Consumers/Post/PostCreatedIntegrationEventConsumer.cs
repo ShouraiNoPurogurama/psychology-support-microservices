@@ -1,4 +1,5 @@
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
+using Feed.Application.Abstractions.PostRepository;
 using Feed.Application.Abstractions.RankingService;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -9,17 +10,21 @@ namespace Feed.Application.Features.Consumers.Post;
 /// Consumes PostCreatedIntegrationEvent and initializes post ranking data.
 /// This ensures the post has a ranking entry from creation, even before publication.
 /// Also stores the author ID for future filtering by blocked/muted users.
+/// Additionally, syncs post data to Cassandra replica tables (posts_replica only, not public_finalized yet).
 /// </summary>
 public sealed class PostCreatedIntegrationEventConsumer : IConsumer<PostCreatedIntegrationEvent>
 {
     private readonly IRankingService _rankingService;
+    private readonly IPostReplicaRepository _postReplicaRepository;
     private readonly ILogger<PostCreatedIntegrationEventConsumer> _logger;
 
     public PostCreatedIntegrationEventConsumer(
         IRankingService rankingService,
+        IPostReplicaRepository postReplicaRepository,
         ILogger<PostCreatedIntegrationEventConsumer> logger)
     {
         _rankingService = rankingService;
+        _postReplicaRepository = postReplicaRepository;
         _logger = logger;
     }
 

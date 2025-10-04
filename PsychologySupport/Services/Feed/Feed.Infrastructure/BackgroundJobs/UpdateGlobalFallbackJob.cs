@@ -1,6 +1,7 @@
 ﻿using Feed.Application.Abstractions.RankingService;
 using Feed.Application.Abstractions.PostRepository;
 using Microsoft.Extensions.Logging;
+using Quartz;
 
 namespace Feed.Infrastructure.BackgroundJobs;
 
@@ -9,7 +10,8 @@ namespace Feed.Infrastructure.BackgroundJobs;
 /// Should run hourly to maintain a stable list of popular posts.
 /// Uses Quartz.NET or Hangfire for scheduling.
 /// </summary>
-public sealed class UpdateGlobalFallbackJob
+[DisallowConcurrentExecution] 
+public sealed class UpdateGlobalFallbackJob : IJob // <-- Implement IJob
 {
     private readonly IRankingService _rankingService;
     private readonly IPostReadRepository _postReadRepository;
@@ -24,7 +26,7 @@ public sealed class UpdateGlobalFallbackJob
         _postReadRepository = postReadRepository;
         _logger = logger;
     }
-
+    
     /// <summary>
     /// Execute the job to update the global fallback list.
     /// Logic:
@@ -33,17 +35,18 @@ public sealed class UpdateGlobalFallbackJob
     /// 3. Take top 500 posts
     /// 4. Update trending:global_fallback Redis Sorted Set
     /// </summary>
-    public async Task ExecuteAsync(CancellationToken cancellationToken = default)
+
+    public async Task Execute(IJobExecutionContext context)
     {
         _logger.LogInformation("Starting UpdateGlobalFallbackJob");
 
         try
         {
-            var topPosts = await GetTopPostsFromLast72HoursAsync(cancellationToken);
+            var topPosts = await GetTopPostsFromLast72HoursAsync();
             
             if (topPosts.Count > 0)
             {
-                await _rankingService.UpdateGlobalFallbackAsync(topPosts, cancellationToken);
+                await _rankingService.UpdateGlobalFallbackAsync(topPosts);
                 _logger.LogInformation("Successfully updated global fallback with {Count} posts", topPosts.Count);
             }
             else
@@ -57,13 +60,12 @@ public sealed class UpdateGlobalFallbackJob
             throw;
         }
     }
-
+    
     /// <summary>
     /// Fetch and score posts from the last 72 hours.
     /// This implementation provides a more complete approach.
     /// </summary>
-    private async Task<IReadOnlyList<(Guid PostId, double Score)>> GetTopPostsFromLast72HoursAsync(
-        CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<(Guid PostId, double Score)>> GetTopPostsFromLast72HoursAsync()
     {
         _logger.LogDebug("Fetching posts from last 72 hours for global fallback calculation");
 
@@ -73,8 +75,7 @@ public sealed class UpdateGlobalFallbackJob
             // In production, this would query posts from the last 72 hours
             // For now, we get the most recent posts available
             var recentPostIds = await _postReadRepository.GetMostRecentPublicPostsAsync(
-                UpdateGlobalFallbackJobConfiguration.TopPostsLimit * 2, // Get 2x to ensure we have enough after filtering
-                cancellationToken);
+                UpdateGlobalFallbackJobConfiguration.TopPostsLimit * 2); // Get 2x to ensure we have enough after filtering);
 
             if (recentPostIds.Count == 0)
             {
@@ -89,7 +90,7 @@ public sealed class UpdateGlobalFallbackJob
             
             foreach (var postId in recentPostIds)
             {
-                var rankData = await _rankingService.GetPostRankAsync(postId, cancellationToken);
+                var rankData = await _rankingService.GetPostRankAsync(postId);
                 
                 if (rankData is not null)
                 {
@@ -137,6 +138,7 @@ public sealed class UpdateGlobalFallbackJob
             throw;
         }
     }
+    
 }
 
 /// <summary>
@@ -168,7 +170,7 @@ public sealed class UpdateGlobalFallbackJob
 public static class UpdateGlobalFallbackJobConfiguration
 {
     public const string JobName = "UpdateGlobalFallbackJob";
-    public const string CronExpression = "0 0 * * * ?"; // Every hour at minute 0
+    public const string CronExpression = "0 0/5 * * * ?";
     public static readonly TimeSpan LookbackPeriod = TimeSpan.FromHours(72);
     public const int TopPostsLimit = 500;
     

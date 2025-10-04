@@ -10,7 +10,6 @@ public record GetPatientProfileDto(
     UserGender Gender,
     string? Allergies,
     PersonalityTrait PersonalityTraits,
-    ContactInfo ContactInfo,
     MedicalHistoryDto? MedicalHistory,
     Job? Job,
     DateOnly BirthDate,
