@@ -19,7 +19,7 @@ namespace Media.Application
                 config.AddOpenBehavior(typeof(LoggingBehavior<,>));
             });
 
-            services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
+            services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly(), null, "media");
             services.AddFeatureManagement();
 
             return services;

@@ -49,7 +49,7 @@ public static class ApplicationServiceExtensions
         
         services.AddSignalR();
         
-        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "chatbox");
 
         services.AddHttpContextAccessor();
         

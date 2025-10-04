@@ -39,7 +39,7 @@ namespace DigitalGoods.API.Extensions
 
             AddGrpcServiceDependencies(services, config);
 
-            services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+            services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "digitalgoods");
 
             return services;
         }

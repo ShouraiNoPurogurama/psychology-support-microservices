@@ -38,7 +38,7 @@ public static class ApplicationServiceExtensions
         // Add notification-specific services
         AddNotificationServices(services);
 
-        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "notification");
 
         services.AddHttpContextAccessor();
 

@@ -23,7 +23,7 @@ public static class DependencyInjection
             config.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
         
-        services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
+        services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly(), null, "test");
         services.AddFeatureManagement();
 
         AddGrpcServiceDependencies(services, configuration);

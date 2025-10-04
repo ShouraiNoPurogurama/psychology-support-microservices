@@ -42,7 +42,7 @@ namespace Scheduling.API.Extensions
 
             services.AddAuthorization();
 
-            services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+            services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "scheduling");
 
             return services;
         }

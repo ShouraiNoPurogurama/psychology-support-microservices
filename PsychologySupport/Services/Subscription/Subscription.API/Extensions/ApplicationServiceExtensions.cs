@@ -44,7 +44,7 @@ public static class ApplicationServiceExtensions
 
         AddGrpcServiceDependencies(services, config);
         
-        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "subscription");
         
         return services;
     }

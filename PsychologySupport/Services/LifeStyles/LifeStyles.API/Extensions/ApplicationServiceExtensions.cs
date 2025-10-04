@@ -34,7 +34,7 @@ public static class ApplicationServiceExtensions
 
         AddRedisCache(services, config);
 
-        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "lifestyles");
 
         services.AddIdentityServices(config);
 

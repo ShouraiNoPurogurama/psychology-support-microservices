@@ -16,4 +16,8 @@
     <ProjectReference Include="..\Media.Domain\Media.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="IAssemblyMarker.cs" />
+  </ItemGroup>
+
 </Project>

@@ -13,6 +13,7 @@
       <Compile Remove="Exceptions\**" />
       <EmbeddedResource Remove="Exceptions\**" />
       <None Remove="Exceptions\**" />
+      <Compile Remove="IAssemblyMarker.cs" />
     </ItemGroup>
 
     <ItemGroup>

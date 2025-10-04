@@ -29,7 +29,7 @@ public static class DependencyInjection
                 {
                     e.ConfigureConsumers(context);
                 });
-            });
+            }, "post");
         services.AddFeatureManagement();
 
         services.AddServiceDependencies(configuration);

@@ -55,7 +55,7 @@ public static class ApplicationServiceExtensions
 
         services.AddRedisCache(config);
 
-        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "auth");
 
         services.AddHostedService<RevokeSessionCleanupService>();
 

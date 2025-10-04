@@ -8,12 +8,14 @@ using Feed.Application.Abstractions.UserPinning;
 using Feed.Application.Abstractions.ViewerBlocking;
 using Feed.Application.Abstractions.ViewerMuting;
 using Feed.Application.Abstractions.PostModeration;
+using Feed.Application.Abstractions.PostRepository;
 using Feed.Application.Abstractions.RankingService;
 using Feed.Application.Abstractions.VipService;
 using Feed.Application.Configuration;
 using Microsoft.Extensions.Options;
 using Mapster;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace Feed.Application.Features.UserFeed.Queries.GetFeed;
@@ -28,8 +30,10 @@ public sealed class GetFeedQueryHandler(
     IVipService vipService,
     IRankingService rankingService,
     ICursorService cursorService,
+    IPostReadRepository postReadRepository,
     IOptions<FeedConfiguration> feedConfig,
-    IDistributedCache cache)
+    IDistributedCache cache,
+    ILogger<GetFeedQueryHandler> logger)
     : IQueryHandler<GetFeedQuery, GetFeedResult>
 {
     private readonly FeedConfiguration _config = feedConfig.Value;
@@ -168,11 +172,89 @@ public sealed class GetFeedQueryHandler(
     {
         using var activity = FeedActivitySource.Instance.StartActivity(FeedActivitySource.Operations.GetRegularFeed);
         
-        // Regular flow: fan-in from followed aliases + trending
+        // Regular flow: fan-in from followed aliases + trending with multi-tiered fallback
         var follows = await followingRepository.GetAllByViewerAsync(request.AliasId, cancellationToken);
         var followedAliasIds = follows.Select(f => f.FollowedAliasId).ToList();
 
+        // Primary: Try to get daily trending posts
         var trendingPosts = await rankingService.GetTrendingPostsAsync(DateTimeOffset.UtcNow, cancellationToken);
+        
+        // Multi-tiered fallback mechanism
+        if (trendingPosts.Count == 0)
+        {
+            activity?.SetTag("fallback_triggered", true);
+            activity?.SetTag("fallback_reason", "daily_trending_empty");
+            logger.LogInformation("Daily trending is empty for user {AliasId}, triggering fallback mechanism", request.AliasId);
+            
+            // Tier 1 Fallback: Try personalized fallback (category-based)
+            var personalizedFallback = await rankingService.GetPersonalizedFallbackPostsAsync(
+                request.AliasId, 
+                100, 
+                cancellationToken);
+            
+            if (personalizedFallback.Count > 0)
+            {
+                trendingPosts = personalizedFallback;
+                activity?.SetTag("fallback_tier", "personalized");
+                activity?.AddEvent(new System.Diagnostics.ActivityEvent("Using personalized fallback posts"));
+                logger.LogInformation("Using personalized fallback for user {AliasId}, found {Count} posts", 
+                    request.AliasId, personalizedFallback.Count);
+                FeedMetrics.FeedRequests.Add(1,
+                    new KeyValuePair<string, object?>("feed_type", "regular"),
+                    new KeyValuePair<string, object?>("fallback_tier", "personalized"));
+            }
+            else
+            {
+                // Tier 2 Fallback: Global fallback from trending:global_fallback
+                var globalFallback = await rankingService.GetGlobalFallbackPostsAsync(100, cancellationToken);
+                
+                if (globalFallback.Count > 0)
+                {
+                    trendingPosts = globalFallback;
+                    activity?.SetTag("fallback_tier", "global");
+                    activity?.AddEvent(new System.Diagnostics.ActivityEvent("Using global fallback posts"));
+                    logger.LogInformation("Using global fallback for user {AliasId}, found {Count} posts", 
+                        request.AliasId, globalFallback.Count);
+                    FeedMetrics.FeedRequests.Add(1,
+                        new KeyValuePair<string, object?>("feed_type", "regular"),
+                        new KeyValuePair<string, object?>("fallback_tier", "global"));
+                }
+                else
+                {
+                    // Tier 3 Fallback: Database query (deepest fallback - slow path)
+                    logger.LogWarning("Global fallback is empty for user {AliasId}, attempting database fallback (slow path)", 
+                        request.AliasId);
+                    
+                    var dbFallback = await postReadRepository.GetMostRecentPublicPostsAsync(100, cancellationToken);
+                    
+                    if (dbFallback.Count > 0)
+                    {
+                        trendingPosts = dbFallback;
+                        activity?.SetTag("fallback_tier", "database");
+                        activity?.AddEvent(new System.Diagnostics.ActivityEvent("Using database fallback posts (SLOW PATH)"));
+                        logger.LogWarning("Using database fallback for user {AliasId}, found {Count} posts. This is a SLOW PATH - populate global fallback!", 
+                            request.AliasId, dbFallback.Count);
+                        FeedMetrics.FeedRequests.Add(1,
+                            new KeyValuePair<string, object?>("feed_type", "regular"),
+                            new KeyValuePair<string, object?>("fallback_tier", "database"));
+                    }
+                    else
+                    {
+                        // All fallbacks exhausted
+                        logger.LogWarning("All fallback tiers exhausted for user {AliasId}, returning feed with only followed posts", 
+                            request.AliasId);
+                        activity?.SetTag("fallback_tier", "none");
+                        activity?.AddEvent(new System.Diagnostics.ActivityEvent("All fallback tiers exhausted"));
+                    }
+                }
+            }
+        }
+        else
+        {
+            activity?.SetTag("fallback_triggered", false);
+            logger.LogDebug("Daily trending available for user {AliasId}, found {Count} posts", 
+                request.AliasId, trendingPosts.Count);
+        }
 
         var combinedPosts = await rankingService.RankPostsAsync(
             followedAliasIds,

@@ -172,6 +172,56 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
         return null;
     }
 
+    public async Task<IReadOnlyList<Guid>> GetGlobalFallbackPostsAsync(int limit, CancellationToken ct)
+    {
+        const string key = "trending:global_fallback";
+        var values = await _database.SortedSetRangeByRankAsync(key, 0, limit - 1, Order.Descending);
+        return values
+            .Where(v => v.HasValue && Guid.TryParse(v, out _))
+            .Select(v => Guid.Parse(v!))
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<Guid>> GetPersonalizedFallbackPostsAsync(Guid userId, int limit, CancellationToken ct)
+    {
+        // TODO: Implement personalized fallback logic
+        // Logic:
+        // 1. Get user's category interests (requires tracking user interactions)
+        // 2. For each category, query trending:category:{categoryId}:{date}
+        // 3. Merge and deduplicate results
+        // 4. Return top N posts
+        
+        // For now, return empty list as stub
+        await Task.CompletedTask;
+        return Array.Empty<Guid>();
+    }
+
+    public async Task UpdateGlobalFallbackAsync(IReadOnlyList<(Guid PostId, double Score)> posts, CancellationToken ct)
+    {
+        const string key = "trending:global_fallback";
+        
+        if (posts.Count == 0)
+            return;
+
+        // Convert to SortedSetEntry array
+        var entries = posts.Select(p => new SortedSetEntry(p.PostId.ToString(), p.Score)).ToArray();
+        
+        // Use a Redis transaction to ensure atomicity
+        var transaction = _database.CreateTransaction();
+        
+        // Remove old entries
+        transaction.KeyDeleteAsync(key);
+        
+        // Add new entries
+        transaction.SortedSetAddAsync(key, entries);
+        
+        // Set expiration to 7 days
+        transaction.KeyExpireAsync(key, TimeSpan.FromDays(7));
+        
+        // Execute transaction
+        await transaction.ExecuteAsync();
+    }
+
     private static string GetRankKey(Guid postId) => $"rank:{postId}";
     private static string GetTrendingKey(DateTimeOffset date) => $"trending:{date:yyyyMMdd}";
 }
