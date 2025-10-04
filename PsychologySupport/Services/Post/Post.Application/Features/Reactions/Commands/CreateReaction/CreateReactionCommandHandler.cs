@@ -51,6 +51,7 @@ public sealed class CreateReactionCommandHandler : ICommandHandler<CreateReactio
             if (existingReaction.Type.Code != request.ReactionCode.ToString().ToLower())
             {
                 var newReactionType = CreateReactionType(request.ReactionCode);
+
                 existingReaction.UpdateType(newReactionType, _currentActorAccessor.GetRequiredAliasId());
 
                 var reactionUpdatedEvent = new ReactionUpdatedEvent(
@@ -60,6 +61,7 @@ public sealed class CreateReactionCommandHandler : ICommandHandler<CreateReactio
                     request.ReactionCode.ToString().ToLower(),
                     _currentActorAccessor.GetRequiredAliasId()
                 );
+
                 await _outboxWriter.WriteAsync(reactionUpdatedEvent, cancellationToken);
 
                 await _context.SaveChangesAsync(cancellationToken);
@@ -85,7 +87,7 @@ public sealed class CreateReactionCommandHandler : ICommandHandler<CreateReactio
 
         // Create new reaction
         var reactionType = CreateReactionType(request.ReactionCode);
-        
+
         var author = AuthorInfo.Create(_currentActorAccessor.GetRequiredAliasId(), aliasVersionId);
 
         var reaction = Reaction.Create(
@@ -129,7 +131,8 @@ public sealed class CreateReactionCommandHandler : ICommandHandler<CreateReactio
         bool exists = targetType switch
         {
             ReactionTargetType.Post => await _context.Posts.AnyAsync(p => p.Id == targetId && !p.IsDeleted, cancellationToken),
-            ReactionTargetType.Comment => await _context.Comments.AnyAsync(c => c.Id == targetId && !c.IsDeleted, cancellationToken),
+            ReactionTargetType.Comment => await _context.Comments.AnyAsync(c => c.Id == targetId && !c.IsDeleted,
+                cancellationToken),
             _ => throw new BadRequestException($"Invalid target type: {targetType}")
         };
 
@@ -146,6 +149,11 @@ public sealed class CreateReactionCommandHandler : ICommandHandler<CreateReactio
             case ReactionTargetType.Post:
                 var post = await _context.Posts.FirstAsync(p => p.Id == targetId, cancellationToken);
                 post.IncrementReactionCount();
+                break;
+
+            case ReactionTargetType.Comment:
+                var comment = await _context.Comments.FirstAsync(c => c.Id == targetId, cancellationToken);
+                comment.IncrementReactionCount();
                 break;
         }
     }
