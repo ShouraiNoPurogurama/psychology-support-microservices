@@ -103,7 +103,8 @@ public static class DependencyInjection
         services.AddScoped<IViewerMutingRepository, ViewerMutingRepository>();
         services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
         
-        // Register post read repository for deepest fallback tier
+        // Register post replica repository (Cassandra) and post read repository (wrapper)
+        services.AddScoped<IPostReplicaRepository, PostReplicaRepository>();
         services.AddScoped<IPostReadRepository, PostReadRepository>();
     }
     
