@@ -88,6 +88,8 @@ public class GeminiProvider(IOptions<GeminiConfig> config,
         var response = await client.PostAsync(url, content);
         var result = await response.Content.ReadAsStringAsync();
 
+        logger.LogInformation("  *** Gemini raw response: {Result}", result);
+        
         var array = JArray.Parse(result);
         var texts = array
             .Select(token => token["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString())
