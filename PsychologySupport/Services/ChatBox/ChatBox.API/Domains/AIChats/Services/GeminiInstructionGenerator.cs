@@ -13,23 +13,15 @@ namespace ChatBox.API.Domains.AIChats.Services;
 
 public class GeminiInstructionGenerator : IInstructionGenerator
 {
+    private IConfiguration config;
     private readonly GeminiConfig _config;
     private readonly ILogger<GeminiInstructionGenerator> _logger;
-    private const string SystemInstruction =
-        "Bạn là một chuyên gia huấn luyện hội thoại cho trợ lý AI tên Emo, một người bạn đồng hành chữa lành. " +
-        "Dựa trên tin nhắn và ngữ cảnh của người dùng, công việc DUY NHẤT của bạn là cung cấp một hướng dẫn ngắn gọn, chỉ một dòng, cho Emo về cách phản hồi. " +
-        "Hướng dẫn phải được đặt trong dấu ngoặc vuông, ví dụ: [Gợi ý trả lời: ...]. " +
-        "Tập trung vào sắc thái cảm xúc và bước tiếp theo hợp lý trong một cuộc trò chuyện hỗ trợ. " +
-        "Ví dụ:\n" +
-        "- Người dùng đang than phiền về một ngày tồi tệ -> [Gợi ý trả lời: Xác nhận cảm xúc của họ, thể hiện sự đồng cảm và hỏi xem họ có muốn nói thêm về điều đó không.]\n" +
-        "- Người dùng đang hỏi lời khuyên -> [Gợi ý trả lời: Công nhận sự khó khăn của tình huống và nhẹ nhàng thăm dò suy nghĩ của họ trước khi đưa ra bất kỳ gợi ý nào.]\n" +
-        "- Người dùng cảm thấy cô đơn -> [Gợi ý trả lời: Bày tỏ sự ấm áp và sự hiện diện, nhắc nhở họ rằng họ không cô đơn, và đề nghị được đồng hành.]\n" +
-        "TUYỆT ĐỐI KHÔNG tạo ra phản hồi hoàn chỉnh cho Emo. Chỉ cung cấp hướng dẫn trong dấu ngoặc vuông.";
-
-    public GeminiInstructionGenerator(IOptions<GeminiConfig> config, ILogger<GeminiInstructionGenerator> logger)
+    
+    public GeminiInstructionGenerator(IOptions<GeminiConfig> config, ILogger<GeminiInstructionGenerator> logger, IConfiguration configuration)
     {
         _config = config.Value;
         _logger = logger;
+        this.config = configuration;
     }
 
     public async Task<string> GenerateInstructionAsync(string userMessage, string? history = null, string? persona = null)
@@ -38,6 +30,9 @@ public class GeminiInstructionGenerator : IInstructionGenerator
         {
             var payload = BuildPayload(userMessage, history, persona);
             var instruction = await CallGeminiAPIAsync(payload);
+            
+            _logger.LogInformation("Generated instruction: {Instruction}", instruction);
+            
             return string.IsNullOrWhiteSpace(instruction) ? string.Empty : instruction.Trim();
         }
         catch (Exception ex)
@@ -49,6 +44,8 @@ public class GeminiInstructionGenerator : IInstructionGenerator
 
     private GeminiRequestDto BuildPayload(string userMessage, string? history, string? persona)
     {
+        string systemInstruction = config["GeminiConfig:InstructorInstruction"];
+        
         var contextParts = new List<string>();
         if (!string.IsNullOrWhiteSpace(persona)) contextParts.Add($"USER PERSONA:\n{persona}");
         if (!string.IsNullOrWhiteSpace(history)) contextParts.Add($"CONVERSATION SUMMARY:\n{history}");
@@ -58,7 +55,7 @@ public class GeminiInstructionGenerator : IInstructionGenerator
 
         return new GeminiRequestDto(
             Contents: [new GeminiContentDto("user", [new GeminiContentPartDto(fullContext)])],
-            SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(SystemInstruction)),
+            SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(systemInstruction)),
             GenerationConfig: new GeminiGenerationConfigDto(
                 Temperature: 0.5, // Lower temperature for more deterministic instructions
                 MaxOutputTokens: 200 // Instructions should be short
@@ -78,9 +75,10 @@ public class GeminiInstructionGenerator : IInstructionGenerator
     {
         var token = await GetAccessTokenAsync();
         using var client = new HttpClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var url = $"https://{_config.Location}-aiplatform.googleapis.com/v1/projects/{_config.ProjectId}/locations/{_config.Location}/publishers/google/models/gemini-1.5-flash-preview-0514:generateContent";
+        var apiKey = config["GeminiConfig:ApiKey"];
+        var url =  $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent?key={apiKey}";
 
         var settings = new JsonSerializerSettings { ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() } };
         var content = new StringContent(JsonConvert.SerializeObject(payload, settings), Encoding.UTF8, "application/json");

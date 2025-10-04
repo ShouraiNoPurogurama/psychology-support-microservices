@@ -45,8 +45,6 @@ public class GeminiProvider(IOptions<GeminiConfig> config,
         contents.Add(new GeminiContentDto("user",
             [new GeminiContentPartDto(payload.Context)]));
         
-        logger.LogInformation("  *** Gemini last payload content: {Contents}", payload.Context);
-        
         return new GeminiRequestDto(
             Contents: contents,
             SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(config.Value.SystemInstruction)),
@@ -87,8 +85,6 @@ public class GeminiProvider(IOptions<GeminiConfig> config,
         var content = new StringContent(JsonConvert.SerializeObject(payload, settings), Encoding.UTF8, "application/json");
         var response = await client.PostAsync(url, content);
         var result = await response.Content.ReadAsStringAsync();
-
-        logger.LogInformation("  *** Gemini raw response: {Result}", result);
         
         var array = JArray.Parse(result);
         var texts = array
