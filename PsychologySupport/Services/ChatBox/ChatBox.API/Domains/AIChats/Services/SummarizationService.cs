@@ -43,7 +43,7 @@ public class SummarizationService(IOptions<GeminiConfig> config, ChatBoxDbContex
     public async Task<string> CallGeminiSummarizationV1BetaAsync(List<GeminiContentDto> contents)
     {
         var apiKey = _config.ApiKey;
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={apiKey}";
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={apiKey}";
 
         var payload = new
         {

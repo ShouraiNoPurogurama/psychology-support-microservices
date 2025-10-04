@@ -38,15 +38,8 @@ public static class PersonaSnapshotExtensions
                 [System]
                 Thông tin người dùng hiện tại (Persona):
                 - Họ tên: {snapshot.FullName}
-                - Giới tính: {snapshot.Gender}
-                - Ngày sinh: {snapshot.BirthDate}
                 - Nghề nghiệp: {snapshot.JobTitle}
-                - Trình độ học vấn: {snapshot.EducationLevel}
                 - Ngành nghề: {snapshot.IndustryName}
-                - Tính cách nổi bật: {snapshot.PersonalityTraits}
-                - Tiền sử dị ứng: {snapshot.Allergies}
-                
-                
                 """;
     }
 }

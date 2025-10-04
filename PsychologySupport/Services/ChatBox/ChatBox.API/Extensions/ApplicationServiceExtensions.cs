@@ -149,6 +149,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
         services.AddScoped<LoggingActionFilter>();
+        services.AddScoped<IInstructionGenerator, GeminiInstructionGenerator>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
