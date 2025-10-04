@@ -19,4 +19,6 @@ public interface IPiiLookupService
     /// <param name="subjectRef">SubjectRef từ token của người dùng.</param>
     /// <returns>PatientId dưới dạng chuỗi, hoặc null nếu không tìm thấy.</returns>
     Task<string?> ResolvePatientIdBySubjectRefAsync(string subjectRef);
+
+    Task<string?> ResolveUserIdBySubjectRefAsync(string subjectRef);
 }

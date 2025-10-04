@@ -26,6 +26,12 @@ public class TokenExchangeRuleRegistry
                 Keywords = new[] { "profile" ,"subscription", "chatbox" },
                 ClaimType = "patientId",
                 LookupFunction = (subRef) => _piiLookupService.ResolvePatientIdBySubjectRefAsync(subRef)
+            },
+             new AudienceMappingRule
+            {
+                Keywords = new[] { "chatbox" },
+                ClaimType = "userId",
+                LookupFunction = (subRef) => _piiLookupService.ResolveUserIdBySubjectRefAsync(subRef)
             }
         };
     }
