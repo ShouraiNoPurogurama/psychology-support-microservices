@@ -4,6 +4,7 @@ using Feed.Application.Abstractions.CursorService;
 using Feed.Application.Abstractions.FeedConfiguration;
 using Feed.Application.Abstractions.FollowerTracking;
 using Feed.Application.Abstractions.PostModeration;
+using Feed.Application.Abstractions.PostRepository;
 using Feed.Application.Abstractions.RankingService;
 using Feed.Application.Abstractions.Redis;
 using Feed.Application.Abstractions.Resilience;
@@ -17,6 +18,7 @@ using Feed.Application.Abstractions.VipService;
 using Feed.Infrastructure.Data.Redis;
 using Feed.Infrastructure.Data.Redis.Decorators;
 using Feed.Infrastructure.Data.Redis.Providers;
+using Feed.Infrastructure.Data.Repository;
 using Feed.Infrastructure.Persistence.Cassandra;
 using Feed.Infrastructure.Persistence.Cassandra.Repositories;
 using Feed.Infrastructure.Resilience.Decorators;
@@ -36,8 +38,8 @@ public static class DependencyInjection
         
         // Register Cassandra services
         services.AddCassandraServices();
-        
-        services.AddRedisCache(config);
+
+        AddRedisCache(services, config);
         
         // Register application services
         AddServiceDependencies(services);
@@ -85,13 +87,13 @@ public static class DependencyInjection
         services.AddScoped<ICursorService, CursorService>();
         services.AddScoped<IIdempotencyHashAccessor, IdempotencyHashAccessor>();
         services.AddScoped<IIdempotencyService, CassandraIdempotencyService>();
-        
+
         //Add repositories
         services.AddScoped<IUserFeedRepository, UserFeedRepository>();
         services.AddScoped<IFeedConfigRepository, FeedConfigRepository>();
         services.AddScoped<IFollowerTrackingRepository, FollowerTrackingRepository>();
         services.AddScoped<IPostModerationRepository, PostModerationRepository>();
-        
+
         services.AddScoped<IRankingService, RankingService>();
         services.AddScoped<IUserActivityRepository, UserActivityRepository>();
         services.AddScoped<IUserFeedRepository, UserFeedRepository>();
@@ -100,5 +102,39 @@ public static class DependencyInjection
         services.AddScoped<IViewerFollowingRepository, ViewerFollowingRepository>();
         services.AddScoped<IViewerMutingRepository, ViewerMutingRepository>();
         services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
+        
+        // Register post read repository for deepest fallback tier
+        services.AddScoped<IPostReadRepository, PostReadRepository>();
+    }
+    
+    public static IServiceCollection AddRedisCache(this IServiceCollection services, IConfiguration config)
+    {
+        // Đăng ký IConnectionMultiplexer như một singleton sử dụng factory
+        // để tránh block luồng khởi động
+        services.AddSingleton<IConnectionMultiplexer>(sp =>
+        {
+            var redisConnectionString = config.GetConnectionString("Redis");
+            if (string.IsNullOrEmpty(redisConnectionString))
+            {
+                throw new InvalidOperationException("Redis connection string is not configured.");
+            }
+
+            var options = ConfigurationOptions.Parse(redisConnectionString);
+        
+            options.AbortOnConnectFail = false;
+
+            return ConnectionMultiplexer.Connect(options);
+        });
+
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.ConnectionMultiplexerFactory = async () =>
+            {
+                var sp = services.BuildServiceProvider();
+                return await Task.FromResult(sp.GetRequiredService<IConnectionMultiplexer>());
+            };
+        });
+
+        return services;
     }
 }

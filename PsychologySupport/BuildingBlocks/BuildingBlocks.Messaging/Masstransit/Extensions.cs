@@ -11,11 +11,17 @@ public static class Extensions
     public static IServiceCollection AddMessageBroker(this IServiceCollection services,
         IConfiguration configuration,
         Assembly? assembly = null,
-        Action<IBusRegistrationContext, IRabbitMqBusFactoryConfigurator>? configureEndpoints = null)
+        Action<IBusRegistrationContext, IRabbitMqBusFactoryConfigurator>? configureEndpoints = null, string? endpointName = null)
     {
         services.AddMassTransit(config =>
         {
-            config.SetKebabCaseEndpointNameFormatter();
+            if (endpointName is not null)
+                config.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter(prefix: endpointName,
+                    includeNamespace: false));
+            else
+            {
+                config.SetKebabCaseEndpointNameFormatter();
+            }
 
             config.SetInMemorySagaRepositoryProvider();
 
@@ -39,7 +45,7 @@ public static class Extensions
                 if (configureEndpoints is not null)
                 {
                     //Nếu service GỌI ĐẾN cung cấp một cấu hình tùy chỉnh thì dùng nó để override cấu hình mặc định
-                    
+
                     //Ko có cái này thì lúc fanout nhiều consumer sẽ bị nhét vào cùng 1 queue
                     //=> 1 message chỉ có 1 consumer xử lý :)
                     configureEndpoints(context, configurator);

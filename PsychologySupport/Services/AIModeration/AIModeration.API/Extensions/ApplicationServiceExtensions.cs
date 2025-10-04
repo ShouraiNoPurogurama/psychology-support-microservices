@@ -39,7 +39,7 @@ public static class ApplicationServiceExtensions
 
         services.AddIdentityServices(config);
 
-        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "aimoderation");
 
         services.AddHttpContextAccessor();
 

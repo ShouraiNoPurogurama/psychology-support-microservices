@@ -52,4 +52,22 @@ public interface IRankingService
     // PostId -> AuthorAliasId mapping for filtering
     Task SetPostAuthorAsync(Guid postId, Guid authorAliasId, CancellationToken ct);
     Task<Guid?> GetPostAuthorAsync(Guid postId, CancellationToken ct);
+    
+    /// <summary>
+    /// Get global fallback posts when daily trending is empty.
+    /// Reads from Redis Sorted Set: trending:global_fallback
+    /// </summary>
+    Task<IReadOnlyList<Guid>> GetGlobalFallbackPostsAsync(int limit, CancellationToken ct);
+    
+    /// <summary>
+    /// Get personalized fallback posts based on user's category interests.
+    /// Reads from Redis Sorted Set: trending:category:{categoryId}:yyyyMMdd
+    /// </summary>
+    Task<IReadOnlyList<Guid>> GetPersonalizedFallbackPostsAsync(Guid userId, int limit, CancellationToken ct);
+    
+    /// <summary>
+    /// Update the global fallback Redis Sorted Set with top posts.
+    /// Used by background jobs to maintain stable fallback content.
+    /// </summary>
+    Task UpdateGlobalFallbackAsync(IReadOnlyList<(Guid PostId, double Score)> posts, CancellationToken ct);
 }

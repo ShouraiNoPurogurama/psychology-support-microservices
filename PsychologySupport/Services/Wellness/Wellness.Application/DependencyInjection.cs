@@ -19,7 +19,7 @@ namespace Wellness.Application
                 config.AddOpenBehavior(typeof(LoggingBehavior<,>));
             });
 
-            services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
+            services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly(), null, "wellness");
             services.AddFeatureManagement();
 
             AddGrpcServiceDependencies(services, configuration);

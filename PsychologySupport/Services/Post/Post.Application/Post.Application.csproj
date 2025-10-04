@@ -23,6 +23,7 @@
       <Compile Remove="Aggregates\CategoryTags\Commands\DetachTagsFromPost\DetachCategoryTagsFromPostCommandHandler.cs" />
       <Compile Remove="Aggregates\CategoryTags\Commands\AttachTagsToPost\AttachCategoryTagsToPostCommandValidator.cs" />
       <Compile Remove="Aggregates\CategoryTags\Commands\AttachTagsToPost\AttachCategoryTagsToPostCommandHandler.cs" />
+      <Compile Remove="IAssemblyMarker.cs" />
     </ItemGroup>
 
 </Project>

@@ -19,7 +19,7 @@ public static class DependencyInjection
         });
 
         // services.RegisterMapsterConfigurations();
-        services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
+        services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly(), null, "conversation");
         services.AddFeatureManagement();
 
         services.AddServiceDependencies(configuration);

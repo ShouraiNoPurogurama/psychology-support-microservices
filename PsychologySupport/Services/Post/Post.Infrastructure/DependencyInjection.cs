@@ -10,6 +10,7 @@ using Post.Application.Data;
 using Post.Infrastructure.Authentication;
 using Post.Infrastructure.Data.Interceptors;
 using Post.Infrastructure.Data.Post;
+using Post.Infrastructure.Data.Processors;
 using Post.Infrastructure.Data.Query;
 using Post.Infrastructure.Integration.Services;
 using Post.Infrastructure.Resilience.Decorators;
@@ -45,6 +46,9 @@ public static class DependencyInjection
 
         services.AddScoped<IOutboxWriter, EfOutboxWriter>();
         services.AddScoped<IFollowerCountProvider, FollowerCountProvider>();
+
+        // Register OutboxProcessor as a background service
+        services.AddHostedService<OutboxProcessor>();
 
 
         // services.AddDbContext<LegacyPublicDbContext>((serviceProvider, options) =>

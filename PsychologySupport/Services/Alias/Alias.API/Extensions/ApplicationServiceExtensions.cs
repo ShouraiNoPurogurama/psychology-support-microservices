@@ -50,7 +50,7 @@ public static class ApplicationServiceExtensions
 
         services.AddAuthorization();
 
-        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly);
+        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "alias");
 
         return services;
     }
