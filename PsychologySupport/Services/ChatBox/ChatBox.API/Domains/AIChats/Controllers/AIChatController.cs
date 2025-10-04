@@ -1,4 +1,5 @@
-﻿using BuildingBlocks.Pagination;
+﻿using BuildingBlocks.Exceptions;
+using BuildingBlocks.Pagination;
 using ChatBox.API.Domains.AIChats.Abstractions;
 using ChatBox.API.Domains.AIChats.Dtos.AI;
 using ChatBox.API.Domains.AIChats.Services;
@@ -14,7 +15,7 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
     [HttpPost("messages")]
     public async Task<IActionResult> SendMessage([FromBody] AIMessageRequestDto request)
     {
-        var userId = Guid.Parse(User.GetUserId());
+        var userId = Guid.Parse(User.GetSub());
         
         var response = await messageProcessor.ProcessMessageAsync(request, userId);
 
@@ -24,8 +25,14 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
     [HttpPost("sessions")]
     public async Task<IActionResult> CreateSession(string sessionName = "Đoạn chat mới")
     {
-        var userId = Guid.Parse(User.GetUserId());
-        var profileId = Guid.Parse(User.GetProfileId());
+        var userId = Guid.Parse(User.GetSub());
+
+        var profileIdStr = User.Claims.FirstOrDefault(c => c.Type == "patientId")?.Value;
+
+        if (string.IsNullOrEmpty(profileIdStr) || !Guid.TryParse(profileIdStr, out var profileId))
+        {
+            throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy profileId.", "CLAIMS_MISSING");
+        }
 
         var session = await sessionService.CreateSessionAsync(sessionName, userId, profileId);
         return Ok(session);
@@ -34,7 +41,7 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
     [HttpGet("sessions")]
     public async Task<IActionResult> GetSessions([AsParameters] PaginationRequest paginationRequest)
     {
-        var userId = Guid.Parse(User.GetUserId());
+        var userId = Guid.Parse(User.GetSub());
 
         var sessions = await sessionService.GetSessionsAsync(userId, paginationRequest);
         return Ok(sessions);
@@ -43,7 +50,7 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
     [HttpDelete("sessions/{id}")]
     public async Task<IActionResult> DeleteSession(Guid id)
     {
-        var userId = Guid.Parse(User.GetUserId());
+        var userId = Guid.Parse(User.GetSub());
 
         var success = await sessionService.DeleteSessionAsync(id, userId);
         return success ? Ok() : NotFound();
@@ -52,7 +59,7 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
     [HttpGet("sessions/{id}/messages")]
     public async Task<IActionResult> GetMessages(Guid id, [AsParameters] PaginationRequest paginationRequest)
     {
-        var userId = Guid.Parse(User.GetUserId());
+        var userId = Guid.Parse(User.GetSub());
 
         var messages = await messageProcessor.GetMessagesAsync(id, userId, paginationRequest);
         return Ok(messages);
@@ -70,7 +77,7 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
     [HttpPut("sessions/{id}/messages/read")]
     public async Task<IActionResult> MarkAsRead(Guid id)
     {
-        var userId = Guid.Parse(User.GetUserId());
+        var userId = Guid.Parse(User.GetSub());
         
         await messageProcessor.MarkMessagesAsReadAsync(id, userId);
         return Ok();
