@@ -37,7 +37,7 @@ app.UseStaticFiles();
 app.MapCarter();
 
 // Swagger
-app.UseSwagger();
+app.UseSwagger(); 
 if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();
