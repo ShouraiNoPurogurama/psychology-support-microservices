@@ -70,8 +70,8 @@ internal sealed class GetPostByIdQueryHandler : IQueryHandler<GetPostByIdQuery, 
             postData.Post.Metrics.ViewCount,
             postData.Post.HasMedia,
             postData.Post.Media.Select(m => new MediaItemDto(m.Id, m.MediaUrl)).ToList(),
-            postData.Post.Categories.Select(c => c.Id).ToList(),
-            postData.Post.Emotions.Select(e => e.Id).ToList()
+            postData.Post.Categories.Select(c => c.CategoryTagId).ToList(),
+            postData.Post.Emotions.Select(e => e.EmotionTagId).ToList()
             );
 
         var result = new GetPostByIdResult(postDto);
