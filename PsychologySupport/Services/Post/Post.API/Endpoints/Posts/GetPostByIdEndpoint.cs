@@ -9,21 +9,7 @@ using Post.Domain.Aggregates.CategoryTags;
 namespace Post.API.Endpoints.Posts;
 
 public sealed record GetPostByIdResponse(
-    Guid Id,
-    string Content,
-    string? Title,
-    AuthorDto Author,
-    string Visibility,
-    string ModerationStatus,
-    int ReactionCount,
-    int CommentCount,
-    int ViewCount,
-    DateTimeOffset CreatedAt,
-    DateTimeOffset? EditedAt,
-    DateTimeOffset PublishedAt,
-    IReadOnlyList<string> MediaUrls,
-    IReadOnlyList<CategoryTag> CategoryTags,
-    IReadOnlyList<EmotionTagReplica> EmotionTags);
+    PostSummaryDto PostSummary);
 
 public class GetPostByIdEndpoint : ICarterModule
 {
