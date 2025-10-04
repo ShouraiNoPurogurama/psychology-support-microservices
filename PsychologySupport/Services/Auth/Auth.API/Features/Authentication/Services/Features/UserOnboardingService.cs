@@ -145,7 +145,7 @@ public class UserOnboardingService(
 
         var result = new AliasIssueStatusResponse(
             Status: user.AliasIssueStatus,
-            AliasIssued: user.Onboarding?.PatientProfileCompleted ?? false
+            AliasIssued: user.Onboarding?.AliasIssued ?? false
         );
 
         return result;

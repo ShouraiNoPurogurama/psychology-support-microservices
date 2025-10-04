@@ -74,7 +74,7 @@ services:
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/ChatBox/ChatBox.API/RSAKeys:/app/RSAKeys
-      - ~/gcp/compute-default-sa.json:/app/gcloud/compute-default-sa.json:ro
+      - ~/.config/gcloud/application_default_credentials.json:/app/gcloud/compute-default-sa.json:ro
       - ./Services/ChatBox/ChatBox.API/appsettings.json:/app/appsettings.json:ro
       - ./Services/ChatBox/ChatBox.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 

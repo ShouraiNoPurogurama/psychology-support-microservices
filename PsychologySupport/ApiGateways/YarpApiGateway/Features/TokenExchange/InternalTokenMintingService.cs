@@ -9,7 +9,7 @@ namespace YarpApiGateway.Features.TokenExchange;
 public class InternalTokenMintingService : IInternalTokenMintingService
 {
     private readonly IConfiguration _configuration;
-    private readonly ILogger<InternalTokenMintingService> _logger;
+    private readonly ILogger<InternalTokenMintingService> _logger; 
 
     public InternalTokenMintingService(
         IConfiguration configuration,

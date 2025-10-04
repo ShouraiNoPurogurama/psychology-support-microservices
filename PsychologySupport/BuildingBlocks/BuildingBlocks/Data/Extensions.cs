@@ -9,7 +9,7 @@ public static class Extensions
     public static IApplicationBuilder UseMigration<TContext>(this IApplicationBuilder app) 
         where TContext : DbContext
     {
-        //1. Migrate the db
+        //1. Migrate the db 
         //2. Seed the data
         MigrateDatabaseAsync<TContext>(app.ApplicationServices).GetAwaiter().GetResult();
 

@@ -23,7 +23,7 @@ app.UseCors("CorsPolicy");
 
 app.UseStaticFiles();
 
-app.MapCarter();
+app.MapCarter(); 
 
 app.UseSwagger();
 if (app.Environment.IsDevelopment())
