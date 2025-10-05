@@ -2,6 +2,7 @@
 using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Data;
+using Post.Domain.Aggregates.Reactions.Enums;
 
 namespace Post.Application.Features.Reactions.Queries.GetUserReactionForPost;
 
@@ -30,7 +31,7 @@ internal sealed class
         var reaction = await _context.Reactions
             .AsNoTracking()
             .FirstOrDefaultAsync(
-                r => r.IsOnPost
+                r => r.Target.TargetType == ReactionTargetType.Post
                      && r.Target.TargetId == request.PostId
                      && r.Author.AliasId == request.AliasId && !r.IsDeleted,
                 cancellationToken);
