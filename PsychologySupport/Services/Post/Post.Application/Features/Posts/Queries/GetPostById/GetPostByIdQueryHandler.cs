@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Features.CategoryTags.Dtos;
-using Post.Application.Features.Posts.Commands.CreatePost;
 using Post.Application.Features.Posts.Dtos;
 using Post.Domain.Aggregates.Reactions.Enums;
 
@@ -28,10 +27,10 @@ internal sealed class GetPostByIdQueryHandler : IQueryHandler<GetPostByIdQuery, 
         var aliasId = _actorAccessor.GetRequiredAliasId();
 
         var query = _context.Posts
-            .Include(p => p.Emotions)
-            .Include(p => p.Media)
-            .Include(p => p.Categories)
-            .ThenInclude(pc => pc.CategoryTag)
+            .Include(p => p.Emotions.Where(e => !e.IsDeleted))
+            .Include(p => p.Media.Where(m => !m.IsDeleted))
+            .Include(p => p.Categories.Where(pc => !pc.IsDeleted))
+                .ThenInclude(pc => pc.CategoryTag)
             .Where(p => p.Id == request.PostId && !p.IsDeleted);
 
         var postData = await query
@@ -55,7 +54,7 @@ internal sealed class GetPostByIdQueryHandler : IQueryHandler<GetPostByIdQuery, 
             .Where(ap => ap.AliasId == postData.Post.Author.AliasId)
             .Select(ap => new AuthorDto(ap.AliasId, ap.Label, ap.AvatarUrl))
             .FirstOrDefaultAsync(cancellationToken);
-        
+
         var postDto = new PostSummaryDto(
             postData.Post.Id,
             postData.Post.Content.Title,
@@ -69,13 +68,20 @@ internal sealed class GetPostByIdQueryHandler : IQueryHandler<GetPostByIdQuery, 
             postData.Post.Metrics.CommentCount,
             postData.Post.Metrics.ViewCount,
             postData.Post.HasMedia,
-            postData.Post.Media.Select(m => new MediaItemDto(m.Id, m.MediaUrl)).ToList(),
-            postData.Post.Categories.Select(c => c.CategoryTagId).ToList(),
-            postData.Post.Emotions.Select(e => e.EmotionTagId).ToList()
-            );
+            postData.Post.Media
+                .Where(m => !m.IsDeleted)
+                .Select(m => new MediaItemDto(m.Id, m.MediaUrl))
+                .ToList(),
+            postData.Post.Categories
+                .Where(c => !c.IsDeleted)
+                .Select(c => c.CategoryTagId)
+                .ToList(),
+            postData.Post.Emotions
+                .Where(e => !e.IsDeleted)
+                .Select(e => e.EmotionTagId)
+                .ToList()
+        );
 
-        var result = new GetPostByIdResult(postDto);
-
-        return result;
+        return new GetPostByIdResult(postDto);
     }
 }

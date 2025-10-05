@@ -15,7 +15,6 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, GetPos
     private readonly ICurrentActorAccessor _actorAccessor;
     private readonly IQueryDbContext _queryContext;
 
-
     public GetPostsQueryHandler(IPostDbContext context, ICurrentActorAccessor actorAccessor, IQueryDbContext queryContext)
     {
         _context = context;
@@ -31,9 +30,8 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, GetPos
             .Include(p => p.Emotions)
             .Include(p => p.Media)
             .Include(p => p.Categories)
-            .ThenInclude(pc => pc.CategoryTag)
+                .ThenInclude(pc => pc.CategoryTag)
             .Where(p => !p.IsDeleted);
-
 
         if (request.Ids.Any())
         {
@@ -49,7 +47,8 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, GetPos
 
         if (request.CategoryTagIds?.Any() == true)
         {
-            query = query.Where(p => p.Categories.Any(pc => request.CategoryTagIds.Contains(pc.CategoryTagId)));
+            query = query.Where(p =>
+                p.Categories.Any(pc => !pc.IsDeleted && request.CategoryTagIds.Contains(pc.CategoryTagId)));
         }
 
         // Apply sorting
@@ -90,31 +89,35 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, GetPos
             .ToListAsync(cancellationToken);
 
         var postDtos = postsData.Select(p =>
-            {
-                var author = authorAliases
-                    .Select(a => new AuthorDto(a.AliasId, a.Label, a.AvatarUrl))
-                    .FirstOrDefault(a => a.AliasId == p.Post.Author.AliasId);
+        {
+            var author = authorAliases
+                .Select(a => new AuthorDto(a.AliasId, a.Label, a.AvatarUrl))
+                .FirstOrDefault(a => a.AliasId == p.Post.Author.AliasId);
 
-                return new PostSummaryDto(
-                    p.Post.Id,
-                    p.Post.Content.Title,
-                    p.Post.Content.Value,
-                    p.IsReacted,
-                    author ?? new AuthorDto(p.Post.Author.AliasId, "Anonymous", null),
-                    p.Post.Visibility,
-                    p.Post.PublishedAt,
-                    p.Post.EditedAt,
-                    p.Post.Metrics.ReactionCount,
-                    p.Post.Metrics.CommentCount,
-                    p.Post.Metrics.ViewCount,
-                    p.Post.HasMedia,
-                    p.Post.Media.Select(m => new MediaItemDto(m.Id, m.MediaUrl)).ToList(),
-                    p.Post.Categories.Select(c => c.CategoryTagId).ToList(),
-                    p.Post.Emotions.Select(e => e.EmotionTagId).ToList()
-                    );
-            })
-            .ToList();
-
+            return new PostSummaryDto(
+                p.Post.Id,
+                p.Post.Content.Title,
+                p.Post.Content.Value,
+                p.IsReacted,
+                author ?? new AuthorDto(p.Post.Author.AliasId, "Anonymous", null),
+                p.Post.Visibility,
+                p.Post.PublishedAt,
+                p.Post.EditedAt,
+                p.Post.Metrics.ReactionCount,
+                p.Post.Metrics.CommentCount,
+                p.Post.Metrics.ViewCount,
+                p.Post.HasMedia,
+                p.Post.Media.Select(m => new MediaItemDto(m.Id, m.MediaUrl)).ToList(),
+                p.Post.Categories
+                    .Where(c => !c.IsDeleted)
+                    .Select(c => c.CategoryTagId)
+                    .ToList(),
+                p.Post.Emotions
+                    .Where(e => !e.IsDeleted)
+                    .Select(e => e.EmotionTagId)
+                    .ToList()
+            );
+        }).ToList();
 
         var paginatedResult = new PaginatedResult<PostSummaryDto>(
             request.PageIndex,
