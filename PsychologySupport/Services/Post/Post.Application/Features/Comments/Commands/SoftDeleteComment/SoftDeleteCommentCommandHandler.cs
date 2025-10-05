@@ -34,8 +34,11 @@ internal sealed class SoftDeleteCommentCommandHandler : ICommandHandler<SoftDele
                 join pc in _context.Comments
                     on c.Hierarchy.ParentCommentId equals pc.Id into
                     pcg //pcg chỉ chứa duy nhất các comment cha (pc) khớp với comment con (c) hiện tại.
+                join post in _context.Posts
+                    on c.PostId equals post.Id
+                where !post.IsDeleted
                 from parent in pcg.DefaultIfEmpty()
-                select new { Comment = c, ParentComment = parent }
+                select new { Comment = c, ParentComment = parent, Post = post }
             )
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -59,7 +62,7 @@ internal sealed class SoftDeleteCommentCommandHandler : ICommandHandler<SoftDele
         }
 
         // Soft delete via domain methods (preferred over hard delete)
-        comment.SoftDelete(parentComment, _currentActorAccessor.GetRequiredAliasId());
+        comment.SoftDelete(result.Post, parentComment, _currentActorAccessor.GetRequiredAliasId());
 
         // Publish integration event for downstream services
         await _outboxWriter.WriteAsync(
