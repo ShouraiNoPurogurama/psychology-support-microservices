@@ -16,6 +16,9 @@
     </PropertyGroup>
     <ItemGroup>
       <None Remove="Protos\pii.proto" />
+      <None Update="Lookups\emoease_team_knowledge.md">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
     <ItemGroup>
         <Content Include="..\..\..\.dockerignore">

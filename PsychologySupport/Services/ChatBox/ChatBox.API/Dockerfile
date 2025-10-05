@@ -39,7 +39,9 @@ RUN dotnet publish "./ChatBox.API.csproj" -c $BUILD_CONFIGURATION -o /app/publis
 # ===== Final =====
 FROM base AS final
 WORKDIR /app
+
 COPY --from=publish /app/publish .
+COPY Services/ChatBox/ChatBox.API/Lookups/emoease_team_knowledge.md /app/Lookups/
 
 HEALTHCHECK --interval=10s --timeout=3s --retries=6 \
   CMD curl -fsS http://localhost:8080/health || exit 1

@@ -37,9 +37,10 @@ public static class PersonaSnapshotExtensions
         return $"""
                 [System]
                 Thông tin người dùng hiện tại (Persona):
-                - Họ tên: {snapshot.FullName}
                 - Nghề nghiệp: {snapshot.JobTitle}
                 - Ngành nghề: {snapshot.IndustryName}
+                
+                
                 """;
     }
 }

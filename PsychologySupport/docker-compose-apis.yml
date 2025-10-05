@@ -78,6 +78,8 @@ services:
       - ~/.config/gcloud/application_default_credentials.json:/app/gcloud/compute-default-sa.json:ro
       - ./Services/ChatBox/ChatBox.API/appsettings.json:/app/appsettings.json:ro
       - ./Services/ChatBox/ChatBox.API/appsettings.Production.json:/app/appsettings.Production.json:ro
+      - ./Services/ChatBox/ChatBox.API/Lookups/emoease_team_knowledge.md:/app/Lookups/emoease_team_knowledge.md:ro
+
 
   feed.api:
     image: ${DOCKER_REGISTRY}feed.api:${IMAGE_TAG}

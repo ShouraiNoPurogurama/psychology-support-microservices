@@ -85,22 +85,53 @@ public class MessageProcessor(
             session.PersonaSnapshot.ToPromptText()
         );
 
+
         // BƯỚC 3 (MỚI): Chèn gợi ý vào ngữ cảnh
         // Nếu có instruction, chèn nó vào giữa phần persona/context và tin nhắn của người dùng
         // Điều này giúp AI chính đọc được chỉ dẫn ngay trước khi "thấy" tin nhắn cần trả lời
         var augmentedContext = initialContext;
-        if (!string.IsNullOrWhiteSpace(instruction))
+        string knowledgeAugmentation = "";
+
+        // 3.1: Kiểm tra Marker RAG để tạo khối Kiến thức
+        if (instruction.Contains("RAG_TEAM_KNOWLEDGE"))
+        {
+            var teamKnowledge = await LoadTeamKnowledgeFileAsync();
+
+            // Tạo khối kiến thức để chèn vào prompt của AI Emo
+            knowledgeAugmentation = $@"
+[KIẾN THỨC BỔ SUNG VỀ DỰ ÁN EMOEASE (BẮT BUỘC SỬ DỤNG)]
+            {teamKnowledge}
+[HẾT KIẾN THỨC BỔ SUNG]
+            ";
+            instruction = instruction.Replace("[MARKER: RAG_TEAM_KNOWLEDGE]", "").Trim();
+        }
+
+        // 3.2: Chèn Instruction và Knowledge vào ngữ cảnh
+        if (!string.IsNullOrWhiteSpace(instruction) || !string.IsNullOrWhiteSpace(knowledgeAugmentation))
         {
             // Tách phần tin nhắn người dùng ra khỏi context
             var userMessageMarker = "[User]\n";
             var markerIndex = initialContext.IndexOf(userMessageMarker, StringComparison.Ordinal);
+
             if (markerIndex != -1)
             {
                 var contextWithoutUserMessage = initialContext.Substring(0, markerIndex);
                 var userMessagePart = initialContext.Substring(markerIndex);
 
-                // Ghép lại với instruction ở giữa
-                augmentedContext = $"{contextWithoutUserMessage}{instruction}\n\n{userMessagePart}";
+                // Ghép lại: [Context cũ] + [Knowledge (nếu có)] + [Instruction (nếu có)] + [User Message]
+                augmentedContext =
+                    $"{contextWithoutUserMessage}" +
+                    $"{knowledgeAugmentation}" + // Chèn kiến thức
+                    $"\n\n{instruction}\n\n" + // Chèn gợi ý
+                    $"{userMessagePart}";
+            }
+            else
+            {
+                // Trường hợp không tìm thấy marker tin nhắn người dùng, vẫn cố gắng chèn
+                augmentedContext =
+                    $"{initialContext}" +
+                    $"{knowledgeAugmentation}" +
+                    $"\n\n[INSTRUCTION TỪ COACH]\n{instruction}";
             }
         }
 
@@ -123,6 +154,18 @@ public class MessageProcessor(
             .ToList();
     }
 
+    private readonly string _knowledgeFilePath = Path.Combine(AppContext.BaseDirectory, "Lookups", "emoease_team_knowledge.md");
+
+    private async Task<string> LoadTeamKnowledgeFileAsync()
+    {
+        if (File.Exists(_knowledgeFilePath))
+        {
+            return await File.ReadAllTextAsync(_knowledgeFilePath);
+        }
+
+        logger.LogError("File kiến thức đội nhóm không tìm thấy tại: {Path}", _knowledgeFilePath);
+        return "Không thể truy xuất thông tin dự án vào lúc này.";
+    }
 
     public async Task MarkMessagesAsReadAsync(Guid sessionId, Guid userId)
     {
@@ -197,15 +240,16 @@ public class MessageProcessor(
         await dbContext.SaveChangesAsync();
     }
 
-    private async Task<AIRequestPayload> BuildAIPayload(AIMessageRequestDto request, AIChatSession session, string augmentedContext)
+    private async Task<AIRequestPayload> BuildAIPayload(AIMessageRequestDto request, AIChatSession session,
+        string augmentedContext)
     {
         var summarization = await GetSessionSummarizationAsync(session.Id);
         var historyMessages = await GetHistoryMessagesAsync(session.Id);
-    
+
         return new AIRequestPayload(
-            Context: augmentedContext, 
-            Summarization: summarization,        
-            HistoryMessages: historyMessages     
+            Context: augmentedContext,
+            Summarization: summarization,
+            HistoryMessages: historyMessages
         );
     }
 

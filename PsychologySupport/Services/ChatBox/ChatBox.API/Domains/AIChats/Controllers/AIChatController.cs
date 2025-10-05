@@ -31,7 +31,7 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
     public async Task<IActionResult> CreateSession(string sessionName = "Đoạn chat mới")
     {
         var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-
+        
         if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
         {
             throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
