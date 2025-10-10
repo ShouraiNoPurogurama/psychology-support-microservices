@@ -1,11 +1,13 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Enums;
 using BuildingBlocks.Messaging.Events.Queries.Translation;
+using BuildingBlocks.Utils;
 using DigitalGoods.API.Data;
 using DigitalGoods.API.Dtos;
 using DigitalGoods.API.Models;
-using DigitalGoods.API.Extensions; 
-using MassTransit;
+using DigitalGoods.API.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Translation.API.Protos;
 
 namespace DigitalGoods.API.Features.EmotionTags.GetEmotionTag;
 
@@ -19,11 +21,11 @@ public class GetEmotionTagHandler
     : IQueryHandler<GetEmotionTagsByTopicQuery, GetEmotionTagsByTopicResult>
 {
     private readonly DigitalGoodsDbContext _dbContext;
-    private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
+    private readonly TranslationService.TranslationServiceClient _translationClient;
 
     public GetEmotionTagHandler(
         DigitalGoodsDbContext dbContext,
-        IRequestClient<GetTranslatedDataRequest> translationClient
+        TranslationService.TranslationServiceClient translationClient
     )
     {
         _dbContext = dbContext;
@@ -39,7 +41,6 @@ public class GetEmotionTagHandler
             .OrderBy(t => t.SortOrder)
             .ToListAsync(cancellationToken);
 
-  
         var tagDtos = tags.Select(t => new EmotionTagDto(
             t.Id,
             t.Code,
@@ -52,17 +53,15 @@ public class GetEmotionTagHandler
             t.MediaId
         )).ToList();
 
-
         var translatedTags = await tagDtos.TranslateEntitiesAsync(
-            nameof(EmotionTag),              
+            nameof(EmotionTag),
             _translationClient,
-            t => t.Id.ToString(),            
+            t => t.Id.ToString(),
             cancellationToken,
-            t => t.DisplayName,              
+            t => t.DisplayName,
             t => t.Topic
         );
 
-       
         var grouped = translatedTags
             .GroupBy(t => t.Topic ?? "Uncategorized")
             .ToDictionary(
