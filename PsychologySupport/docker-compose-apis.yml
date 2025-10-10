@@ -276,6 +276,28 @@ services:
       - ./Services/Translation/Translation.API/appsettings.json:/app/appsettings.json:ro
       - ./Services/Translation/Translation.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
+  digitalgoods.api:
+    image: ${DOCKER_REGISTRY}digitalgoods.api:${IMAGE_TAG}
+    container_name: digitalgoods.api
+    labels:
+      com.emoease.health_path: "/health"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - GrpcSettings__TranslationUrl=http://translation.api:8081  
+    networks: [ emoease-net ]
+    ports: [ "5022:8080", "5522:8081" ]
+    volumes:
+      - ~/.aspnet/https:/https:ro
+      - ./Services/DigitalGoods/DigitalGoods.API/RSAKeys:/app/RSAKeys
+      - ./Services/DigitalGoods/DigitalGoods.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/DigitalGoods/DigitalGoods.API/appsettings.Production.json:/app/appsettings.Production.json:ro
+
+
   yarpapigateway:
     image: ${DOCKER_REGISTRY}yarpapigateway:${IMAGE_TAG}
     container_name: emoease.yarpapigateway
