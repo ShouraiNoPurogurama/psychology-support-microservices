@@ -31,7 +31,7 @@ public class GetEmotionTagHandler
         _dbContext = dbContext;
         _translationClient = translationClient;
     }
-
+ 
     public async Task<GetEmotionTagsByTopicResult> Handle(
         GetEmotionTagsByTopicQuery request,
         CancellationToken cancellationToken)
