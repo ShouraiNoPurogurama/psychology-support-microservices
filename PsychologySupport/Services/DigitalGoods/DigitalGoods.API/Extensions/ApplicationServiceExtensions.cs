@@ -68,14 +68,14 @@ namespace DigitalGoods.API.Extensions
                     Version = "v1"
                 });
 
-                //var url = env.IsProduction() 
-                //    ? "/digitalgoods-service" 
-                //    : "https://localhost:5510/digitalgoods-service";
-                
-                //options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
-                //{
-                //    Url = url
-                //});
+                var url = env.IsProduction()
+                    ? "/digitalgoods-service"
+                    : "https://localhost:5510/digitalgoods-service";
+
+                options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+                {
+                    Url = url
+                });
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
