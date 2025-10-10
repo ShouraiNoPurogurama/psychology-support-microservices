@@ -39,7 +39,8 @@ public partial class DigitalGoodsDbContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("id");
             entity.Property(e => e.ConsumptionType)
-                .HasMaxLength(20)
+                .HasConversion(new EnumToStringConverter<ConsumptionType>())
+                .HasColumnType("VARCHAR(25)")
                 .HasColumnName("consumption_type");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
@@ -59,8 +60,10 @@ public partial class DigitalGoodsDbContext : DbContext
                 .HasColumnName("name");
             entity.Property(e => e.Price).HasColumnName("price");
             entity.Property(e => e.Type)
-                .HasMaxLength(20)
-                .HasColumnName("type");
+                   .HasConversion(new EnumToStringConverter<DigitalGoodType>())
+                   .HasColumnType("VARCHAR(25)")
+                   .HasColumnName("type");
+
         });
 
         modelBuilder.Entity<Inventory>(entity =>
@@ -114,3 +117,4 @@ public partial class DigitalGoodsDbContext : DbContext
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
+
