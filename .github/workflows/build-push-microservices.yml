@@ -38,7 +38,7 @@ jobs:
           set -euo pipefail
 
           ALL_SERVICES=(
-            "alias.api" "auth.api" "chatbox.api" "feed.api" "media.api"
+            "alias.api" "auth.api" "chatbox.api" "digitalgoods.api" "feed.api" "media.api"
             "payment.api" "post.api" "profile.api" "promotion.grpc"
             "subscription.api" "test.api" "translation.api" "yarpapigateway"
           )
@@ -96,6 +96,7 @@ jobs:
                 Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*)                     add_svc "alias.api" ;;
                 Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*)                         add_svc "auth.api" ;;
                 Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*)             add_svc "chatbox.api" ;;
+                Services/DigitalGoods/DigitalGoods.API/*|PsychologySupport/Services/DigitalGoods/DigitalGoods.API/*) add_svc "digitalgoods.api" ;;
                 Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*)                         add_svc "feed.api" ;;
                 Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*)                     add_svc "media.api" ;;
                 Services/Payment/Payment.API/*|PsychologySupport/Services/Payment/Payment.API/*)             add_svc "payment.api" ;;
@@ -156,6 +157,7 @@ jobs:
             alias.api)        CANDS=( "Services/Alias/Alias.API/Dockerfile" "PsychologySupport/Services/Alias/Alias.API/Dockerfile" ) ;;
             auth.api)         CANDS=( "Services/Auth/Auth.API/Dockerfile" "PsychologySupport/Services/Auth/Auth.API/Dockerfile" ) ;;
             chatbox.api)      CANDS=( "Services/ChatBox/ChatBox.API/Dockerfile" "PsychologySupport/Services/ChatBox/ChatBox.API/Dockerfile" ) ;;
+            digitalgoods.api)      CANDS=( "Services/DigitalGoods/DigitalGoods.API/Dockerfile" "PsychologySupport/Services/DigitalGoods/DigitalGoods.API/Dockerfile" ) ;;
             feed.api)         CANDS=( "Services/Feed/Feed.API/Dockerfile" "PsychologySupport/Services/Feed/Feed.API/Dockerfile" ) ;;
             media.api)        CANDS=( "Services/Media/Media.API/Dockerfile" "PsychologySupport/Services/Media/Media.API/Dockerfile" ) ;;
             payment.api)      CANDS=( "Services/Payment/Payment.API/Dockerfile" "PsychologySupport/Services/Payment/Payment.API/Dockerfile" ) ;;

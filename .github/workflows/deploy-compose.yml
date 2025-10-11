@@ -110,6 +110,7 @@ jobs:
                     Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*)                     add_svc "alias.api" ;;
                     Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*)                         add_svc "auth.api" ;;
                     Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*)             add_svc "chatbox.api" ;;
+                    Services/DigitalGoods/DigitalGoods.API/*|PsychologySupport/Services/DigitalGoods/DigitalGoods.API/*)             add_svc "digitalgoods.api" ;;
                     Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*)                         add_svc "feed.api" ;;
                     Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*)                     add_svc "media.api" ;;
                     Services/Payment/Payment.API/*|PsychologySupport/Services/Payment/Payment.API/*)             add_svc "payment.api" ;;
