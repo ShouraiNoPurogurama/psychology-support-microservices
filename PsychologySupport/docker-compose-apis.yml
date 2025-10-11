@@ -263,7 +263,6 @@ services:
       - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
       - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud/compute-default-sa.json
