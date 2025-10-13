@@ -29,28 +29,30 @@ jobs:
         id: decide
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.RUNNER_ADMIN_TOKEN }}   # <— dùng PAT có Admin(Read)
+          github-token: ${{ secrets.RUNNER_ADMIN_TOKEN }}  # PAT có Administration: Read
           script: |
             const owner = context.repo.owner;
             const repo  = context.repo.repo;
 
-            // Lấy danh sách self-hosted runners của repo
-            const runners = await github.rest.actions.listSelfHostedRunnersForRepo({ owner, repo, per_page: 100 });
-
-            // Tìm runner đang ONLINE có label "NA Self Hosted Runner"
-            const ok = (runners.data.runners || []).some(r => {
-              if (r.status !== 'online') return false;
+            const res = await github.rest.actions.listSelfHostedRunnersForRepo({ owner, repo, per_page: 100 });
+            const runners = res.data.runners ?? [];
+            const wanted = runners.find(r => {
               const labels = (r.labels || []).map(l => (l.name || '').toLowerCase());
-              return labels.includes('na self hosted runner'.toLowerCase());
+              return labels.includes('na self hosted runner') && r.status === 'online' && !r.busy;
             });
 
-            if (ok) {
-              // Dùng self-hosted (Windows). Không bắt buộc thêm "Windows" label nếu runner đã gắn sẵn.
-              core.setOutput('runs_on', JSON.stringify(["self-hosted","NA Self Hosted Runner"]));
+            if (wanted) {
+              const val = ["self-hosted","NA Self Hosted Runner"];
+              core.setOutput('runs_on', JSON.stringify(val));
+              core.notice(`Runner selected: ${val.join(' / ')}`);
             } else {
-              // Fallback GitHub-hosted
-              core.setOutput('runs_on', JSON.stringify("ubuntu-latest"));
+              const val = "ubuntu-latest";
+              core.setOutput('runs_on', JSON.stringify(val));
+              core.notice(`Runner selected: ${val}`);
             }
+
+      - name: Show decision output
+        run: echo "runs_on=${{ steps.decide.outputs.runs_on }}"
 
   # 1) Detect services (vẫn nên chạy GitHub-hosted để có bash/apt sẵn)
   detect-services:
@@ -159,6 +161,8 @@ jobs:
       matrix:
         service: ${{ fromJson(needs.detect-services.outputs.services) }}
     steps:
+      - name: Using which runner?
+        run: echo "Using runs-on=${{ needs.pick-runner.outputs.runs_on }}"
       - uses: actions/checkout@v4
 
       - uses: docker/setup-buildx-action@v3
