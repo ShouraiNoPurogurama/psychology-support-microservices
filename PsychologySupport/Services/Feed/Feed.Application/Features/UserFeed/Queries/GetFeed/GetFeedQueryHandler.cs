@@ -130,7 +130,7 @@ public sealed class GetFeedQueryHandler(
         var feedItems = await feedRepository.GetUserFeedAsync(
             request.AliasId,
             days: _config.VipFeedDays,
-            limit: request.PageSize * 3, // prefetch for filtering/pagination
+            limit: _config.VipCandidatePoolSize, // prefetch for filtering/pagination
             cancellationToken);
 
         var filteredItems = await ApplyFiltersAsync(request.AliasId, feedItems, cancellationToken);
@@ -189,7 +189,7 @@ public sealed class GetFeedQueryHandler(
             // Tier 1 Fallback: Try personalized fallback (category-based)
             var personalizedFallback = await rankingService.GetPersonalizedFallbackPostsAsync(
                 request.AliasId, 
-                100, 
+                _config.CandidatePoolSize, 
                 cancellationToken);
             
             if (personalizedFallback.Count > 0)
@@ -255,11 +255,11 @@ public sealed class GetFeedQueryHandler(
             logger.LogDebug("Daily trending available for user {AliasId}, found {Count} posts", 
                 request.AliasId, trendingPosts.Count);
         }
-
+        
         var combinedPosts = await rankingService.RankPostsAsync(
             followedAliasIds,
             trendingPosts,
-            request.PageSize * 3,
+            feedConfig.Value.CandidatePoolSize,
             cancellationToken);
 
         var filteredPosts = await ApplyPostFiltersAsync(request.AliasId, combinedPosts, cancellationToken);

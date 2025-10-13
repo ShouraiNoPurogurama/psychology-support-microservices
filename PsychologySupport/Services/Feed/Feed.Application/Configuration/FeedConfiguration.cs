@@ -4,6 +4,10 @@ public sealed class FeedConfiguration
 {
     public int DefaultPageSize { get; set; } = 20;
     public int MaxPageSize { get; set; } = 100;
+    
+    public int CandidatePoolSize = 300;
+    public int VipCandidatePoolSize = 500; 
+    
     public int VipFeedDays { get; set; } = 7;
     public int TrendingTopN { get; set; } = 99;
     public int FeedShardCount { get; set; } = 4;
