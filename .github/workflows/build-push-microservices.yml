@@ -29,30 +29,49 @@ jobs:
         id: decide
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.RUNNER_ADMIN_TOKEN }}  # PAT có Administration: Read
+          github-token: ${{ secrets.RUNNER_ADMIN_TOKEN }}
           script: |
             const owner = context.repo.owner;
             const repo  = context.repo.repo;
 
+            core.startGroup('📦 Fetching runners list from GitHub API');
             const res = await github.rest.actions.listSelfHostedRunnersForRepo({ owner, repo, per_page: 100 });
+            core.info(`Raw API status: ${res.status}`);
+            core.info(`Raw API response (first 500 chars): ${JSON.stringify(res.data, null, 2).slice(0, 500)}...`);
+            core.endGroup();
+
             const runners = res.data.runners ?? [];
+            if (runners.length === 0) {
+              core.warning('⚠️ No runners found for this repo.');
+            }
+
+            core.startGroup('📋 Runners summary');
+            for (const r of runners) {
+              const labels = (r.labels||[]).map(l => l.name).join(', ');
+              core.info(`→ name="${r.name}", status=${r.status}, busy=${r.busy}, labels=[${labels}]`);
+            }
+            core.endGroup();
+
+            const target = 'na self hosted runner';
             const wanted = runners.find(r => {
               const labels = (r.labels || []).map(l => (l.name || '').toLowerCase());
-              return labels.includes('na self hosted runner') && r.status === 'online' && !r.busy;
+              const nameLc = (r.name || '').toLowerCase();
+              return (labels.includes(target) || nameLc === target) && r.status === 'online' && !r.busy;
             });
 
             if (wanted) {
               const val = ["self-hosted","NA Self Hosted Runner"];
               core.setOutput('runs_on', JSON.stringify(val));
-              core.notice(`Runner selected: ${val.join(' / ')}`);
+              core.notice(`✅ Runner selected: ${val.join(' / ')}`);
             } else {
               const val = "ubuntu-latest";
               core.setOutput('runs_on', JSON.stringify(val));
-              core.notice(`Runner selected: ${val}`);
+              core.notice(`🌀 Fallback runner selected: ${val}`);
             }
 
       - name: Show decision output
         run: echo "runs_on=${{ steps.decide.outputs.runs_on }}"
+
 
   # 1) Detect services (vẫn nên chạy GitHub-hosted để có bash/apt sẵn)
   detect-services:
