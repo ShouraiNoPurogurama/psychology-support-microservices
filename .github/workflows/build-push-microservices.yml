@@ -52,7 +52,7 @@ jobs:
             }
             core.endGroup();
 
-            const target = 'na self hosted runner';
+            const target = 'na self hosted runner'; // match theo name hoặc label
             const wanted = runners.find(r => {
               const labels = (r.labels || []).map(l => (l.name || '').toLowerCase());
               const nameLc = (r.name || '').toLowerCase();
@@ -60,23 +60,27 @@ jobs:
             });
 
             if (wanted) {
+              // Lấy đúng các labels THỰC SỰ của runner
               const labelNames = (wanted.labels || []).map(l => l.name).filter(Boolean);
+              // Bảo hiểm: đảm bảo có "self-hosted"
               if (!labelNames.map(s=>s.toLowerCase()).includes('self-hosted')) labelNames.unshift('self-hosted');
 
+              // Thu gọn labels để ổn định (ưu tiên dùng label đặc trưng nếu có)
               const preferred = labelNames.includes('windows-prod')
-              ? ['self-hosted','windows-prod']
-              : labelNames
-              core.notice(`✅ Runner selected: ${val.join(' / ')}`);
+                ? ['self-hosted','windows-prod']
+                : labelNames;
+
+              core.notice(`✅ Runner selected: ${wanted.name}`);
               core.notice(`🏷️ Using labels: [${preferred.join(', ')}]`);
               core.setOutput('runs_on', JSON.stringify(preferred));
             } else {
-              core.setOutput('runs_on', JSON.stringify("ubuntu-latest"));
-              core.notice(`🌀 Fallback runner selected: ${val}`);
+              const fallback = "ubuntu-latest";
+              core.notice(`🌀 Fallback runner selected: ${fallback}`);
+              core.setOutput('runs_on', JSON.stringify(fallback));
             }
 
       - name: Show decision output
         run: echo "runs_on=${{ steps.decide.outputs.runs_on }}"
-
 
   # 1) Detect services (vẫn nên chạy GitHub-hosted để có bash/apt sẵn)
   detect-services:
@@ -186,7 +190,7 @@ jobs:
         service: ${{ fromJson(needs.detect-services.outputs.services) }}
     steps:
       - name: Using which runner?
-        run: echo "Using runs-on=${{ needs.pick-runner.outputs.runs_on }}"
+        run: echo "Using runs-on=${{ needs.pick-runner.outputs.runs_on }}; Service=${{ matrix.service }}"
       - uses: actions/checkout@v4
 
       - uses: docker/setup-buildx-action@v3
@@ -200,7 +204,7 @@ jobs:
 
       - name: Resolve context & dockerfile
         id: meta
-        shell: bash   #<- cần Git Bash nếu chạy trên Windows self-hosted
+        shell: bash   # <- cần Git Bash nếu chạy trên Windows self-hosted
         run: |
           set -euo pipefail
           SVC="${{ matrix.service }}"
@@ -240,6 +244,7 @@ jobs:
 
           echo "CTX=$CTX" >> $GITHUB_OUTPUT
           echo "DF=$DF" >> $GITHUB_OUTPUT
+          echo "Resolved CTX=$CTX, DF=$DF"
 
           OWNER_LC=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
           SVC_LC=$(echo "$SVC" | tr '[:upper:]' '[:lower:]')
