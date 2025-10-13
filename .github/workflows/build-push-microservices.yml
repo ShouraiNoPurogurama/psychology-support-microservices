@@ -60,12 +60,17 @@ jobs:
             });
 
             if (wanted) {
-              const val = ["self-hosted","NA Self Hosted Runner"];
-              core.setOutput('runs_on', JSON.stringify(val));
+              const labelNames = (wanted.labels || []).map(l => l.name).filter(Boolean);
+              if (!labelNames.map(s=>s.toLowerCase()).includes('self-hosted')) labelNames.unshift('self-hosted');
+
+              const preferred = labelNames.includes('windows-prod')
+              ? ['self-hosted','windows-prod']
+              : labelNames
               core.notice(`✅ Runner selected: ${val.join(' / ')}`);
+              core.notice(`🏷️ Using labels: [${preferred.join(', ')}]`);
+              core.setOutput('runs_on', JSON.stringify(preferred));
             } else {
-              const val = "ubuntu-latest";
-              core.setOutput('runs_on', JSON.stringify(val));
+              core.setOutput('runs_on', JSON.stringify("ubuntu-latest"));
               core.notice(`🌀 Fallback runner selected: ${val}`);
             }
 
