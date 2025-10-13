@@ -361,6 +361,36 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
         AddDomainEvent(new PostMediaAltTextUpdatedEvent(Id, mediaId, altText));
     }
 
+    public void AddReaction(Guid reactorAliasId)
+    {
+        ValidateNotDeleted();
+        AddDomainEvent(new PostReactionAddedEvent(Id, reactorAliasId, Author.AliasId));
+    }
+
+    public void RemoveReaction(Guid reactorAliasId)
+    {
+        ValidateNotDeleted();
+        AddDomainEvent(new PostReactionRemovedEvent(Id, reactorAliasId, Author.AliasId));
+    }
+
+    public void AddComment(Guid commentAuthorAliasId)
+    {
+        ValidateNotDeleted();
+        AddDomainEvent(new PostCommentAddedEvent(Id, commentAuthorAliasId));
+    }
+
+    public void RemoveComment(Guid commentAuthorAliasId)
+    {
+        ValidateNotDeleted();
+        AddDomainEvent(new PostCommentRemovedEvent(Id, commentAuthorAliasId));
+    }
+
+    public void Share()
+    {
+        ValidateNotDeleted();
+        Metrics = Metrics.IncrementShares();
+        AddDomainEvent(new PostSharedEvent(Id, Author.AliasId));
+    }
     private void ValidateEditPermission(Guid editorAliasId)
     {
         if (editorAliasId != Author.AliasId)

@@ -63,6 +63,13 @@ public sealed class RemoveReactionCommandHandler : ICommandHandler<RemoveReactio
 
             await UpdateTargetCounters(request.TargetType, request.TargetId, -1, cancellationToken);
 
+            // Emit domain event for alias counters
+            if (request.TargetType == ReactionTargetType.Post)
+            {
+                var post = await _context.Posts.FirstAsync(p => p.Id == request.TargetId, cancellationToken);
+                post.RemoveReaction(currentAliasId);
+            }
+
             var reactionRemovedEvent = new ReactionRemovedEvent(
                 reaction.Id,
                 request.TargetType,
