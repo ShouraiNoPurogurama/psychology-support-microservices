@@ -206,7 +206,7 @@ public sealed class GetFeedQueryHandler(
             else
             {
                 // Tier 2 Fallback: Global fallback from trending:global_fallback
-                var globalFallback = await rankingService.GetGlobalFallbackPostsAsync(100);
+                var globalFallback = await rankingService.GetGlobalFallbackPostsAsync(_config.CandidatePoolSize);
                 
                 if (globalFallback.Count > 0)
                 {
@@ -218,34 +218,6 @@ public sealed class GetFeedQueryHandler(
                     FeedMetrics.FeedRequests.Add(1,
                         new KeyValuePair<string, object?>("feed_type", "regular"),
                         new KeyValuePair<string, object?>("fallback_tier", "global"));
-                }
-                else
-                {
-                    // Tier 3 Fallback: Database query (deepest fallback - slow path)
-                    logger.LogWarning("Global fallback is empty for user {AliasId}, attempting database fallback (slow path)", 
-                        request.AliasId);
-                    
-                    var dbFallback = await postReadRepository.GetMostRecentPublicPostsAsync(100);
-                    
-                    if (dbFallback.Count > 0)
-                    {
-                        trendingPosts = dbFallback;
-                        activity?.SetTag("fallback_tier", "database");
-                        activity?.AddEvent(new System.Diagnostics.ActivityEvent("Using database fallback posts (SLOW PATH)"));
-                        logger.LogWarning("Using database fallback for user {AliasId}, found {Count} posts. This is a SLOW PATH - populate global fallback!", 
-                            request.AliasId, dbFallback.Count);
-                        FeedMetrics.FeedRequests.Add(1,
-                            new KeyValuePair<string, object?>("feed_type", "regular"),
-                            new KeyValuePair<string, object?>("fallback_tier", "database"));
-                    }
-                    else
-                    {
-                        // All fallbacks exhausted
-                        logger.LogWarning("All fallback tiers exhausted for user {AliasId}, returning feed with only followed posts", 
-                            request.AliasId);
-                        activity?.SetTag("fallback_tier", "none");
-                        activity?.AddEvent(new System.Diagnostics.ActivityEvent("All fallback tiers exhausted"));
-                    }
                 }
             }
         }
@@ -262,8 +234,45 @@ public sealed class GetFeedQueryHandler(
             feedConfig.Value.CandidatePoolSize,
             cancellationToken);
 
-        var filteredPosts = await ApplyPostFiltersAsync(request.AliasId, combinedPosts, cancellationToken);
+        var filteredHotPosts = (await ApplyPostFiltersAsync(request.AliasId, combinedPosts, cancellationToken)).ToList();
+        
+        if (filteredHotPosts.Count < _config.CandidatePoolSize)
+        {
+            logger.LogInformation("Hot feed for user {AliasId} has only {Count} posts, below threshold of {Threshold}. Fetching deep feed.",
+                request.AliasId, filteredHotPosts.Count, _config.CandidatePoolSize);
+        
+            // Tính toán số lượng cần lấy thêm
+            var neededPosts = _config.CandidatePoolSize - filteredHotPosts.Count;
+    
+            // Gọi luồng lấy feed "lạnh" từ Cassandra
+            var deepFeedPosts = await postReadRepository.GetMostRecentPublicPostsAsync(
+                days: 90, //Quét sâu hơn, ví dụ 3 tháng
+                limit: neededPosts + 50, //Lấy dư ra một chút để bù cho việc lọc block/mute
+                startDayOffset: 7, //Bỏ qua 7 ngày gần nhất để tránh trùng với trending
+                cancellationToken: cancellationToken
+            );
 
+            if (deepFeedPosts.Any())
+            {
+                // Bài viết từ DB không có rank, nên ta gán giá trị mặc định/thấp
+                var deepFeedRankedPosts = deepFeedPosts.Select(p => new RankedPost(
+                    p.PostId,
+                    p.AuthorAliasId,
+                    RankBucket: 0, 
+                    RankI64: 0, 
+                    p.CreatedAt
+                )).ToList();
+                
+                // Lọc và hợp nhất kết quả
+                var filteredDeepPosts = await ApplyPostFiltersAsync(request.AliasId, deepFeedRankedPosts, cancellationToken);
+
+
+                // Hợp nhất 2 danh sách, loại bỏ trùng lặp và lấy đủ số lượng
+                var existingPostIds = filteredHotPosts.Select(p => p.PostId).ToHashSet();
+                filteredHotPosts.AddRange(filteredDeepPosts.Where(p => !existingPostIds.Contains(p.PostId)));
+            }
+        }
+        
         var items = new List<UserFeedItemDto>();
         if (request.Cursor is null)
         {
@@ -281,7 +290,7 @@ public sealed class GetFeedQueryHandler(
             items.AddRange(pinnedDtos);
         }
 
-        items.AddRange(filteredPosts.Select(p => new UserFeedItemDto(
+        items.AddRange(filteredHotPosts.Select(p => new UserFeedItemDto(
             p.PostId,
             DateOnly.FromDateTime(p.CreatedAt.Date),
             0,

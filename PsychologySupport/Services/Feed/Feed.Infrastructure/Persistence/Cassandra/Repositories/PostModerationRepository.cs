@@ -115,31 +115,44 @@ public sealed class PostModerationRepository : IPostModerationRepository
             return new HashSet<Guid>();
 
         var cql = @"SELECT post_id, suppressed_until 
-                    FROM post_suppressed 
-                    WHERE post_id IN ?";
-        
+                FROM post_suppressed 
+                WHERE post_id IN ?";
+    
         var ps = await _session.PrepareAsync(cql).ConfigureAwait(false);
-        var stmt = ps.Bind(postIds.ToList())
-            .SetConsistencyLevel(ConsistencyLevel.LocalOne)
-            .SetIdempotence(true);
-        
-        var rs = await _session.ExecuteAsync(stmt).ConfigureAwait(false);
-        
+    
         var suppressedIds = new HashSet<Guid>();
         var now = DateTimeOffset.UtcNow;
-        
-        foreach (var row in rs)
+
+        const int batchSize = 90; 
+        var queryTasks = new List<Task<RowSet>>();
+
+        foreach (var batch in postIds.Chunk(batchSize))
         {
-            var postId = row.GetValue<Guid>("post_id");
-            var suppressedUntil = row.GetValue<DateTimeOffset?>("suppressed_until");
-            
-            // Check if currently suppressed (permanent or not yet expired)
-            if (suppressedUntil == null || suppressedUntil > now)
+            var stmt = ps.Bind(batch) 
+                .SetConsistencyLevel(ConsistencyLevel.LocalOne)
+                .SetIdempotence(true);
+        
+            //Gửi tất cả các truy vấn đi song song
+            queryTasks.Add(_session.ExecuteAsync(stmt));
+        }
+    
+        var rowSets = await Task.WhenAll(queryTasks).ConfigureAwait(false);
+
+        foreach (var rs in rowSets)
+        {
+            foreach (var row in rs)
             {
-                suppressedIds.Add(postId);
+                var postId = row.GetValue<Guid>("post_id");
+                var suppressedUntil = row.GetValue<DateTimeOffset?>("suppressed_until");
+            
+                //Kiểm tra xem bài viết có đang bị ẩn không
+                if (suppressedUntil == null || suppressedUntil > now)
+                {
+                    suppressedIds.Add(postId);
+                }
             }
         }
-        
+    
         return suppressedIds;
     }
 }

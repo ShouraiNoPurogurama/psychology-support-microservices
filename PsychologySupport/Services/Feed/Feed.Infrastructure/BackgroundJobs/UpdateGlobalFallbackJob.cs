@@ -74,21 +74,21 @@ public sealed class UpdateGlobalFallbackJob : IJob // <-- Implement IJob
             // Get recent public posts from the database
             // In production, this would query posts from the last 72 hours
             // For now, we get the most recent posts available
-            var recentPostIds = await _postReadRepository.GetMostRecentPublicPostsAsync(
+            var recentPosts = await _postReadRepository.GetMostRecentPublicPostsAsync(
                 UpdateGlobalFallbackJobConfiguration.TopPostsLimit * 2); // Get 2x to ensure we have enough after filtering);
 
-            if (recentPostIds.Count == 0)
+            if (recentPosts.Count == 0)
             {
                 _logger.LogWarning("No recent posts found in database for global fallback");
                 return Array.Empty<(Guid, double)>();
             }
 
-            _logger.LogDebug("Found {Count} recent posts, calculating scores", recentPostIds.Count);
+            _logger.LogDebug("Found {Count} recent posts, calculating scores", recentPosts.Count);
 
             // Fetch rank data for each post and calculate score
             var scoredPosts = new List<(Guid PostId, double Score, DateTimeOffset UpdatedAt)>();
             
-            foreach (var postId in recentPostIds)
+            foreach (var postId in recentPosts.Select(p => p.PostId))
             {
                 var rankData = await _rankingService.GetPostRankAsync(postId);
                 
