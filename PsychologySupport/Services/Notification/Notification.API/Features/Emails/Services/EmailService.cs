@@ -75,28 +75,11 @@ public class EmailService(
 
     private MailMessage CreateMailMessage(EmailMessageDto emailMessageDto, string trackerId)
     {
+        var messageId = GenerateDomainMessageId("emoease.vn");
+
         StringBuilder htmlBody = new StringBuilder();
 
-        htmlBody.Append("<html>");
-        htmlBody.Append("<head>");
-        htmlBody.Append("<style>");
-        htmlBody.Append("body { font-family: Arial, sans-serif; margin: 20px; }");
-        htmlBody.Append(".header { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 20px; }");
-        htmlBody.Append(".content { font-size: 14px; line-height: 1.5; color: #555; }");
-        htmlBody.Append(".footer { font-size: 12px; color: #999; margin-top: 30px; }");
-        htmlBody.Append("</style>");
-        htmlBody.Append("</head>");
-        htmlBody.Append("<body>");
-        htmlBody.Append($"<div class='header'>{emailMessageDto.Subject}</div>");
-        htmlBody.Append("<div class='content'>");
         htmlBody.Append(emailMessageDto.Body);
-        htmlBody.Append("</div>");
-        htmlBody.Append("<div class='footer'>");
-        htmlBody.Append("If you have any questions, please contact us at support@example.com.");
-        htmlBody.Append("</div>");
-        htmlBody.Append(GenerateTrackingPixel(trackerId));
-        htmlBody.Append("</body>");
-        htmlBody.Append("</html>");
 
         var mailMessage = new MailMessage(
             _emailConfiguration.SenderEmail,
@@ -105,10 +88,22 @@ public class EmailService(
             htmlBody.ToString()
         )
         {
-            IsBodyHtml = true
+            IsBodyHtml = true,
+            From = new MailAddress(_emailConfiguration.SenderEmail, "EmoEase")
         };
 
+        mailMessage.Headers.Remove("Message-ID");
+        mailMessage.Headers.Add("Message-ID", $"<{messageId}>");
+
         return mailMessage;
+    }
+    
+    //Giúp tạo Message-ID chuẩn RFC5322: <random.timestamp@domain>
+    private static string GenerateDomainMessageId(string domain)
+    {
+        var ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var rnd = Guid.NewGuid().ToString("N").Substring(0, 16);
+        return $"{rnd}.{ts}@{domain}";
     }
 
     private EmailTrace CreateEmailTrace(EmailMessageDto emailMessageDto, string trackerId)
