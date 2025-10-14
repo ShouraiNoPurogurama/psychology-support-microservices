@@ -6,7 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
-    <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
     <PackageVersion Include="AutoGen.Gemini" Version="0.2.3" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.25.0" />
     <PackageVersion Include="Carter" Version="9.0.0" />

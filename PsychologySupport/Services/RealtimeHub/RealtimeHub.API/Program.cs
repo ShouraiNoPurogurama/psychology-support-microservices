@@ -2,8 +2,6 @@ using RealtimeHub.API.Extensions;
 using RealtimeHub.API.Hubs;
 using BuildingBlocks.Exceptions.Handler;
 using Carter;
-using HealthChecks.UI.Client;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,13 +37,6 @@ else
 
 // Map SignalR hub
 app.MapHub<NotificationHub>("/hubs/notifications");
-
-app.UseHealthChecks("/health",
-    new HealthCheckOptions
-    {
-        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-    }
-);
 
 app.MapGet("/", () => "RealtimeHub Service - WebSocket connections available at /hubs/notifications");
 

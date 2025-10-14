@@ -25,7 +25,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
         <PackageReference Include="Carter" />
         <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
     </ItemGroup>

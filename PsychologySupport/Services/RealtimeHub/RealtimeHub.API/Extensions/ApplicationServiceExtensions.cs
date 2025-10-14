@@ -1,4 +1,3 @@
-using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
@@ -39,7 +38,6 @@ public static class ApplicationServiceExtensions
 
         services.AddExceptionHandler<CustomExceptionHandler>();
 
-        services.AddHealthChecks();
 
         return services;
     }

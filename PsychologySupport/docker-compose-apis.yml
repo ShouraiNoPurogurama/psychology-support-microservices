@@ -297,7 +297,7 @@ services:
       - ./Services/DigitalGoods/DigitalGoods.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   realtime-hub.api:
-    image: ${DOCKER_REGISTRY}digitalgoods.api:${IMAGE_TAG}
+    image: ${DOCKER_REGISTRY}realtimehub.api:${IMAGE_TAG}
     container_name: realtime-hub.api
     labels:
       com.emoease.health_path: "/health"
