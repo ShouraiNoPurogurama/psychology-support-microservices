@@ -19,8 +19,73 @@ env:
   OWNER: ${{ github.repository_owner }}
 
 jobs:
+  # 0) Chọn runner ưu tiên
+  pick-runner:
+    runs-on: ubuntu-latest
+    outputs:
+      runs_on: ${{ steps.decide.outputs.runs_on }}
+    steps:
+      - name: Decide runner (prefer self-hosted "NA Self Hosted Runner")
+        id: decide
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.RUNNER_ADMIN_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+
+            core.startGroup('📦 Fetching runners list from GitHub API');
+            const res = await github.rest.actions.listSelfHostedRunnersForRepo({ owner, repo, per_page: 100 });
+            core.info(`Raw API status: ${res.status}`);
+            core.info(`Raw API response (first 500 chars): ${JSON.stringify(res.data, null, 2).slice(0, 500)}...`);
+            core.endGroup();
+
+            const runners = res.data.runners ?? [];
+            if (runners.length === 0) {
+              core.warning('⚠️ No runners found for this repo.');
+            }
+
+            core.startGroup('📋 Runners summary');
+            for (const r of runners) {
+              const labels = (r.labels||[]).map(l => l.name).join(', ');
+              core.info(`→ name="${r.name}", status=${r.status}, busy=${r.busy}, labels=[${labels}]`);
+            }
+            core.endGroup();
+
+            const target = 'na self hosted runner'; // match theo name hoặc label
+            const wanted = runners.find(r => {
+              const labels = (r.labels || []).map(l => (l.name || '').toLowerCase());
+              const nameLc = (r.name || '').toLowerCase();
+              return (labels.includes(target) || nameLc === target) && r.status === 'online' && !r.busy;
+            });
+
+            if (wanted) {
+              // Lấy đúng các labels THỰC SỰ của runner
+              const labelNames = (wanted.labels || []).map(l => l.name).filter(Boolean);
+              // Bảo hiểm: đảm bảo có "self-hosted"
+              if (!labelNames.map(s=>s.toLowerCase()).includes('self-hosted')) labelNames.unshift('self-hosted');
+
+              // Thu gọn labels để ổn định (ưu tiên dùng label đặc trưng nếu có)
+              const preferred = labelNames.includes('windows-prod')
+                ? ['self-hosted','windows-prod']
+                : labelNames;
+
+              core.notice(`✅ Runner selected: ${wanted.name}`);
+              core.notice(`🏷️ Using labels: [${preferred.join(', ')}]`);
+              core.setOutput('runs_on', JSON.stringify(preferred));
+            } else {
+              const fallback = "ubuntu-latest";
+              core.notice(`🌀 Fallback runner selected: ${fallback}`);
+              core.setOutput('runs_on', JSON.stringify(fallback));
+            }
+
+      - name: Show decision output
+        run: echo "runs_on=${{ steps.decide.outputs.runs_on }}"
+
+  # 1) Detect services (vẫn nên chạy GitHub-hosted để có bash/apt sẵn)
   detect-services:
     runs-on: ubuntu-latest
+    needs: pick-runner
     outputs:
       services: ${{ steps.out.outputs.services }}
     steps:
@@ -45,14 +110,12 @@ jobs:
 
           git fetch --no-tags --prune origin main
 
-          # Build-all khi chạy tay để tránh skip
           if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
             BUILD_ALL=1
           else
             BUILD_ALL=0
           fi
 
-          # Chọn BASE hợp lý
           if [[ -n "${BEFORE:-}" && "${BEFORE}" != "0000000000000000000000000000000000000000" ]]; then
             BASE="${BEFORE}"
           else
@@ -64,16 +127,10 @@ jobs:
           fi
 
           echo "Diff range: ${BASE}..HEAD"
-
-          # Lấy file thay đổi (Add/Copy/Modify/Rename)
           mapfile -t CHANGED_FILES < <(git diff --name-only --diff-filter=ACMR "${BASE}"..HEAD || true)
 
-          # Nếu diff rỗng -> build all (tránh skip)
-          if [[ ${#CHANGED_FILES[@]} -eq 0 ]]; then
-            BUILD_ALL=1
-          fi
+          if [[ ${#CHANGED_FILES[@]} -eq 0 ]]; then BUILD_ALL=1; fi
 
-          # Thay đổi "nền" -> build all
           if [[ $BUILD_ALL -eq 0 ]]; then
             for f in "${CHANGED_FILES[@]}"; do
               case "$f" in
@@ -111,12 +168,10 @@ jobs:
             done
           fi
 
-          # Nếu vẫn rỗng -> build all
           if [[ ${#SVC_SET[@]} -eq 0 ]]; then
             for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
           fi
 
-          # Xuất JSON sort ổn định
           if ! command -v jq >/dev/null 2>&1; then
             sudo apt-get update -y && sudo apt-get install -y jq
           fi
@@ -124,16 +179,18 @@ jobs:
           echo "Detected services: $(cat services.json)"
           echo "services=$(cat services.json)" >> "$GITHUB_OUTPUT"
 
+  # 2) Build job – chạy trên runner đã chọn (self-hosted nếu online, ngược lại ubuntu-latest)
   build:
-    needs: detect-services
+    needs: [pick-runner, detect-services]
     if: ${{ needs.detect-services.outputs.services != '[]' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJson(needs.pick-runner.outputs.runs_on) }}
     strategy:
       fail-fast: false
-      # max-parallel: 10
       matrix:
         service: ${{ fromJson(needs.detect-services.outputs.services) }}
     steps:
+      - name: Using which runner?
+        run: echo "Using runs-on=${{ needs.pick-runner.outputs.runs_on }}; Service=${{ matrix.service }}"
       - uses: actions/checkout@v4
 
       - uses: docker/setup-buildx-action@v3
@@ -147,17 +204,16 @@ jobs:
 
       - name: Resolve context & dockerfile
         id: meta
-        shell: bash
+        shell: bash   # <- cần Git Bash nếu chạy trên Windows self-hosted
         run: |
           set -euo pipefail
           SVC="${{ matrix.service }}"
 
-          # Candidates: có/không prefix PsychologySupport
           case "$SVC" in
             alias.api)        CANDS=( "Services/Alias/Alias.API/Dockerfile" "PsychologySupport/Services/Alias/Alias.API/Dockerfile" ) ;;
             auth.api)         CANDS=( "Services/Auth/Auth.API/Dockerfile" "PsychologySupport/Services/Auth/Auth.API/Dockerfile" ) ;;
             chatbox.api)      CANDS=( "Services/ChatBox/ChatBox.API/Dockerfile" "PsychologySupport/Services/ChatBox/ChatBox.API/Dockerfile" ) ;;
-            digitalgoods.api)      CANDS=( "Services/DigitalGoods/DigitalGoods.API/Dockerfile" "PsychologySupport/Services/DigitalGoods/DigitalGoods.API/Dockerfile" ) ;;
+            digitalgoods.api) CANDS=( "Services/DigitalGoods/DigitalGoods.API/Dockerfile" "PsychologySupport/Services/DigitalGoods/DigitalGoods.API/Dockerfile" ) ;;
             feed.api)         CANDS=( "Services/Feed/Feed.API/Dockerfile" "PsychologySupport/Services/Feed/Feed.API/Dockerfile" ) ;;
             media.api)        CANDS=( "Services/Media/Media.API/Dockerfile" "PsychologySupport/Services/Media/Media.API/Dockerfile" ) ;;
             payment.api)      CANDS=( "Services/Payment/Payment.API/Dockerfile" "PsychologySupport/Services/Payment/Payment.API/Dockerfile" ) ;;
@@ -180,7 +236,6 @@ jobs:
             echo "❌ Dockerfile not found for $SVC"; printf 'Tried:\n- %s\n' "${CANDS[@]}"; exit 1
           fi
 
-          # Nếu DF nằm trong PsychologySupport/... thì đặt context=PsychologySupport, ngược lại context=.
           if [[ "$DF" == PsychologySupport/* ]]; then
             CTX="PsychologySupport"
           else
@@ -189,12 +244,11 @@ jobs:
 
           echo "CTX=$CTX" >> $GITHUB_OUTPUT
           echo "DF=$DF" >> $GITHUB_OUTPUT
+          echo "Resolved CTX=$CTX, DF=$DF"
 
           OWNER_LC=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
           SVC_LC=$(echo "$SVC" | tr '[:upper:]' '[:lower:]')
           echo "IMG=ghcr.io/${OWNER_LC}/${SVC_LC}" >> $GITHUB_OUTPUT
-
-          # Registry cache ref riêng cho mỗi service
           echo "CACHE_REF=ghcr.io/${OWNER_LC}/cache-${SVC_LC}:buildcache" >> $GITHUB_OUTPUT
 
       - name: Build & Push ${{ matrix.service }}
@@ -209,7 +263,6 @@ jobs:
             ${{ steps.meta.outputs.IMG }}:${{ github.sha }}
             ${{ steps.meta.outputs.IMG }}:latest
             ${{ steps.meta.outputs.IMG }}:main
-          # Cache kết hợp: GHA + GHCR registry cache
           cache-from: |
             type=gha,scope=${{ matrix.service }}
             type=registry,ref=${{ steps.meta.outputs.CACHE_REF }}
