@@ -3,5 +3,6 @@
 public record AliasFollowedIntegrationEvent(
     Guid FollowerAliasId,
     Guid FollowedAliasId,
+    string FollowerAliasLabel,
     DateTimeOffset FollowedAt
 ) : IntegrationEvent;
