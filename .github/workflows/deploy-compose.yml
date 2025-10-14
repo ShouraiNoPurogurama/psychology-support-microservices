@@ -219,7 +219,7 @@ jobs:
             #     docker compose -f "${COMPOSE}" up -d "$svc"
             #     exit 1
             #   fi
-            done
+            # done
 
             echo "🧭 Ghi mốc commit mới"
             echo "${NEW_COMMIT}" > .deploy_commit
