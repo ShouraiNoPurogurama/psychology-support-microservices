@@ -298,7 +298,7 @@ services:
 
   realtimehub.api:
     image: ${DOCKER_REGISTRY}realtimehub.api:${IMAGE_TAG}
-    container_name: realtime-hub.api
+    container_name: realtimehub.api
     labels:
       com.emoease.health_path: "/health"
     environment:

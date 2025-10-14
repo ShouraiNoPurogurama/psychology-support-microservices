@@ -32,6 +32,8 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseWebSockets();
+
 // app.UseMiddleware<LoggingMiddleware>();
 app.MapReverseProxy();
 

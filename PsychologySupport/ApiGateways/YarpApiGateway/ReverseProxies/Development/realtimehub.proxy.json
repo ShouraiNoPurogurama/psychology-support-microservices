@@ -20,7 +20,6 @@
         "Match": {
           "Path": "/realtimehub-service/hubs/{**catch-all}"
         },
-        "AuthorizationPolicy": "AuthenticatedUser",
         "Transforms": [ 
           { "PathPattern": "/hubs/{**catch-all}" },
           { "TokenExchange": "true" }
