@@ -1,7 +1,7 @@
-﻿using BuildingBlocks.DDD;
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Post.Domain.Abstractions;
 
 namespace Post.Infrastructure.Data.Interceptors;
 

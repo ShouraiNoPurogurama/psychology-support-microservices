@@ -7,8 +7,8 @@ public sealed record ReactionCreatedEvent(
     ReactionTargetType TargetType,
     Guid TargetId,
     string ReactionCode,
-    Guid AuthorAliasId
-) : DomainEvent;
+    Guid ReactorAliasId
+) : IDomainEvent;
 
 public sealed record ReactionTypeChangedEvent(
     Guid ReactionId,
@@ -17,21 +17,21 @@ public sealed record ReactionTypeChangedEvent(
     string OldReactionCode,
     string NewReactionCode,
     Guid EditorAliasId
-) : DomainEvent;
+) : IDomainEvent;
 
 public sealed record ReactionRemovedEvent(
     Guid ReactionId,
     ReactionTargetType TargetType,
     Guid TargetId,
     string ReactionCode,
-    Guid AuthorAliasId) : DomainEvent(ReactionId);
+    Guid AuthorAliasId) : IDomainEvent;
 
 public sealed record ReactionRestoredEvent(
     Guid ReactionId,
     ReactionTargetType TargetType,
     Guid TargetId,
     string ReactionCode,
-    Guid AuthorAliasId) : DomainEvent(ReactionId);
+    Guid AuthorAliasId) : IDomainEvent;
 
 public sealed record ReactionAddedEvent(
     Guid ReactionId,
@@ -39,11 +39,11 @@ public sealed record ReactionAddedEvent(
     Guid RequestTargetId,
     string RequestReactionCode,
     Guid ActorResolverAliasId
-) : DomainEvent(ReactionId);
+) : IDomainEvent;
 
 public record ReactionUpdatedEvent(
     Guid ExistingReactionId,
     string RequestTargetType,
     Guid RequestTargetId,
     string RequestReactionCode,
-    Guid ActorResolverAliasId) : DomainEvent;
+    Guid ActorResolverAliasId) : IDomainEvent;

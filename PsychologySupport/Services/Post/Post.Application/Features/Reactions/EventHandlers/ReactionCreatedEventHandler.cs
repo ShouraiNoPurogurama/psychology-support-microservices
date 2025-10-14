@@ -58,13 +58,13 @@ public sealed class ReactionCreatedEventHandler : INotificationHandler<ReactionC
         }
 
         // Don't notify if user reacted to their own content
-        if (targetAuthorAliasId == notification.AuthorAliasId)
+        if (targetAuthorAliasId == notification.ReactorAliasId)
             return;
 
         // Get reactor display name
         var reactorAlias = await _queryContext.AliasVersionReplica
             .AsNoTracking()
-            .FirstOrDefaultAsync(a => a.AliasId == notification.AuthorAliasId, cancellationToken);
+            .FirstOrDefaultAsync(a => a.AliasId == notification.ReactorAliasId, cancellationToken);
 
         // Publish integration event for notification
         var integrationEvent = new ReactionAddedIntegrationEvent(
@@ -72,7 +72,7 @@ public sealed class ReactionCreatedEventHandler : INotificationHandler<ReactionC
             TargetType: targetType,
             TargetId: notification.TargetId,
             TargetAuthorAliasId: targetAuthorAliasId,
-            ReactorAliasId: notification.AuthorAliasId,
+            ReactorAliasId: notification.ReactorAliasId,
             ReactorLabel: reactorAlias?.Label ?? "Anonymous",
             ReactionCode: notification.ReactionCode,
             ReactedAt: DateTimeOffset.UtcNow

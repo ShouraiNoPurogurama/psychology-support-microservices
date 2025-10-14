@@ -76,7 +76,7 @@ public class CreateReactionCommandHandler : ICommandHandler<CreateReactionComman
             }
 
             var reactionType = CreateReactionType(request.ReactionCode);
-            var author = AuthorInfo.Create(currentAliasId, aliasVersionId);
+            var reactor = AuthorInfo.Create(currentAliasId, aliasVersionId);
             var reaction = Reaction.Create(
                 request.TargetType,
                 request.TargetId,
@@ -84,8 +84,8 @@ public class CreateReactionCommandHandler : ICommandHandler<CreateReactionComman
                 reactionType.Emoji,
                 reactionType.Weight,
                 true,
-                author.AliasId,
-                author.AliasVersionId
+                reactor.AliasId,
+                reactor.AliasVersionId
             );
             _context.Reactions.Add(reaction);
 
@@ -97,15 +97,6 @@ public class CreateReactionCommandHandler : ICommandHandler<CreateReactionComman
                 var post = await _context.Posts.FirstAsync(p => p.Id == request.TargetId, cancellationToken);
                 post.AddReaction(currentAliasId);
             }
-
-            var reactionAddedEvent = new ReactionAddedEvent(
-                reaction.Id,
-                request.TargetType.ToString().ToLower(),
-                request.TargetId,
-                request.ReactionCode.ToString().ToLower(),
-                currentAliasId
-            );
-            await _outboxWriter.WriteAsync(reactionAddedEvent, cancellationToken);
 
             try
             {
