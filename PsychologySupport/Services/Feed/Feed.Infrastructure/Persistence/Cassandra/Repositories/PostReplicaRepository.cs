@@ -1,5 +1,6 @@
 using Cassandra;
 using Feed.Application.Abstractions.PostRepository;
+using Feed.Application.Dtos;
 using Feed.Domain.PostReplica;
 using Feed.Infrastructure.Persistence.Cassandra.Mappings;
 using Feed.Infrastructure.Persistence.Cassandra.Utils;

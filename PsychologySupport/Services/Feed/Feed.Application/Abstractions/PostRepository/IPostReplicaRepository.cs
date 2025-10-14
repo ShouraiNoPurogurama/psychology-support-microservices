@@ -1,3 +1,5 @@
+using Feed.Application.Dtos;
+
 namespace Feed.Application.Abstractions.PostRepository;
 
 /// <summary>

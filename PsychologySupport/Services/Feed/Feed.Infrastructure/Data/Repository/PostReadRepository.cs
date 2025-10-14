@@ -1,4 +1,5 @@
-﻿using Feed.Application.Abstractions.PostRepository;
+using Feed.Application.Abstractions.PostRepository;
+using Feed.Application.Dtos;
 
 namespace Feed.Infrastructure.Data.Repository;
 

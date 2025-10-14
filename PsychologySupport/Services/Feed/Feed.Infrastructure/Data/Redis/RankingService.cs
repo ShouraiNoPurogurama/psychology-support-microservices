@@ -1,5 +1,6 @@
 using StackExchange.Redis;
 using Feed.Application.Abstractions.RankingService;
+using Feed.Application.Dtos;
 
 namespace Feed.Infrastructure.Data.Redis;
 

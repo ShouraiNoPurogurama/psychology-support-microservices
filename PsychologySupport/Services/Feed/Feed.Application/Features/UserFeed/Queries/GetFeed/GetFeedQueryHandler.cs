@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Observability.Telemetry;
 using Feed.Application.Abstractions.CursorService;
@@ -17,6 +17,7 @@ using Mapster;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using Feed.Application.Dtos;
 
 namespace Feed.Application.Features.UserFeed.Queries.GetFeed;
 

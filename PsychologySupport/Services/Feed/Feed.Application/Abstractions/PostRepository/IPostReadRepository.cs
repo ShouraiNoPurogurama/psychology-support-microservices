@@ -1,6 +1,6 @@
-﻿namespace Feed.Application.Abstractions.PostRepository;
+using Feed.Application.Dtos;
 
-public record PostInfo(Guid PostId, Guid AuthorAliasId, DateTimeOffset CreatedAt);
+namespace Feed.Application.Abstractions.PostRepository;
 
 /// <summary>
 /// Repository for reading post data from PostgreSQL database.
