@@ -103,7 +103,7 @@ jobs:
           set -euo pipefail
 
           ALL_SERVICES=(
-            "alias.api" "auth.api" "chatbox.api" "digitalgoods.api" "feed.api" "media.api" "realtime-hub.api"
+            "alias.api" "auth.api" "chatbox.api" "digitalgoods.api" "feed.api" "media.api" "realtimehub.api"
             "payment.api" "post.api" "profile.api" "promotion.grpc"
             "subscription.api" "test.api" "translation.api" "yarpapigateway"
           )
@@ -134,7 +134,7 @@ jobs:
           if [[ $BUILD_ALL -eq 0 ]]; then
             for f in "${CHANGED_FILES[@]}"; do
               case "$f" in
-                Directory.Packages.props|nuget.config|packages.lock.json|.dockerignore|docker-compose-apis.yml|\
+                Directory.Packages.props|nuget.config|packages.lock.json|.dockerignore|\
                 BuildingBlocks/*|BuildingBlocks.Messaging/*|\
                 PsychologySupport/BuildingBlocks/*|PsychologySupport/BuildingBlocks.Messaging/*)
                   BUILD_ALL=1; break ;;
@@ -156,7 +156,7 @@ jobs:
                 Services/DigitalGoods/DigitalGoods.API/*|PsychologySupport/Services/DigitalGoods/DigitalGoods.API/*) add_svc "digitalgoods.api" ;;
                 Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*)                         add_svc "feed.api" ;;
                 Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*)                     add_svc "media.api" ;;
-                Services/RealtimeHub/RealtimeHub.API/*|PsychologySupport/Services/RealtimeHub/RealtimeHub.API/*)                     add_svc "realtime-hub.api" ;;
+                Services/RealtimeHub/RealtimeHub.API/*|PsychologySupport/Services/RealtimeHub/RealtimeHub.API/*)                     add_svc "realtimehub.api" ;;
                 Services/Payment/Payment.API/*|PsychologySupport/Services/Payment/Payment.API/*)             add_svc "payment.api" ;;
                 Services/Post/Post.API/*|PsychologySupport/Services/Post/Post.API/*)                         add_svc "post.api" ;;
                 Services/Profile/Profile.API/*|PsychologySupport/Services/Profile/Profile.API/*)             add_svc "profile.api" ;;
@@ -217,7 +217,7 @@ jobs:
             digitalgoods.api) CANDS=( "Services/DigitalGoods/DigitalGoods.API/Dockerfile" "PsychologySupport/Services/DigitalGoods/DigitalGoods.API/Dockerfile" ) ;;
             feed.api)         CANDS=( "Services/Feed/Feed.API/Dockerfile" "PsychologySupport/Services/Feed/Feed.API/Dockerfile" ) ;;
             media.api)        CANDS=( "Services/Media/Media.API/Dockerfile" "PsychologySupport/Services/Media/Media.API/Dockerfile" ) ;;
-            realtime-hub.api) CANDS=( "Services/RealtimeHub/RealtimeHub.API/Dockerfile" "PsychologySupport/Services/RealtimeHub/RealtimeHub.API/Dockerfile" ) ;;
+            realtimehub.api) CANDS=( "Services/RealtimeHub/RealtimeHub.API/Dockerfile" "PsychologySupport/Services/RealtimeHub/RealtimeHub.API/Dockerfile" ) ;;
             payment.api)      CANDS=( "Services/Payment/Payment.API/Dockerfile" "PsychologySupport/Services/Payment/Payment.API/Dockerfile" ) ;;
             post.api)         CANDS=( "Services/Post/Post.API/Dockerfile" "PsychologySupport/Services/Post/Post.API/Dockerfile" ) ;;
             profile.api)      CANDS=( "Services/Profile/Profile.API/Dockerfile" "PsychologySupport/Services/Profile/Profile.API/Dockerfile" ) ;;
