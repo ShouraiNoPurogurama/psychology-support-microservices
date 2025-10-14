@@ -23,13 +23,7 @@ public static class DependencyInjection
 
         services.RegisterMapsterConfigurations();
         services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly(),
-            (context, configurator) =>
-            {
-                configurator.ReceiveEndpoint("post-service-events-queue", e =>
-                {
-                    e.ConfigureConsumers(context);
-                });
-            }, "post");
+            null, "post");
         services.AddFeatureManagement();
 
         services.AddServiceDependencies(configuration);

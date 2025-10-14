@@ -20,7 +20,7 @@ namespace Billing.Application
                 config.AddOpenBehavior(typeof(LoggingBehavior<,>));
             });
 
-            services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly());
+            services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly(), null, "billing");
             services.AddFeatureManagement();
 
             AddGrpcServiceDependencies(services, configuration);
