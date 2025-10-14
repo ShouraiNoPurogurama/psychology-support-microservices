@@ -11,7 +11,6 @@ builder.Host.UseCustomSerilog(builder.Configuration, "Post");
 
 // Add services to the container.
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services
     .AddApplicationServices(builder.Configuration)
     .AddInfrastructureServices(builder.Configuration)
@@ -20,7 +19,5 @@ builder.Services
 var app = builder.Build();
 
 app.UseApiServices();
-
-
 
 app.Run();
