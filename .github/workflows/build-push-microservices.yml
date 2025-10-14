@@ -134,7 +134,7 @@ jobs:
           if [[ $BUILD_ALL -eq 0 ]]; then
             for f in "${CHANGED_FILES[@]}"; do
               case "$f" in
-                Directory.Packages.props|nuget.config|packages.lock.json|.dockerignore|docker-compose-apis.yml|\
+                Directory.Packages.props|nuget.config|packages.lock.json|.dockerignore|\
                 BuildingBlocks/*|BuildingBlocks.Messaging/*|\
                 PsychologySupport/BuildingBlocks/*|PsychologySupport/BuildingBlocks.Messaging/*)
                   BUILD_ALL=1; break ;;
