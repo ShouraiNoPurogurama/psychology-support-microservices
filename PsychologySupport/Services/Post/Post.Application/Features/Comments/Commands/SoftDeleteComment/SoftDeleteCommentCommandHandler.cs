@@ -64,6 +64,11 @@ internal sealed class SoftDeleteCommentCommandHandler : ICommandHandler<SoftDele
         // Soft delete via domain methods (preferred over hard delete)
         comment.SoftDelete(result.Post, parentComment, _currentActorAccessor.GetRequiredAliasId());
 
+        // Decrement comment count and emit domain event for alias counters
+        var post = await _context.Posts.FirstAsync(p => p.Id == comment.PostId, cancellationToken);
+        post.DecrementCommentCount();
+        post.RemoveComment(comment.Author.AliasId);
+
         // Publish integration event for downstream services
         await _outboxWriter.WriteAsync(
             new CommentDeletedIntegrationEvent(

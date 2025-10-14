@@ -4,7 +4,9 @@ public record PublicProfileDto(
     Guid AliasId,
     string Label,
     string? AvatarUrl,
-    int Followers,
-    int Followings,
+    long Followers,
+    long Followings,
+    long ReactionGivenCount,
+    long ReactionReceivedCount,
     int Posts,
     DateTimeOffset CreatedAt);

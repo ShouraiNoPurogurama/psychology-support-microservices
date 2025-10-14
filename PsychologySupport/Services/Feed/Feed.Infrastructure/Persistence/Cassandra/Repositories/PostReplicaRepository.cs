@@ -1,5 +1,6 @@
 using Cassandra;
 using Feed.Application.Abstractions.PostRepository;
+using Feed.Application.Dtos;
 using Feed.Domain.PostReplica;
 using Feed.Infrastructure.Persistence.Cassandra.Mappings;
 using Feed.Infrastructure.Persistence.Cassandra.Utils;
@@ -206,42 +207,52 @@ public sealed class PostReplicaRepository : IPostReplicaRepository
         }
     }
 
-    public async Task<IReadOnlyList<Guid>> GetMostRecentPublicPostsAsync(
+    public async Task<IReadOnlyList<PostInfo>> GetMostRecentPublicPostsAsync(
         int days = 7,
         int limit = 500,
+        int startDayOffset = 0,
         CancellationToken ct = default)
     {
         try
         {
-            var allPostIds = new List<Guid>();
+            // ✨ Sửa ở đây: Khởi tạo list mới
+            var allPosts = new List<PostInfo>();
             var currentDate = DateOnly.FromDateTime(DateTimeOffset.UtcNow.Date);
             var ps = await _statements.GetStatementAsync(SELECT_PUBLIC_FINALIZED_BY_DAY, SELECT_PUBLIC_FINALIZED_BY_DAY_CQL);
 
-            // Query each day, starting from today going backwards
-            for (int dayOffset = 0; dayOffset < days && allPostIds.Count < limit; dayOffset++)
+            var queryTasks = new List<Task<RowSet>>();
+        
+            for (int dayOffset = startDayOffset; dayOffset < startDayOffset + days; dayOffset++)
             {
                 var queryDate = currentDate.AddDays(-dayOffset);
                 var cassandraDate = CassandraTypeMapper.ToLocalDate(queryDate);
-                var remainingLimit = limit - allPostIds.Count;
-
-                var stmt = ps.Bind(cassandraDate, remainingLimit)
+                var stmt = ps.Bind(cassandraDate, limit)
                     .SetConsistencyLevel(ConsistencyLevel.LocalOne)
                     .SetIdempotence(true);
+                queryTasks.Add(_session.ExecuteAsync(stmt));
+            }
+        
+            var rowSets = await Task.WhenAll(queryTasks);
 
-                var rs = await _session.ExecuteAsync(stmt);
-
+            foreach (var rs in rowSets)
+            {
+                if (allPosts.Count >= limit) break;
+            
                 foreach (var row in rs)
                 {
-                    var postId = row.GetValue<Guid>("post_id");
-                    allPostIds.Add(postId);
-
-                    if (allPostIds.Count >= limit)
-                        break;
+                    if (allPosts.Count >= limit) break;
+                
+                    // ✨ Sửa ở đây: Tạo object PostInfo thay vì chỉ lấy Guid
+                    var postInfo = new PostInfo(
+                        row.GetValue<Guid>("post_id"),
+                        row.GetValue<Guid>("author_alias_id"),
+                        row.GetValue<TimeUuid>("created_at").GetDate()
+                    );
+                    allPosts.Add(postInfo);
                 }
             }
-
-            _logger.LogDebug("Retrieved {Count} recent public posts from {Days} days", allPostIds.Count, days);
-            return allPostIds;
+        
+            return allPosts;
         }
         catch (Exception ex)
         {

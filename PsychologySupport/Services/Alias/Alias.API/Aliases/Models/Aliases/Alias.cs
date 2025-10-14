@@ -245,6 +245,30 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
         Metadata = Metadata.DecrementFollowingCount().UpdateLastActive(); // Hủy theo dõi cũng là một hành động 'active'
     }
     
+    public void IncrementReactionsGivenCount()
+    {
+        ValidateCanBeModified();
+        Metadata = Metadata.IncrementReactionGivenCount().UpdateLastActive(); // Tương tác là một hành động 'active'
+    }
+    
+    public void IncrementReactionsReceivedCount()
+    {
+        ValidateCanBeModified();
+        Metadata = Metadata.IncrementReactionReceivedCount();
+    }
+    
+    public void IncrementCommentsCount()
+    {
+        ValidateCanBeModified();
+        Metadata = Metadata.IncrementCommentsCount().UpdateLastActive(); // Bình luận là một hành động 'active'
+    }
+    
+    public void IncrementSharesCount()
+    {
+        ValidateCanBeModified();
+        Metadata = Metadata.IncrementSharesCount().UpdateLastActive(); // Chia sẻ là một hành động 'active'
+    }
+    
     public void Suspend(string reason, Guid suspendedBy)
     {
         if (Status == AliasStatus.Suspended) return;

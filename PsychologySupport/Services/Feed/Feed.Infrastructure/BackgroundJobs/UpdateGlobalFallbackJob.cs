@@ -11,7 +11,7 @@ namespace Feed.Infrastructure.BackgroundJobs;
 /// Uses Quartz.NET or Hangfire for scheduling.
 /// </summary>
 [DisallowConcurrentExecution] 
-public sealed class UpdateGlobalFallbackJob : IJob // <-- Implement IJob
+public sealed class UpdateGlobalFallbackJob : IJob // 
 {
     private readonly IRankingService _rankingService;
     private readonly IPostReadRepository _postReadRepository;
@@ -30,7 +30,7 @@ public sealed class UpdateGlobalFallbackJob : IJob // <-- Implement IJob
     /// <summary>
     /// Execute the job to update the global fallback list.
     /// Logic:
-    /// 1. Scan posts from the last 72 hours
+    /// 1. Scan posts from the past 30 days in batches of 7 days
     /// 2. Calculate engagement scores (reactions + comments * 2 + ctr * 100)
     /// 3. Take top 500 posts
     /// 4. Update trending:global_fallback Redis Sorted Set
@@ -38,151 +38,118 @@ public sealed class UpdateGlobalFallbackJob : IJob // <-- Implement IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
-        _logger.LogInformation("Starting UpdateGlobalFallbackJob");
+        _logger.LogInformation("Starting UpdateGlobalFallbackJob.");
 
         try
         {
-            var topPosts = await GetTopPostsFromLast72HoursAsync();
+            var topPosts = await GetTopPostsByScanningBackwardsAsync(context.CancellationToken);
+            _logger.LogInformation("Fetched {Count} top posts to update global fallback.", topPosts.Count);
+
             
             if (topPosts.Count > 0)
             {
                 await _rankingService.UpdateGlobalFallbackAsync(topPosts);
-                _logger.LogInformation("Successfully updated global fallback with {Count} posts", topPosts.Count);
+                _logger.LogInformation("Successfully updated global fallback with {Count} posts.", topPosts.Count);
             }
             else
             {
-                _logger.LogWarning("No posts found for global fallback update. Consider checking data sources.");
+                _logger.LogWarning("No posts found for global fallback update. The fallback list might be empty.");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating global fallback");
-            throw;
+            _logger.LogError(ex, "An unhandled exception occurred while updating global fallback.");
+            throw; // Rethrow to let Quartz handle the job failure
         }
     }
     
     /// <summary>
-    /// Fetch and score posts from the last 72 hours.
+    /// Fetch and score 500 most recent posts 
     /// This implementation provides a more complete approach.
     /// </summary>
-    private async Task<IReadOnlyList<(Guid PostId, double Score)>> GetTopPostsFromLast72HoursAsync()
+     private async Task<IReadOnlyList<(Guid PostId, double Score)>> GetTopPostsByScanningBackwardsAsync(CancellationToken cancellationToken)
     {
-        _logger.LogDebug("Fetching posts from last 72 hours for global fallback calculation");
+        _logger.LogInformation("Scanning backwards in time to find top posts for global fallback.");
 
-        try
+        var scoredPosts = new List<(Guid PostId, double Score)>();
+        var processedPostIds = new HashSet<Guid>();
+
+        var currentDayOffset = 0;
+        var targetCount = UpdateGlobalFallbackJobConfiguration.TopPostsLimit;
+
+        // Vòng lặp sẽ chạy cho đến khi đủ số lượng bài viết hoặc quét quá giới hạn thời gian
+        while (scoredPosts.Count < targetCount && currentDayOffset < UpdateGlobalFallbackJobConfiguration.MaxLookbackDays)
         {
-            // Get recent public posts from the database
-            // In production, this would query posts from the last 72 hours
-            // For now, we get the most recent posts available
-            var recentPostIds = await _postReadRepository.GetMostRecentPublicPostsAsync(
-                UpdateGlobalFallbackJobConfiguration.TopPostsLimit * 2); // Get 2x to ensure we have enough after filtering);
-
-            if (recentPostIds.Count == 0)
+            if (cancellationToken.IsCancellationRequested)
             {
-                _logger.LogWarning("No recent posts found in database for global fallback");
-                return Array.Empty<(Guid, double)>();
+                _logger.LogWarning("Job cancellation requested. Stopping scan.");
+                break;
             }
 
-            _logger.LogDebug("Found {Count} recent posts, calculating scores", recentPostIds.Count);
+            _logger.LogDebug(
+                "Fetching post batch with window size of {WindowDays} days, starting {Offset} days ago.",
+                UpdateGlobalFallbackJobConfiguration.ScanWindowDays,
+                currentDayOffset);
 
-            // Fetch rank data for each post and calculate score
-            var scoredPosts = new List<(Guid PostId, double Score, DateTimeOffset UpdatedAt)>();
-            
-            foreach (var postId in recentPostIds)
+            var postInfos = await _postReadRepository.GetMostRecentPublicPostsAsync(
+                days: UpdateGlobalFallbackJobConfiguration.ScanWindowDays,
+                limit: UpdateGlobalFallbackJobConfiguration.BatchSize,
+                startDayOffset: currentDayOffset,
+                cancellationToken: cancellationToken
+            );
+
+            if (postInfos.Count == 0 && currentDayOffset > 0)
             {
-                var rankData = await _rankingService.GetPostRankAsync(postId);
+                _logger.LogInformation("No more posts found in the database. Stopping scan.");
+                break; 
+            }
+
+            // Tính điểm cho các bài viết vừa tìm được
+            foreach (var post in postInfos)
+            {
+                if (processedPostIds.Contains(post.PostId)) continue;
                 
+                var rankData = await _rankingService.GetPostRankAsync(post.PostId);
                 if (rankData is not null)
                 {
-                    // Calculate engagement score:
-                    // - Each reaction: 1 point
-                    // - Each comment: 2 points (more valuable than reactions)
-                    // - CTR (click-through rate): 100 points per 1.0 CTR
                     var score = rankData.Reactions + (rankData.Comments * 2.0) + (rankData.Ctr * 100.0);
-                    
-                    // Apply time decay: newer posts get a slight boost
                     var ageInHours = (DateTimeOffset.UtcNow - rankData.UpdatedAt).TotalHours;
-                    var timeDecayFactor = Math.Max(0.5, 1.0 - (ageInHours / (72.0 * 2))); // Decay over 144 hours (6 days)
+                    var timeDecayFactor = Math.Max(0.5, 1.0 - (ageInHours / (72.0 * 2)));
                     var adjustedScore = score * timeDecayFactor;
-                    
-                    scoredPosts.Add((postId, adjustedScore, rankData.UpdatedAt));
+
+                    scoredPosts.Add((post.PostId, adjustedScore));
                 }
+                processedPostIds.Add(post.PostId);
             }
 
-            if (scoredPosts.Count == 0)
-            {
-                _logger.LogWarning("No scored posts available - rank data may be missing");
-                return Array.Empty<(Guid, double)>();
-            }
-
-            // Sort by score descending and take top N
-            var topPosts = scoredPosts
-                .OrderByDescending(p => p.Score)
-                .Take(UpdateGlobalFallbackJobConfiguration.TopPostsLimit)
-                .Select(p => (p.PostId, p.Score))
-                .ToList();
-
-            _logger.LogInformation(
-                "Calculated scores for {TotalCount} posts, selected top {TopCount} for global fallback. " +
-                "Score range: {MinScore:F2} - {MaxScore:F2}",
-                scoredPosts.Count,
-                topPosts.Count,
-                topPosts.LastOrDefault().Score,
-                topPosts.FirstOrDefault().Score);
-
-            return topPosts;
+            _logger.LogDebug("Current collected scored posts: {Count}", scoredPosts.Count);
+            
+            // Tăng offset để quét khoảng thời gian tiếp theo trong quá khứ
+            currentDayOffset += UpdateGlobalFallbackJobConfiguration.ScanWindowDays;
         }
-        catch (Exception ex)
+
+        if (scoredPosts.Count == 0)
         {
-            _logger.LogError(ex, "Error calculating top posts from last 72 hours");
-            throw;
+             _logger.LogWarning("No posts with rank data could be found.");
+             return Array.Empty<(Guid, double)>();
         }
-    }
-    
-}
+            
+        if (scoredPosts.Count < targetCount)
+        {
+            _logger.LogWarning("Could not find {TargetCount} posts. Found only {FoundCount} posts after scanning back {MaxDays} days.", 
+                targetCount, scoredPosts.Count, UpdateGlobalFallbackJobConfiguration.MaxLookbackDays);
+        }
 
-/// <summary>
-/// Configuration for the UpdateGlobalFallbackJob.
-/// Register this with Quartz.NET or Hangfire to run hourly.
-/// </summary>
-/// <example>
-/// Quartz.NET configuration:
-/// <code>
-/// services.AddQuartz(q =>
-/// {
-///     var jobKey = new JobKey(UpdateGlobalFallbackJobConfiguration.JobName);
-///     q.AddJob&lt;UpdateGlobalFallbackJob&gt;(opts => opts.WithIdentity(jobKey));
-///     q.AddTrigger(opts => opts
-///         .ForJob(jobKey)
-///         .WithIdentity($"{UpdateGlobalFallbackJobConfiguration.JobName}-trigger")
-///         .WithCronSchedule(UpdateGlobalFallbackJobConfiguration.CronExpression));
-/// });
-/// </code>
-/// 
-/// Hangfire configuration:
-/// <code>
-/// RecurringJob.AddOrUpdate&lt;UpdateGlobalFallbackJob&gt;(
-///     UpdateGlobalFallbackJobConfiguration.JobName,
-///     job => job.ExecuteAsync(CancellationToken.None),
-///     Cron.Hourly);
-/// </code>
-/// </example>
-public static class UpdateGlobalFallbackJobConfiguration
-{
-    public const string JobName = "UpdateGlobalFallbackJob";
-    public const string CronExpression = "0 0/5 * * * ?";
-    public static readonly TimeSpan LookbackPeriod = TimeSpan.FromHours(72);
-    public const int TopPostsLimit = 500;
-    
-    /// <summary>
-    /// Validates the configuration settings.
-    /// </summary>
-    public static void Validate()
-    {
-        if (TopPostsLimit <= 0)
-            throw new InvalidOperationException($"{nameof(TopPostsLimit)} must be greater than 0");
+        var topPosts = scoredPosts
+            .OrderByDescending(p => p.Score)
+            .Take(targetCount)
+            .ToList();
         
-        if (LookbackPeriod.TotalHours <= 0)
-            throw new InvalidOperationException($"{nameof(LookbackPeriod)} must be greater than 0");
+        _logger.LogInformation(
+            "Calculated scores for {TotalCount} posts, selected top {TopCount}. Score range: {MinScore:F2} - {MaxScore:F2}",
+            scoredPosts.Count, topPosts.Count, topPosts.LastOrDefault().Score, topPosts.FirstOrDefault().Score);
+
+        return topPosts;
     }
+    
 }
