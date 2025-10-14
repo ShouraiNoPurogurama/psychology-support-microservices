@@ -15,9 +15,22 @@
         },
         "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
       },
-      "chatbox-route": {
+      "chatbox-send-message-route": {
         "ClusterId": "chatbox-cluster",
         "RateLimiterPolicy": "chat_limit_fixed_window",
+        "Match": {
+          "Path": "/chatbox-service/api/ATChat/SendMessage/{**catch-all}"
+        },
+        "Methods": [ "POST" ],
+        "AuthorizationPolicy": "AuthenticatedUser",
+        "Transforms": [
+          { "PathPattern": "/api/ATChat/SendMessage/{**catch-all}" },
+          { "TokenExchange": "enabled" }
+        ]
+      },
+      "chatbox-route": {
+        "ClusterId": "chatbox-cluster",
+        "RateLimiterPolicy": "fixed",
         "Match": {
           "Path": "/chatbox-service/{**catch-all}"
         },

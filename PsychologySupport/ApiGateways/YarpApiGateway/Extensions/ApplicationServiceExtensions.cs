@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.RateLimiting;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Pii.API.Protos;
 using StackExchange.Redis;
 using Yarp.ReverseProxy.Transforms.Builder;
@@ -53,6 +56,13 @@ public static class ApplicationServiceExtensions
     {
         services.AddRateLimiter(options =>
         {
+            static string GetPartitionId(HttpContext context)
+            {
+                return context.User.FindFirstValue(JwtRegisteredClaimNames.Sub) 
+                       ?? context.Connection.RemoteIpAddress?.ToString() 
+                       ?? "anonymous";
+            }
+            
             options.AddFixedWindowLimiter("fixed", opt =>
             {
                 opt.Window = TimeSpan.FromSeconds(10);
@@ -62,12 +72,12 @@ public static class ApplicationServiceExtensions
             {
                 opt.Window = TimeSpan.FromSeconds(10);
                 opt.PermitLimit = 5;
-            }); //A maximum of 5 requests per each 10 seconds window are allowed
+            }); 
             options.AddFixedWindowLimiter("chat_limit_fixed_window", opt =>
             {
-                opt.Window = TimeSpan.FromSeconds(10);
-                opt.PermitLimit = 8;
-            }); //A maximum of 5 requests per each 10 seconds window are allowed
+                opt.Window = TimeSpan.FromSeconds(2);
+                opt.PermitLimit = 2;
+            }); 
         });
     }
 
