@@ -22,7 +22,7 @@ app.UseExceptionHandler(options => { });
 app.MapCarter();
 
 app.UseSwagger();
-
+ 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwaggerUI();
