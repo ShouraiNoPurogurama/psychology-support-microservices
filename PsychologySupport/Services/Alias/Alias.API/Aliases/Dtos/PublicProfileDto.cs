@@ -8,5 +8,5 @@ public record PublicProfileDto(
     long Followings,
     long ReactionGivenCount,
     long ReactionReceivedCount,
-    int Posts,
+    long PostsCount,
     DateTimeOffset CreatedAt);

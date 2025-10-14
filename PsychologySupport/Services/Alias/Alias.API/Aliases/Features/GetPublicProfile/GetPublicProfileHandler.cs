@@ -49,7 +49,7 @@ public class GetPublicProfileHandler : IQueryHandler<GetPublicProfileQuery, GetP
             Followings: metaData.FollowingCount,
             ReactionGivenCount: metaData.ReactionGivenCount,
             ReactionReceivedCount: metaData.ReactionReceivedCount,
-            Posts: 0,
+            PostsCount: metaData.PostsCount,
             AvatarUrl: alias.AvatarMediaId.ToString(),
             CreatedAt: alias.CreatedAt
         );

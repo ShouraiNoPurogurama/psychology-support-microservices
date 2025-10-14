@@ -17,7 +17,7 @@
       },
       "chatbox-route": {
         "ClusterId": "chatbox-cluster",
-        "RateLimiterPolicy": "fixed",
+        "RateLimiterPolicy": "chat_limit_fixed_window",
         "Match": {
           "Path": "/chatbox-service/{**catch-all}"
         },

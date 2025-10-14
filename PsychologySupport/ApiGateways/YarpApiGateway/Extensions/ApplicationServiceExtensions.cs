@@ -63,6 +63,11 @@ public static class ApplicationServiceExtensions
                 opt.Window = TimeSpan.FromSeconds(10);
                 opt.PermitLimit = 5;
             }); //A maximum of 5 requests per each 10 seconds window are allowed
+            options.AddFixedWindowLimiter("chat_limit_fixed_window", opt =>
+            {
+                opt.Window = TimeSpan.FromSeconds(10);
+                opt.PermitLimit = 8;
+            }); //A maximum of 5 requests per each 10 seconds window are allowed
         });
     }
 
