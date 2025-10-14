@@ -150,6 +150,11 @@ jobs:
             ${{ secrets.APPSETTINGS_PRODUCTION_FEED }}
             EOF
 
+            # Realtime Hub
+            cat <<EOF > Services/RealtimeHub/RealtimeHub.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_REALTIME_HUB }}
+            EOF
+
             # Media
             cat <<EOF > Services/Media/Media.API/appsettings.Production.json
             ${{ secrets.APPSETTINGS_PRODUCTION_MEDIA }}
