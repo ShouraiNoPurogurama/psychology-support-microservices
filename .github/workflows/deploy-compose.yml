@@ -113,7 +113,7 @@ jobs:
                     Services/DigitalGoods/DigitalGoods.API/*|PsychologySupport/Services/DigitalGoods/DigitalGoods.API/*)             add_svc "digitalgoods.api" ;;
                     Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*)                         add_svc "feed.api" ;;
                     Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*)                     add_svc "media.api" ;;
-                    Services/RealtimeHub/RealtimeHub.API/*|PsychologySupport/Services/RealtimeHub/RealtimeHub.API/*)   add_svc "realtime-hub.api" ;;
+                    Services/RealtimeHub/RealtimeHub.API/*|PsychologySupport/Services/RealtimeHub/RealtimeHub.API/*)   add_svc "realtimehub.api" ;;
                     Services/Payment/Payment.API/*|PsychologySupport/Services/Payment/Payment.API/*)             add_svc "payment.api" ;;
                     Services/Post/Post.API/*|PsychologySupport/Services/Post/Post.API/*)                         add_svc "post.api" ;;
                     Services/Profile/Profile.API/*|PsychologySupport/Services/Profile/Profile.API/*)             add_svc "profile.api" ;;
