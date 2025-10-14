@@ -23,7 +23,7 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-HEALTHCHECK --interval=10s --timeout=3s --retries=6 \
-  CMD curl -fsS http://localhost:8080/health || exit 1
+#HEALTHCHECK --interval=10s --timeout=3s --retries=6 \
+#  CMD curl -fsS http://localhost:8080/health || exit 1
 
 ENTRYPOINT ["dotnet", "Feed.API.dll"]
