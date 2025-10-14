@@ -296,7 +296,7 @@ services:
       - ./Services/DigitalGoods/DigitalGoods.API/appsettings.json:/app/appsettings.json:ro
       - ./Services/DigitalGoods/DigitalGoods.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
-  realtime-hub.api:
+  realtimehub.api:
     image: ${DOCKER_REGISTRY}realtimehub.api:${IMAGE_TAG}
     container_name: realtime-hub.api
     labels:
