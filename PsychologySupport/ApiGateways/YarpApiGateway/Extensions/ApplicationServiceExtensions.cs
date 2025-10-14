@@ -56,28 +56,32 @@ public static class ApplicationServiceExtensions
     {
         services.AddRateLimiter(options =>
         {
-            static string GetPartitionId(HttpContext context)
-            {
-                return context.User.FindFirstValue(JwtRegisteredClaimNames.Sub) 
-                       ?? context.Connection.RemoteIpAddress?.ToString() 
-                       ?? "anonymous";
-            }
-            
-            options.AddFixedWindowLimiter("fixed", opt =>
-            {
-                opt.Window = TimeSpan.FromSeconds(10);
-                opt.PermitLimit = 25;
-            }); //A maximum of 15 requests per each 10 seconds window are allowed
-            options.AddFixedWindowLimiter("post_sessions_fixed_window", opt =>
-            {
-                opt.Window = TimeSpan.FromSeconds(10);
-                opt.PermitLimit = 5;
-            }); 
-            options.AddFixedWindowLimiter("chat_limit_fixed_window", opt =>
-            {
-                opt.Window = TimeSpan.FromSeconds(2);
-                opt.PermitLimit = 2;
-            }); 
+            static string Partition(HttpContext ctx) =>
+                ctx.User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                ?? ctx.Connection.RemoteIpAddress?.ToString()
+                ?? "anonymous";
+
+            options.AddPolicy("fixed", ctx =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: Partition(ctx),
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 25,
+                        Window = TimeSpan.FromSeconds(10),
+                        QueueLimit = 0
+                    }));
+
+            options.AddPolicy("post_sessions_fixed_window", ctx =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    Partition(ctx),
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromSeconds(10) }));
+
+            options.AddPolicy("chat_limit_fixed_window", ctx =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    Partition(ctx),
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = 2, Window = TimeSpan.FromSeconds(2) }));
+
+            options.RejectionStatusCode = 429;
         });
     }
 
