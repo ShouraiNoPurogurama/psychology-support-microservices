@@ -245,6 +245,18 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
         Metadata = Metadata.DecrementFollowingCount().UpdateLastActive(); // Hủy theo dõi cũng là một hành động 'active'
     }
     
+    public void IncrementPostsCount()
+    {
+        ValidateCanBeModified();
+        Metadata = Metadata.IncrementPostsCount().UpdateLastActive(); // Đăng bài là một hành động 'active'
+    }
+    
+    public void DecrementPostsCount()
+    {
+        ValidateCanBeModified();
+        Metadata = Metadata.DecrementPostsCount().UpdateLastActive(); // Xóa bài cũng là một hành động 'active'
+    }
+    
     public void IncrementReactionsGivenCount()
     {
         ValidateCanBeModified();
@@ -263,10 +275,34 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
         Metadata = Metadata.IncrementCommentsCount().UpdateLastActive(); // Bình luận là một hành động 'active'
     }
     
+    public void DecrementCommentsCount()
+    {
+        ValidateCanBeModified();
+        Metadata = Metadata.DecrementCommentsCount().UpdateLastActive(); // Xóa bình luận cũng là một hành động 'active'
+    }
+    
+    public void DecrementReactionsGivenCount()
+    {
+        ValidateCanBeModified();
+        Metadata = Metadata.DecrementReactionGivenCount().UpdateLastActive(); // Xóa reaction cũng là một hành động 'active'
+    }
+    
+    public void DecrementReactionsReceivedCount()
+    {
+        ValidateCanBeModified();
+        Metadata = Metadata.DecrementReactionReceivedCount();
+    }
+    
     public void IncrementSharesCount()
     {
         ValidateCanBeModified();
         Metadata = Metadata.IncrementSharesCount().UpdateLastActive(); // Chia sẻ là một hành động 'active'
+    }
+    
+    public void DecrementSharesCount()
+    {
+        ValidateCanBeModified();
+        Metadata = Metadata.DecrementSharesCount().UpdateLastActive(); // Xóa chia sẻ cũng là một hành động 'active'
     }
     
     public void Suspend(string reason, Guid suspendedBy)

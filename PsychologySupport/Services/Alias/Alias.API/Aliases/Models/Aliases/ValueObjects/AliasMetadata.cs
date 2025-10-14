@@ -16,6 +16,7 @@ public sealed record AliasMetadata
     //For analytics purpose
     public long CommentsCount { get; private init; }
     public long SharesCount { get; private init; }
+    public long PostsCount { get; private init; }
 
     // EF Core materialization
     private AliasMetadata()
@@ -85,8 +86,38 @@ public sealed record AliasMetadata
         return this with { CommentsCount = CommentsCount + 1 };
     }
     
+    public AliasMetadata DecrementCommentsCount()
+    {
+        return this with { CommentsCount = CommentsCount > 0 ? CommentsCount - 1 : 0 };
+    }
+    
     public AliasMetadata IncrementSharesCount()
     {
         return this with { SharesCount = SharesCount + 1 };
+    }
+    
+    public AliasMetadata DecrementSharesCount()
+    {
+        return this with { SharesCount = SharesCount > 0 ? SharesCount - 1 : 0 };
+    }
+    
+    public AliasMetadata DecrementReactionGivenCount()
+    {
+        return this with { ReactionGivenCount = ReactionGivenCount > 0 ? ReactionGivenCount - 1 : 0 };
+    }
+    
+    public AliasMetadata DecrementReactionReceivedCount()
+    {
+        return this with { ReactionReceivedCount = ReactionReceivedCount > 0 ? ReactionReceivedCount - 1 : 0 };
+    }
+    
+    public AliasMetadata IncrementPostsCount()
+    {
+        return this with { PostsCount = PostsCount + 1 };
+    }
+    
+    public AliasMetadata DecrementPostsCount()
+    {
+        return this with { PostsCount = PostsCount > 0 ? PostsCount - 1 : 0 };
     }
 }

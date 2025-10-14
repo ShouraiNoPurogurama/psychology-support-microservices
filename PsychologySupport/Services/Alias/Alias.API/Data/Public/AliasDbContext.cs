@@ -68,6 +68,11 @@ public partial class AliasDbContext : DbContext
                 metadata.Property(m => m.VersionCount).HasColumnName("version_count");
                 metadata.Property(m => m.FollowersCount).HasColumnName("followers_count");
                 metadata.Property(m => m.FollowingCount).HasColumnName("following_count");
+                metadata.Property(m => m.CommentsCount).HasColumnName("comments_count");
+                metadata.Property(m => m.ReactionGivenCount).HasColumnName("reaction_given_count");
+                metadata.Property(m => m.ReactionReceivedCount).HasColumnName("reaction_received_count");
+                metadata.Property(m => m.SharesCount).HasColumnName("shares_count");
+                metadata.Property(m => m.PostsCount).HasColumnName("posts_count");
             });
 
             entity.HasMany(a => a.Versions)

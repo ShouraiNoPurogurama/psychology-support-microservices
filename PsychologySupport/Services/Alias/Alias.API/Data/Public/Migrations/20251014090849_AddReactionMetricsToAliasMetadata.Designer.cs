@@ -3,6 +3,7 @@ using System;
 using Alias.API.Data.Public;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Alias.API.Data.Public.Migrations
 {
     [DbContext(typeof(AliasDbContext))]
-    partial class PublicDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251014090849_AddReactionMetricsToAliasMetadata")]
+    partial class AddReactionMetricsToAliasMetadata
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -302,10 +305,6 @@ namespace Alias.API.Data.Public.Migrations
                             b1.Property<DateTimeOffset?>("LastActiveAt")
                                 .HasColumnType("timestamp with time zone")
                                 .HasColumnName("last_active_at");
-
-                            b1.Property<long>("PostsCount")
-                                .HasColumnType("bigint")
-                                .HasColumnName("posts_count");
 
                             b1.Property<long>("ReactionGivenCount")
                                 .HasColumnType("bigint")
