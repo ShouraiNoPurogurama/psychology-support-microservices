@@ -3,6 +3,7 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using Notification.API.Contracts;
 using Notification.API.Features.Notifications.Models;
+using Notification.API.Hubs;
 
 namespace Notification.API.Features.Notifications.Consumers;
 
@@ -11,17 +12,20 @@ public class AliasFollowedIntegrationEventConsumer : IConsumer<AliasFollowedInte
     private readonly INotificationRepository _notificationRepo;
     private readonly IProcessedEventRepository _processedEventRepo;
     private readonly IPreferencesCache _preferencesCache;
+    private readonly INotificationHubService _hubService;
     private readonly ILogger<AliasFollowedIntegrationEventConsumer> _logger;
 
     public AliasFollowedIntegrationEventConsumer(
         INotificationRepository notificationRepo,
         IProcessedEventRepository processedEventRepo,
         IPreferencesCache preferencesCache,
+        INotificationHubService hubService,
         ILogger<AliasFollowedIntegrationEventConsumer> logger)
     {
         _notificationRepo = notificationRepo;
         _processedEventRepo = processedEventRepo;
         _preferencesCache = preferencesCache;
+        _hubService = hubService;
         _logger = logger;
     }
 
@@ -68,5 +72,8 @@ public class AliasFollowedIntegrationEventConsumer : IConsumer<AliasFollowedInte
         _logger.LogInformation(
             "Created follow notification {NotificationId} for user {RecipientId}",
             notification.Id, message.FollowedAliasId);
+
+        // Send real-time notification via SignalR
+        await _hubService.SendNotificationToUserAsync(message.FollowedAliasId, notification, context.CancellationToken);
     }
 }

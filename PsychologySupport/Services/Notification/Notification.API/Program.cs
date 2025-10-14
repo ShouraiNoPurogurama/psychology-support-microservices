@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Notification.API.Features.Emails.Services;
 using Notification.API.Extensions;
+using Notification.API.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,10 @@ var services = builder.Services;
 services.AddApplicationServices(builder.Configuration, builder.Environment);
 
 services.ConfigureEmailFeature(builder.Configuration);
+
+// Register SignalR
+services.AddSignalR();
+services.AddScoped<INotificationHubService, NotificationHubService>();
 
 services.AddExceptionHandler<CustomExceptionHandler>();
 
@@ -39,6 +44,8 @@ app.UseSwaggerUI();
 app.MapGrpcService<NotificationService>();
 app.MapGrpcReflectionService(); // Tùy chọn, để hỗ trợ phản xạ gRPC
 
+// Map SignalR hub
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.UseHealthChecks("/health",
     new HealthCheckOptions
