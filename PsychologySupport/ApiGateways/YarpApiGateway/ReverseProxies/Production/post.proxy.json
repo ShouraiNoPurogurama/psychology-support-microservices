@@ -21,6 +21,7 @@
         "Match": {
           "Path": "/post-service/{**catch-all}"
         },
+        "AuthorizationPolicy": "AuthenticatedUser",
         "Transforms": [ 
           { "PathPattern": "/{**catch-all}" },
           { "TokenExchange": "enabled" }

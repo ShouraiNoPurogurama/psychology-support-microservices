@@ -21,6 +21,7 @@
         "Match": {
           "Path": "/image-service/{**catch-all}"
         },
+        "AuthorizationPolicy": "AuthenticatedUser",
         "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
       }
     },

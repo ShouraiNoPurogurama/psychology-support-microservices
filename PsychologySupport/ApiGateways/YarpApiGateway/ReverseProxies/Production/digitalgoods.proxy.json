@@ -21,6 +21,7 @@
         "Match": {
           "Path": "/digitalgoods-service/{**catch-all}"
         },
+        "AuthorizationPolicy": "AuthenticatedUser",
         "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
       }
     },

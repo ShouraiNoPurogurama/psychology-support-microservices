@@ -25,6 +25,7 @@
         "Match": {
           "Path": "/payment-service/{**catch-all}"
         },
+        "AuthorizationPolicy": "AuthenticatedUser",
         "Transforms": [
           { "PathPattern": "/{**catch-all}" }
         ]

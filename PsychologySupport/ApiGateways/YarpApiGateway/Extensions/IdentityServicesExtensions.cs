@@ -43,6 +43,9 @@ public static class IdentityServicesExtensions
                         var redisConnection = context.HttpContext.RequestServices.GetRequiredService<IConnectionMultiplexer>();
                         var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerEvents>>();
 
+                        logger.LogInformation("SERVER TIME CHECK: Current server UTC time is {ServerTimeUtc}", DateTime.UtcNow);
+
+                        
                         var jti = context.Principal?.FindFirstValue(JwtRegisteredClaimNames.Jti);
 
                         if (string.IsNullOrEmpty(jti))

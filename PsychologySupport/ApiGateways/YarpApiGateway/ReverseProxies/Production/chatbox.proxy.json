@@ -21,6 +21,7 @@
         "Match": {
           "Path": "/chatbox-service/{**catch-all}"
         },
+        "AuthorizationPolicy": "AuthenticatedUser",
         "Transforms": [
           { "PathPattern": "/{**catch-all}" },
           { "TokenExchange": "enabled" }

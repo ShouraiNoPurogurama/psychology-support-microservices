@@ -26,6 +26,7 @@
           { "PathPattern": "/{**catch-all}" },
           { "TokenExchange": "enabled" }
         ],
+        "AuthorizationPolicy": "AuthenticatedUser",
         "Metadata": {
           "RateLimiterPolicy": "fixed",
           "RouteGroup": "post-group"
