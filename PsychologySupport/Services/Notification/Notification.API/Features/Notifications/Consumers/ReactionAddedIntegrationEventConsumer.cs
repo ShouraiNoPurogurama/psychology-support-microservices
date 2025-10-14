@@ -54,7 +54,7 @@ public class ReactionAddedIntegrationEventConsumer : IConsumer<ReactionAddedInte
         var source = new NotificationSource
         {
             ReactionId = message.ReactionId,
-            Snippet = $"reacted with {message.ReactionCode}"
+            Snippet = $"Đã bày tỏ cảm xúc {message.ReactionCode}"
         };
 
         // Set PostId or CommentId based on target type
