@@ -168,6 +168,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Conversation.Infrastructure
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailAdvertisement", "Services\Notification\EmailAdvertisement\EmailAdvertisement.csproj", "{EC50C8BD-F384-4F1D-A870-11548E0FB9D2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RealtimeHub", "RealtimeHub", "{A101A436-6941-403B-9AB3-C43F9A1563AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealtimeHub.API", "Services\RealtimeHub\RealtimeHub.API\RealtimeHub.API.csproj", "{988486F1-DB21-4F37-B8DA-1CD6927C8FE4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -382,6 +386,10 @@ Global
 		{EC50C8BD-F384-4F1D-A870-11548E0FB9D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC50C8BD-F384-4F1D-A870-11548E0FB9D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC50C8BD-F384-4F1D-A870-11548E0FB9D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{988486F1-DB21-4F37-B8DA-1CD6927C8FE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{988486F1-DB21-4F37-B8DA-1CD6927C8FE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{988486F1-DB21-4F37-B8DA-1CD6927C8FE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{988486F1-DB21-4F37-B8DA-1CD6927C8FE4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -461,6 +469,8 @@ Global
 		{0DFA95E2-0208-43E3-85C7-7B0E943BC35E} = {4A16022E-B842-40A7-ACB2-C9AA09C5B6A1}
 		{748F0FB2-2D4A-4BBB-8190-BA316A06ABDC} = {4A16022E-B842-40A7-ACB2-C9AA09C5B6A1}
 		{EC50C8BD-F384-4F1D-A870-11548E0FB9D2} = {ED28DA29-073D-438E-A416-0611468911C9}
+		{A101A436-6941-403B-9AB3-C43F9A1563AF} = {AFBB2CD2-FCC5-4146-A8FE-8EEC5EE57044}
+		{988486F1-DB21-4F37-B8DA-1CD6927C8FE4} = {A101A436-6941-403B-9AB3-C43F9A1563AF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9F295B72-0C22-4375-A44F-7F4256AB2C44}

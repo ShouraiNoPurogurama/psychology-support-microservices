@@ -1,9 +1,8 @@
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Alias;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
 using MassTransit;
-using Microsoft.Extensions.Logging;
 using Notification.API.Contracts;
 using Notification.API.Features.Notifications.Models;
-using Notification.API.Hubs;
 
 namespace Notification.API.Features.Notifications.Consumers;
 
@@ -12,20 +11,17 @@ public class AliasFollowedIntegrationEventConsumer : IConsumer<AliasFollowedInte
     private readonly INotificationRepository _notificationRepo;
     private readonly IProcessedEventRepository _processedEventRepo;
     private readonly IPreferencesCache _preferencesCache;
-    private readonly INotificationHubService _hubService;
     private readonly ILogger<AliasFollowedIntegrationEventConsumer> _logger;
 
     public AliasFollowedIntegrationEventConsumer(
         INotificationRepository notificationRepo,
         IProcessedEventRepository processedEventRepo,
         IPreferencesCache preferencesCache,
-        INotificationHubService hubService,
         ILogger<AliasFollowedIntegrationEventConsumer> logger)
     {
         _notificationRepo = notificationRepo;
         _processedEventRepo = processedEventRepo;
         _preferencesCache = preferencesCache;
-        _hubService = hubService;
         _logger = logger;
     }
 
@@ -73,7 +69,28 @@ public class AliasFollowedIntegrationEventConsumer : IConsumer<AliasFollowedInte
             "Created follow notification {NotificationId} for user {RecipientId}",
             notification.Id, message.FollowedAliasId);
 
-        // Send real-time notification via SignalR
-        await _hubService.SendNotificationToUserAsync(message.FollowedAliasId, notification, context.CancellationToken);
+        // Publish NotificationCreated event for delivery services (RealtimeHub, Email, Firebase)
+        var notificationCreatedEvent = new NotificationCreatedIntegrationEvent(
+            NotificationId: notification.Id,
+            RecipientAliasId: notification.RecipientAliasId,
+            ActorAliasId: notification.ActorAliasId,
+            ActorDisplayName: notification.ActorDisplayName,
+            NotificationType: notification.Type.ToString(),
+            IsRead: notification.IsRead,
+            ReadAt: notification.ReadAt,
+            PostId: notification.PostId,
+            CommentId: notification.CommentId,
+            ReactionId: notification.ReactionId,
+            FollowId: notification.FollowId,
+            ModerationAction: notification.ModerationAction,
+            Snippet: notification.Snippet,
+            CreatedAt: notification.CreatedAt
+        );
+
+        await context.Publish(notificationCreatedEvent, context.CancellationToken);
+
+        _logger.LogInformation(
+            "Published NotificationCreated event for notification {NotificationId}",
+            notification.Id);
     }
 }
