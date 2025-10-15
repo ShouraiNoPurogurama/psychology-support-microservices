@@ -12,6 +12,7 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
     // Value Objects
     public AliasLabel Label { get; private set; } = null!;
     public AliasMetadata Metadata { get; private set; } = null!;
+    public UserPreferences Preferences { get; private set; } = null!;
 
     // Properties
     public Guid? CurrentVersionId { get; private set; }
@@ -51,6 +52,7 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
             Id = Guid.NewGuid(),
             Label = aliasLabel,
             Metadata = AliasMetadata.Create(isSystemGenerated),
+            Preferences = UserPreferences.CreateDefault(),
             Visibility = visibility,
             Status = AliasStatus.Active
         };
@@ -393,6 +395,30 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
         if (Status == AliasStatus.Active && !IsDeleted)
         {
             Metadata = Metadata.UpdateLastActive();
+        }
+    }
+
+    public void UpdatePreferences(PreferenceTheme? theme = null, PreferenceLanguage? language = null, bool? notificationsEnabled = null)
+    {
+        ValidateCanBeModified();
+
+        var oldPreferences = Preferences;
+        Preferences = Preferences.Update(theme, language, notificationsEnabled);
+
+        // Only update last active and create audit if something actually changed
+        if (!oldPreferences.Equals(Preferences))
+        {
+            Metadata = Metadata.UpdateLastActive();
+
+            var auditRecord = AliasAudit.Create(Id, nameof(AliasAuditAction.PreferenceUpdated),
+                $"Preferences updated: Theme={Preferences.Theme}, Language={Preferences.Language}, NotificationsEnabled={Preferences.NotificationsEnabled}");
+            _auditRecords.Add(auditRecord);
+
+            AddDomainEvent(new AliasAuditRecordedEvent(
+                Id,
+                AliasAuditAction.PreferenceUpdated,
+                auditRecord.Details,
+                DateTimeOffset.UtcNow));
         }
     }
 

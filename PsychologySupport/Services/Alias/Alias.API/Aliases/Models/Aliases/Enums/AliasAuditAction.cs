@@ -8,6 +8,7 @@ namespace Alias.API.Aliases.Models.Aliases.Enums
         None, 
         Created,
         LabelUpdated,
+        PreferenceUpdated,
         VisibilityChanged,
         AvatarChanged,
         Suspended,

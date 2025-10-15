@@ -75,6 +75,31 @@ public partial class AliasDbContext : DbContext
                 metadata.Property(m => m.PostsCount).HasColumnName("posts_count");
             });
 
+            // Map the UserPreferences value object as an owned type with explicit column names
+            entity.OwnsOne(a => a.Preferences, preferences =>
+            {
+                preferences.Property(p => p.Theme)
+                    .HasColumnName("preference_theme")
+                    .HasConversion(
+                        t => t.ToString(),
+                        t => (PreferenceTheme)Enum.Parse(typeof(PreferenceTheme), t))
+                    .HasDefaultValue(PreferenceTheme.Light)
+                    .HasSentinel(PreferenceTheme.Light)
+                    .HasMaxLength(15);
+                    
+                preferences.Property(p => p.Language)
+                    .HasColumnName("preference_language")
+                    .HasConversion(
+                        l => l.ToString(),
+                        l => (PreferenceLanguage)Enum.Parse(typeof(PreferenceLanguage), l))
+                    .HasDefaultValue(PreferenceLanguage.VI)
+                    .HasSentinel(PreferenceLanguage.VI)
+                    .HasMaxLength(3);
+                    
+                preferences.Property(p => p.NotificationsEnabled)
+                    .HasColumnName("preference_notifications_enabled");
+            });
+
             entity.HasMany(a => a.Versions)
                 .WithOne()
                 .HasForeignKey(av => av.AliasId)

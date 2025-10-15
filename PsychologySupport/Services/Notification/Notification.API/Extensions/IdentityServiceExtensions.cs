@@ -1,13 +1,11 @@
-﻿using BuildingBlocks.Extensions;
-
-namespace Notification.API.Extensions;
+﻿namespace Notification.API.Extensions;
 
 public static class IdentityServiceExtensions
 {
-    public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config)
     {
-        services.AddMinimalJwtValidation(configuration);
+        services.AddMinimalJwtValidation(config);
+
         return services;
     }
-
 }

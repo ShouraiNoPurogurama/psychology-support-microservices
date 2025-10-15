@@ -43,4 +43,28 @@
 	<ItemGroup>
 		<Protobuf Include="Protos\notification.proto" GrpcServices="Server" />
 	</ItemGroup>
+    <ItemGroup>
+        <Content Include="RSAKeys/**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+    <ItemGroup>
+      <Content Update="RSAKeys\PublicKey.xml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="pub\BuildHost-net472\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe.config" />
+      <_ContentIncludedByDefault Remove="pub\BuildHost-netcore\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll.config" />
+      <_ContentIncludedByDefault Remove="pub\web.config" />
+      <_ContentIncludedByDefault Remove="pub\appsettings.Development.json" />
+      <_ContentIncludedByDefault Remove="pub\appsettings.json" />
+      <_ContentIncludedByDefault Remove="pub\appsettings.Production.json" />
+      <_ContentIncludedByDefault Remove="pub\BuildHost-netcore\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.deps.json" />
+      <_ContentIncludedByDefault Remove="pub\BuildHost-netcore\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.runtimeconfig.json" />
+      <_ContentIncludedByDefault Remove="pub\firebase_key.json" />
+      <_ContentIncludedByDefault Remove="pub\Notification.API.deps.json" />
+      <_ContentIncludedByDefault Remove="pub\Notification.API.runtimeconfig.json" />
+      <_ContentIncludedByDefault Remove="pub\Notification.API.staticwebassets.endpoints.json" />
+    </ItemGroup>
 </Project>
