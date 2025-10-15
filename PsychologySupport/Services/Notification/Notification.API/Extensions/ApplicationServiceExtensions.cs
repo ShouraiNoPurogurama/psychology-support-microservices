@@ -35,13 +35,16 @@ public static class ApplicationServiceExtensions
 
         AddServiceDependencies(services);
 
-        // Add notification-specific services
         AddNotificationServices(services);
-
-        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "notification");
+        
+        services.AddIdentityServices(config);
+        
+        services.AddAuthorization();
 
         services.AddHttpContextAccessor();
 
+        services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "notification");
+        
         ConfigureGrpc(services);
 
         return services;
@@ -81,15 +84,16 @@ public static class ApplicationServiceExtensions
                 Title = "Notification API",
                 Version = "v1"
             });
-
-            var url = env.IsProduction()
-                ? "/notification-service"
+            
+            var url = env.IsProduction() 
+                ? "/notification-service" 
                 : "https://localhost:5510/notification-service";
-
+            
             options.AddServer(new OpenApiServer
             {
                 Url = url
             });
+            
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",

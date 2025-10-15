@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Notification.API.Contracts;
 using Notification.API.Data;
@@ -133,5 +134,66 @@ public class NotificationRepository : INotificationRepository
         }
 
         return await query.ExecuteDeleteAsync(cancellationToken);
+    }
+
+     public async Task<bool> TryMergeLatestAsync(
+        Guid recipientAliasId,
+        string groupingKey,
+        Action<UserNotification> updater,
+        TimeSpan window,
+        CancellationToken ct)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var threshold = now - window;
+
+        await using var tx = await _context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
+
+        UserNotification? candidate = null;
+
+        // Ưu tiên Postgres: khóa hàng để tránh race (FOR UPDATE SKIP LOCKED)
+        // Nếu provider không hỗ trợ, sẽ fallback sang LINQ thường.
+        try
+        {
+            candidate = await _context.UserNotifications
+                .FromSqlInterpolated($@"
+                    SELECT *
+                    FROM ""user_notifications""
+                    WHERE ""recipient_alias_id"" = {recipientAliasId}
+                      AND ""grouping_key"" = {groupingKey}
+                      AND ""created_at"" >= {threshold}
+                    ORDER BY ""created_at"" DESC, ""id"" DESC
+                    FOR UPDATE SKIP LOCKED
+                    LIMIT 1
+                ")
+                .AsTracking()
+                .FirstOrDefaultAsync(ct);
+        }
+        catch
+        {
+            candidate = await _context.UserNotifications
+                .Where(n =>
+                    n.RecipientAliasId == recipientAliasId &&
+                    n.GroupingKey == groupingKey &&
+                    n.CreatedAt >= threshold)
+                .OrderByDescending(n => n.CreatedAt)
+                .ThenByDescending(n => n.Id)
+                .AsTracking()
+                .FirstOrDefaultAsync(ct);
+        }
+
+        if (candidate is null)
+        {
+            await tx.CommitAsync(ct);
+            return false; 
+        }
+
+        // Áp hành vi merge do caller truyền vào
+        updater(candidate);
+
+        candidate.LastModified = now;
+
+        await _context.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+        return true;
     }
 }

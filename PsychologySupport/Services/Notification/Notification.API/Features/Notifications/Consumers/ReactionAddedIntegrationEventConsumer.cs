@@ -1,7 +1,6 @@
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
 using MassTransit;
-using Microsoft.Extensions.Logging;
 using Notification.API.Contracts;
 using Notification.API.Features.Notifications.Models;
 
@@ -28,82 +27,110 @@ public class ReactionAddedIntegrationEventConsumer : IConsumer<ReactionAddedInte
 
     public async Task Consume(ConsumeContext<ReactionAddedIntegrationEvent> context)
     {
-        var message = context.Message;
-        var messageId = context.MessageId ?? Guid.NewGuid();
+        var msg = context.Message;
+        var msgId = context.MessageId ?? Guid.NewGuid();
 
-        _logger.LogInformation(
-            "Processing ReactionAdded event {MessageId} for {TargetType} {TargetId}",
-            messageId, message.TargetType, message.TargetId);
+        _logger.LogInformation("Processing ReactionAdded {MessageId} -> {TargetType}:{TargetId}",
+            msgId, msg.TargetType, msg.TargetId);
 
-        // Idempotency check
-        if (!await _processedEventRepo.TryAddAsync(messageId, nameof(ReactionAddedIntegrationEvent), context.CancellationToken))
+        // Idempotent
+        if (!await _processedEventRepo.TryAddAsync(msgId, nameof(ReactionAddedIntegrationEvent), context.CancellationToken))
         {
-            _logger.LogInformation("Event {MessageId} already processed, skipping", messageId);
+            _logger.LogInformation("Event {MessageId} already processed, skip.", msgId);
             return;
         }
 
-        // Check preferences
-        var preferences = await _preferencesCache.GetOrDefaultAsync(message.TargetAuthorAliasId, context.CancellationToken);
-        if (!preferences.IsTypeEnabled(NotificationType.Reaction))
+        // Preferences
+        var prefs = await _preferencesCache.GetOrDefaultAsync(msg.TargetAuthorAliasId, context.CancellationToken);
+        if (!prefs.IsTypeEnabled(NotificationType.Reaction))
         {
-            _logger.LogDebug("User {UserId} has reactions disabled", message.TargetAuthorAliasId);
+            _logger.LogDebug("Recipient {Recipient} disabled Reaction notifications.", msg.TargetAuthorAliasId);
             return;
         }
 
-        // Create notification
+        // Self-protection (thường upstream đã check, nhưng bảo hiểm)
+        if (msg.TargetAuthorAliasId == msg.ReactorAliasId)
+        {
+            _logger.LogDebug("Skip self reaction for alias {AliasId}", msg.ReactorAliasId);
+            return;
+        }
+
+        // Build source/target
         var source = new NotificationSource
         {
-            ReactionId = message.ReactionId,
-            Snippet = $"Đã bày tỏ cảm xúc {message.ReactionCode}"
+            ReactionId = msg.ReactionId,
+            Snippet = $"reacted with {msg.ReactionCode}" // en-US; nếu muốn VN: $"Đã bày tỏ cảm xúc {msg.ReactionCode}"
         };
 
-        // Set PostId or CommentId based on target type
-        if (message.TargetType.Equals("post", StringComparison.OrdinalIgnoreCase))
-        {
-            source.PostId = message.TargetId;
-        }
-        else if (message.TargetType.Equals("comment", StringComparison.OrdinalIgnoreCase))
-        {
-            source.CommentId = message.TargetId;
-        }
+        if (msg.TargetType.Equals("post", StringComparison.OrdinalIgnoreCase))
+            source.PostId = msg.TargetId;
+        else if (msg.TargetType.Equals("comment", StringComparison.OrdinalIgnoreCase))
+            source.CommentId = msg.TargetId;
 
-        var notification = UserNotification.Create(
-            recipientAliasId: message.TargetAuthorAliasId,
-            actorAliasId: message.ReactorAliasId,
-            actorDisplayName: message.ReactorLabel,
-            type: NotificationType.Reaction,
-            source: source,
-            groupingKey: $"reaction:{message.TargetType}:{message.TargetId}"
+        //Grouping key để tránh flood
+        var groupingKey = $"reaction:{msg.TargetType}:{msg.TargetId}";
+
+        //merge nếu trong cửa sổ 30s đã có 1 notif cùng groupingKey
+        var merged = await _notificationRepo.TryMergeLatestAsync(
+            recipientAliasId: msg.TargetAuthorAliasId,
+            groupingKey: groupingKey,
+            updater: n =>
+            {
+                n.ActorAliasId = msg.ReactorAliasId;
+                n.ActorDisplayName = msg.ReactorLabel;
+                n.Snippet = source.Snippet;
+                n.ReactionId = msg.ReactionId;
+                n.LastModified = msg.ReactedAt;       
+                n.CreatedAt = n.CreatedAt;        
+            },
+            window: TimeSpan.FromSeconds(30),
+            ct: context.CancellationToken
         );
 
-        await _notificationRepo.AddAsync(notification, context.CancellationToken);
+        if (!merged)
+        {
+            // Tạo mới
+            var notification = UserNotification.Create(
+                recipientAliasId: msg.TargetAuthorAliasId,
+                actorAliasId: msg.ReactorAliasId,
+                actorDisplayName: msg.ReactorLabel,
+                type: NotificationType.Reaction,
+                source: source,
+                groupingKey: groupingKey
+            );
 
-        _logger.LogInformation(
-            "Created reaction notification {NotificationId} for user {RecipientId}",
-            notification.Id, message.TargetAuthorAliasId);
+            // **dùng ReactedAt** để thống nhất thời gian giữa services
+            notification.CreatedAt = msg.ReactedAt;
 
-        // Publish NotificationCreated event for delivery services (RealtimeHub, Email, Firebase)
-        var notificationCreatedEvent = new NotificationCreatedIntegrationEvent(
-            NotificationId: notification.Id,
-            RecipientAliasId: notification.RecipientAliasId,
-            ActorAliasId: notification.ActorAliasId,
-            ActorDisplayName: notification.ActorDisplayName,
-            NotificationType: notification.Type.ToString(),
-            IsRead: notification.IsRead,
-            ReadAt: notification.ReadAt,
-            PostId: notification.PostId,
-            CommentId: notification.CommentId,
-            ReactionId: notification.ReactionId,
-            FollowId: notification.FollowId,
-            ModerationAction: notification.ModerationAction,
-            Snippet: notification.Snippet,
-            CreatedAt: notification.CreatedAt
-        );
+            await _notificationRepo.AddAsync(notification, context.CancellationToken);
 
-        await context.Publish(notificationCreatedEvent, context.CancellationToken);
+            // Publish IntegrationEvent
+            var createdEvt = new NotificationCreatedIntegrationEvent(
+                NotificationId: notification.Id,
+                RecipientAliasId: notification.RecipientAliasId,
+                ActorAliasId: notification.ActorAliasId,
+                ActorDisplayName: notification.ActorDisplayName,
+                NotificationType: notification.Type.ToString(),
+                IsRead: notification.IsRead,
+                ReadAt: notification.ReadAt,
+                PostId: notification.PostId,
+                CommentId: notification.CommentId,
+                ReactionId: notification.ReactionId,
+                FollowId: notification.FollowId,
+                ModerationAction: notification.ModerationAction,
+                Snippet: notification.Snippet,
+                CreatedAt: notification.CreatedAt
+            );
 
-        _logger.LogInformation(
-            "Published NotificationCreated event for notification {NotificationId}",
-            notification.Id);
+            await context.Publish(createdEvt, context.CancellationToken);
+
+            _logger.LogInformation("Created & published notification {Id} for {Recipient}",
+                notification.Id, notification.RecipientAliasId);
+        }
+        else
+        {
+            _logger.LogInformation("Merged reaction notification for recipient {Recipient} G={Grouping}",
+                msg.TargetAuthorAliasId, groupingKey);
+        }
     }
 }

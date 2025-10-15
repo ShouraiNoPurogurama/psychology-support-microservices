@@ -26,51 +26,65 @@ public class AliasFollowedIntegrationEventConsumer : IConsumer<AliasFollowedInte
     }
 
     public async Task Consume(ConsumeContext<AliasFollowedIntegrationEvent> context)
+{
+    var msg = context.Message;
+    var msgId = context.MessageId ?? Guid.NewGuid();
+    _logger.LogInformation("Processing AliasFollowed {MessageId}: {Follower} -> {Followed}", msgId, msg.FollowerAliasId, msg.FollowedAliasId);
+
+    // Idempotency
+    if (!await _processedEventRepo.TryAddAsync(msgId, nameof(AliasFollowedIntegrationEvent), context.CancellationToken))
     {
-        var message = context.Message;
-        var messageId = context.MessageId ?? Guid.NewGuid();
+        _logger.LogInformation("Event {MessageId} already processed, skip.", msgId);
+        return;
+    }
 
-        _logger.LogInformation(
-            "Processing AliasFollowed event {MessageId}: {Follower} followed {Followed}",
-            messageId, message.FollowerAliasId, message.FollowedAliasId);
+    // Preferences
+    var prefs = await _preferencesCache.GetOrDefaultAsync(msg.FollowedAliasId, context.CancellationToken);
+    if (!prefs.IsTypeEnabled(NotificationType.Follow))
+    {
+        _logger.LogDebug("Recipient {Recipient} disabled Follow notifications.", msg.FollowedAliasId);
+        return;
+    }
 
-        // Idempotency check
-        if (!await _processedEventRepo.TryAddAsync(messageId, nameof(AliasFollowedIntegrationEvent), context.CancellationToken))
+    var source = new NotificationSource
+    {
+        FollowId = msg.FollowerAliasId,
+        Snippet = "đã theo dõi bạn"
+    };
+
+    var groupingKey = $"follow:{msg.FollowedAliasId}";
+
+    // Merge trong 30s để tránh tạo nhiều notif liên tiếp
+    var merged = await _notificationRepo.TryMergeLatestAsync(
+        recipientAliasId: msg.FollowedAliasId,
+        groupingKey: groupingKey,
+        updater: n =>
         {
-            _logger.LogInformation("Event {MessageId} already processed, skipping", messageId);
-            return;
-        }
+            n.ActorAliasId = msg.FollowerAliasId;
+            n.ActorDisplayName = msg.FollowerAliasLabel;
+            n.Snippet = source.Snippet;
+            n.FollowId = msg.FollowerAliasId; 
+        },
+        window: TimeSpan.FromSeconds(30),
+        ct: context.CancellationToken
+    );
 
-        // Check preferences
-        var preferences = await _preferencesCache.GetOrDefaultAsync(message.FollowedAliasId, context.CancellationToken);
-        if (!preferences.IsTypeEnabled(NotificationType.Follow))
-        {
-            _logger.LogDebug("User {UserId} has follows disabled", message.FollowedAliasId);
-            return;
-        }
-
-        // Create notification
-        var source = new NotificationSource
-        {
-            FollowId = message.FollowerAliasId
-        };
-
+    if (!merged)
+    {
         var notification = UserNotification.Create(
-            recipientAliasId: message.FollowedAliasId,
-            actorAliasId: message.FollowerAliasId,
-            actorDisplayName: "Someone",
+            recipientAliasId: msg.FollowedAliasId,
+            actorAliasId: msg.FollowerAliasId,
+            actorDisplayName: msg.FollowerAliasLabel,
             type: NotificationType.Follow,
-            source: source
+            source: source,
+            groupingKey: groupingKey
         );
+
+        notification.CreatedAt = msg.FollowedAt;
 
         await _notificationRepo.AddAsync(notification, context.CancellationToken);
 
-        _logger.LogInformation(
-            "Created follow notification {NotificationId} for user {RecipientId}",
-            notification.Id, message.FollowedAliasId);
-
-        // Publish NotificationCreated event for delivery services (RealtimeHub, Email, Firebase)
-        var notificationCreatedEvent = new NotificationCreatedIntegrationEvent(
+        var createdEvt = new NotificationCreatedIntegrationEvent(
             NotificationId: notification.Id,
             RecipientAliasId: notification.RecipientAliasId,
             ActorAliasId: notification.ActorAliasId,
@@ -87,10 +101,13 @@ public class AliasFollowedIntegrationEventConsumer : IConsumer<AliasFollowedInte
             CreatedAt: notification.CreatedAt
         );
 
-        await context.Publish(notificationCreatedEvent, context.CancellationToken);
-
-        _logger.LogInformation(
-            "Published NotificationCreated event for notification {NotificationId}",
-            notification.Id);
+        await context.Publish(createdEvt, context.CancellationToken);
+        _logger.LogInformation("Created & published follow notification {Id} for {Recipient}", notification.Id, msg.FollowedAliasId);
     }
+    else
+    {
+        _logger.LogInformation("Merged follow notification for {Recipient} G={Grouping}", msg.FollowedAliasId, groupingKey);
+    }
+}
+
 }
