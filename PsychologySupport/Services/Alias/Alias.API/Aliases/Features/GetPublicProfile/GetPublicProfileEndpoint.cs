@@ -37,7 +37,7 @@ public class GetPublicProfileEndpoint : ICarterModule
             var aliasId = user.GetAliasId();
             var query = new GetPublicProfileQuery(aliasId);
             var result = await sender.Send(query);
-            var response = result.Profile.Adapt<GetPublicProfileResponse>();
+            var response = result.Adapt<GetPublicProfileResponse>();
             return Results.Ok(response);
         })
         .RequireAuthorization()
