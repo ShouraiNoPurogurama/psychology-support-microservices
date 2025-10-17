@@ -59,7 +59,11 @@ public static class DependencyInjection
                     .WithIntervalInSeconds(30)
                     .RepeatForever())); 
         });
-
+        
+        services.AddQuartzHostedService(options =>
+        {
+            options.WaitForJobsToComplete = true;
+        });
         
         return services;
     }
@@ -89,8 +93,6 @@ public static class DependencyInjection
         
         return services;
     }
-    
-    
     
     public static IServiceCollection AddCassandraServices(this IServiceCollection services)
     {

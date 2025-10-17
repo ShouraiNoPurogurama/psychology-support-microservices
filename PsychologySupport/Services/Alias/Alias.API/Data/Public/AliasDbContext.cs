@@ -68,6 +68,36 @@ public partial class AliasDbContext : DbContext
                 metadata.Property(m => m.VersionCount).HasColumnName("version_count");
                 metadata.Property(m => m.FollowersCount).HasColumnName("followers_count");
                 metadata.Property(m => m.FollowingCount).HasColumnName("following_count");
+                metadata.Property(m => m.CommentsCount).HasColumnName("comments_count");
+                metadata.Property(m => m.ReactionGivenCount).HasColumnName("reaction_given_count");
+                metadata.Property(m => m.ReactionReceivedCount).HasColumnName("reaction_received_count");
+                metadata.Property(m => m.SharesCount).HasColumnName("shares_count");
+                metadata.Property(m => m.PostsCount).HasColumnName("posts_count");
+            });
+
+            // Map the UserPreferences value object as an owned type with explicit column names
+            entity.OwnsOne(a => a.Preferences, preferences =>
+            {
+                preferences.Property(p => p.Theme)
+                    .HasColumnName("preference_theme")
+                    .HasConversion(
+                        t => t.ToString(),
+                        t => (PreferenceTheme)Enum.Parse(typeof(PreferenceTheme), t))
+                    .HasDefaultValue(PreferenceTheme.Light)
+                    .HasSentinel(PreferenceTheme.Light)
+                    .HasMaxLength(15);
+                    
+                preferences.Property(p => p.Language)
+                    .HasColumnName("preference_language")
+                    .HasConversion(
+                        l => l.ToString(),
+                        l => (PreferenceLanguage)Enum.Parse(typeof(PreferenceLanguage), l))
+                    .HasDefaultValue(PreferenceLanguage.VI)
+                    .HasSentinel(PreferenceLanguage.VI)
+                    .HasMaxLength(3);
+                    
+                preferences.Property(p => p.NotificationsEnabled)
+                    .HasColumnName("preference_notifications_enabled");
             });
 
             entity.HasMany(a => a.Versions)

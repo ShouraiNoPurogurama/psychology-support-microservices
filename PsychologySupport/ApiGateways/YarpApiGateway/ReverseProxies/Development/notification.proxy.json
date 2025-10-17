@@ -21,14 +21,18 @@
         "Match": {
           "Path": "/notification-service/{**catch-all}"
         },
-        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+        "AuthorizationPolicy": "AuthenticatedUser",
+        "Transforms": [ 
+          { "PathPattern": "/{**catch-all}" }, 
+          { "TokenExchange": "enabled" } 
+        ]
       }
     },
     "Clusters": {
       "notification-cluster": {
         "Destinations": {
           "destination1": {
-            "Address": "http://localhost:5512/"
+            "Address": "https://localhost:5512/"
           }
         }
       }

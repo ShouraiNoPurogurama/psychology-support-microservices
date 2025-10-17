@@ -266,7 +266,7 @@ namespace Alias.API.Data.Public.Migrations
 
                             b1.HasKey("AliasId");
 
-                            b1.ToTable("aliases", (string)null);
+                            b1.ToTable("aliases");
 
                             b1.WithOwner()
                                 .HasForeignKey("AliasId")
@@ -278,6 +278,10 @@ namespace Alias.API.Data.Public.Migrations
                             b1.Property<Guid>("AliasId")
                                 .HasColumnType("uuid")
                                 .HasColumnName("id");
+
+                            b1.Property<long>("CommentsCount")
+                                .HasColumnType("bigint")
+                                .HasColumnName("comments_count");
 
                             b1.Property<DateTimeOffset>("CreatedAt")
                                 .HasColumnType("timestamp with time zone")
@@ -299,13 +303,64 @@ namespace Alias.API.Data.Public.Migrations
                                 .HasColumnType("timestamp with time zone")
                                 .HasColumnName("last_active_at");
 
+                            b1.Property<long>("PostsCount")
+                                .HasColumnType("bigint")
+                                .HasColumnName("posts_count");
+
+                            b1.Property<long>("ReactionGivenCount")
+                                .HasColumnType("bigint")
+                                .HasColumnName("reaction_given_count");
+
+                            b1.Property<long>("ReactionReceivedCount")
+                                .HasColumnType("bigint")
+                                .HasColumnName("reaction_received_count");
+
+                            b1.Property<long>("SharesCount")
+                                .HasColumnType("bigint")
+                                .HasColumnName("shares_count");
+
                             b1.Property<int>("VersionCount")
                                 .HasColumnType("integer")
                                 .HasColumnName("version_count");
 
                             b1.HasKey("AliasId");
 
-                            b1.ToTable("aliases", (string)null);
+                            b1.ToTable("aliases");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AliasId")
+                                .HasConstraintName("fk_aliases_aliases_id");
+                        });
+
+                    b.OwnsOne("Alias.API.Aliases.Models.Aliases.ValueObjects.UserPreferences", "Preferences", b1 =>
+                        {
+                            b1.Property<Guid>("AliasId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<string>("Language")
+                                .IsRequired()
+                                .ValueGeneratedOnAdd()
+                                .HasMaxLength(3)
+                                .HasColumnType("character varying(3)")
+                                .HasDefaultValue("VI")
+                                .HasColumnName("preference_language");
+
+                            b1.Property<bool>("NotificationsEnabled")
+                                .HasColumnType("boolean")
+                                .HasColumnName("preference_notifications_enabled");
+
+                            b1.Property<string>("Theme")
+                                .IsRequired()
+                                .ValueGeneratedOnAdd()
+                                .HasMaxLength(15)
+                                .HasColumnType("character varying(15)")
+                                .HasDefaultValue("Light")
+                                .HasColumnName("preference_theme");
+
+                            b1.HasKey("AliasId");
+
+                            b1.ToTable("aliases");
 
                             b1.WithOwner()
                                 .HasForeignKey("AliasId")
@@ -316,6 +371,9 @@ namespace Alias.API.Data.Public.Migrations
                         .IsRequired();
 
                     b.Navigation("Metadata")
+                        .IsRequired();
+
+                    b.Navigation("Preferences")
                         .IsRequired();
                 });
 

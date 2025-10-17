@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
@@ -79,6 +79,9 @@ internal sealed class CreateCommentCommandHandler : ICommandHandler<CreateCommen
 
         // Increment comment count on post
         post.IncrementCommentCount();
+
+        // Emit domain event for alias counters
+        post.AddComment(author.AliasId);
         
         // Add domain event
         var commentCreatedEvent = new CommentCreatedEvent(

@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Utils;
 using Microsoft.EntityFrameworkCore;
@@ -76,7 +76,7 @@ public class CreateReactionCommandHandler : ICommandHandler<CreateReactionComman
             }
 
             var reactionType = CreateReactionType(request.ReactionCode);
-            var author = AuthorInfo.Create(currentAliasId, aliasVersionId);
+            var reactor = AuthorInfo.Create(currentAliasId, aliasVersionId);
             var reaction = Reaction.Create(
                 request.TargetType,
                 request.TargetId,
@@ -84,21 +84,19 @@ public class CreateReactionCommandHandler : ICommandHandler<CreateReactionComman
                 reactionType.Emoji,
                 reactionType.Weight,
                 true,
-                author.AliasId,
-                author.AliasVersionId
+                reactor.AliasId,
+                reactor.AliasVersionId
             );
             _context.Reactions.Add(reaction);
 
             await UpdateTargetCounters(request.TargetType, request.TargetId, 1, cancellationToken);
 
-            var reactionAddedEvent = new ReactionAddedEvent(
-                reaction.Id,
-                request.TargetType.ToString().ToLower(),
-                request.TargetId,
-                request.ReactionCode.ToString().ToLower(),
-                currentAliasId
-            );
-            await _outboxWriter.WriteAsync(reactionAddedEvent, cancellationToken);
+            // Emit domain event for alias counters
+            if (request.TargetType == ReactionTargetType.Post)
+            {
+                var post = await _context.Posts.FirstAsync(p => p.Id == request.TargetId, cancellationToken);
+                post.AddReaction(currentAliasId);
+            }
 
             try
             {

@@ -29,10 +29,12 @@
         "Match": {
           "Path": "/notification-service/{**catch-all}"
         },
+        "AuthorizationPolicy": "AuthenticatedUser",
         "Transforms": [
           {
             "PathPattern": "/{**catch-all}"
-          }
+          },
+          { "TokenExchange": "enabled" }
         ]
       }
     },
@@ -40,7 +42,7 @@
       "notification-cluster": {
         "Destinations": {
           "destination1": {
-            "Address": "http://notification.api:8080/"
+            "Address": "https://emoease-notifications.azurewebsites.net/"
           }
         }
       }

@@ -1,3 +1,5 @@
+using Feed.Application.Dtos;
+
 namespace Feed.Application.Abstractions.PostRepository;
 
 /// <summary>
@@ -45,11 +47,13 @@ public interface IPostReplicaRepository
     /// </summary>
     /// <param name="days">Number of days to query back (default 7)</param>
     /// <param name="limit">Maximum number of posts to retrieve</param>
+    /// <param name="startDayOffset">Start date to get feeds</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>List of post IDs ordered by creation date descending</returns>
-    Task<IReadOnlyList<Guid>> GetMostRecentPublicPostsAsync(
-        int days = 7,
+    Task<IReadOnlyList<PostInfo>> GetMostRecentPublicPostsAsync(
+        int days = 14,
         int limit = 500,
+        int startDayOffset = 0,
         CancellationToken ct = default);
 
     /// <summary>

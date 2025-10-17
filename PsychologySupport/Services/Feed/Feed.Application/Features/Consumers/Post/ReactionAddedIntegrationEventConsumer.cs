@@ -26,28 +26,37 @@ public sealed class ReactionAddedIntegrationEventConsumer : IConsumer<ReactionAd
     {
         var message = context.Message;
 
+        if (message.TargetType != "Post")
+        {
+            _logger.LogInformation(
+                "Skipping ReactionAdded event for TargetType {TargetType} with TargetId {TargetId}",
+                message.TargetType,
+                message.TargetId);
+            
+            return;
+        }
+        
         _logger.LogInformation(
             "Processing ReactionAdded event for post {PostId}",
-            message.PostId);
-
+            message.TargetId);
+        
         try
         {
-            // Increment reaction count in ranking cache
             await _rankingService.IncrementReactionsAsync(
-                message.PostId, 
+                message.TargetId, 
                 delta: 1, 
                 context.CancellationToken);
 
             _logger.LogInformation(
                 "Successfully updated ranking for post {PostId} after reaction",
-                message.PostId);
+                message.TargetId);
         }
         catch (Exception ex)
         {
             _logger.LogError(
                 ex,
                 "Error processing ReactionAdded event for post {PostId}",
-                message.PostId);
+                message.TargetId);
             throw;
         }
     }

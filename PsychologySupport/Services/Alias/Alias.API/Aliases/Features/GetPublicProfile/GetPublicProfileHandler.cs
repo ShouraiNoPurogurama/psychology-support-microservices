@@ -40,12 +40,16 @@ public class GetPublicProfileHandler : IQueryHandler<GetPublicProfileQuery, GetP
         
         var lastVersion = alias.Versions.OrderByDescending(v => v.CreatedAt).First();
 
+        var metaData = alias.Metadata;
+        
         var dto = new PublicProfileDto(
             AliasId: alias.Id,
             Label: lastVersion.DisplayName,
-            Followers: 0,
-            Followings: 0,
-            Posts: 0,
+            Followers: metaData.FollowersCount,
+            Followings: metaData.FollowingCount,
+            ReactionGivenCount: metaData.ReactionGivenCount,
+            ReactionReceivedCount: metaData.ReactionReceivedCount,
+            PostsCount: metaData.PostsCount,
             AvatarUrl: alias.AvatarMediaId.ToString(),
             CreatedAt: alias.CreatedAt
         );

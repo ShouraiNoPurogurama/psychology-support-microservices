@@ -26,4 +26,7 @@ public interface INotificationRepository
     Task<int> MarkAllReadBeforeAsync(Guid recipientAliasId, DateTimeOffset cutoffTime, CancellationToken cancellationToken = default);
     
     Task<int> DeleteBySourceAsync(Guid? postId = null, Guid? commentId = null, CancellationToken cancellationToken = default);
+    
+    Task<bool> TryMergeLatestAsync(Guid recipientAliasId, string groupingKey, Action<UserNotification> updater, TimeSpan window, CancellationToken ct);
+
 }

@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.RateLimiting;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Pii.API.Protos;
 using StackExchange.Redis;
 using Yarp.ReverseProxy.Transforms.Builder;
@@ -53,16 +56,32 @@ public static class ApplicationServiceExtensions
     {
         services.AddRateLimiter(options =>
         {
-            options.AddFixedWindowLimiter("fixed", opt =>
-            {
-                opt.Window = TimeSpan.FromSeconds(10);
-                opt.PermitLimit = 25;
-            }); //A maximum of 15 requests per each 10 seconds window are allowed
-            options.AddFixedWindowLimiter("post_sessions_fixed_window", opt =>
-            {
-                opt.Window = TimeSpan.FromSeconds(10);
-                opt.PermitLimit = 5;
-            }); //A maximum of 5 requests per each 10 seconds window are allowed
+            static string Partition(HttpContext ctx) =>
+                ctx.User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                ?? ctx.Connection.RemoteIpAddress?.ToString()
+                ?? "anonymous";
+
+            options.AddPolicy("fixed", ctx =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: Partition(ctx),
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 25,
+                        Window = TimeSpan.FromSeconds(10),
+                        QueueLimit = 0
+                    }));
+
+            options.AddPolicy("post_sessions_fixed_window", ctx =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    Partition(ctx),
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromSeconds(10) }));
+
+            options.AddPolicy("chat_limit_fixed_window", ctx =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    Partition(ctx),
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = 2, Window = TimeSpan.FromSeconds(2) }));
+
+            options.RejectionStatusCode = 429;
         });
     }
 

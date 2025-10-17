@@ -52,7 +52,7 @@ public class TokenExchangeService : ITokenExchangeService
                     newClaims, destinationAudience
                 );
                 
-                _logger.LogInformation("Exchanged token minted for audience {Audience}: {Token}", destinationAudience, exchangedToken);
+                // _logger.LogInformation("Exchanged token minted for audience {Audience}: {Token}", destinationAudience, exchangedToken);
                 return exchangedToken;
             }
         }

@@ -1,60 +1,4 @@
-﻿using Alias.API.Aliases.Exceptions.DomainExceptions;
-
-namespace Alias.API.Aliases.Models.Aliases.ValueObjects;
-
-public sealed record AliasLabel
-{
-    public string Value { get; init; }
-    public string SearchKey { get; init; }
-    public string UniqueKey { get; init; }
-
-    // EF Core materialization
-    private AliasLabel()
-    {
-    }
-
-    private AliasLabel(string value, string searchKey, string uniqueKey)
-    {
-        Value = value;
-        SearchKey = searchKey;
-        UniqueKey = uniqueKey;
-    }
-
-    public static AliasLabel Create(string label)
-    {
-        if (string.IsNullOrWhiteSpace(label))
-            throw new InvalidAliasDataException("Alias label cannot be empty.");
-
-        if (label.Length < 2)
-            throw new InvalidAliasDataException("Alias label must be at least 2 characters long.");
-
-        if (label.Length > 50)
-            throw new InvalidAliasDataException("Alias label cannot exceed 50 characters.");
-
-        var normalizedLabel = label.Trim();
-        var searchKey = GenerateSearchKey(normalizedLabel);
-        var uniqueKey = GenerateUniqueKey(normalizedLabel);
-
-        return new AliasLabel(normalizedLabel, searchKey, uniqueKey);
-    }
-
-    private static string GenerateSearchKey(string label)
-    {
-        // Remove diacritics and normalize for search
-        return label.ToUpperInvariant()
-            .Replace(" ", "")
-            .Replace("-", "")
-            .Replace("_", "");
-    }
-
-    private static string GenerateUniqueKey(string label)
-    {
-        // Generate a unique key for collision detection
-        return label.ToLowerInvariant()
-            .Replace(" ", "_")
-            .Replace("-", "_");
-    }
-}
+﻿namespace Alias.API.Aliases.Models.Aliases.ValueObjects;
 
 public sealed record AliasMetadata
 {
@@ -66,6 +10,13 @@ public sealed record AliasMetadata
     //Properties for social media tracking
     public long FollowersCount { get; private init; }
     public long FollowingCount { get; private init; }
+    
+    public long ReactionGivenCount { get; private init; }
+    public long ReactionReceivedCount { get; private init; }
+    //For analytics purpose
+    public long CommentsCount { get; private init; }
+    public long SharesCount { get; private init; }
+    public long PostsCount { get; private init; }
 
     // EF Core materialization
     private AliasMetadata()
@@ -118,5 +69,55 @@ public sealed record AliasMetadata
     public AliasMetadata DecrementFollowingCount()
     {
         return this with { FollowingCount = FollowingCount > 0 ? FollowingCount - 1 : 0 };
+    }
+    
+    public AliasMetadata IncrementReactionGivenCount()
+    {
+        return this with { ReactionGivenCount = ReactionGivenCount + 1 };
+    }
+    
+    public AliasMetadata IncrementReactionReceivedCount()
+    {
+        return this with { ReactionReceivedCount = ReactionReceivedCount + 1 };
+    }  
+    
+    public AliasMetadata IncrementCommentsCount()
+    {
+        return this with { CommentsCount = CommentsCount + 1 };
+    }
+    
+    public AliasMetadata DecrementCommentsCount()
+    {
+        return this with { CommentsCount = CommentsCount > 0 ? CommentsCount - 1 : 0 };
+    }
+    
+    public AliasMetadata IncrementSharesCount()
+    {
+        return this with { SharesCount = SharesCount + 1 };
+    }
+    
+    public AliasMetadata DecrementSharesCount()
+    {
+        return this with { SharesCount = SharesCount > 0 ? SharesCount - 1 : 0 };
+    }
+    
+    public AliasMetadata DecrementReactionGivenCount()
+    {
+        return this with { ReactionGivenCount = ReactionGivenCount > 0 ? ReactionGivenCount - 1 : 0 };
+    }
+    
+    public AliasMetadata DecrementReactionReceivedCount()
+    {
+        return this with { ReactionReceivedCount = ReactionReceivedCount > 0 ? ReactionReceivedCount - 1 : 0 };
+    }
+    
+    public AliasMetadata IncrementPostsCount()
+    {
+        return this with { PostsCount = PostsCount + 1 };
+    }
+    
+    public AliasMetadata DecrementPostsCount()
+    {
+        return this with { PostsCount = PostsCount > 0 ? PostsCount - 1 : 0 };
     }
 }

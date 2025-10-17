@@ -3,7 +3,6 @@ using BuildingBlocks.Exceptions.Handler;
 using Carter;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Notification.API.Features.Emails.Services;
 using Notification.API.Extensions;
 
@@ -27,18 +26,19 @@ app.UseExceptionHandler(options => { });
 
 app.UseStaticFiles();
 
-app.MapCarter();
+app.UseCors("CorsPolicy");
 
 app.UseSwagger();
-
-app.InitializeDatabaseAsync();
-
 app.UseSwaggerUI();
+
+app.UseAuthentication();   
+app.UseAuthorization();
 
 //Map gRPC services
 app.MapGrpcService<NotificationService>();
-app.MapGrpcReflectionService(); // Tùy chọn, để hỗ trợ phản xạ gRPC
+app.MapGrpcReflectionService(); 
 
+app.MapCarter();
 
 app.UseHealthChecks("/health",
     new HealthCheckOptions
@@ -50,8 +50,5 @@ app.UseHealthChecks("/health",
 // Default route for non-gRPC clients
 app.MapGet("/", () =>
     "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-
-
-app.UseCors("CorsPolicy");
 
 app.Run();

@@ -10,13 +10,7 @@ namespace Alias.API.Aliases.Features.GetPublicProfile;
 public record GetPublicProfileRequest(Guid AliasId);
 
 public record GetPublicProfileResponse(
-    Guid AliasId,
-    string Label,
-    string? AvatarUrl,
-    int Followers,
-    int Followings,
-    int Posts,
-    DateTimeOffset CreatedAt
+    PublicProfileDto Profile
 );
 
 public class GetPublicProfileEndpoint : ICarterModule
@@ -27,7 +21,7 @@ public class GetPublicProfileEndpoint : ICarterModule
         {
             var query = new GetPublicProfileQuery(aliasId);
             var result = await sender.Send(query);
-            var response = result.Profile.Adapt<GetPublicProfileResponse>();
+            var response = result.Adapt<GetPublicProfileResponse>();
             return Results.Ok(response);
         })
         .WithName("GetPublicProfile")
@@ -43,7 +37,7 @@ public class GetPublicProfileEndpoint : ICarterModule
             var aliasId = user.GetAliasId();
             var query = new GetPublicProfileQuery(aliasId);
             var result = await sender.Send(query);
-            var response = result.Profile.Adapt<GetPublicProfileResponse>();
+            var response = result.Adapt<GetPublicProfileResponse>();
             return Results.Ok(response);
         })
         .RequireAuthorization()

@@ -1,0 +1,72 @@
+{
+  "ReverseProxy": {
+    "Routes": {
+      "realtimehub-health": {
+        "ClusterId": "realtimehub-cluster",
+        "Match": {
+          "Path": "/realtimehub-service/health"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/health"
+          }
+        ]
+      },
+      "realtimehub-swagger": {
+        "ClusterId": "realtimehub-cluster",
+        "Match": {
+          "Path": "/realtimehub-service/swagger/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/swagger/{**catch-all}"
+          }
+        ]
+      },
+      "realtimehub-websocket": {
+        "ClusterId": "realtimehub-cluster",
+        "Match": {
+          "Path": "/realtimehub-service/hubs/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/hubs/{**catch-all}"
+          },
+          {
+            "TokenExchange": "true"
+          }
+        ]
+      },
+      "realtimehub-route": {
+        "ClusterId": "realtimehub-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Match": {
+          "Path": "/realtimehub-service/{**catch-all}"
+        },
+        "AuthorizationPolicy": "AuthenticatedUser",
+        "Transforms": [
+          {
+            "PathPattern": "/{**catch-all}"
+          },
+          {
+            "TokenExchange": "true"
+          }
+        ]
+      }
+    },
+    "Clusters": {
+      "realtimehub-cluster": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://realtimehub.api:8080/"
+          }
+        },
+        "HttpRequest": {
+          "ActivityTimeout": "00:10:00",
+          "Version": "1.1",
+          "VersionPolicy": "RequestVersionOrLower"
+        }
+      }
+    }
+  }
+}

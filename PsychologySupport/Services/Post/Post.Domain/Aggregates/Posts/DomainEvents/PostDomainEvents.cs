@@ -1,4 +1,4 @@
-﻿using Post.Domain.Aggregates.Posts.Enums;
+using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Domain.Aggregates.Posts.DomainEvents;
 
@@ -56,3 +56,17 @@ public sealed record PostMediaReorderedEvent(Guid PostId, List<Guid> OrderedMedi
 public sealed record PostCoverMediaSetEvent(Guid PostId, Guid MediaId) : DomainEvent(PostId);
 
 public sealed record PostMediaAltTextUpdatedEvent(Guid PostId, Guid MediaId, string AltText) : DomainEvent(PostId);
+
+#region Alias Counters Events
+
+public sealed record PostReactionAddedEvent(Guid PostId, Guid ReactorAliasId, Guid PostAuthorAliasId) : DomainEvent(PostId);
+
+public sealed record PostReactionRemovedEvent(Guid PostId, Guid ReactorAliasId, Guid PostAuthorAliasId) : DomainEvent(PostId);
+
+public sealed record PostCommentAddedEvent(Guid PostId, Guid CommentAuthorAliasId) : DomainEvent(PostId);
+
+public sealed record PostCommentRemovedEvent(Guid PostId, Guid CommentAuthorAliasId) : DomainEvent(PostId);
+
+public sealed record PostSharedEvent(Guid PostId, Guid PostAuthorAliasId) : DomainEvent(PostId);
+
+#endregion

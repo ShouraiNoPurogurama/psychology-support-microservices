@@ -90,6 +90,7 @@ public sealed class FollowAliasHandler(
         var integrationEvent = new AliasFollowedIntegrationEvent(
             followerAliasId,
             request.FollowedAliasId,
+            followerAlias.CurrentVersion?.DisplayName ?? "Anonymous User",
             follow.FollowedAt);
 
         await publishEndpoint.Publish(integrationEvent, cancellationToken);

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <UserSecretsId>7c8f6a3e-dd78-4c95-ae8e-9ddb33e729d8</UserSecretsId>
+        <DockerfileContext>..\..\..</DockerfileContext>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <NoWarn>$(NoWarn);CS9113;CS8618;CS8602;CS8629;CS8600;CS8601;CS8604;CS8625;CS8603</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="..\..\..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
+        <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks.Messaging\BuildingBlocks.Messaging.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Carter" />
+        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
+    </ItemGroup>
+
+</Project>

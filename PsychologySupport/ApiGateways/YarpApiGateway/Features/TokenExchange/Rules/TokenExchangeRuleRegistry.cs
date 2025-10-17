@@ -17,7 +17,7 @@ public class TokenExchangeRuleRegistry
         {
             new AudienceMappingRule
             {
-                Keywords = new[] { "alias", "post", "feed" },
+                Keywords = new[] { "alias", "post", "feed", "notification" },
                 ClaimType = "aliasId",
                 LookupFunction = (subRef) => _piiLookupService.ResolveAliasIdBySubjectRefAsync(subRef)
             },

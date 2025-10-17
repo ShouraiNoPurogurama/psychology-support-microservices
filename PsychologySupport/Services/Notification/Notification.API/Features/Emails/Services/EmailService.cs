@@ -75,6 +75,8 @@ public class EmailService(
 
     private MailMessage CreateMailMessage(EmailMessageDto emailMessageDto, string trackerId)
     {
+        var messageId = GenerateDomainMessageId("emoease.vn");
+
         StringBuilder htmlBody = new StringBuilder();
 
         htmlBody.Append(emailMessageDto.Body);
@@ -90,7 +92,18 @@ public class EmailService(
             From = new MailAddress(_emailConfiguration.SenderEmail, "EmoEase")
         };
 
+        mailMessage.Headers.Remove("Message-ID");
+        mailMessage.Headers.Add("Message-ID", $"<{messageId}>");
+
         return mailMessage;
+    }
+    
+    //Giúp tạo Message-ID chuẩn RFC5322: <random.timestamp@domain>
+    private static string GenerateDomainMessageId(string domain)
+    {
+        var ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var rnd = Guid.NewGuid().ToString("N").Substring(0, 16);
+        return $"{rnd}.{ts}@{domain}";
     }
 
     private EmailTrace CreateEmailTrace(EmailMessageDto emailMessageDto, string trackerId)

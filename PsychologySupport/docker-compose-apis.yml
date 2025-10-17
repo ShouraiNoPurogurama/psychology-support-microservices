@@ -85,8 +85,8 @@ services:
     image: ${DOCKER_REGISTRY}feed.api:${IMAGE_TAG}
     depends_on: [ distributedcache ]
     container_name: feed.api
-    labels:
-      com.emoease.health_path: "/health"
+#    labels:
+#      com.emoease.health_path: "/health"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
@@ -298,6 +298,26 @@ services:
       - ./Services/DigitalGoods/DigitalGoods.API/appsettings.json:/app/appsettings.json:ro
       - ./Services/DigitalGoods/DigitalGoods.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
+  realtimehub.api:
+    image: ${DOCKER_REGISTRY}realtimehub.api:${IMAGE_TAG}
+    container_name: realtimehub.api
+    labels:
+      com.emoease.health_path: "/health"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - GrpcSettings__TranslationUrl=http://translation.api:8081
+    networks: [ emoease-net ]
+    ports: [ "5024:8080", "5524:8081" ]
+    volumes:
+      - ~/.aspnet/https:/https:ro
+      - ./Services/RealtimeHub/RealtimeHub.API/RSAKeys:/app/RSAKeys
+      - ./Services/RealtimeHub/RealtimeHub.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/RealtimeHub/RealtimeHub.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   yarpapigateway:
     image: ${DOCKER_REGISTRY}yarpapigateway:${IMAGE_TAG}

@@ -29,6 +29,7 @@
         "Match": {
           "Path": "/alias-service/{version}/aliases/suggest"
         },
+        "AllowAnonymous": "true",
         "Transforms": [
           {
             "PathPattern": "/{version}/aliases/suggest"
@@ -41,6 +42,7 @@
         "Match": {
           "Path": "/alias-service/{version}/me/aliases/issue"
         },
+        "AllowAnonymous": "true",
         "Transforms": [
           {
             "PathPattern": "/{version}/me/aliases/issue"
@@ -53,6 +55,7 @@
         "Match": {
           "Path": "/alias-service/{**catch-all}"
         },
+        "AuthorizationPolicy": "AuthenticatedUser",
         "Transforms": [
           {
             "PathPattern": "/{**catch-all}"

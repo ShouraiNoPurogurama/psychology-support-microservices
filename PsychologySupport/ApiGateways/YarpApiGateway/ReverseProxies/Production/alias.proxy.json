@@ -27,6 +27,7 @@
         "ClusterId": "alias-cluster",
         "RateLimiterPolicy": "fixed",
         "Match": { "Path": "/alias-service/{**catch-all}" },
+        "AuthorizationPolicy": "AuthenticatedUser",
         "Transforms": [
           { "PathPattern": "/{**catch-all}" },
           { "TokenExchange": "enabled" }

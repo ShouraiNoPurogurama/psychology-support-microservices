@@ -18,7 +18,6 @@ public class GetNotificationsEndpoint : ICarterModule
             ISender sender,
             CancellationToken ct) =>
         {
-            // Get aliasId from authenticated user
             var aliasIdClaim = httpContext.User.FindFirst("aliasId")?.Value;
             if (string.IsNullOrEmpty(aliasIdClaim) || !Guid.TryParse(aliasIdClaim, out var aliasId))
             {

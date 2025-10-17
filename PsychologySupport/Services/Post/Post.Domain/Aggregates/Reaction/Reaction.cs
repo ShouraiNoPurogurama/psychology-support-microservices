@@ -41,15 +41,15 @@ public sealed class Reaction : AggregateRoot<Guid>, ISoftDeletable
             string? emoji,
             int weight,
             bool isEnabled,
-            Guid authorAliasId,
-            Guid authorAliasVersionId)
+            Guid reactorAliasId,
+            Guid reactorAliasVersionId)
         {
             var reaction = new Reaction
             {
                 Id = Guid.NewGuid(),
                 Target = ReactionTarget.Create(targetType, targetId),
                 Type = ReactionType.Create(reactionCode, emoji, weight, isEnabled),
-                Author = AuthorInfo.Create(authorAliasId, authorAliasVersionId),
+                Author = AuthorInfo.Create(reactorAliasId, reactorAliasVersionId),
                 ReactedAt = DateTimeOffset.UtcNow
             };
 
@@ -58,7 +58,7 @@ public sealed class Reaction : AggregateRoot<Guid>, ISoftDeletable
                 reaction.Target.TargetType,
                 reaction.Target.TargetId,
                 reaction.Type.Code,
-                authorAliasId));
+                reactorAliasId));
 
             return reaction;
         }
@@ -155,7 +155,7 @@ public sealed class Reaction : AggregateRoot<Guid>, ISoftDeletable
     public bool IsNegative => Type.IsNegative;
     public bool IsHighWeight => Type.IsHighWeight;
     public bool IsOnPost => Target.IsPost;
-    public bool IsOnComment => Target.IsComment;
+    public bool IsOnComment => Target.IsComment; 
 
     // Private validations
     private void ValidateEditPermission(Guid editorAliasId)
