@@ -21,7 +21,14 @@
         "Match": {
           "Path": "/subscription-service/{**catch-all}"
         },
-        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+        "Transforms": [
+          {
+            "PathPattern": "/{**catch-all}"
+          },
+          {
+            "TokenExchange": "enabled"
+          }
+        ]
       }
     },
     "Clusters": {
