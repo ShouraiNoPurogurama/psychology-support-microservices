@@ -25,14 +25,6 @@ public sealed class CommentCreatedEventHandler : INotificationHandler<CommentCre
 
     public async Task Handle(CommentCreatedEvent notification, CancellationToken cancellationToken)
     {
-        // Get the comment with author info
-        var comment = await _context.Comments
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Id == notification.CommentId, cancellationToken);
-
-        if (comment == null)
-            return;
-
         // Get post to find post author
         var post = await _context.Posts
             .AsNoTracking()
@@ -50,9 +42,9 @@ public sealed class CommentCreatedEventHandler : INotificationHandler<CommentCre
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.AliasId == notification.AuthorAliasId, cancellationToken);
 
-        var commentSnippet = comment.Content.Value.Length > 100
-            ? comment.Content.Value.Substring(0, 100) + "..."
-            : comment.Content.Value;
+        var commentSnippet = notification.CommentContent.Length > 100
+            ? notification.CommentContent.Substring(0, 100) + "..."
+            : notification.CommentContent;
 
         Guid? parentCommentAuthorId = null;
         if (notification.ParentCommentId.HasValue)

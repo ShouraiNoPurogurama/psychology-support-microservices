@@ -60,8 +60,6 @@ public sealed class CreatePostCommandHandler(
 
         context.Posts.Add(post);
 
-        // Outbox post-created (with follower count) BEFORE saving
-        var followerCount = await followerCountProvider.GetFollowerCountAsync(aliasId, cancellationToken);
         await outboxWriter.WriteAsync(new PostCreatedIntegrationEvent(post.Id, aliasId, post.CreatedAt, post.Content.Title, post.Content.Value), cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);

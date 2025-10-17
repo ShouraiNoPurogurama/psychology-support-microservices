@@ -1,8 +1,23 @@
 services:
-  #  aimoderation.api:
-  #    image: ${DOCKER_REGISTRY}aimoderation.api:${IMAGE_TAG}
-  #    container_name: aimoderation.api
-  #    ...
+  aimoderation.api:
+    image: ${DOCKER_REGISTRY}aimoderation.api:${IMAGE_TAG}
+    container_name: aimoderation.api
+    depends_on: [ distributedcache ]
+    labels:
+      com.emoease.health_path: "/health"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
+      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    networks: [ emoease-net ]
+    ports: [ "5015:8080", "6015:8081" ]
+    volumes:
+      - ~/.aspnet/https:/https:ro
+      - ./Services/AIModeration/AIModeration.API/RSAKeys:/app/RSAKeys
+      - ./Services/AIModeration/AIModeration.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/AIModeration/AIModeration.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   alias.api:
     image: ${DOCKER_REGISTRY}alias.api:${IMAGE_TAG}
