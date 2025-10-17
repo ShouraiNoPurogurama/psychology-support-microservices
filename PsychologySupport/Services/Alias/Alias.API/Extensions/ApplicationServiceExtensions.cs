@@ -177,6 +177,19 @@ public static class ApplicationServiceExtensions
                 };
                 return handler;
             });
+        
+        services.AddGrpcClient<AIModeration.API.Protos.ModerationService.ModerationServiceClient>(options =>
+            {
+                options.Address = new Uri(config["GrpcSettings:ModerationUrl"]!);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                return handler;
+            });
     }
 
     private static string? GetConnectionString(IConfiguration config)

@@ -1,0 +1,26 @@
+﻿syntax = "proto3";
+
+package aimoderation;
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AIModeration.API.Protos";
+
+// Service for AI-based content moderation
+service ModerationService {
+  // Validates an alias label for appropriateness
+  rpc ValidateAliasLabel (ValidateAliasLabelRequest) returns (ValidateAliasLabelResponse);
+}
+
+// Request to validate an alias label
+message ValidateAliasLabelRequest {
+  string label = 1;
+}
+
+// Response with validation result
+message ValidateAliasLabelResponse {
+  bool is_valid = 1;
+  repeated string reasons = 2;
+  string policy_version = 3;
+  google.protobuf.Timestamp evaluated_at = 4;
+}

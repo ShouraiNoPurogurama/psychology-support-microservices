@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 using AIModeration.API.Data;
+using AIModeration.API.Shared.ServiceContracts;
+using AIModeration.API.Shared.Services;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Filters;
@@ -42,6 +44,8 @@ public static class ApplicationServiceExtensions
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "aimoderation");
 
         services.AddHttpContextAccessor();
+        
+        services.AddHttpClient();
 
         return services;
     }
@@ -58,10 +62,9 @@ public static class ApplicationServiceExtensions
 
     private static IServiceCollection AddAIServices(this IServiceCollection services)
     {
-        // services.AddScoped<IContextBuilder, ChatContextBuilder>();
-        // services.AddScoped<IAIProvider, GeminiProvider>();
-        // services.AddSingleton<ISessionConcurrencyManager, SessionConcurrencyManager>();
-        // services.AddScoped<IMessageProcessor, MessageProcessor>();
+        services.AddScoped<Shared.Services.IContentModerationService, Shared.Services.ContentModerationService>();
+        
+        services.AddGrpc();
 
         return services;
     }
@@ -134,6 +137,7 @@ public static class ApplicationServiceExtensions
         // services.AddScoped<SummarizationService>();
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        services.AddScoped<IGeminiClient, GeminiClient>();
         services.AddScoped<LoggingActionFilter>();
     }
 

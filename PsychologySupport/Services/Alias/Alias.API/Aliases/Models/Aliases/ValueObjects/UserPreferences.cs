@@ -2,11 +2,11 @@ using Alias.API.Aliases.Models.Aliases.Enums;
 
 namespace Alias.API.Aliases.Models.Aliases.ValueObjects;
 
-public sealed record UserPreferences
+public sealed class UserPreferences
 {
-    public PreferenceTheme Theme { get; private init; } = PreferenceTheme.Light;
-    public PreferenceLanguage Language { get; private init; } = PreferenceLanguage.EN;
-    public bool NotificationsEnabled { get; private init; } = true;
+    public PreferenceTheme Theme { get; private set; } = PreferenceTheme.Light;
+    public PreferenceLanguage Language { get; private set; } = PreferenceLanguage.EN;
+    public bool NotificationsEnabled { get; private set; } = true;
 
     private UserPreferences()
     {
@@ -35,40 +35,22 @@ public sealed record UserPreferences
             notificationsEnabled: notificationsEnabled);
     }
 
-    public UserPreferences UpdateTheme(PreferenceTheme newTheme)
+    public void Update(
+        PreferenceTheme? theme = null,
+        PreferenceLanguage? language = null,
+        bool? notificationsEnabled = null)
     {
-        return this with { Theme = newTheme };
+        if (theme.HasValue) Theme = theme.Value;
+        if (language.HasValue) Language = language.Value;
+        if (notificationsEnabled.HasValue) NotificationsEnabled = notificationsEnabled.Value;
     }
+    
+    public override bool Equals(object? obj) =>
+        obj is UserPreferences other &&
+        Theme == other.Theme &&
+        Language == other.Language &&
+        NotificationsEnabled == other.NotificationsEnabled;
 
-    public UserPreferences UpdateLanguage(PreferenceLanguage newLanguage)
-    {
-        return this with { Language = newLanguage };
-    }
-
-    public UserPreferences UpdateNotificationsEnabled(bool enabled)
-    {
-        return this with { NotificationsEnabled = enabled };
-    }
-
-    public UserPreferences Update(PreferenceTheme? theme = null, PreferenceLanguage? language = null, bool? notificationsEnabled = null)
-    {
-        var updatedPreferences = this;
-
-        if (theme.HasValue)
-        {
-            updatedPreferences = updatedPreferences.UpdateTheme(theme.Value);
-        }
-
-        if (language.HasValue)
-        {
-            updatedPreferences = updatedPreferences.UpdateLanguage(language.Value);
-        }
-
-        if (notificationsEnabled.HasValue)
-        {
-            updatedPreferences = updatedPreferences.UpdateNotificationsEnabled(notificationsEnabled.Value);
-        }
-
-        return updatedPreferences;
-    }
+    public override int GetHashCode() =>
+        HashCode.Combine(Theme, Language, NotificationsEnabled);
 }

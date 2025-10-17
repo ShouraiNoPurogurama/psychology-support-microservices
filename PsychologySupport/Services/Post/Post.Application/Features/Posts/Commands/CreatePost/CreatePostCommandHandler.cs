@@ -35,8 +35,8 @@ public sealed class CreatePostCommandHandler(
             request.Visibility
         );
 
-        //Bypass moderation for now
-        post.FinalizePost();
+        // Moderation will be handled by AIModeration service via integration events
+        // Post status remains in Creating/Pending state until moderation completes
 
         await AttachEmotionTagToPost(request, cancellationToken, aliasId, post);
 
@@ -52,17 +52,17 @@ public sealed class CreatePostCommandHandler(
         }
 
         //Bypass moderation, auto-publish if possible
-        if (post.CanBePublished)
-        {
-            post.ChangeVisibility(PostVisibility.Public, editorAliasId: post.Author.AliasId);
-            await outboxWriter.WriteAsync(new PostApprovedIntegrationEvent(post.Id, aliasId, SystemActors.SystemUUID, DateTimeOffset.UtcNow), cancellationToken);
-        }
+        // if (post.CanBePublished)
+        // {
+        //     post.ChangeVisibility(PostVisibility.Public, editorAliasId: post.Author.AliasId);
+        //     await outboxWriter.WriteAsync(new PostApprovedIntegrationEvent(post.Id, aliasId, SystemActors.SystemUUID, DateTimeOffset.UtcNow), cancellationToken);
+        // }
 
         context.Posts.Add(post);
 
         // Outbox post-created (with follower count) BEFORE saving
         var followerCount = await followerCountProvider.GetFollowerCountAsync(aliasId, cancellationToken);
-        await outboxWriter.WriteAsync(new PostCreatedIntegrationEvent(post.Id, aliasId, post.CreatedAt, followerCount), cancellationToken);
+        await outboxWriter.WriteAsync(new PostCreatedIntegrationEvent(post.Id, aliasId, post.CreatedAt, post.Content.Title, post.Content.Value), cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
 

@@ -3,6 +3,7 @@ using Alias.API.Aliases.Models.Aliases.Enums;
 using Alias.API.Aliases.Utils;
 using Alias.API.Common.Authentication;
 using Alias.API.Data.Public;
+using AIModeration.API.Protos;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Alias;
@@ -22,6 +23,7 @@ public record RenameAliasResult(
 
 public class RenameAliasHandler(
     AliasDbContext dbContext,
+    ModerationService.ModerationServiceClient moderationClient,
     IPublishEndpoint publishEndpoint,
     ILogger<RenameAliasHandler> logger,
     ICurrentActorAccessor currentActorAccessor)
@@ -33,6 +35,16 @@ public class RenameAliasHandler(
 
         if (aliasId == Guid.Empty)
             throw new AliasNotFoundException("Không tìm thấy hồ sơ người dùng để đổi tên.");
+
+        // Validate alias label with AIModeration service
+        var moderationRequest = new ValidateAliasLabelRequest { Label = command.NewLabel };
+        var moderationResult = await moderationClient.ValidateAliasLabelAsync(moderationRequest, cancellationToken: cancellationToken);
+        
+        if (!moderationResult.IsValid)
+        {
+            var reasons = string.Join(", ", moderationResult.Reasons);
+            throw new AliasConflictException($"Label không hợp lệ: {reasons}");
+        }
 
         // Check for label uniqueness
         var normalizedUniqueKey = AliasNormalizerUtils.ToUniqueKey(command.NewLabel);

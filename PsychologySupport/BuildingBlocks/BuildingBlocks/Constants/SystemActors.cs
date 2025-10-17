@@ -7,4 +7,8 @@ public static class SystemActors
     /// such as auto-approval, system jobs, or bypass operations.
     /// </summary>
     public static readonly Guid SystemUUID = new Guid("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF");
+    
+    public static readonly Guid SystemModeratorUUID = new Guid("00000000-0000-0000-0000-000000000001");
+    
+    
 }

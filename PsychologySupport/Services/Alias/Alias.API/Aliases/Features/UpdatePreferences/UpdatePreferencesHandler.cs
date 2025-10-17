@@ -64,7 +64,7 @@ public class UpdatePreferencesHandler(
             theme: command.Theme,
             language: command.Language,
             notificationsEnabled: command.NotificationsEnabled);
-
+        
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var preferencesDto = new UserPreferencesDto(
