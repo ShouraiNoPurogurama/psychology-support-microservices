@@ -148,6 +148,7 @@ jobs:
           else
             for f in "${CHANGED_FILES[@]}"; do
               case "$f" in
+                Services/AIModeration/AIModeration.API/*|PsychologySupport/Services/AIModeration/AIModeration.API/*)   add_svc "aimoderation.api" ;;
                 Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*)                     add_svc "alias.api" ;;
                 Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*)                         add_svc "auth.api" ;;
                 Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*)             add_svc "chatbox.api" ;;
@@ -209,6 +210,7 @@ jobs:
           SVC="${{ matrix.service }}"
 
           case "$SVC" in
+            aimoderation.api) CANDS=( "Services/AIModeration/AIModeration.API/Dockerfile" "PsychologySupport/Services/AIModeration/AIModeration.API/Dockerfile" ) ;;
             alias.api)        CANDS=( "Services/Alias/Alias.API/Dockerfile" "PsychologySupport/Services/Alias/Alias.API/Dockerfile" ) ;;
             auth.api)         CANDS=( "Services/Auth/Auth.API/Dockerfile" "PsychologySupport/Services/Auth/Auth.API/Dockerfile" ) ;;
             chatbox.api)      CANDS=( "Services/ChatBox/ChatBox.API/Dockerfile" "PsychologySupport/Services/ChatBox/ChatBox.API/Dockerfile" ) ;;
