@@ -1,9 +1,10 @@
 ﻿using Carter;
 using DigitalGoods.API.Dtos;
+using DigitalGoods.API.Features.EmotionTags.GetEmotionTag;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace DigitalGoods.API.Features.EmotionTags.GetEmotionTag;
+namespace DigitalGoods.API.Domain.EmotionTags.Features.GetEmotionTag;
 
 public record GetEmotionTagsByTopicRequest(
     Guid SubjectRef

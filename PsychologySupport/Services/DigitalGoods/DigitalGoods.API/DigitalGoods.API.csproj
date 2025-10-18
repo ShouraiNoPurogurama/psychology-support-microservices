@@ -45,4 +45,8 @@
 			<Link>Protos\translation.proto</Link>
 		</Protobuf>
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Domain\Inventories\EventHandlers\" />
+	  <Folder Include="Domain\Inventories\Features\" />
+	</ItemGroup>
 </Project>

@@ -1,9 +1,10 @@
 ﻿using Carter;
 using DigitalGoods.API.Dtos;
 using DigitalGoods.API.Enums;
+using DigitalGoods.API.Features.DigitalGoods.GetDigitalGood;
 using MediatR;
 
-namespace DigitalGoods.API.Features.DigitalGoods.GetDigitalGood;
+namespace DigitalGoods.API.Domain.DigitalGoods.Features.GetDigitalGood;
 
 public record GetDigitalGoodsRequest(Guid SubjectRef, DigitalGoodType? Type = null);
 

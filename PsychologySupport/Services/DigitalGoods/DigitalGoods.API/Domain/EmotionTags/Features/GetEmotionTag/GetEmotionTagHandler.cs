@@ -9,7 +9,7 @@ using Translation.API.Protos;
 using MassTransit;
 using DigitalGoods.API.Extensions;
 
-namespace DigitalGoods.API.Features.EmotionTags.GetEmotionTag;
+namespace DigitalGoods.API.Domain.EmotionTags.Features.GetEmotionTag;
 
 public record GetEmotionTagsByTopicQuery(Guid SubjectRef) : IQuery<GetEmotionTagsByTopicResult>;
 

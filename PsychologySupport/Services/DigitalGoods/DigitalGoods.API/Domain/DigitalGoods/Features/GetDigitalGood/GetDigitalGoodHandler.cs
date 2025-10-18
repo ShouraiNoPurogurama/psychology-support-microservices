@@ -9,7 +9,7 @@ using Translation.API.Protos;
 using MassTransit;
 using DigitalGoods.API.Extensions;
 
-namespace DigitalGoods.API.Features.DigitalGoods.GetDigitalGood;
+namespace DigitalGoods.API.Domain.DigitalGoods.Features.GetDigitalGood;
 
 public record GetDigitalGoodsQuery(Guid SubjectRef, DigitalGoodType? TypeFilter = null) : IQuery<GetDigitalGoodsResult>;
 

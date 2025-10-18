@@ -7,7 +7,7 @@ using DigitalGoods.API.Models;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
-namespace DigitalGoods.API.Features.EmotionTags.CreateEmotionTag;
+namespace DigitalGoods.API.Domain.EmotionTags.Features.CreateEmotionTag;
 
 // Request/Response
 public record CreateEmotionTagRequest(

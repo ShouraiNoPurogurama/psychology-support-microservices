@@ -4,7 +4,7 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DigitalGoods.API.Features.EmotionTags.CreateEmotionTag;
+namespace DigitalGoods.API.Domain.EmotionTags.Features.CreateEmotionTag;
 
 public class CreateEmotionTagEndpoint : ICarterModule
 {
