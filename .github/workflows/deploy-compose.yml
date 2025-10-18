@@ -107,6 +107,7 @@ jobs:
               else
                 for f in "${CHANGED_FILES[@]}"; do
                   case "$f" in
+                    Services/AIModeration/AIModeration.API/*|PsychologySupport/Services/AIModeration/AIModeration.API/*)     add_svc "aimoderation.api" ;;
                     Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*)                     add_svc "alias.api" ;;
                     Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*)                         add_svc "auth.api" ;;
                     Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*)             add_svc "chatbox.api" ;;
