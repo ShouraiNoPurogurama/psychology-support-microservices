@@ -38,7 +38,6 @@ public sealed class CommentCreatedEventHandler : INotificationHandler<CommentCre
         if (post.Author.AliasId == notification.AuthorAliasId)
             return;
 
-        // Get comment author display name
         var authorAlias = await _queryContext.AliasVersionReplica
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.AliasId == notification.AuthorAliasId, cancellationToken);
@@ -57,7 +56,6 @@ public sealed class CommentCreatedEventHandler : INotificationHandler<CommentCre
             }
         }
 
-        // Publish integration event for notification
         var integrationEvent = new CommentCreatedIntegrationEvent(
             CommentId: notification.CommentId,
             PostId: notification.PostId,
