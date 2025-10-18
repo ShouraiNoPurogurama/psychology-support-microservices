@@ -44,6 +44,10 @@ service PiiService {
   // Tra user_id từ patient_id
   rpc ResolveUserIdByPatientId (ResolveUserIdByPatientIdRequest)
     returns (ResolveUserIdByPatientIdResponse);
+    
+   // Tra thông tin cá nhân (email, subject_ref) từ patient_id
+  rpc ResolvePersonInfoByPatientId (ResolvePersonInfoByPatientIdRequest)
+      returns (ResolvePersonInfoByPatientIdResponse);
 
 }
 
@@ -115,6 +119,16 @@ message ResolveUserIdByPatientIdRequest {
 
 message ResolveUserIdByPatientIdResponse {
   string user_id = 1; // UUID string; empty nếu không tìm thấy
+}
+
+//----- PersonInfo theo PatientId -----
+message ResolvePersonInfoByPatientIdRequest {
+  string patient_id = 1; //UUID string
+}
+
+message ResolvePersonInfoByPatientIdResponse {
+  string subject_ref = 1; //UUID string
+  string email = 2; //email của person profile
 }
 
 

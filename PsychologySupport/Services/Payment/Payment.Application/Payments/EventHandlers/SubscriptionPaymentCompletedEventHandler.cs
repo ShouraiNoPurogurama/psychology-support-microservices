@@ -18,10 +18,10 @@ public class SubscriptionPaymentCompletedEventHandler(
         logger.LogInformation("*** Handling SubscriptionPaymentDetailCompletedEvent for SubscriptionId: {SubscriptionId}",
             notification.SubscriptionId);
 
-        var activateSubscriptionEvent = new SubscriptionPaymentSuccessIntegrationEvent(notification.SubscriptionId);
+        var activateSubscriptionEvent = new SubscriptionPaymentSuccessIntegrationEvent(notification.SubjectRef,notification.SubscriptionId);
         
         //TODO PRM
-        var generateScheduleEvent = new SchedulePaymentSuccessIntegrationEvent(notification.PatientId);
+        //var generateScheduleEvent = new SchedulePaymentSuccessIntegrationEvent(notification.PatientId);
 
         var sendEmailEvent = new SendEmailIntegrationEvent(notification.PatientEmail,  "Gói đăng ký đã được kích hoạt",
             "Gói đăng ký của bạn đã được kích hoạt thành công.");
@@ -41,7 +41,7 @@ public class SubscriptionPaymentCompletedEventHandler(
         }
 
         await publishEndpoint.Publish(activateSubscriptionEvent, cancellationToken);
-        await publishEndpoint.Publish(generateScheduleEvent, cancellationToken);
+        //await publishEndpoint.Publish(generateScheduleEvent, cancellationToken);
         await publishEndpoint.Publish(sendEmailEvent, cancellationToken);
     }
 }

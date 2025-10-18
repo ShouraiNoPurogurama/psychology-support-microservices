@@ -10,6 +10,6 @@ public class SubscriptionPaymentSuccessIntegrationEventHandler(ISender sender) :
 {
     public async Task Consume(ConsumeContext<SubscriptionPaymentSuccessIntegrationEvent> context)
     {
-        await sender.Send(new UpdateUserSubscriptionStatusCommand(context.Message.SubscriptionId, SubscriptionStatus.Active));
+        await sender.Send(new UpdateUserSubscriptionStatusCommand(context.Message.SubjectRef,context.Message.SubscriptionId, SubscriptionStatus.Active));
     }
 }

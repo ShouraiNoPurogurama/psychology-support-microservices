@@ -145,4 +145,42 @@ public class PiiService(PiiDbContext piiDbContext, ISender sender, ILogger<PiiSe
     {
         return base.ResolvePatientIdByAliasId(request, context);
     }
+
+    public override async Task<ResolvePersonInfoByPatientIdResponse> ResolvePersonInfoByPatientId(
+    ResolvePersonInfoByPatientIdRequest request, ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.PatientId, out var patientId))
+        {
+            return new ResolvePersonInfoByPatientIdResponse
+            {
+                SubjectRef = Guid.Empty.ToString(),
+                Email = string.Empty
+            };
+        }
+
+        // Join PatientOwnerMap -> PersonProfile
+        var result = await (
+            from pom in piiDbContext.PatientOwnerMaps.AsNoTracking()
+            join pp in piiDbContext.PersonProfiles.AsNoTracking()
+                on pom.SubjectRef equals pp.SubjectRef
+            where pom.PatientProfileId == patientId
+            select new
+            {
+                pp.SubjectRef,
+                pp.ContactInfo.Email
+            }
+        ).FirstOrDefaultAsync(context.CancellationToken);
+
+        if (result is null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "No profile found for this patientId"));
+        }
+
+        return new ResolvePersonInfoByPatientIdResponse
+        {
+            SubjectRef = result.SubjectRef.ToString(),
+            Email = result.Email ?? string.Empty
+        };
+    }
+
 }

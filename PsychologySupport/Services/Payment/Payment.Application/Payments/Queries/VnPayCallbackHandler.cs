@@ -21,6 +21,7 @@ public class VnPayCallbackHandler(IPaymentDbContext dbContext)
     {
         var orderInfo = HttpUtility.UrlDecode(request.VnPayCallback.OrderInfo);
         var parameters = HttpUtility.ParseQueryString(orderInfo!);
+        var subjectRef = new Guid(); // tạm thời để k lỗi sửa sau
 
         Enum.TryParse(parameters[nameof(BuySubscriptionDto.PaymentMethod)], true, out PaymentMethodName paymentMethodName);
 
@@ -67,7 +68,7 @@ public class VnPayCallbackHandler(IPaymentDbContext dbContext)
                             PaymentDetail.Of(finalPrice, request.VnPayCallback.TransactionCode).MarkAsSuccess()
                         );
 
-                        payment.MarkAsCompleted(patientEmail!);
+                        payment.MarkAsCompleted(subjectRef,patientEmail!);
 
                         await dbContext.SaveChangesAsync(cancellationToken);
                         break;
@@ -80,7 +81,7 @@ public class VnPayCallbackHandler(IPaymentDbContext dbContext)
                             PaymentDetail.Of(finalPrice, request.VnPayCallback.TransactionCode).MarkAsSuccess()
                         );
 
-                        payment.MarkAsCompleted(patientEmail!);
+                        payment.MarkAsCompleted(subjectRef,patientEmail!);
 
                         await dbContext.SaveChangesAsync(cancellationToken);
                         break;
@@ -95,7 +96,7 @@ public class VnPayCallbackHandler(IPaymentDbContext dbContext)
                             PaymentDetail.Of(finalPrice, request.VnPayCallback.TransactionCode).MarkAsSuccess()
                             );
                         
-                        payment.MarkAsCompleted(patientEmail!);
+                        payment.MarkAsCompleted(subjectRef,patientEmail!);
                         await dbContext.SaveChangesAsync(cancellationToken);
                         break;
                 }
@@ -113,7 +114,7 @@ public class VnPayCallbackHandler(IPaymentDbContext dbContext)
                 var paymentDetail = PaymentDetail.Of(finalPrice, request.VnPayCallback.TransactionCode);
 
                 payment.AddFailedPaymentDetail(
-                    paymentDetail, patientEmail!, promoCode, giftCodeId
+                    subjectRef,paymentDetail, patientEmail!, promoCode, giftCodeId
                 );
 
                 await dbContext.SaveChangesAsync(cancellationToken);
