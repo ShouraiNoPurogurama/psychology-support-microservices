@@ -8,6 +8,7 @@ public record ReactionAddedIntegrationEvent(
     Guid ReactorAliasId,
     string ReactorLabel,
     string ReactionCode,
+    string CommentSnippet,
     DateTimeOffset ReactedAt
 ) : IntegrationEvent;
 

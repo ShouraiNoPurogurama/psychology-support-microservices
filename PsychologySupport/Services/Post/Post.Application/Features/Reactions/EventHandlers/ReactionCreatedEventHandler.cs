@@ -1,4 +1,5 @@
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
+using BuildingBlocks.Utils;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Integration;
@@ -27,6 +28,7 @@ public sealed class ReactionCreatedEventHandler : INotificationHandler<ReactionC
     public async Task Handle(ReactionCreatedEvent notification, CancellationToken cancellationToken)
     {
         Guid targetAuthorAliasId;
+        string commentSnippet = "";
         string targetType = notification.TargetType.ToString().ToLower();
 
         // Get target author based on target type
@@ -51,6 +53,7 @@ public sealed class ReactionCreatedEventHandler : INotificationHandler<ReactionC
                 return;
 
             targetAuthorAliasId = comment.Author.AliasId;
+            commentSnippet = StringUtils.GetSnippet(comment.Content.Value, 25);
         }
         else
         {
@@ -75,7 +78,8 @@ public sealed class ReactionCreatedEventHandler : INotificationHandler<ReactionC
             ReactorAliasId: notification.ReactorAliasId,
             ReactorLabel: reactorAlias?.Label ?? "Anonymous",
             ReactionCode: notification.ReactionCode,
-            ReactedAt: DateTimeOffset.UtcNow
+            ReactedAt: DateTimeOffset.UtcNow,
+            CommentSnippet: commentSnippet
         );
 
         await _outboxWriter.WriteAsync(integrationEvent, cancellationToken);

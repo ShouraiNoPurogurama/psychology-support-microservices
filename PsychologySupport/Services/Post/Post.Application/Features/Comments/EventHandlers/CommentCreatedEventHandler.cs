@@ -1,4 +1,5 @@
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
+using BuildingBlocks.Utils;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Integration;
@@ -42,10 +43,7 @@ public sealed class CommentCreatedEventHandler : INotificationHandler<CommentCre
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.AliasId == notification.AuthorAliasId, cancellationToken);
 
-        var commentSnippet = notification.CommentContent.Length > 100
-            ? notification.CommentContent.Substring(0, 100) + "..."
-            : notification.CommentContent;
-
+        var commentSnippet = StringUtils.GetSnippet(notification.CommentContent, 25);
         Guid? parentCommentAuthorId = null;
         if (notification.ParentCommentId.HasValue)
         {

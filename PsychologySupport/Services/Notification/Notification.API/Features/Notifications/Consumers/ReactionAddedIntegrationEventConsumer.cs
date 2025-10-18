@@ -59,13 +59,19 @@ public class ReactionAddedIntegrationEventConsumer : IConsumer<ReactionAddedInte
         var source = new NotificationSource
         {
             ReactionId = msg.ReactionId,
-            Snippet = $"reacted with {msg.ReactionCode}" // en-US; nếu muốn VN: $"Đã bày tỏ cảm xúc {msg.ReactionCode}"
+            Snippet = $"Đã bày tỏ cảm xúc về" 
         };
 
         if (msg.TargetType.Equals("post", StringComparison.OrdinalIgnoreCase))
+        {
             source.PostId = msg.TargetId;
+            source.Snippet += " bài viết của bạn.";
+        }
         else if (msg.TargetType.Equals("comment", StringComparison.OrdinalIgnoreCase))
+        {
             source.CommentId = msg.TargetId;
+            source.Snippet += $" bình luận của bạn: {msg.CommentSnippet}.";
+        }
 
         //Grouping key để tránh flood
         var groupingKey = $"reaction:{msg.TargetType}:{msg.TargetId}";
