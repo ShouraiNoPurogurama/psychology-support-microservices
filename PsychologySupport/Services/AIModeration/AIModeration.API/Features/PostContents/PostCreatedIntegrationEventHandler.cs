@@ -46,10 +46,13 @@ public class PostCreatedIntegrationEventHandler : IConsumer<PostCreatedIntegrati
             // Publish the moderation result event
             var resultEvent = new PostModerationEvaluatedIntegrationEvent(
                 moderationResult.PostId,
+                message.AuthorAliasId,   
                 moderationResult.Status,
                 moderationResult.Reasons,
                 moderationResult.PolicyVersion,
-                moderationResult.EvaluatedAt);
+                moderationResult.EvaluatedAt,
+                message.CreatedAt   
+            );
 
             await _publishEndpoint.Publish(resultEvent, context.CancellationToken);
 

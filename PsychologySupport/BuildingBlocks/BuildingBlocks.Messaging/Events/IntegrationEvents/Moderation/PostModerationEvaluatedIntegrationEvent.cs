@@ -5,8 +5,10 @@ namespace BuildingBlocks.Messaging.Events.IntegrationEvents.Moderation;
 /// </summary>
 public record PostModerationEvaluatedIntegrationEvent(
     Guid PostId,
+    Guid AuthorAliasId,
     string Status, // Approved, Rejected, Flagged
     List<string> Reasons,
     string PolicyVersion,
-    DateTimeOffset EvaluatedAt
+    DateTimeOffset EvaluatedAt,
+    DateTimeOffset PostCreatedAt
 ) : IntegrationEvent;

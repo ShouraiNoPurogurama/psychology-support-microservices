@@ -71,7 +71,7 @@ public class CommentCreatedIntegrationEventConsumer : IConsumer<CommentCreatedIn
             {
                 PostId = msg.PostId,
                 CommentId = msg.CommentId,
-                Snippet = isReply ? $"Đã trả lời bình luận của bạn: {msg.CommentSnippet}." : $"Đã bình luận về bài viết của bạn {msg.CommentSnippet}."
+                Snippet = isReply ? $"Đã trả lời bình luận của bạn: {msg.CommentSnippet}." : $"Đã bình luận về bài viết của bạn: {msg.CommentSnippet}."
             };
             
             // Merge nếu trong 30s đã có 1 notif cùng groupingKey
