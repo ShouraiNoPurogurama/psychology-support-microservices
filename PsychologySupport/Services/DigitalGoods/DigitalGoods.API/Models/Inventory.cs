@@ -31,11 +31,12 @@ public partial class Inventory : Entity<Guid>
 
     private Inventory() { }
 
-    public static Inventory Create(Guid subjectRef, Guid digitalGoodId, int quantity, Guid createdBy)
+    public static Inventory Create(Guid subjectRef, Guid digitalGoodId, int quantity,
+        DateTimeOffset grantedAt, DateTimeOffset expiredAt)
     {
         if (quantity <= 0) throw new ArgumentException("Quantity must be positive.", nameof(quantity));
 
-        var now = DateTimeOffset.UtcNow.AddHours(7);
+        var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7));
         return new Inventory
         {
             Id = Guid.NewGuid(),
@@ -43,12 +44,12 @@ public partial class Inventory : Entity<Guid>
             DigitalGoodId = digitalGoodId,
             Quantity = quantity,
             Status = InventoryStatus.Active,
-            GrantedAt = now,
-            ExpiredAt = null,
+            GrantedAt = grantedAt,
+            ExpiredAt = expiredAt,
             CreatedAt = now,
-            CreatedBy = createdBy,
+            CreatedBy = subjectRef,
             LastModified = now,
-            LastModifiedBy = createdBy
+            LastModifiedBy = subjectRef
         };
     }
 

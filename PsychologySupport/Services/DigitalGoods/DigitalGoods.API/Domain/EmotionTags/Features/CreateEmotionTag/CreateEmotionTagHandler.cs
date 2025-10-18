@@ -9,31 +9,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DigitalGoods.API.Domain.EmotionTags.Features.CreateEmotionTag;
 
-// Request/Response
-public record CreateEmotionTagRequest(
-    string Code,
-    string DisplayName,
-    string? UnicodeCodepoint,
-    string? Topic,
-    int SortOrder,
-    bool IsActive,
-    EmotionTagScope Scope,
-    Guid? MediaId
-);
-
-public record CreateEmotionTagResponse(
-    Guid EmotionTagId,
-    string Code,
-    string DisplayName,
-    string? UnicodeCodepoint,
-    string? Topic,
-    int SortOrder,
-    bool IsActive,
-    EmotionTagScope Scope,
-    Guid? MediaId
-);
-
-// Command
 public record CreateEmotionTagCommand(
     Guid IdempotencyKey,
     string Code,

@@ -64,7 +64,11 @@ public class UpdateUserSubscriptionStatusHandler : ICommandHandler<UpdateUserSub
                 existingSubscription.ServicePackage.Name
             );
 
-            var inventoryCreatedIntegrationEvent = new InventoryCreatedIntegrationEvent(request.SubjectRef);
+            var inventoryCreatedIntegrationEvent = new InventoryCreatedIntegrationEvent(
+                request.SubjectRef,
+                existingSubscription.StartDate,
+                existingSubscription.EndDate
+            );
 
 
             await _publishEndpoint.Publish(userSubscriptionActivatedIntegrationEvent, cancellationToken);

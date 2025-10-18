@@ -6,9 +6,9 @@ public abstract class AuditableEntity<T> : IEntity<T>, IHasCreationAudit, IHasMo
 {
     [Key]
     public T Id { get; set; }
-    
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
-    
+
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7));
+
     public string? CreatedBy { get; set; }
     
     public DateTimeOffset? LastModified { get; set; }
