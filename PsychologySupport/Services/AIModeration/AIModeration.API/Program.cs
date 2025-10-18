@@ -21,9 +21,9 @@ app.UseCors("CorsPolicy");
 
 app.UseSwagger();
 if (app.Environment.IsDevelopment())
-{
+{ 
     app.InitializeDatabaseAsync();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(); 
 }
 else
 {
