@@ -166,15 +166,12 @@ public class GeminiClient(
                         // Cập nhật enum theo prompt kiểm duyệt tên người dùng
                         @enum = new[]
                         {
-                            "HATE_SPEECH",
-                            "VIOLENCE_THREATS",
-                            "SEXUALLY_EXPLICIT",
-                            "HARASSMENT_BULLYING",
+                            "HATE_AND_HARASSMENT",
                             "PROMOTES_SELF_HARM",
-                            "SPAM_PROMOTION",
-                            "ILLEGAL_ACTIVITIES",
-                            "IMPERSONATION",
-                            "PERSONAL_INFORMATION"
+                            "NEGATIVE_SELF_TALK",
+                            "ILLEGAL_OR_EXPLICIT",
+                            "SPAM_IMPERSONATION_PII",
+                            "GENERAL_NEGATIVITY"
                         }
                     }
                 },
@@ -218,6 +215,7 @@ public class GeminiClient(
         };
 
         var content = new StringContent(JsonConvert.SerializeObject(payload, settings), Encoding.UTF8, "application/json");
+        
         var response = await httpClient.PostAsync(url, content);
         var result = await response.Content.ReadAsStringAsync();
 
