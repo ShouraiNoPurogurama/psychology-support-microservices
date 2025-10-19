@@ -6,7 +6,9 @@ public class ServicePackage : AggregateRoot<Guid>
 {
     public string Name { get; private set; } = default!;
     public string Description { get; private set; } = default!;
-    public decimal Price { get; private set; }
+    public decimal Price { get; private set; }             // Giá ưu đãi
+    public decimal OriginalPrice { get; private set; }     // Giá gốc
+    public string? DiscountLabel { get; private set; }     // Nhãn giảm giá: "Giảm 22%"
     public int DurationDays { get; private set; }
     public Guid ImageId { get; private set; }
     public bool IsActive { get; private set; } = true;

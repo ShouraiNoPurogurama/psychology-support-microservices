@@ -38,6 +38,8 @@ public class GetServicePackageHandler : IQueryHandler<GetServicePackageQuery, Ge
             servicePackage.Name,
             servicePackage.Description,
             servicePackage.Price,
+            servicePackage.OriginalPrice,
+            servicePackage.DiscountLabel,
             servicePackage.DurationDays,
             servicePackage.ImageId,
             servicePackage.IsActive
