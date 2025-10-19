@@ -62,9 +62,11 @@ public static class ApplicationServiceExtensions
 
     private static IServiceCollection AddAIServices(this IServiceCollection services)
     {
-        services.AddScoped<Shared.Services.IContentModerationService, Shared.Services.ContentModerationService>();
+        services.AddScoped<IContentModerationService, ContentModerationService>();
         
         services.AddGrpc();
+        
+        services.AddGrpcReflection();
 
         return services;
     }

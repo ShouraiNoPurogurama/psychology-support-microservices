@@ -1,4 +1,5 @@
 using AIModeration.API.Extensions;
+using AIModeration.API.Features.Aliases;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using HealthChecks.UI.Client;
@@ -37,11 +38,12 @@ app.UseHealthChecks("/health",
     }
 );
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.MapGrpcService<ModerationGrpcService>();
+app.MapGrpcReflectionService();
 app.MapControllers();
 
-// Map gRPC services
-app.MapGrpcService<AIModeration.API.Features.Aliases.ModerationGrpcService>();
+app.UseAuthentication();
+app.UseAuthorization();
+
 
 app.Run();

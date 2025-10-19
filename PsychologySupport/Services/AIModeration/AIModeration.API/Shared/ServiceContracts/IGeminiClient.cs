@@ -4,5 +4,6 @@ namespace AIModeration.API.Shared.ServiceContracts;
 
 public interface IGeminiClient
 {
-    Task<PostContentModerationResultDto> ModeratePostContentAsync(string postContent);
+    Task<ModerationResultDto> ModeratePostContentAsync(string postContent);
+    Task<ModerationResultDto> ModerateAliasLabelAsync(string aliasLabel);
 }

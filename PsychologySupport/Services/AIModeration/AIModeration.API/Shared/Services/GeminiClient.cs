@@ -13,7 +13,7 @@ public class GeminiClient(
     IHttpClientFactory httpClientFactory,
     IConfiguration config) : IGeminiClient
 {
-    public async Task<PostContentModerationResultDto> ModeratePostContentAsync(string postContent)
+    public async Task<ModerationResultDto> ModeratePostContentAsync(string postContent)
     {
         // 1. Xây dựng prompt chứa nội dung cần kiểm duyệt
         var prompt = BuildModerationPrompt(postContent);
@@ -25,7 +25,7 @@ public class GeminiClient(
         };
 
         // 3. Xây dựng payload hoàn chỉnh với schema cho structured output
-        var payload = BuildGeminiMessagePayload(contentParts);
+        var payload = BuildGeminiPostContentModerationMessagePayload(contentParts);
 
         // 4. Gọi API của Gemini
         var responseText = await CallGeminiAPIAsync(payload);
@@ -33,7 +33,39 @@ public class GeminiClient(
         logger.LogInformation("[Gemini API response]: {ResponseText}", responseText);
 
         // 5. Deserialize chuỗi JSON trả về thành đối tượng DTO
-        var moderationResult = JsonConvert.DeserializeObject<PostContentModerationResultDto>(responseText);
+        var moderationResult = JsonConvert.DeserializeObject<ModerationResultDto>(responseText);
+
+        // 6. Kiểm tra kết quả và trả về
+        if (moderationResult is null)
+        {
+            logger.LogError("Failed to deserialize Gemini API response. Response text: {ResponseText}", responseText);
+            throw new InvalidOperationException("Could not parse the moderation result from the Gemini API.");
+        }
+
+        return moderationResult;
+    }
+
+    public async Task<ModerationResultDto> ModerateAliasLabelAsync(string aliasLabel)
+    {
+        // 1. Xây dựng prompt chứa nội dung cần kiểm duyệt
+        var prompt = BuildModerationPrompt(aliasLabel);
+
+        // 2. Chuẩn bị content cho request
+        var contentParts = new List<GeminiContentDto>
+        {
+            new GeminiContentDto("user", [new GeminiContentPartDto(prompt)])
+        };
+
+        // 3. Xây dựng payload hoàn chỉnh với schema cho structured output
+        var payload = BuildGeminiAliasModerationPayload(contentParts);
+
+        // 4. Gọi API của Gemini
+        var responseText = await CallGeminiAPIAsync(payload);
+
+        logger.LogInformation("[Gemini API response]: {ResponseText}", responseText);
+
+        // 5. Deserialize chuỗi JSON trả về thành đối tượng DTO
+        var moderationResult = JsonConvert.DeserializeObject<ModerationResultDto>(responseText);
 
         // 6. Kiểm tra kết quả và trả về
         if (moderationResult is null)
@@ -53,26 +85,26 @@ public class GeminiClient(
                 """;
     }
 
-    private GeminiRequestDto BuildGeminiMessagePayload(List<GeminiContentDto> contents)
+    private GeminiRequestDto BuildGeminiPostContentModerationMessagePayload(List<GeminiContentDto> contents)
     {
         var responseSchema = new
         {
             type = "object",
             properties = new
             {
-                isViolation = new 
-                { 
-                    type = "boolean", 
-                    description = "Trả về 'true' nếu nội dung vi phạm chính sách, ngược lại 'false'." 
+                isViolation = new
+                {
+                    type = "boolean",
+                    description = "Trả về 'true' nếu nội dung vi phạm chính sách, ngược lại 'false'."
                 },
                 categories = new
                 {
                     type = "array",
                     description = "Một danh sách các loại vi phạm mà nội dung mắc phải. Trả về mảng rỗng nếu không có vi phạm.",
-                    items = new 
-                    { 
+                    items = new
+                    {
                         type = "string",
-                        @enum = new[] 
+                        @enum = new[]
                         {
                             "HATE_SPEECH",
                             "VIOLENCE",
@@ -84,10 +116,10 @@ public class GeminiClient(
                         }
                     }
                 },
-                reason = new 
-                { 
-                    type = "string", 
-                    description = "Giải thích ngắn gọn lý do tại sao nội dung bị phân loại là vi phạm." 
+                reason = new
+                {
+                    type = "string",
+                    description = "Giải thích ngắn gọn lý do tại sao nội dung bị phân loại là vi phạm."
                 },
                 confidenceScore = new
                 {
@@ -100,7 +132,71 @@ public class GeminiClient(
 
         return new GeminiRequestDto(
             Contents: contents,
-            SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto("GeminiConfig:PostModerationSystemInstruction")),
+            SystemInstruction: new GeminiSystemInstructionDto(
+                new GeminiContentPartDto("GeminiConfig:PostModerationSystemInstruction")),
+            GenerationConfig: new GeminiGenerationConfigDto(ResponseSchema: responseSchema)
+        );
+    }
+
+    /// <summary>
+    /// Xây dựng payload yêu cầu cho Gemini API để kiểm duyệt tên người dùng (alias).
+    /// </summary>
+    /// <param name="contents">Nội dung chứa tên người dùng cần kiểm duyệt.</param>
+    /// <returns>Một đối tượng GeminiRequestDto đã được cấu hình.</returns>
+    private GeminiRequestDto BuildGeminiAliasModerationPayload(List<GeminiContentDto> contents)
+    {
+        var responseSchema = new
+        {
+            type = "object",
+            properties = new
+            {
+                isViolation = new
+                {
+                    type = "boolean",
+                    description = "Trả về 'true' nếu tên người dùng vi phạm chính sách, ngược lại 'false'."
+                },
+                categories = new
+                {
+                    type = "array",
+                    description =
+                        "Một danh sách các loại vi phạm mà tên người dùng mắc phải. Trả về mảng rỗng nếu không có vi phạm.",
+                    items = new
+                    {
+                        type = "string",
+                        // Cập nhật enum theo prompt kiểm duyệt tên người dùng
+                        @enum = new[]
+                        {
+                            "HATE_SPEECH",
+                            "VIOLENCE_THREATS",
+                            "SEXUALLY_EXPLICIT",
+                            "HARASSMENT_BULLYING",
+                            "PROMOTES_SELF_HARM",
+                            "SPAM_PROMOTION",
+                            "ILLEGAL_ACTIVITIES",
+                            "IMPERSONATION",
+                            "PERSONAL_INFORMATION"
+                        }
+                    }
+                },
+                reason = new
+                {
+                    type = "string",
+                    description = "Giải thích ngắn gọn lý do tại sao tên người dùng bị phân loại là vi phạm."
+                },
+                confidenceScore = new
+                {
+                    type = "number",
+                    description = "Điểm số từ 0.0 đến 1.0 thể hiện mức độ chắc chắn của quyết định."
+                }
+            },
+            required = new[] { "isViolation", "categories", "reason", "confidenceScore" }
+        };
+
+        return new GeminiRequestDto(
+            Contents: contents,
+            // Sử dụng key instruction mới cho việc kiểm duyệt tên người dùng
+            SystemInstruction: new GeminiSystemInstructionDto(
+                new GeminiContentPartDto("GeminiConfig:AliasLabelSystemInstruction")),
             GenerationConfig: new GeminiGenerationConfigDto(ResponseSchema: responseSchema)
         );
     }

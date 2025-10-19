@@ -43,7 +43,7 @@ public class RenameAliasHandler(
         if (!moderationResult.IsValid)
         {
             var reasons = string.Join(", ", moderationResult.Reasons);
-            throw new AliasConflictException($"Label không hợp lệ: {reasons}");
+            throw new BadRequestException($"Nickname không hợp lệ: {reasons}", "INVALID_ALIAS_LABEL");
         }
 
         // Check for label uniqueness
@@ -53,7 +53,7 @@ public class RenameAliasHandler(
             .AnyAsync(v => v.UniqueKey == normalizedUniqueKey, cancellationToken);
 
         if (labelTaken)
-            throw new AliasConflictException("Label đã được sử dụng.");
+            throw new AliasConflictException("Nickname đã được sử dụng.");
 
         // Load alias aggregate
         var alias = await dbContext.Aliases.Include(alias => alias.Label)
@@ -61,7 +61,7 @@ public class RenameAliasHandler(
                         .Include(a => a.Versions)
                         .Include(a => a.AuditRecords)
                         .FirstOrDefaultAsync(a => a.Id == aliasId && !a.IsDeleted, cancellationToken)
-                    ?? throw new AliasNotFoundException("Không tìm thấy alias để đổi tên.");
+                    ?? throw new AliasNotFoundException("Không tìm thấy hồ sơ người dùng để đổi tên.");
 
         // Use domain aggregate method to update label
         alias.UpdateLabel(command.NewLabel, NicknameSource.Custom);
@@ -82,7 +82,7 @@ public class RenameAliasHandler(
         }
         catch (DbUpdateException ex) when (IsUniqueViolation(ex))
         {
-            throw new AliasConflictException("Label đã được sử dụng.", internalDetail: ex.Message);
+            throw new AliasConflictException("Nickname đã được sử dụng.", internalDetail: ex.Message);
         }
 
         var currentVersion = alias.CurrentVersion!;
