@@ -1,10 +1,33 @@
 ﻿using BuildingBlocks.Exceptions;
 using Carter;
+using DigitalGoods.API.Enums;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DigitalGoods.API.Features.EmotionTags.CreateEmotionTag;
+namespace DigitalGoods.API.Domain.EmotionTags.Features.CreateEmotionTag;
+public record CreateEmotionTagRequest(
+    string Code,
+    string DisplayName,
+    string? UnicodeCodepoint,
+    string? Topic,
+    int SortOrder,
+    bool IsActive,
+    EmotionTagScope Scope,
+    Guid? MediaId
+);
+
+public record CreateEmotionTagResponse(
+    Guid EmotionTagId,
+    string Code,
+    string DisplayName,
+    string? UnicodeCodepoint,
+    string? Topic,
+    int SortOrder,
+    bool IsActive,
+    EmotionTagScope Scope,
+    Guid? MediaId
+);
 
 public class CreateEmotionTagEndpoint : ICarterModule
 {

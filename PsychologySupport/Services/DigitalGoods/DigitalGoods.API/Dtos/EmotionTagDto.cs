@@ -9,6 +9,7 @@
          int SortOrder,
          bool IsActive,
          string Scope,
-         Guid? MediaId
+         string? MediaUrl,
+         bool IsOwnedByUser
      );
 }

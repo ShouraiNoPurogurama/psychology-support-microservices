@@ -33,6 +33,6 @@ public class UpgradeSubscriptionPaymentFailedIntegrationEventHandler(
             });
         }
 
-        await sender.Send(new UpdateUserSubscriptionStatusCommand(message.SubscriptionId, SubscriptionStatus.Cancelled));
+        await sender.Send(new UpdateUserSubscriptionStatusCommand(message.SubjectRef,message.SubscriptionId, SubscriptionStatus.Cancelled));
     }
 }

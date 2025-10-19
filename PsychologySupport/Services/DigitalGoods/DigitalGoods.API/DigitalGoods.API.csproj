@@ -32,9 +32,11 @@
 		<ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
 	</ItemGroup>
 	<ItemGroup>
+		<Protobuf Include="..\..\Profile\Profile.API\Protos\pii.proto" GrpcServices="Client">
+			<Link>Protos\pii.proto</Link>
+		</Protobuf>
 		<Protobuf Include="..\..\Translation\Translation.API\Protos\translation.proto" GrpcServices="Client">
 			<Link>Protos\translation.proto</Link>
 		</Protobuf>
 	</ItemGroup>
-
 </Project>

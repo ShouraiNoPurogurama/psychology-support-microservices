@@ -60,7 +60,8 @@ public class Payment : AggregateRoot<Guid>
             TotalAmount = finalPrice,
             Status = PaymentStatus.Pending,
             PaymentType = paymentType,
-            PaymentMethodId = paymentMethodId
+            PaymentMethodId = paymentMethodId,
+            CreatedBy = patientProfileId.ToString() // sửa lại thành subjectRef
         };
 
         return payment;
@@ -73,7 +74,7 @@ public class Payment : AggregateRoot<Guid>
         _paymentDetails.Add(paymentDetail);
     }
 
-    public void AddFailedPaymentDetail(PaymentDetail paymentDetail, string patientEmail, string? promoCode, Guid? giftId)
+    public void AddFailedPaymentDetail(Guid subjectRef, PaymentDetail paymentDetail, string patientEmail, string? promoCode, Guid? giftId)
     {
         _paymentDetails.Add(paymentDetail.MarkAsFailed());
 
@@ -84,7 +85,7 @@ public class Payment : AggregateRoot<Guid>
             case PaymentType.BuySubscription:
             {
                 var subscriptionPaymentDetailFailedEvent =
-                    new SubscriptionPaymentDetailFailedEvent(SubscriptionId!.Value, patientEmail, promoCode, giftId, TotalAmount);
+                    new SubscriptionPaymentDetailFailedEvent(subjectRef,SubscriptionId!.Value, patientEmail, promoCode, giftId, TotalAmount);
 
                 AddDomainEvent(subscriptionPaymentDetailFailedEvent);
                 break;
@@ -98,7 +99,7 @@ public class Payment : AggregateRoot<Guid>
 
             case PaymentType.UpgradeSubscription:
                 var upgradeSubscriptionPaymentDetailFailedEvent =
-                    new UpgradeSubscriptionPaymentDetailFailedEvent(SubscriptionId!.Value, patientEmail, promoCode, giftId,
+                    new UpgradeSubscriptionPaymentDetailFailedEvent(subjectRef,SubscriptionId!.Value, patientEmail, promoCode, giftId,
                         TotalAmount);
 
                 AddDomainEvent(upgradeSubscriptionPaymentDetailFailedEvent);
@@ -106,7 +107,7 @@ public class Payment : AggregateRoot<Guid>
         }
     }
 
-    public void MarkAsCompleted(string patientEmail)
+    public void MarkAsCompleted(Guid subjectRef, string patientEmail)
     {
         if (_paymentDetails.All(pd => pd.Status == PaymentDetailStatus.Completed))
         {
@@ -118,7 +119,12 @@ public class Payment : AggregateRoot<Guid>
             case PaymentType.BuySubscription:
             {
                 var subscriptionPaymentCompletedEvent = new SubscriptionPaymentDetailCompletedEvent(
-                    PatientProfileId,SubscriptionId!.Value, patientEmail, TotalAmount);
+                    subjectRef,
+                    PatientProfileId, 
+                    SubscriptionId!.Value, 
+                    patientEmail, 
+                    TotalAmount
+                );
 
                 AddDomainEvent(subscriptionPaymentCompletedEvent);
                 break;
@@ -131,7 +137,11 @@ public class Payment : AggregateRoot<Guid>
                 break;
             case PaymentType.UpgradeSubscription:
                 var upgradeSubscriptionPaymentCompletedEvent = new UpgradeSubscriptionPaymentDetailCompletedEvent(
-                    SubscriptionId!.Value, patientEmail, TotalAmount);
+                    subjectRef,
+                    SubscriptionId!.Value,
+                    patientEmail, 
+                    TotalAmount
+                );
                 AddDomainEvent(upgradeSubscriptionPaymentCompletedEvent);
                 break;
             default:

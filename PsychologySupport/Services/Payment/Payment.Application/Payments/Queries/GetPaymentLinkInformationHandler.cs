@@ -4,13 +4,10 @@ using BuildingBlocks.Exceptions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Payment.Application.Data;
-using Mapster;
-using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
 using Payment.Application.ServiceContracts;
-using System.IdentityModel.Tokens.Jwt;
 using BuildingBlocks.Messaging.Events.Queries.Scheduling;
 using BuildingBlocks.Messaging.Events.Queries.Subscription;
+using Pii.API.Protos; 
 
 namespace Payment.Application.Payments.Queries;
 
@@ -22,20 +19,21 @@ public class GetPaymentLinkInformationHandler : IRequestHandler<GetPaymentLinkIn
     private readonly IPaymentDbContext _dbContext;
     private readonly IRequestClient<SubscriptionGetPromoAndGiftRequest> _subscriptionClient;
     private readonly IRequestClient<BookingGetPromoAndGiftRequestEvent> _bookingClient;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly PiiService.PiiServiceClient _piiClient;
 
     public GetPaymentLinkInformationHandler(
         IPayOSService payOSService,
         IPaymentDbContext dbContext,
         IRequestClient<SubscriptionGetPromoAndGiftRequest> subscriptionClient,
         IRequestClient<BookingGetPromoAndGiftRequestEvent> bookingClient,
-        IHttpContextAccessor httpContextAccessor)
+        PiiService.PiiServiceClient piiClient 
+    )
     {
         _payOSService = payOSService;
         _dbContext = dbContext;
         _subscriptionClient = subscriptionClient;
         _bookingClient = bookingClient;
-        _httpContextAccessor = httpContextAccessor;
+        _piiClient = piiClient; 
     }
 
     public async Task<PaymentLinkInformation> Handle(GetPaymentLinkInformationQuery request, CancellationToken cancellationToken)
@@ -69,9 +67,21 @@ public class GetPaymentLinkInformationHandler : IRequestHandler<GetPaymentLinkIn
             var tx = paymentInfo.transactions.FirstOrDefault();
             var amount = paymentInfo.amount;
             var reference = tx?.reference ?? "UNKNOWN";
-            var email = GetEmailFromClaims();
+
+            // Gọi gRPC tới PiiService để lấy subjectRef + email
+            var piiResponse = await _piiClient.ResolvePersonInfoByPatientIdAsync(
+                new ResolvePersonInfoByPatientIdRequest
+                {
+                    PatientId = payment.PatientProfileId.ToString()
+                },
+                cancellationToken: cancellationToken
+            );
+
+            var email = piiResponse.Email;
+            var subjectRef = Guid.Parse(piiResponse.SubjectRef);
 
             payment.AddFailedPaymentDetail(
+                subjectRef,
                 PaymentDetail.Of(amount, reference),
                 email,
                 promotionCode,
@@ -82,20 +92,5 @@ public class GetPaymentLinkInformationHandler : IRequestHandler<GetPaymentLinkIn
         }
 
         return paymentInfo;
-    }
-
-    private string GetEmailFromClaims()
-    {
-        var user = _httpContextAccessor.HttpContext?.User;
-
-        if (user == null || !(user.Identity?.IsAuthenticated ?? false))
-            return "unknown@example.com";
-
-        var email = user.FindFirstValue(ClaimTypes.Email)
-                 ?? user.FindFirstValue("email")
-                 ?? user.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                 ?? user.FindFirstValue(ClaimTypes.Name);
-
-        return string.IsNullOrWhiteSpace(email) ? "unknown@example.com" : email;
     }
 }

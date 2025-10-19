@@ -8,8 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using Promotion.Grpc;
+using Subscription.API.Common.Authentication;
 using Subscription.API.Data;
-using Subscription.API.Services;
 using Translation.API.Protos;
 
 namespace Subscription.API.Extensions;
@@ -145,7 +145,7 @@ public static class ApplicationServiceExtensions
     {
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
-        services.AddScoped<IImageService, ImageService>();
+        services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)

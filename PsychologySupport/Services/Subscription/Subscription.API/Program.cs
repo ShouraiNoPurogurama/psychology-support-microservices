@@ -17,14 +17,22 @@ services.AddApplicationServices(builder.Configuration, builder.Environment);
 // Configure the HTTP request pipeline
 var app = builder.Build();
 
+// Exception handler, CORS, Static files
 app.UseExceptionHandler(options => { });
-
 app.UseCors("CorsPolicy");
-
 app.UseStaticFiles();
 
-app.MapCarter(); 
+// Routing 
+//app.UseRouting();
 
+// Authentication & Authorization 
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Map endpoints / Carter
+app.MapCarter();
+
+// Swagger
 app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
@@ -39,16 +47,10 @@ else
     });
 }
 
-app.UseHealthChecks("/health",
-    new HealthCheckOptions
-    {
-        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-    }
-);
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.UseRouting();
+// Health checks
+app.UseHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 app.Run();

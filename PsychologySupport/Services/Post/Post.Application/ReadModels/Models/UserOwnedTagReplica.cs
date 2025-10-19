@@ -7,4 +7,8 @@ public class UserOwnedTagReplica
     
     public DateTimeOffset LastSyncedAt { get; set; }
 
+    public DateTimeOffset ValidFrom { get; set; }
+
+    public DateTimeOffset ValidTo { get; set; }
+
 }

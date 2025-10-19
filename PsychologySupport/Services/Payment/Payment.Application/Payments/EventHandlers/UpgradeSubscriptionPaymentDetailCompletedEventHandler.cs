@@ -22,7 +22,7 @@ public class UpgradeSubscriptionPaymentDetailCompletedEventHandler(
         logger.LogInformation("*** Handling UpgradeSubscriptionPaymentDetailCompletedEvent for SubscriptionId: {SubscriptionId}",
             notification.SubscriptionId);
 
-        var activateSubscriptionEvent = new UpgradeSubscriptionPaymentSuccessIntegrationEvent(notification.SubscriptionId);
+        var activateSubscriptionEvent = new UpgradeSubscriptionPaymentSuccessIntegrationEvent(notification.SubjectRef, notification.SubscriptionId);
 
         var sendEmailEvent = new SendEmailIntegrationEvent(notification.PatientEmail, "Gói đăng ký đã được kích hoạt",
             "Gói đăng ký của bạn đã được kích hoạt thành công.");

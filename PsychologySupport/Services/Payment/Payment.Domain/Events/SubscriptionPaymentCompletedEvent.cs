@@ -3,6 +3,7 @@
 namespace Payment.Domain.Events;
 
 public record SubscriptionPaymentDetailCompletedEvent(
+    Guid SubjectRef,
     Guid PatientId,
     Guid SubscriptionId,
     string PatientEmail,

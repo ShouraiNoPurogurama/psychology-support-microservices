@@ -10,6 +10,7 @@ using Subscription.API.Exceptions;
 namespace Subscription.API.UserSubscriptions.Features.v2.UpdateSubscriptionStatus;
 
 public record UpdateUserSubscriptionStatusCommand(
+    Guid SubjectRef,
     Guid SubscriptionId,
     SubscriptionStatus Status,
     bool DeactivateOldSubscriptions = false) : ICommand<UpdateUserSubscriptionStatusResult>;
@@ -21,14 +22,11 @@ public class UpdateUserSubscriptionStatusHandler : ICommandHandler<UpdateUserSub
 {
     private readonly SubscriptionDbContext _context;
     private readonly IPublishEndpoint _publishEndpoint;
-    private readonly ICurrentActorAccessor _actorAccessor;
 
-    public UpdateUserSubscriptionStatusHandler(SubscriptionDbContext context, IPublishEndpoint publishEndpoint,
-        ICurrentActorAccessor actorAccessor)
+    public UpdateUserSubscriptionStatusHandler(SubscriptionDbContext context, IPublishEndpoint publishEndpoint)
     {
         _context = context;
         _publishEndpoint = publishEndpoint;
-        _actorAccessor = actorAccessor;
     }
 
     public async Task<UpdateUserSubscriptionStatusResult> Handle(UpdateUserSubscriptionStatusCommand request,
@@ -61,11 +59,20 @@ public class UpdateUserSubscriptionStatusHandler : ICommandHandler<UpdateUserSub
         
         if (existingSubscription.Status == SubscriptionStatus.Active)
         {
-            var @event = new UserSubscriptionActivatedIntegrationEvent(
-                _actorAccessor.GetRequiredSubjectRef(),
+            var userSubscriptionActivatedIntegrationEvent = new UserSubscriptionActivatedIntegrationEvent(
+                request.SubjectRef,
                 existingSubscription.ServicePackage.Name
             );
-            await _publishEndpoint.Publish(@event, cancellationToken);
+
+            var inventoryCreatedIntegrationEvent = new InventoryCreatedIntegrationEvent(
+                request.SubjectRef,
+                existingSubscription.StartDate,
+                existingSubscription.EndDate
+            );
+
+
+            await _publishEndpoint.Publish(userSubscriptionActivatedIntegrationEvent, cancellationToken);
+            await _publishEndpoint.Publish(inventoryCreatedIntegrationEvent, cancellationToken);
         }
 
         return new UpdateUserSubscriptionStatusResult(result);
