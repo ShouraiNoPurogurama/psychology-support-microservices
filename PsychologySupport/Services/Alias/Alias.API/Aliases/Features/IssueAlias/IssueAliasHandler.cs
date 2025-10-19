@@ -40,17 +40,19 @@ public class IssueAliasHandler(
         if (isAliasExist)
             throw new AliasConflictException("Người dùng đã có bí danh, không thể tạo mới.");
         
-        // Validate alias label with AIModeration service
-        var moderationRequest = new ValidateAliasLabelRequest { Label = command.Label };
-        var moderationResult = await moderationClient.ValidateAliasLabelAsync(moderationRequest, cancellationToken: cancellationToken);
-        
-        if (!moderationResult.IsValid)
-        {
-            var reasons = string.Join(", ", moderationResult.Reasons);
-            throw new AliasConflictException($"Label không hợp lệ: {reasons}");
-        }
-        
         var nicknameSource = ExtractNicknameSourceFromToken(command.ReservationToken, command.Label);
+
+        if (nicknameSource == NicknameSource.Custom)
+        {
+            var moderationRequest = new ValidateAliasLabelRequest { Label = command.Label };
+            var moderationResult = await moderationClient.ValidateAliasLabelAsync(moderationRequest, cancellationToken: cancellationToken);
+        
+            if (!moderationResult.IsValid)
+            {
+                var reasons = string.Join(", ", moderationResult.Reasons);
+                throw new BadRequestException($"Nickname không hợp lệ: {reasons}");
+            }
+        }
 
         var normalizedUniqueKey = AliasNormalizerUtils.ToUniqueKey(command.Label);
         
@@ -59,7 +61,7 @@ public class IssueAliasHandler(
             .AnyAsync(v => v.UniqueKey == normalizedUniqueKey, cancellationToken);
 
         if (labelTaken)
-            throw new AliasConflictException("Label đã được sử dụng.");
+            throw new AliasConflictException("Nickname đã được sử dụng.");
 
         // Create alias using domain aggregate
         var alias = Models.Aliases.Alias.Create(
@@ -105,7 +107,7 @@ public class IssueAliasHandler(
         }
         catch (DbUpdateException ex) when (DbUtils.IsUniqueViolation(ex))
         {
-            throw new AliasConflictException("Label đã được sử dụng.", internalDetail: ex.Message);
+            throw new AliasConflictException("Nickname đã được sử dụng.", internalDetail: ex.Message);
         }
         catch (UnauthorizedException)
         {

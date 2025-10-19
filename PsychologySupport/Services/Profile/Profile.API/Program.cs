@@ -42,7 +42,7 @@ else
 //Map gRPC services
 app.MapGrpcService<PatientProfileService>();
 app.MapGrpcService<PiiService>();
-app.MapGrpcReflectionService(); // Tùy chọn, để hỗ trợ phản xạ gRPC
+app.MapGrpcReflectionService(); 
 
 app.UseHealthChecks("/health",
     new HealthCheckOptions

@@ -11,12 +11,12 @@ namespace AIModeration.API.Shared.Services;
 /// </summary>
 public class ContentModerationService : IContentModerationService
 {
-    private const string PolicyVersion = "v2.0.0-gemini-ai";
-    private const string AliasPolicyVersion = "v1.0.0-rule-based";
-    
+    private const string PolicyVersion = "v1.0.0-gemini-ai";
+    private const string AliasPolicyVersion = "v1.0.0-gemini-ai";
+
     private readonly IGeminiClient _geminiClient;
     private readonly ILogger<ContentModerationService> _logger;
-    
+
     private static readonly HashSet<string> ProhibitedAliasPatterns = new(StringComparer.OrdinalIgnoreCase)
     {
         "admin", "moderator", "system", "official", "support", "staff"
@@ -31,19 +31,19 @@ public class ContentModerationService : IContentModerationService
     }
 
     public async Task<PostModerationResultDto> ModeratePostContentAsync(
-        Guid postId, 
-        string? title, 
-        string content, 
+        Guid postId,
+        string? title,
+        string content,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var combinedContent = string.IsNullOrWhiteSpace(title) 
-                ? content 
+            var combinedContent = string.IsNullOrWhiteSpace(title)
+                ? content
                 : $"Nội dung: {content}";
 
             _logger.LogInformation("Moderating post {PostId} with Gemini AI", postId);
-            
+
             var geminiResult = await _geminiClient.ModeratePostContentAsync(combinedContent);
 
             string status;
@@ -52,13 +52,13 @@ public class ContentModerationService : IContentModerationService
             if (geminiResult.IsViolation)
             {
                 status = geminiResult.ConfidenceScore >= 0.7 ? "Rejected" : "Flagged";
-                
+
                 // Add violation categories as reasons
                 if (geminiResult.Categories.Any())
                 {
                     reasons.Add($"Violation categories: {string.Join(", ", geminiResult.Categories)}");
                 }
-                
+
                 // Add the AI's reason
                 if (!string.IsNullOrWhiteSpace(geminiResult.Reason))
                 {
@@ -86,8 +86,7 @@ public class ContentModerationService : IContentModerationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error moderating post {PostId} with Gemini AI", postId);
-            
-            // Fallback: flag for manual review if AI fails
+
             return new PostModerationResultDto
             {
                 PostId = postId,
@@ -99,8 +98,8 @@ public class ContentModerationService : IContentModerationService
         }
     }
 
-    public Task<AliasLabelModerationResultDto> ModerateAliasLabelAsync(
-        string label, 
+    public async Task<AliasLabelModerationResultDto> ModerateAliasLabelAsync(
+        string label,
         CancellationToken cancellationToken = default)
     {
         var reasons = new List<string>();
@@ -138,16 +137,62 @@ public class ContentModerationService : IContentModerationService
             reasons.Add("Contains excessive repeated characters");
         }
 
-        bool isValid = reasons.Count == 0;
-
-        var result = new AliasLabelModerationResultDto
+        try
         {
-            IsValid = isValid,
-            Reasons = reasons,
-            PolicyVersion = AliasPolicyVersion,
-            EvaluatedAt = DateTimeOffset.UtcNow
-        };
+            _logger.LogInformation("Moderating alias label {AliasLabel} with Gemini AI", label);
 
-        return Task.FromResult(result);
+            var geminiResult = await _geminiClient.ModerateAliasLabelAsync(label);
+
+            string status;
+
+            if (geminiResult.IsViolation)
+            {
+                status = geminiResult.ConfidenceScore >= 0.7 ? "Rejected" : "Flagged";
+
+                // Add violation categories as reasons
+                if (geminiResult.Categories.Any())
+                {
+                    reasons.Add($"Violation categories: {string.Join(", ", geminiResult.Categories)}");
+                }
+
+                // Add the AI's reason
+                if (!string.IsNullOrWhiteSpace(geminiResult.Reason))
+                {
+                    reasons.Add(geminiResult.Reason);
+                }
+            }
+            else
+            {
+                status = "Approved";
+            }
+
+            _logger.LogInformation(
+                "Alias label {AliasLabel} moderation completed. Status: {Status}, Confidence: {Confidence}",
+                label, status, geminiResult.ConfidenceScore);
+
+            bool isValid = reasons.Count == 0;
+
+            var result = new AliasLabelModerationResultDto
+            {
+                IsValid = isValid,
+                Reasons = reasons,
+                PolicyVersion = AliasPolicyVersion,
+                EvaluatedAt = DateTimeOffset.UtcNow
+            };
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error moderating alias label {AliasLabel} with Gemini AI", label);
+
+            return new AliasLabelModerationResultDto
+            {
+                IsValid = false,
+                Reasons = new List<string> { "AI moderation service temporarily unavailable - flagged for manual review" },
+                PolicyVersion = PolicyVersion,
+                EvaluatedAt = DateTimeOffset.UtcNow
+            };
+        }
     }
 }

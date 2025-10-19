@@ -31,7 +31,7 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
 
     // Soft Delete implementation
     public bool IsDeleted { get; set; }
-    public DateTimeOffset? DeletedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? DeletedAt { get; set; }
 
     public string? DeletedBy { get; set; }
 
@@ -109,8 +109,8 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
     {
         ValidateCanBeModified();
 
-        if (_versions.Count >= 10)
-            throw new AliasVersionLimitExceededException("Cannot create more than 10 versions for an alias.");
+        // if (_versions.Count >= 10)
+            // throw new AliasVersionLimitExceededException("Cannot create more than 10 versions for an alias.");
 
         var oldLabel = Label.Value;
         var newAliasLabel = AliasLabel.Create(newLabel);

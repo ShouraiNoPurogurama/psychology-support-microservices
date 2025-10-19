@@ -6,7 +6,7 @@ namespace AIModeration.API.Shared.Dtos;
 /// Đại diện cho kết quả kiểm duyệt nội dung trả về từ Gemini API.
 /// Cấu trúc của class này khớp hoàn toàn với responseSchema đã được định nghĩa.
 /// </summary>
-public class PostContentModerationResultDto
+public class ModerationResultDto
 {
     /// <summary>
     /// Cho biết nội dung có vi phạm chính sách hay không.

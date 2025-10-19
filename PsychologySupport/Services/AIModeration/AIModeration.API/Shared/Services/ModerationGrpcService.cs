@@ -1,9 +1,8 @@
 using AIModeration.API.Protos;
-using AIModeration.API.Shared.Services;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 
-namespace AIModeration.API.Features.Aliases;
+namespace AIModeration.API.Shared.Services;
 
 public class ModerationGrpcService : ModerationService.ModerationServiceBase
 {

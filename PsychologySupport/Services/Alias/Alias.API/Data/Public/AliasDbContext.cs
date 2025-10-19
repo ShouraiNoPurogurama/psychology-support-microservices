@@ -6,6 +6,7 @@ using Alias.API.Aliases.Models.Follows;
 namespace Alias.API.Data.Public;
 
 using Alias = Aliases.Models.Aliases.Alias;
+
 public class OutboxMessage
 {
     public Guid Id { get; set; }
@@ -14,7 +15,6 @@ public class OutboxMessage
     public DateTimeOffset OccurredOn { get; set; }
     public DateTimeOffset? ProcessedOn { get; set; }
 }
-
 
 public partial class AliasDbContext : DbContext
 {
@@ -86,7 +86,7 @@ public partial class AliasDbContext : DbContext
                     .HasDefaultValue(PreferenceTheme.Light)
                     .HasSentinel(PreferenceTheme.Light)
                     .HasMaxLength(15);
-                    
+
                 preferences.Property(p => p.Language)
                     .HasColumnName("preference_language")
                     .HasConversion(
@@ -95,7 +95,7 @@ public partial class AliasDbContext : DbContext
                     .HasDefaultValue(PreferenceLanguage.VI)
                     .HasSentinel(PreferenceLanguage.VI)
                     .HasMaxLength(3);
-                    
+
                 preferences.Property(p => p.NotificationsEnabled)
                     .HasColumnName("preference_notifications_enabled");
             });
@@ -104,6 +104,7 @@ public partial class AliasDbContext : DbContext
                 .WithOne()
                 .HasForeignKey(av => av.AliasId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
         });
 
         modelBuilder.Entity<AliasAudit>(entity =>
@@ -127,7 +128,8 @@ public partial class AliasDbContext : DbContext
 
         modelBuilder.Entity<AliasVersion>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("alias_versions_pkey");
+            entity.HasKey(e => e.Id)
+                .HasName("alias_versions_pkey");
 
             entity.ToTable("alias_versions");
 
@@ -138,6 +140,9 @@ public partial class AliasDbContext : DbContext
                 .IsUnique()
                 .HasFilter("(valid_to IS NULL)");
 
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever();
+            
             entity.Property(e => e.SearchKey)
                 .HasColumnType("citext");
 

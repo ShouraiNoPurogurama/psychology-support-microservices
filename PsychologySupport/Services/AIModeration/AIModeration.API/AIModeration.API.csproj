@@ -19,6 +19,7 @@
         <PackageReference Include="Carter"/>
         <PackageReference Include="EFCore.NamingConventions"/>
         <PackageReference Include="Grpc.AspNetCore"/>
+        <PackageReference Include="Grpc.AspNetCore.Server.Reflection" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -35,7 +36,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Features\Aliases\EventHandlers\" />
+      <Folder Include="Features\Aliases\" />
     </ItemGroup>
 
 </Project>
