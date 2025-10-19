@@ -30,8 +30,8 @@ public class TokenService(
             throw new UnauthorizedException();
 
         var roles = principal.FindAll(ClaimTypes.Role).Select(c => c.Value);
-
         var onboarding = principal.FindFirst(ClaimTypes.Authentication)?.Value ?? nameof(UserOnboardingStatus.Pending);
+        var subscriptionPlanName = principal.FindFirst("SubscriptionPlanName")?.Value;
 
         var jti = Guid.NewGuid().ToString();
 
@@ -41,9 +41,14 @@ public class TokenService(
             new Claim(ClaimTypes.NameIdentifier, sub),
             new Claim(ClaimTypes.Authentication, onboarding)
         };
-        
+
+        if (!string.IsNullOrEmpty(subscriptionPlanName))
+        {
+            claims.Add(new Claim("SubscriptionPlanName", subscriptionPlanName));
+        }
+
         claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
-        
+
         var rsaSecurityKey = GetRsaSecurityKey();
 
         var signingCredential = new SigningCredentials(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
@@ -52,7 +57,7 @@ public class TokenService(
             configuration["Jwt:Issuer"],
             configuration["Jwt:Audience"],
             claims,
-            expires: DateTimeOffset.UtcNow.UtcDateTime .AddHours(1),
+            expires: DateTimeOffset.UtcNow.UtcDateTime.AddHours(1),
             signingCredentials: signingCredential
         );
 
@@ -70,14 +75,15 @@ public class TokenService(
         var onboardingStatus = user.OnboardingStatus.ToString();
 
         var jti = Guid.NewGuid().ToString();
-        
+
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Jti, jti),
             new Claim(JwtRegisteredClaimNames.Sub, subjectRef),
-            new Claim(ClaimTypes.Authentication, onboardingStatus)
+            new Claim(ClaimTypes.Authentication, onboardingStatus),
+            new Claim("SubscriptionPlanName", user.SubscriptionPlanName ?? string.Empty)
         };
-        
+
         foreach (var role in roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role!));
