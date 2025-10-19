@@ -51,6 +51,7 @@ public class CreateUserSubscriptionV2Endpoint : ICarterModule
 
             return Results.Created($"/v2/{response.Id}/users-subscription", response);
         })
+         .RequireAuthorization()
          .WithName("CreateUserSubscription v2")
          .WithTags("UserSubscriptions Version 2")
          .Produces<CreateUserSubscriptionV2Response>()

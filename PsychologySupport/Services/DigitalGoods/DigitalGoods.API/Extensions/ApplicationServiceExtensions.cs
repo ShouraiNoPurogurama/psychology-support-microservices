@@ -8,6 +8,7 @@ using Translation.API.Protos;
 using Microsoft.EntityFrameworkCore;
 using DigitalGoods.API.Data;
 using BuildingBlocks.Messaging.MassTransit;
+using Pii.API.Protos;
 
 namespace DigitalGoods.API.Extensions
 {
@@ -46,6 +47,18 @@ namespace DigitalGoods.API.Extensions
 
         private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
         {
+            services.AddGrpcClient<PiiService.PiiServiceClient>(options =>
+            {
+                options.Address = new Uri(config["GrpcSettings:PiiUrl"]!);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                };
+                return handler;
+            });
             services.AddGrpcClient<TranslationService.TranslationServiceClient>(options =>
             {
                 options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);

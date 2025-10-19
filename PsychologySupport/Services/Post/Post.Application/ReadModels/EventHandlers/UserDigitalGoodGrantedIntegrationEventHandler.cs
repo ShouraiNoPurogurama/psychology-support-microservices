@@ -22,7 +22,7 @@ public class UserDigitalGoodGrantedIntegrationEventHandler(
             return;
         }
 
-        // 🏷️ Command: tạo/cập nhật toàn bộ UserOwnedTagReplica
+        // UserOwnedTagReplica
         var createTagCommand = new CreateUserOwnedTagReplicaCommand(
             message.AliasId,
             message.ValidFrom,
@@ -37,7 +37,7 @@ public class UserDigitalGoodGrantedIntegrationEventHandler(
                 message.AliasId);
         }
 
-        // 🎁 Command: tạo/cập nhật toàn bộ UserOwnedGiftReplica
+        // UserOwnedGiftReplica
         var createGiftCommand = new CreateUserOwnedGiftReplicaCommand(
             message.AliasId,
             message.ValidFrom,

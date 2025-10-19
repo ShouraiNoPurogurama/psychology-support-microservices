@@ -27,7 +27,7 @@ internal class CreateInventoryHandler : ICommandHandler<CreateInventoryCommand, 
 {
     private readonly DigitalGoodsDbContext _dbContext;
     private readonly PiiService.PiiServiceClient _piiClient;
-    private readonly IPublishEndpoint _publishEndpoint; // MassTransit publish
+    private readonly IPublishEndpoint _publishEndpoint;
 
     public CreateInventoryHandler(
         DigitalGoodsDbContext dbContext,

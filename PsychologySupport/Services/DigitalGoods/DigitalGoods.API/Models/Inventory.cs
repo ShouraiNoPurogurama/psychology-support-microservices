@@ -36,7 +36,7 @@ public partial class Inventory : Entity<Guid>
     {
         if (quantity <= 0) throw new ArgumentException("Quantity must be positive.", nameof(quantity));
 
-        var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7));
+        var now = DateTimeOffset.UtcNow;
         return new Inventory
         {
             Id = Guid.NewGuid(),

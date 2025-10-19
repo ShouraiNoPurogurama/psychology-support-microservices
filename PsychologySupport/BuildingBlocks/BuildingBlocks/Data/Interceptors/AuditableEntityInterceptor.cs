@@ -27,7 +27,7 @@ public class AuditableEntityInterceptor(IHttpContextAccessor httpContextAccessor
     {
         if (context is null) return;
 
-        var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7));
+        var now = DateTimeOffset.UtcNow;
         var currentUser = GetCurrentUser();
 
         foreach (EntityEntry<IEntity> entry in context.ChangeTracker.Entries<IEntity>())
