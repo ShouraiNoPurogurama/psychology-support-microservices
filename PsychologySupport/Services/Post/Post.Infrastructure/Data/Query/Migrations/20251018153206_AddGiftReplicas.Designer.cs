@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Post.Infrastructure.Data.Query;
@@ -11,9 +12,11 @@ using Post.Infrastructure.Data.Query;
 namespace Post.Infrastructure.Data.Query.Migrations
 {
     [DbContext(typeof(QueryDbContext))]
-    partial class QueryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251018153206_AddGiftReplicas")]
+    partial class AddGiftReplicas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

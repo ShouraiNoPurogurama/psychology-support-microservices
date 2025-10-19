@@ -6,7 +6,16 @@ using System.Threading.Tasks;
 
 namespace Post.Application.ReadModels.Models
 {
-    internal class GiftReplica
+    public class GiftReplica
     {
+        public Guid Id { get; set; }
+
+        public string DisplayName { get; set; } = string.Empty;
+
+        public Guid? MediaId { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public DateTimeOffset LastSyncedAt { get; set; }
     }
 }
