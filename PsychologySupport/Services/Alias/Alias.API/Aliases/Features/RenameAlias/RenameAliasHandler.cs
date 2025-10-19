@@ -56,15 +56,15 @@ public class RenameAliasHandler(
             throw new AliasConflictException("Nickname đã được sử dụng.");
 
         // Load alias aggregate
-        var alias = await dbContext.Aliases.Include(alias => alias.Label)
-                        .Include(a => a.Versions)
+        var alias = await dbContext.Aliases
                         .Include(a => a.AuditRecords)
+                        .Include(a => a.Versions)
                         .FirstOrDefaultAsync(a => a.Id == aliasId && !a.IsDeleted, cancellationToken)
                     ?? throw new AliasNotFoundException("Không tìm thấy hồ sơ người dùng để đổi tên.");
 
         // Use domain aggregate method to update label
         alias.UpdateLabel(command.NewLabel, NicknameSource.Custom);
-
+        
         try
         {
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -78,6 +78,18 @@ public class RenameAliasHandler(
                 DateTimeOffset.UtcNow);
 
             await publishEndpoint.Publish(aliasUpdatedEvent, cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            foreach (var e in ex.Entries)
+            {
+                logger.LogWarning("Concurrency on {Entity} key {Key}",
+                    e.Metadata.Name,
+                    string.Join(",", e.Properties
+                        .Where(p => p.Metadata.IsPrimaryKey())
+                        .Select(p => p.CurrentValue ?? "null")));
+            }
+            throw;
         }
         catch (DbUpdateException ex) when (IsUniqueViolation(ex))
         {
