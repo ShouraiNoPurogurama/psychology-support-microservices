@@ -1,5 +1,5 @@
 using AIModeration.API.Extensions;
-using AIModeration.API.Features.Aliases;
+using AIModeration.API.Shared.Services;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
 using HealthChecks.UI.Client;

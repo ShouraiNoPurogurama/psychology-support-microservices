@@ -87,7 +87,6 @@ public class ContentModerationService : IContentModerationService
         {
             _logger.LogError(ex, "Error moderating post {PostId} with Gemini AI", postId);
 
-            // Fallback: flag for manual review if AI fails
             return new PostModerationResultDto
             {
                 PostId = postId,

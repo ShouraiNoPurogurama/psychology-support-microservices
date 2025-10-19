@@ -3,7 +3,7 @@ using BuildingBlocks.Messaging.Events.IntegrationEvents.Moderation;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using MassTransit;
 
-namespace AIModeration.API.Features.PostContents;
+namespace AIModeration.API.Features.PostContents.EventHandlers;
 
 /// <summary>
 /// Handles PostCreatedIntegrationEvent from Post microservice

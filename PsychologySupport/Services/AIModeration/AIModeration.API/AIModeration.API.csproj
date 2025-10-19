@@ -36,7 +36,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Features\Aliases\EventHandlers\" />
+      <Folder Include="Features\Aliases\" />
     </ItemGroup>
 
 </Project>
