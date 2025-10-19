@@ -57,7 +57,6 @@ public class RenameAliasHandler(
 
         // Load alias aggregate
         var alias = await dbContext.Aliases.Include(alias => alias.Label)
-                        .Include(alias => alias.CurrentVersion!)
                         .Include(a => a.Versions)
                         .Include(a => a.AuditRecords)
                         .FirstOrDefaultAsync(a => a.Id == aliasId && !a.IsDeleted, cancellationToken)
