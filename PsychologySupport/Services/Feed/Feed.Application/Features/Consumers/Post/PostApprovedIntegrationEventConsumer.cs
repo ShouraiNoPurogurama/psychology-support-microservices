@@ -1,47 +1,51 @@
-using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Moderation; 
 using Feed.Application.Abstractions.PostRepository;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
 namespace Feed.Application.Features.Consumers.Post;
 
-/// <summary>
-/// Consumes PostApprovedIntegrationEvent when a post passes moderation.
-/// If the post is public, it's added to the Cassandra replica tables for feed distribution.
-/// </summary>
-public sealed class PostApprovedIntegrationEventConsumer : IConsumer<PostApprovedIntegrationEvent>
+public sealed class PostModerationEvaluatedIntegrationEventConsumer 
+    : IConsumer<PostModerationEvaluatedIntegrationEvent> 
 {
     private readonly IPostReplicaRepository _postReplicaRepository;
-    private readonly ILogger<PostApprovedIntegrationEventConsumer> _logger;
+    private readonly ILogger<PostModerationEvaluatedIntegrationEventConsumer> _logger;
 
-    public PostApprovedIntegrationEventConsumer(
+    public PostModerationEvaluatedIntegrationEventConsumer(
         IPostReplicaRepository postReplicaRepository,
-        ILogger<PostApprovedIntegrationEventConsumer> logger)
+        ILogger<PostModerationEvaluatedIntegrationEventConsumer> logger)
     {
         _postReplicaRepository = postReplicaRepository;
         _logger = logger;
     }
 
-    public async Task Consume(ConsumeContext<PostApprovedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<PostModerationEvaluatedIntegrationEvent> context)
     {
         var message = context.Message;
 
+        // CHỈ xử lý nếu post được duyệt
+        if (message.Status != "Approved") 
+        {
+            _logger.LogInformation(
+                "Skipping post {PostId} for feed, status: {Status}",
+                message.PostId,
+                message.Status);
+            return;
+        }
+
         _logger.LogInformation(
-            "Processing PostApproved event for post {PostId} by moderator {ModeratorId}",
-            message.PostId,
-            message.ModeratorAliasId);
+            "Processing Approved post {PostId} by AI moderation",
+            message.PostId);
 
         try
         {
-            // Add approved public post to Cassandra replica tables
-            // Assuming approved posts are public and finalized
             await _postReplicaRepository.AddPublicFinalizedPostAsync(
                 message.PostId,
                 message.AuthorAliasId,
                 visibility: "Public",
                 status: "Approved",
-                ymdBucket: DateOnly.FromDateTime(message.ApprovedAt.Date),
-                createdAt: null, // Will use time-ordered GUID
+                ymdBucket: DateOnly.FromDateTime(message.EvaluatedAt.Date),
+                createdAt: message.PostCreatedAt, 
                 ct: context.CancellationToken);
 
             _logger.LogInformation(
@@ -52,7 +56,7 @@ public sealed class PostApprovedIntegrationEventConsumer : IConsumer<PostApprove
         {
             _logger.LogError(
                 ex,
-                "Error processing PostApproved event for post {PostId}",
+                "Error processing Approved (by AI) event for post {PostId}",
                 message.PostId);
             throw;
         }

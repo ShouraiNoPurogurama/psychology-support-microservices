@@ -9,5 +9,7 @@ public interface INotificationPreferencesRepository
     
     Task<NotificationPreferences> GetOrDefaultAsync(Guid aliasId, CancellationToken cancellationToken = default);
     
+    Task<List<NotificationPreferences>> GetOrDefaultAsync(List<Guid> aliasId, CancellationToken cancellationToken = default);
+    
     Task UpsertAsync(NotificationPreferences preferences, CancellationToken cancellationToken = default);
 }

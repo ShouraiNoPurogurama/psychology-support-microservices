@@ -1,4 +1,5 @@
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
+using BuildingBlocks.Utils;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Integration;
@@ -25,14 +26,6 @@ public sealed class CommentCreatedEventHandler : INotificationHandler<CommentCre
 
     public async Task Handle(CommentCreatedEvent notification, CancellationToken cancellationToken)
     {
-        // Get the comment with author info
-        var comment = await _context.Comments
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Id == notification.CommentId, cancellationToken);
-
-        if (comment == null)
-            return;
-
         // Get post to find post author
         var post = await _context.Posts
             .AsNoTracking()
@@ -45,15 +38,11 @@ public sealed class CommentCreatedEventHandler : INotificationHandler<CommentCre
         if (post.Author.AliasId == notification.AuthorAliasId)
             return;
 
-        // Get comment author display name
         var authorAlias = await _queryContext.AliasVersionReplica
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.AliasId == notification.AuthorAliasId, cancellationToken);
 
-        var commentSnippet = comment.Content.Value.Length > 100
-            ? comment.Content.Value.Substring(0, 100) + "..."
-            : comment.Content.Value;
-
+        var commentSnippet = StringUtils.GetSnippet(notification.CommentContent, 25);
         Guid? parentCommentAuthorId = null;
         if (notification.ParentCommentId.HasValue)
         {
@@ -67,7 +56,6 @@ public sealed class CommentCreatedEventHandler : INotificationHandler<CommentCre
             }
         }
 
-        // Publish integration event for notification
         var integrationEvent = new CommentCreatedIntegrationEvent(
             CommentId: notification.CommentId,
             PostId: notification.PostId,

@@ -4,6 +4,7 @@ using Alias.API.Aliases.Utils;
 using Alias.API.Common.Authentication;
 using Alias.API.Common.Security;
 using Alias.API.Data.Public;
+using AIModeration.API.Protos;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Alias;
@@ -26,6 +27,7 @@ public record IssueAliasResult(
 public class IssueAliasHandler(
     AliasDbContext dbContext,
     PiiService.PiiServiceClient piiClient,
+    ModerationService.ModerationServiceClient moderationClient,
     IPublishEndpoint publishEndpoint,
     IAliasTokenService aliasTokenService,
     ICurrentActorAccessor currentActorAccessor)
@@ -37,6 +39,16 @@ public class IssueAliasHandler(
 
         if (isAliasExist)
             throw new AliasConflictException("Người dùng đã có bí danh, không thể tạo mới.");
+        
+        // Validate alias label with AIModeration service
+        var moderationRequest = new ValidateAliasLabelRequest { Label = command.Label };
+        var moderationResult = await moderationClient.ValidateAliasLabelAsync(moderationRequest, cancellationToken: cancellationToken);
+        
+        if (!moderationResult.IsValid)
+        {
+            var reasons = string.Join(", ", moderationResult.Reasons);
+            throw new AliasConflictException($"Label không hợp lệ: {reasons}");
+        }
         
         var nicknameSource = ExtractNicknameSourceFromToken(command.ReservationToken, command.Label);
 

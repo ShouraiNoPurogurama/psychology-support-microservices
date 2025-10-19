@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.Caching.Memory;
 using Notification.API.Contracts;
 using Notification.API.Features.Notifications.Models;
@@ -33,6 +34,59 @@ public class PreferencesCache : IPreferencesCache
         _cache.Set(cacheKey, preferences, _cacheDuration);
 
         return preferences;
+    }
+
+    public async Task<List<NotificationPreferences>> GetOrDefaultAsync(List<Guid> aliasIds,
+        CancellationToken cancellationToken = default)
+    {
+        if (!aliasIds.Any())
+        {
+            return [];
+        }
+
+        var distinctIds = aliasIds.Distinct().ToList();
+
+        var prefsLookup = new Dictionary<Guid, NotificationPreferences>(distinctIds.Count);
+
+        var nonCachedAliasIds = new List<Guid>();
+
+        foreach (var aliasId in distinctIds)
+        {
+            var cacheKey = $"prefs:{aliasId}";
+
+            if (_cache.TryGetValue<NotificationPreferences>(cacheKey, out var cached) && cached != null)
+            {
+                prefsLookup.Add(aliasId, cached);
+            }
+            else
+            {
+                nonCachedAliasIds.Add(aliasId);
+            }
+        }
+
+        if (nonCachedAliasIds.Any())
+        {
+            var preferencesFromDb = await _repository.GetOrDefaultAsync(nonCachedAliasIds, cancellationToken);
+
+            foreach (var pref in preferencesFromDb)
+            {
+                var cacheKey = $"prefs:{pref.Id}";
+                _cache.Set(cacheKey, pref, _cacheDuration);
+                prefsLookup.Add(pref.Id, pref);
+            }
+        }
+
+        // Lặp qua list gốc (có trùng lặp) để trả về đúng số lượng và thứ tự
+        var results = new List<NotificationPreferences>(aliasIds.Count);
+        foreach (var aliasId in aliasIds)
+        {
+            if (prefsLookup.TryGetValue(aliasId, out var pref))
+            {
+                results.Add(pref);
+            }
+        }
+
+        return results;
     }
 
     public void Remove(Guid aliasId)

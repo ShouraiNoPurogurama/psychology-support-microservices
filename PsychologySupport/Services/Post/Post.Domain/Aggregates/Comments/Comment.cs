@@ -53,7 +53,7 @@ public sealed class Comment : AggregateRoot<Guid>, ISoftDeletable
             ReplyCount = 0
         };
 
-        comment.AddDomainEvent(new CommentCreatedEvent(comment.Id, postId, hierarchy.ParentCommentId, authorAliasId));
+        comment.AddDomainEvent(new CommentCreatedEvent(comment.Id, comment.Content.Value, postId, hierarchy.ParentCommentId, authorAliasId));
         return comment;
     }
 

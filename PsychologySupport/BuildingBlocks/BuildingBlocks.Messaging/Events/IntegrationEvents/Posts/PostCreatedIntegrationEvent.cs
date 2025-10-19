@@ -4,6 +4,7 @@ public record PostCreatedIntegrationEvent(
     Guid PostId,
     Guid AuthorAliasId,
     DateTimeOffset CreatedAt,
-    int FollowerCount
+    string? Title,
+    string Content
 ) : IntegrationEvent;
 

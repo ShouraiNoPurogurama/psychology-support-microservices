@@ -1,7 +1,5 @@
 using System.Data;
-using Microsoft.EntityFrameworkCore;
 using Notification.API.Contracts;
-using Notification.API.Data;
 using Notification.API.Features.Notifications.Models;
 using Notification.API.Infrastructure.Data;
 

@@ -83,15 +83,6 @@ internal sealed class CreateCommentCommandHandler : ICommandHandler<CreateCommen
         // Emit domain event for alias counters
         post.AddComment(author.AliasId);
         
-        // Add domain event
-        var commentCreatedEvent = new CommentCreatedEvent(
-            comment.Id,
-            request.PostId,
-            request.ParentCommentId,
-            author.AliasId
-        );
-        await _outboxWriter.WriteAsync(commentCreatedEvent, cancellationToken);
-
         await _context.SaveChangesAsync(cancellationToken);
 
         return new CreateCommentResult(

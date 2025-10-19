@@ -23,7 +23,7 @@ app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
     app.InitializeDatabaseAsync();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(); 
 }
 else
 {
@@ -40,5 +40,8 @@ app.UseHealthChecks("/health",
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Map gRPC services
+app.MapGrpcService<AIModeration.API.Features.Aliases.ModerationGrpcService>();
 
 app.Run();

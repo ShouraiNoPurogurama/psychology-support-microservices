@@ -92,19 +92,10 @@ public class PostDbContext : DbContext, IPostDbContext
             {
                 moderation.Property(m => m.Status).HasColumnName("moderation_status").HasConversion<string>();
                 moderation.Property(m => m.PolicyVersion).HasColumnName("policy_version");
-                moderation.Property(m => m.ModeratedAt).HasColumnName("moderated_at");
+                moderation.Property(m => m.EvaluatedAt).HasColumnName("evaluated_at");
 
                 moderation.Property(m => m.Reasons)
-                    .HasColumnName("moderation_reasons")
-                    .HasConversion(
-                        v => string.Join(";", v),
-                        v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList().AsReadOnly(),
-                        new ValueComparer<IReadOnlyList<string>>(
-                            (c1, c2) => c1.SequenceEqual(c2),
-                            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                            c => c.ToList()
-                        )
-                    );
+                    .HasColumnName("moderation_reasons");
             });
 
             // PostMetrics (owned)
@@ -222,13 +213,9 @@ public class PostDbContext : DbContext, IPostDbContext
             {
                 moderation.Property(m => m.Status).HasColumnName("moderation_status").HasConversion<string>();
                 moderation.Property(m => m.PolicyVersion).HasColumnName("policy_version");
-                moderation.Property(m => m.ModeratedAt).HasColumnName("moderated_at");
+                moderation.Property(m => m.EvaluatedAt).HasColumnName("evaluated_at");
                 moderation.Property(m => m.Reasons)
-                    .HasColumnName("moderation_reasons")
-                    .HasConversion(
-                        v => string.Join(";", v),
-                        v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList().AsReadOnly()
-                    );
+                    .HasColumnName("moderation_reasons");
             });
 
             //List comment theo post (paging thời gian).

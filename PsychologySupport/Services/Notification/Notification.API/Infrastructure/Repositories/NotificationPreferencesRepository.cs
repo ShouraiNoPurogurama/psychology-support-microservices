@@ -28,6 +28,16 @@ public class NotificationPreferencesRepository : INotificationPreferencesReposit
         return preferences ?? NotificationPreferences.CreateDefault(aliasId);
     }
 
+    public async Task<List<NotificationPreferences>> GetOrDefaultAsync(List<Guid> aliasId, CancellationToken cancellationToken = default)
+    {
+        var preferences = await _context.NotificationPreferences
+            .Where(p => aliasId.Contains(p.Id))
+            .ToListAsync(cancellationToken);
+
+        return preferences;
+    }
+
+
     public async Task UpsertAsync(NotificationPreferences preferences, CancellationToken cancellationToken = default)
     {
         var existing = await GetByIdAsync(preferences.Id, cancellationToken);

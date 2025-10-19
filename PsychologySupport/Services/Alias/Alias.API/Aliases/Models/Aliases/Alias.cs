@@ -403,7 +403,7 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
         ValidateCanBeModified();
 
         var oldPreferences = Preferences;
-        Preferences = Preferences.Update(theme, language, notificationsEnabled);
+        Preferences.Update(theme, language, notificationsEnabled);
 
         // Only update last active and create audit if something actually changed
         if (!oldPreferences.Equals(Preferences))

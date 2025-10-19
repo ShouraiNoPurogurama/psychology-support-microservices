@@ -1,7 +1,6 @@
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
 using MassTransit;
-using Microsoft.Extensions.Logging;
 using Notification.API.Contracts;
 using Notification.API.Features.Notifications.Models;
 
@@ -40,101 +39,103 @@ public class CommentCreatedIntegrationEventConsumer : IConsumer<CommentCreatedIn
             return;
         }
 
+        var potentialRecipients = new HashSet<Guid> { msg.PostAuthorAliasId };
+
         // Recipient + grouping
-        Guid recipientAliasId;
-        string groupingKey;
         if (msg.ParentCommentId.HasValue && msg.ParentCommentAuthorAliasId.HasValue)
         {
-            recipientAliasId = msg.ParentCommentAuthorAliasId.Value;
-            groupingKey = $"comment-reply:{msg.ParentCommentId.Value}";
-        }
-        else
-        {
-            recipientAliasId = msg.PostAuthorAliasId;
-            groupingKey = $"comment:{msg.PostId}";
+            potentialRecipients.Add(msg.ParentCommentAuthorAliasId.Value);
         }
 
-        if (recipientAliasId == msg.CommentAuthorAliasId)
-        {
-            _logger.LogDebug("Skip self comment notification for alias {Alias}", recipientAliasId);
-            return;
-        }
+        potentialRecipients.Remove(msg.CommentAuthorAliasId);
 
-        var prefs = await _preferencesCache.GetOrDefaultAsync(recipientAliasId, context.CancellationToken);
-        if (!prefs.IsTypeEnabled(NotificationType.Comment))
-        {
-            _logger.LogDebug("Recipient {Recipient} disabled Comment notifications.", recipientAliasId);
-            return;
-        }
+        var prefs = await _preferencesCache.GetOrDefaultAsync(potentialRecipients.ToList(), context.CancellationToken);
 
-        var source = new NotificationSource
+        foreach (var pref in prefs)
         {
-            PostId = msg.PostId,
-            CommentId = msg.CommentId,
-            Snippet = msg.CommentSnippet 
-        };
-
-        // Merge nếu trong 30s đã có 1 notif cùng groupingKey
-        var merged = await _notificationRepo.TryMergeLatestAsync(
-            recipientAliasId: recipientAliasId,
-            groupingKey: groupingKey,
-            updater: n =>
+            if (!pref.IsTypeEnabled(NotificationType.Comment))
             {
-                n.ActorAliasId = msg.CommentAuthorAliasId;
-                n.ActorDisplayName = msg.CommentAuthorLabel;
-                n.Snippet = source.Snippet;
-                n.CommentId = msg.CommentId;
-
-                // Giữ CreatedAt cũ để ổn định order; nếu muốn “đẩy lên trên”, có thể cập nhật UpdatedAt (nếu có)
-                n.CreatedAt = n.CreatedAt;
-            },
-            window: TimeSpan.FromSeconds(30),
-            ct: context.CancellationToken
-        );
-
-        if (!merged)
-        {
-            // Tạo notif mới
-            var notification = UserNotification.Create(
-                recipientAliasId: recipientAliasId,
-                actorAliasId: msg.CommentAuthorAliasId,
-                actorDisplayName: msg.CommentAuthorLabel,
-                type: NotificationType.Comment,
-                source: source,
-                groupingKey: groupingKey
-            );
-
-            // Dùng timestamp từ event nguồn để đồng bộ thời gian cross-service (nếu event có)
-            // Nếu IntegrationEvent của bạn có CommentedAt/CreatedAt, dùng nó. 
-            // Nếu không có, tạm dùng UtcNow hoặc để như mặc định trong Create().
-            // notification.CreatedAt = msg.CommentedAt;
-
-            await _notificationRepo.AddAsync(notification, context.CancellationToken);
-
-            var createdEvt = new NotificationCreatedIntegrationEvent(
-                NotificationId: notification.Id,
-                RecipientAliasId: notification.RecipientAliasId,
-                ActorAliasId: notification.ActorAliasId,
-                ActorDisplayName: notification.ActorDisplayName,
-                NotificationType: notification.Type.ToString(),
-                IsRead: notification.IsRead,
-                ReadAt: notification.ReadAt,
-                PostId: notification.PostId,
-                CommentId: notification.CommentId,
-                ReactionId: notification.ReactionId,
-                FollowId: notification.FollowId,
-                ModerationAction: notification.ModerationAction,
-                Snippet: notification.Snippet,
-                CreatedAt: notification.CreatedAt
-            );
-
-            await context.Publish(createdEvt, context.CancellationToken);
-            _logger.LogInformation("Created & published comment notification {Id} for {Recipient}", notification.Id,
-                recipientAliasId);
+                potentialRecipients.Remove(pref.Id);
+            }
         }
-        else
+        
+        foreach (var recipientAliasId in potentialRecipients)
         {
-            _logger.LogInformation("Merged comment notification for {Recipient} G={Grouping}", recipientAliasId, groupingKey);
+            var isReply = recipientAliasId == msg.ParentCommentAuthorAliasId;
+            
+            var groupingKey = isReply
+                ? $"comment_reply:{msg.ParentCommentId}"
+                : $"comment_post:{msg.PostId}";
+
+            var source = new NotificationSource
+            {
+                PostId = msg.PostId,
+                CommentId = msg.CommentId,
+                Snippet = isReply ? $"Đã trả lời bình luận của bạn: {msg.CommentSnippet}." : $"Đã bình luận về bài viết của bạn: {msg.CommentSnippet}."
+            };
+            
+            // Merge nếu trong 30s đã có 1 notif cùng groupingKey
+            var merged = await _notificationRepo.TryMergeLatestAsync(
+                recipientAliasId: recipientAliasId,
+                groupingKey: groupingKey,
+                updater: n =>
+                {
+                    n.ActorAliasId = msg.CommentAuthorAliasId;
+                    n.ActorDisplayName = msg.CommentAuthorLabel;
+                    n.Snippet = source.Snippet;
+                    n.CommentId = msg.CommentId;
+
+                    // Giữ CreatedAt cũ để ổn định order; nếu muốn “đẩy lên trên”, có thể cập nhật UpdatedAt (nếu có)
+                    n.CreatedAt = n.CreatedAt;
+                },
+                window: TimeSpan.FromSeconds(30),
+                ct: context.CancellationToken
+            );
+
+            if (!merged)
+            {
+                // Tạo notif mới
+                var notification = UserNotification.Create(
+                    recipientAliasId: recipientAliasId,
+                    actorAliasId: msg.CommentAuthorAliasId,
+                    actorDisplayName: msg.CommentAuthorLabel,
+                    type: NotificationType.Comment,
+                    source: source,
+                    groupingKey: groupingKey
+                );
+
+                // Dùng timestamp từ event nguồn để đồng bộ thời gian cross-service (nếu event có)
+                // Nếu IntegrationEvent của bạn có CommentedAt/CreatedAt, dùng nó. 
+                // Nếu không có, tạm dùng UtcNow hoặc để như mặc định trong Create().
+                // notification.CreatedAt = msg.CommentedAt;
+
+                await _notificationRepo.AddAsync(notification, context.CancellationToken);
+
+                var createdEvt = new NotificationCreatedIntegrationEvent(
+                    NotificationId: notification.Id,
+                    RecipientAliasId: notification.RecipientAliasId,
+                    ActorAliasId: notification.ActorAliasId,
+                    ActorDisplayName: notification.ActorDisplayName,
+                    NotificationType: notification.Type.ToString(),
+                    IsRead: notification.IsRead,
+                    ReadAt: notification.ReadAt,
+                    PostId: notification.PostId,
+                    CommentId: notification.CommentId,
+                    ReactionId: notification.ReactionId,
+                    FollowId: notification.FollowId,
+                    ModerationAction: notification.ModerationAction,
+                    Snippet: notification.Snippet,
+                    CreatedAt: notification.CreatedAt
+                );
+
+                await context.Publish(createdEvt, context.CancellationToken);
+                _logger.LogInformation("Created & published comment notification {Id} for {Recipient}", notification.Id,
+                    recipientAliasId);
+            }
+            else
+            {
+                _logger.LogInformation("Merged comment notification for {Recipient} G={Grouping}", recipientAliasId, groupingKey);
+            }
         }
     }
 }

@@ -22,6 +22,5 @@ public partial class ModerationItem : AuditableEntity<Guid>
     public string? DecidedBy { get; set; }
 
     public DateTimeOffset? DecidedAt { get; set; }
-
     public virtual ICollection<ModerationAudit> ModerationAudits { get; set; } = new List<ModerationAudit>();
 }
