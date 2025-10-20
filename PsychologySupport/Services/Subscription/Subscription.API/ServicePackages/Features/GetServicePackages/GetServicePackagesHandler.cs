@@ -62,6 +62,8 @@ public class GetServicePackagesHandler(
                 sp.Name,
                 sp.Description,
                 sp.Price,
+                sp.OriginalPrice,
+                sp.DiscountLabel,
                 sp.DurationDays,
                 sp.ImageId,
                 sp.IsActive
