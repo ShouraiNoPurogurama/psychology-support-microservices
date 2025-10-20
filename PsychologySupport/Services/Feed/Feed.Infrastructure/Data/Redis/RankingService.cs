@@ -199,22 +199,17 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
         if (posts.Count == 0)
             return;
 
-        // Convert to SortedSetEntry array
         var entries = posts.Select(p => new SortedSetEntry(p.PostId.ToString(), p.Score)).ToArray();
 
-        // Use a Redis transaction to ensure atomicity
         var transaction = _database.CreateTransaction();
 
-        // Remove old entries
         transaction.KeyDeleteAsync(key);
 
-        // Add new entries
         transaction.SortedSetAddAsync(key, entries);
 
-        // Set expiration to 7 days
         transaction.KeyExpireAsync(key, TimeSpan.FromDays(7));
 
-        // Execute transaction
+        // Execute transaction as atomic operation
         await transaction.ExecuteAsync();
     }
 
