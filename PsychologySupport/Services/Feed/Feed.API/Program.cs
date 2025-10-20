@@ -27,7 +27,6 @@ app.UseStaticFiles();
 
 app.MapCarter();
 
-// OPTIMIZED: Enable health check endpoints
 app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
     Predicate = _ => false // Liveness: always healthy if process is running
