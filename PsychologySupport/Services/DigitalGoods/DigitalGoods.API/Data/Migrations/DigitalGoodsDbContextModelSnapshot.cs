@@ -221,8 +221,7 @@ namespace DigitalGoods.API.Data.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                        .HasColumnType("VARCHAR(20)")
                         .HasColumnName("status");
 
                     b.Property<Guid>("Subject_ref")

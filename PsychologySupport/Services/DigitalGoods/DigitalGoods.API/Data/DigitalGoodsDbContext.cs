@@ -92,8 +92,9 @@ public partial class DigitalGoodsDbContext : DbContext
             entity.Property(e => e.LastModifiedBy).HasColumnName("last_modified_by");
             entity.Property(e => e.Quantity).HasColumnName("quantity");
             entity.Property(e => e.Status)
-                .HasMaxLength(20)
-                .HasColumnName("status");
+                  .HasConversion(new EnumToStringConverter<InventoryStatus>())
+                  .HasColumnType("VARCHAR(20)")
+                  .HasColumnName("status");
             entity.Property(e => e.Subject_ref).HasColumnName("subject_ref");
 
             entity.HasOne(d => d.DigitalGood)

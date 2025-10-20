@@ -152,6 +152,8 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - GrpcSettings__PiiUrl=http://profile.api:8081
+      - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
     networks: [ emoease-net ]
     ports: [ "5004:8080", "5504:8081" ]
     volumes:
@@ -232,7 +234,8 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-      - GrpcSettings__TranslationUrl=http://translation.api:8081  
+      - GrpcSettings__TranslationUrl=http://translation.api:8081
+      - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true 
     networks: [ emoease-net ]
     ports: [ "5005:8080", "5505:8081" ]
     volumes:
@@ -302,7 +305,9 @@ services:
       - ASPNETCORE_HTTPS_PORTS=8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-      - GrpcSettings__TranslationUrl=http://translation.api:8081  
+      - GrpcSettings__TranslationUrl=http://translation.api:8081
+      - GrpcSettings__PiiUrl=http://profile.api:8081 
+      - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
     networks: [ emoease-net ]
     ports: [ "5022:8080", "5522:8081" ]
     volumes:

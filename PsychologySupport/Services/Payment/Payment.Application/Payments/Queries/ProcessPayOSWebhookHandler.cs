@@ -11,6 +11,7 @@ using System.Security.Claims;
 using System.Transactions;
 using BuildingBlocks.Messaging.Events.Queries.Scheduling;
 using BuildingBlocks.Messaging.Events.Queries.Subscription;
+using Pii.API.Protos;
 
 namespace Payment.Application.Payments.Queries;
 
@@ -25,19 +26,20 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
     private readonly IRequestClient<BookingGetPromoAndGiftRequestEvent> _bookingClient;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPayOSService _payOSService;
+    private readonly PiiService.PiiServiceClient _piiClient;
 
     public ProcessPayOSWebhookHandler(
         IPaymentDbContext dbContext,
         IRequestClient<SubscriptionGetPromoAndGiftRequest> subscriptionClient,
         IRequestClient<BookingGetPromoAndGiftRequestEvent> bookingClient,
-        IHttpContextAccessor httpContextAccessor,
-        IPayOSService payOSService)
+        IPayOSService payOSService,
+        PiiService.PiiServiceClient piiClient)
     {
         _dbContext = dbContext;
         _subscriptionClient = subscriptionClient;
         _bookingClient = bookingClient;
-        _httpContextAccessor = httpContextAccessor;
         _payOSService = payOSService;
+        _piiClient = piiClient;
     }
 
     public async Task<ProcessPayOSWebhookResult> Handle(ProcessPayOSWebhookCommand request, CancellationToken cancellationToken)
@@ -48,6 +50,20 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
         var payment = await _dbContext.Payments
             .FirstOrDefaultAsync(p => p.PaymentCode == paymentCode, cancellationToken)
             ?? throw new NotFoundException(nameof(Domain.Models.Payment), paymentCode);
+
+        var patientId = payment.PatientProfileId;
+
+        // Gọi gRPC tới PiiService để lấy subjectRef + email
+        var piiResponse = await _piiClient.ResolvePersonInfoByPatientIdAsync(
+           new ResolvePersonInfoByPatientIdRequest
+           {
+               PatientId = patientId.ToString()
+           },
+           cancellationToken: cancellationToken
+       );
+
+        var subjectRef = Guid.Parse(piiResponse.SubjectRef);
+        var email = piiResponse.Email ?? string.Empty;
 
         var amount = webhookData.amount;
         string? promotionCode = string.Empty;
@@ -77,7 +93,7 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
 
         using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var email = GetEmailFromClaims();
+           
 
             switch (status)
             {
@@ -85,13 +101,14 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
                     payment.AddPaymentDetail(
                         PaymentDetail.Of(amount, webhookData.reference).MarkAsSuccess()
                     );
-                    payment.MarkAsCompleted(email);
+                    payment.MarkAsCompleted(subjectRef,email);
                     break;
 
                 case "cancelled":
                 case "failed":
                 case "expired":
                     payment.AddFailedPaymentDetail(
+                        subjectRef,
                         PaymentDetail.Of(amount, webhookData.reference),
                         email,
                         promotionCode,
@@ -110,18 +127,5 @@ public class ProcessPayOSWebhookHandler : ICommandHandler<ProcessPayOSWebhookCom
         return new ProcessPayOSWebhookResult(true);
     }
 
-    private string GetEmailFromClaims()
-    {
-        var user = _httpContextAccessor.HttpContext?.User;
-
-        if (user == null || !(user.Identity?.IsAuthenticated ?? false))
-            return "unknown@example.com";
-
-        var email = user.FindFirstValue(ClaimTypes.Email)
-                 ?? user.FindFirstValue("email")
-                 ?? user.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                 ?? user.FindFirstValue(ClaimTypes.Name);
-
-        return string.IsNullOrWhiteSpace(email) ? "unknown@example.com" : email;
-    }
+ 
 }

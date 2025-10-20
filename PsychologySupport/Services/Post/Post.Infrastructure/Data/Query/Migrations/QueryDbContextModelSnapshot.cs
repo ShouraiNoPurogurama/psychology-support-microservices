@@ -100,6 +100,64 @@ namespace Post.Infrastructure.Data.Query.Migrations
                     b.ToTable("emotion_tag_replicas", "query");
                 });
 
+            modelBuilder.Entity("Post.Application.ReadModels.Models.GiftReplica", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("display_name");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<DateTimeOffset>("LastSyncedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_synced_at");
+
+                    b.Property<Guid?>("MediaId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("media_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_gift_replicas");
+
+                    b.ToTable("gift_replicas", "query");
+                });
+
+            modelBuilder.Entity("Post.Application.ReadModels.Models.UserOwnedGiftReplica", b =>
+                {
+                    b.Property<Guid>("AliasId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("alias_id");
+
+                    b.Property<Guid>("GiftId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("gift_id");
+
+                    b.Property<DateTimeOffset>("LastSyncedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_synced_at");
+
+                    b.Property<DateTimeOffset>("ValidFrom")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("valid_from");
+
+                    b.Property<DateTimeOffset>("ValidTo")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("valid_to");
+
+                    b.HasKey("AliasId", "GiftId")
+                        .HasName("pk_user_owned_gift_replicas");
+
+                    b.ToTable("user_owned_gift_replicas", "query");
+                });
+
             modelBuilder.Entity("Post.Application.ReadModels.Models.UserOwnedTagReplica", b =>
                 {
                     b.Property<Guid>("AliasId")
@@ -113,6 +171,14 @@ namespace Post.Infrastructure.Data.Query.Migrations
                     b.Property<DateTimeOffset>("LastSyncedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_synced_at");
+
+                    b.Property<DateTimeOffset>("ValidFrom")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("valid_from");
+
+                    b.Property<DateTimeOffset>("ValidTo")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("valid_to");
 
                     b.HasKey("AliasId", "EmotionTagId")
                         .HasName("pk_user_owned_tag_replicas");
