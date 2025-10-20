@@ -5,7 +5,7 @@ using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Features.Posts.Dtos;
 using Post.Domain.Aggregates.Posts.Enums;
-using Post.Domain.Aggregates.Reactions.Enums;
+using Post.Domain.Aggregates.Reaction.Enums;
 
 namespace Post.Application.Features.Posts.Queries.GetPostsByAliasIds;
 

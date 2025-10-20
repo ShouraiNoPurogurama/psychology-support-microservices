@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Notification.API.Common;
+namespace Notification.API.Shared.Common;
 
 public static class NotificationCursor
 {

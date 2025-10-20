@@ -1,5 +1,5 @@
 ﻿using BuildingBlocks.CQRS;
-using Post.Domain.Aggregates.Reactions.Enums;
+using Post.Domain.Aggregates.Reaction.Enums;
 
 namespace Post.Application.Features.Reactions.Commands.RemoveReaction;
 

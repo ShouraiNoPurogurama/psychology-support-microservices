@@ -1,3 +1,5 @@
+using Feed.Application.MessagePacks;
+
 namespace Feed.Application.Dtos;
 
 public record PostRankData(
@@ -8,4 +10,16 @@ public record PostRankData(
     DateTimeOffset UpdatedAt,
     DateTimeOffset CreatedAt,
     Guid AuthorAliasId
-);
+)
+{
+    public PostRankPack ToPack() => new()
+    {
+        Score        = Score,
+        Reactions    = Reactions,
+        Comments     = Comments,
+        Ctr          = Ctr,
+        UpdatedAtSec = UpdatedAt.ToUnixTimeSeconds(),
+        CreatedAtSec = CreatedAt.ToUnixTimeSeconds(),
+        AuthorAliasId     = AuthorAliasId
+    };
+}

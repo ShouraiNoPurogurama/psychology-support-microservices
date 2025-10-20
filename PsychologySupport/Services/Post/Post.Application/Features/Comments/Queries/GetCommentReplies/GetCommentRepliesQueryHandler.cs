@@ -6,7 +6,7 @@ using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Features.Comments.Dtos;
 using Post.Application.Features.Posts.Dtos;
-using Post.Domain.Aggregates.Reactions.Enums;
+using Post.Domain.Aggregates.Reaction.Enums;
 
 namespace Post.Application.Features.Comments.Queries.GetCommentReplies;
 

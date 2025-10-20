@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Post.Domain.Aggregates.Reactions.Enums;
+namespace Post.Domain.Aggregates.Reaction.Enums;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ReactionCode

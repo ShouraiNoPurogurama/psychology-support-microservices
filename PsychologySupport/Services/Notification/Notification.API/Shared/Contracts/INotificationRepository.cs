@@ -1,6 +1,6 @@
 using Notification.API.Features.Notifications.Models;
 
-namespace Notification.API.Contracts;
+namespace Notification.API.Shared.Contracts;
 
 public interface INotificationRepository
 {

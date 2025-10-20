@@ -69,37 +69,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
             post.PublishedAt));
         return post;
     }
-
-    #region Bypass methods for first release when moderation is not required
-
-    /// <summary>
-    /// Finalizes the post creation and bypasses moderation.
-    /// This method should be used when no explicit moderation process is in place.
-    /// It marks the post as finalized and automatically approved.
-    /// </summary>
-    public void FinalizePost()
-    {
-        ValidateNotDeleted();
-
-        if (Status == PostStatus.Finalized && Moderation.IsApproved)
-        {
-            return;
-        }
-
-        if (Status != PostStatus.Creating)
-        {
-            throw new InvalidPostDataException("Post can only be finalized from the 'Creating' state.");
-        }
-
-        Status = PostStatus.Finalized;
-
-        Moderation = Moderation.Approve(policyVersion: "system-auto-approve-v1");
-
-        // Optionally, you can raise a specific domain event for this action
-        AddDomainEvent(new PostFinalizedEvent(Id));
-    }
-
-    #endregion
+    
 
     /// <summary>
     /// Phương thức này được gọi khi tất cả các bước trong Saga khởi tạo đã thành công.
@@ -178,6 +148,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
     public void Approve(string policyVersion, Guid moderatorId)
     {
         Moderation = Moderation.Approve(policyVersion);
+        FinalizeCreation();
         AddDomainEvent(new PostApprovedEvent(Id, moderatorId));
     }
 

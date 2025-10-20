@@ -1,4 +1,4 @@
-﻿using Post.Domain.Aggregates.Reactions.Enums;
+﻿using Post.Domain.Aggregates.Reaction.Enums;
 using Post.Domain.Exceptions;
 
 namespace Post.Domain.Aggregates.Reaction.ValueObjects;

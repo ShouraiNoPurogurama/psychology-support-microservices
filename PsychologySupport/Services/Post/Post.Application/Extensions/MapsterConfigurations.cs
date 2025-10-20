@@ -4,9 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Post.Application.ReadModels.Commands.UpdateAliasVersionReplica;
 using Post.Application.ReadModels.Models;
 using Post.Domain.Aggregates.Gifts.Enums;
-using Post.Domain.Aggregates.Reactions.Enums;
 using Post.Domain.Aggregates.Posts.Enums;
 using Post.Domain.Aggregates.CategoryTags.Enums;
+using Post.Domain.Aggregates.Reaction.Enums;
 using Post.Domain.Aggregates.Shared.Enums;
 
 namespace Post.Application.Extensions;

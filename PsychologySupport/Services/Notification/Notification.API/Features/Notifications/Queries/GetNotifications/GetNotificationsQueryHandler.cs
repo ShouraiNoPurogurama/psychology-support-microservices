@@ -1,6 +1,6 @@
 using BuildingBlocks.CQRS;
-using Notification.API.Contracts;
-using Notification.API.Common;
+using Notification.API.Shared.Common;
+using Notification.API.Shared.Contracts;
 
 namespace Notification.API.Features.Notifications.Queries.GetNotifications;
 

@@ -1,4 +1,4 @@
-﻿using Post.Domain.Aggregates.Reactions.Enums;
+﻿using Post.Domain.Aggregates.Reaction.Enums;
 
 namespace Post.Domain.Aggregates.Reaction.DomainEvents;
 

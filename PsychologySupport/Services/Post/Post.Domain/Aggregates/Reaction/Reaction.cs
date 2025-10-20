@@ -1,7 +1,7 @@
 ﻿using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Aggregates.Reaction.DomainEvents;
+using Post.Domain.Aggregates.Reaction.Enums;
 using Post.Domain.Aggregates.Reaction.ValueObjects;
-using Post.Domain.Aggregates.Reactions.Enums;
 using Post.Domain.Exceptions;
 
 namespace Post.Domain.Aggregates.Reaction;

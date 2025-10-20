@@ -1,4 +1,4 @@
-﻿namespace Feed.Infrastructure.BackgroundJobs;
+﻿namespace Feed.Infrastructure.Data.Processors;
 
 /// <summary>
 /// Configuration for the UpdateGlobalFallbackJob.

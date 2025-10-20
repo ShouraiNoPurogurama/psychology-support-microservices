@@ -1,5 +1,5 @@
 using FluentValidation;
-using Notification.API.Common;
+using Notification.API.Shared.Common;
 
 namespace Notification.API.Features.Notifications.Queries.GetNotifications;
 

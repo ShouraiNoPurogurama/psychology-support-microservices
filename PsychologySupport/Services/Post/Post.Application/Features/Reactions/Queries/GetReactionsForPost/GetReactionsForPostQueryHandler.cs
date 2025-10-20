@@ -4,7 +4,7 @@ using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Data;
 using Post.Application.Features.Reactions.Dtos;
-using Post.Domain.Aggregates.Reactions.Enums;
+using Post.Domain.Aggregates.Reaction.Enums;
 
 namespace Post.Application.Features.Reactions.Queries.GetReactionsForPost;
 

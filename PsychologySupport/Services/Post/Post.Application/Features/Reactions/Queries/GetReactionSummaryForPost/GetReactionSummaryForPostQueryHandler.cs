@@ -2,7 +2,7 @@
 using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Data;
-using Post.Domain.Aggregates.Reactions.Enums;
+using Post.Domain.Aggregates.Reaction.Enums;
 
 namespace Post.Application.Features.Reactions.Queries.GetReactionSummaryForPost;
 
