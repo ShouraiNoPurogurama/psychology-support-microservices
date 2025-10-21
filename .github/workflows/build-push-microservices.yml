@@ -200,27 +200,35 @@ jobs:
           # Push lên GHCR theo image: ${DOCKER_REGISTRY}${svc}:${IMAGE_TAG}
           docker compose --env-file .env -f docker-compose.build.yml push "${SVCS[@]}"
 
-      # Windows self-hosted
       - name: Compose build & push (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
         env:
           SERVICES_JSON: ${{ needs.detect-services.outputs.services }}
         run: |
+          # Nạp .env (bỏ qua dòng trống / comment), set Env:<key> = <value>
           if (Test-Path ".env") {
-            Get-Content .env | % {
-              if (-not ($_ -match '^\s*#') -and $_.Trim()) {
-                $kv = $_ -split '=', 2
-                if ($kv.Length -eq 2) { $env:$($kv[0].Trim()) = $kv[1].Trim() }
+            Get-Content .env | ForEach-Object {
+              $line = $_.Trim()
+              if (-not $line -or $line -match '^\s*#') { return }
+              $kv = $line -split '=', 2
+              if ($kv.Length -eq 2) {
+                $name  = $kv[0].Trim()
+                $value = $kv[1].Trim()
+                Set-Item -Path ("Env:{0}" -f $name) -Value $value
               }
             }
           }
 
+          # Danh sách service từ JSON
           $svcs = ($env:SERVICES_JSON | ConvertFrom-Json)
           if (-not $svcs -or $svcs.Count -eq 0) { Write-Host "No services"; exit 0 }
           Write-Host "Services: $($svcs -join ' ')"
 
-          # Ép linux/amd64 khi build từ Windows
+          # Ép platform & gán IMAGE_TAG = SHA hiện tại (quan trọng!)
           $env:DOCKER_DEFAULT_PLATFORM = "linux/amd64"
+          $env:IMAGE_TAG = "${{ github.sha }}"
+
+          # Build & Push dùng docker-compose.build.yml + .env
           docker compose --env-file .env -f docker-compose.build.yml build --parallel $svcs
           docker compose --env-file .env -f docker-compose.build.yml push $svcs
