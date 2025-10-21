@@ -114,13 +114,16 @@ jobs:
           printf '%s\n' "${!S[@]}" | sort | jq -R -s -c 'split("\n") - [""]' > services.json
           echo "services=$(cat services.json)" >> "$GITHUB_OUTPUT"
 
-  # 2) Build & Push bằng docker-compose.build.yml + .env (đọc .env và override IMAGE_TAG=SHA)
+  # 2) Build & Push bằng docker-compose.build.yml + .env (đọc .env secret và override IMAGE_TAG=SHA)
   build:
     needs: [pick-runner, detect-services]
     if: ${{ needs.detect-services.outputs.services != '[]' }}
     runs-on: ${{ fromJson(needs.pick-runner.outputs.runs_on) }}
     env:
       SERVICES_JSON: ${{ needs.detect-services.outputs.services }}
+      # Đặt sẵn path compose để dùng ngay cả trước khi load .env
+      COMPOSE_DIR: PsychologySupport
+      COMPOSE_FILE: PsychologySupport/docker-compose.build.yml
     steps:
       - uses: actions/checkout@v4
 
@@ -133,36 +136,28 @@ jobs:
           username: ${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}
 
-      # Load .env -> GITHUB_ENV (Linux)
-      - name: Load .env to env (Linux)
+      # --- Ghi PsychologySupport/.env từ secrets + chèn IMAGE_TAG=SHA (Linux)
+      - name: Write env file (Linux)
         if: ${{ runner.os == 'Linux' }}
         shell: bash
         run: |
           set -euo pipefail
-          ENV_FILE="PsychologySupport/.env"
-          [ -f "$ENV_FILE" ] || { echo "Missing $ENV_FILE"; exit 1; }
-          while IFS='=' read -r k v; do
-            [[ -z "$k" || "$k" =~ ^# ]] && continue
-            echo "${k}=${v}" >> "$GITHUB_ENV"
-          done < "$ENV_FILE"
-          # Override IMAGE_TAG bằng SHA cho build này
-          echo "IMAGE_TAG=${GITHUB_SHA}" >> "$GITHUB_ENV"
+          : "${{ secrets.ENV_PROD }}"
+          mkdir -p "${COMPOSE_DIR}"
+          printf "%s\n" "${{ secrets.ENV_PROD }}" > "${COMPOSE_DIR}/.env"
+          echo "IMAGE_TAG=${GITHUB_SHA}" >> "${COMPOSE_DIR}/.env"
 
-      # Load .env -> GITHUB_ENV (Windows)
-      - name: Load .env to env (Windows)
+      # --- Ghi PsychologySupport/.env từ secrets + chèn IMAGE_TAG=SHA (Windows)
+      - name: Write env file (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
         run: |
-          $envFile = "PsychologySupport/.env"
-          if (-not (Test-Path $envFile)) { Write-Error "Missing $envFile"; exit 1 }
-          Get-Content $envFile | ForEach-Object {
-            if ($_ -match '^\s*#' -or -not $_.Trim()) { return }
-            $kv = $_ -split '=',2
-            if ($kv.Length -eq 2) {
-              Add-Content -Path $env:GITHUB_ENV -Value ("{0}={1}" -f $kv[0].Trim(), $kv[1].Trim())
-            }
-          }
-          Add-Content -Path $env:GITHUB_ENV -Value ("IMAGE_TAG={0}" -f $env:GITHUB_SHA)
+          New-Item -ItemType Directory -Force -Path $env:COMPOSE_DIR | Out-Null
+          $content = @"
+          ${{ secrets.ENV_PROD }}
+          "@
+          Set-Content -Path "$env:COMPOSE_DIR/.env" -Value $content -Encoding UTF8
+          Add-Content -Path "$env:COMPOSE_DIR/.env" -Value "IMAGE_TAG=${{ github.sha }}"
 
       # Compose build/push (Linux)
       - name: Compose build & push (Linux)
