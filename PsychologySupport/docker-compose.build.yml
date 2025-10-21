@@ -1,8 +1,7 @@
 ﻿version: "3.9"
 
 x-dotnet: &dotnet
-  platforms:
-    - linux/amd64
+  platform: ${DOCKER_DEFAULT_PLATFORM:-linux/amd64}
 
 services:
   aimoderation.api:
