@@ -188,7 +188,7 @@ jobs:
             echo "Bake batch $((i/BATCH_SIZE+1)): ${BATCH[*]}"
             docker buildx bake -f "${COMPOSE_FILE}" --push "${BATCH[@]}"
           done
-
+          
       - name: Build & push with buildx bake (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
