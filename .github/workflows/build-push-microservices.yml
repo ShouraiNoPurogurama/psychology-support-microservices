@@ -180,8 +180,8 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path $env:COMPOSE_DIR | Out-Null
           $content = @"
-${{ secrets.ENV_PROD }}
-"@
+          ${{ secrets.ENV_PROD }}
+          "@
           Set-Content -Path "$env:COMPOSE_DIR/.env" -Value $content -Encoding UTF8
           Add-Content -Path "$env:COMPOSE_DIR/.env" -Value "IMAGE_TAG=${{ github.sha }}"
           Write-Host "✅ .env written (content hidden)"
