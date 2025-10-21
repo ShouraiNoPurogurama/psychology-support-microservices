@@ -60,7 +60,7 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
             .Take(limit)
             .ToList();
     }
-
+ 
     public async Task AddToTrendingAsync(Guid postId, double score, DateTimeOffset date, CancellationToken ct)
     {
         var key = GetTrendingKey(date);
