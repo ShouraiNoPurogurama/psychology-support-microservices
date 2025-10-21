@@ -29,7 +29,7 @@ public sealed class ReactionCreatedEventHandler : INotificationHandler<ReactionC
     {
         Guid targetAuthorAliasId;
         string commentSnippet = "";
-        string targetType = notification.TargetType.ToString().ToLower();
+        string targetType = notification.TargetType.ToString();
 
         // Get target author based on target type
         if (notification.TargetType == ReactionTargetType.Post)
