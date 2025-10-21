@@ -1,7 +1,7 @@
 ﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
-using Notification.API.Base.EventHandlers;
 using Notification.API.Features.Emails.SendEmail;
 using Notification.API.Infrastructure.Outbox;
+using Notification.API.Shared.Base.EventHandlers;
 
 namespace Notification.API.Features.Emails.Consumers;
 

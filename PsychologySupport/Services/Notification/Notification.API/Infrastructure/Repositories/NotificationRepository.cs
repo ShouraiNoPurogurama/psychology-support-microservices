@@ -1,7 +1,7 @@
 using System.Data;
-using Notification.API.Contracts;
 using Notification.API.Features.Notifications.Models;
 using Notification.API.Infrastructure.Data;
+using Notification.API.Shared.Contracts;
 
 namespace Notification.API.Infrastructure.Repositories;
 

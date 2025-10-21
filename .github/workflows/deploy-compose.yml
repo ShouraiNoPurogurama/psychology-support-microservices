@@ -34,13 +34,14 @@ jobs:
         uses: appleboy/ssh-action@master
         env:
           # Khi workflow_run: dùng head_sha của run build; khi bấm tay: dùng input image_tag (mặc định main)
-          EFFECTIVE_TAG: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || inputs.image_tag }}
+          EFFECTIVE_TAG: ${{ github.event.workflow_run.head_sha || inputs.image_tag || github.sha }}
           FORCE_ALL: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_all || 'false' }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           command_timeout: 30m
+          envs: EFFECTIVE_TAG,FORCE_ALL   # ⬅️ thêm dòng này
           script: |
             set -euo pipefail
 
@@ -85,8 +86,8 @@ jobs:
 
             # ====== Danh sách services chuẩn ======
             ALL_SERVICES=(
-              "alias.api" "auth.api" "chatbox.api" "feed.api" "media.api"
-              "payment.api" "post.api" "profile.api" "promotion.grpc"
+              "aimoderation.api" "alias.api" "auth.api" "chatbox.api" "digitalgoods.api" "feed.api"
+              "media.api" "payment.api" "post.api" "profile.api" "promotion.grpc" "realtimehub.api"
               "subscription.api" "test.api" "translation.api" "yarpapigateway"
             )
 
@@ -111,7 +112,7 @@ jobs:
                     Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*)                     add_svc "alias.api" ;;
                     Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*)                         add_svc "auth.api" ;;
                     Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*)             add_svc "chatbox.api" ;;
-                    Services/DigitalGoods/DigitalGoods.API/*|PsychologySupport/Services/DigitalGoods/DigitalGoods.API/*)             add_svc "digitalgoods.api" ;;
+                    Services/DigitalGoods/DigitalGoods.API/*|PsychologySupport/Services/DigitalGoods/DigitalGoods.API/*) add_svc "digitalgoods.api" ;;
                     Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*)                         add_svc "feed.api" ;;
                     Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*)                     add_svc "media.api" ;;
                     Services/RealtimeHub/RealtimeHub.API/*|PsychologySupport/Services/RealtimeHub/RealtimeHub.API/*)   add_svc "realtimehub.api" ;;
@@ -130,7 +131,6 @@ jobs:
                 done
               fi
 
-              # Nếu vẫn rỗng (edge-case) → deploy all
               if [ ${#SVC_SET[@]} -eq 0 ]; then
                 echo "⚠️ Không detect service nào → deploy all"
                 for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
@@ -145,82 +145,10 @@ jobs:
             echo "📥 Pull + 🚀 Up"
             for s in "${SERVICES[@]}"; do
               echo "📥 Pull $s (tag=${NEW_TAG})"
-              docker compose -f "${COMPOSE}" pull "$s" || true
+              docker compose --env-file .env -f "${COMPOSE}" pull "$s" || true
               echo "🚀 Up $s"
-              docker compose -f "${COMPOSE}" up -d "$s"
+              docker compose --env-file .env -f "${COMPOSE}" up -d "$s"
             done
-
-            # # ====== Health-check cho các service vừa deploy ======
-            # get_label() {
-            #   docker inspect -f '{{ index .Config.Labels "'"$2"'" }}' "$1" 2>/dev/null || true
-            # }
-            # wait_container_healthy() {
-            #   local name="$1"; local max_wait=60; local waited=0
-            #   while true; do
-            #     state="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$name" 2>/dev/null || echo none)"
-            #     if [ "$state" = "healthy" ]; then
-            #       echo "✅ $name HEALTHCHECK: healthy"; return 0
-            #     fi
-            #     if [ "$state" = "none" ]; then return 2; fi
-            #     if [ $waited -ge $max_wait ]; then
-            #       echo "❌ $name HEALTHCHECK timeout"; return 1
-            #     fi
-            #     sleep 2; waited=$((waited+2))
-            #     echo "⏳ Waiting $name HEALTHCHECK... ($waited/$max_wait)"
-            #   done
-            # }
-            # http_health() {
-            #   local svc="$1"; local cname="$2"
-            #   local path="$(get_label "$cname" 'com.emoease.health_path')"
-            #   local port_override="$(get_label "$cname" 'com.emoease.health_port')"
-            #   local max_wait=60; local waited=0
-            #   [ -z "$path" ] && path="/health"
-            #   local host_port=""
-            #   if [ -n "$port_override" ]; then
-            #     host_port="$port_override"
-            #   else
-            #     host_port="$(docker compose -f "${COMPOSE}" port "$svc" 8080 | head -n1 | awk -F: '{print $NF}')"
-            #     if [ -z "$host_port" ]; then
-            #       host_port="$(docker compose -f "${COMPOSE}" port "$svc" 80 | head -n1 | awk -F: '{print $NF}')"
-            #     fi
-            #   fi
-            #   [ -z "$host_port" ] && { echo "⚠️ Không tìm thấy host port cho $svc, skip HTTP health."; return 0; }
-            #   while true; do
-            #     if curl -fsS "http://localhost:${host_port}${path}" | grep -q '"status":"Healthy"'; then
-            #       echo "✅ $svc HTTP ${path} OK (:${host_port})"; return 0
-            #     fi
-            #     if [ $waited -ge $max_wait ]; then
-            #       echo "❌ $svc HTTP health timeout (${path} on :${host_port})"; return 1
-            #     fi
-            #     sleep 2; waited=$((waited+2))
-            #     echo "⏳ Waiting $svc HTTP health... ($waited/$max_wait)"
-            #   done
-            # }
-
-            # echo "🩺 Health-check các service vừa deploy"
-            # for svc in "${SERVICES[@]}"; do
-            #   cname="$(docker compose -f "${COMPOSE}" ps -q "$svc" | xargs -r docker inspect --format '{{.Name}}' | sed 's#^/##' || true)"
-            #   [ -z "$cname" ] && { echo "  ⚠️ Không tìm thấy container cho $svc, bỏ qua health."; continue; }
-            #   skip="$(get_label "$cname" 'com.emoease.health_skip')"
-            #   if [ "$skip" = "true" ]; then
-            #     echo "  Skip health for $svc (label com.emoease.health_skip=true)"; continue
-            #   fi
-            #   if wait_container_healthy "$cname"; then
-            #     continue
-            #   elif [ $? -eq 2 ]; then
-            #     http_health "$svc" "$cname" || {
-            #       echo "❌ Health fail on $svc → rollback .env (giữ tag ${NEW_TAG})"
-            #       cp -f .env.backup.* .env 2>/dev/null || true
-            #       docker compose -f "${COMPOSE}" up -d "$svc"
-            #       exit 1
-            #     }
-            #   else
-            #     echo "❌ Health fail on $svc → rollback .env (giữ tag ${NEW_TAG})"
-            #     cp -f .env.backup.* .env 2>/dev/null || true
-            #     docker compose -f "${COMPOSE}" up -d "$svc"
-            #     exit 1
-            #   fi
-            # done
 
             echo "🧭 Ghi mốc commit mới"
             echo "${NEW_COMMIT}" > .deploy_commit

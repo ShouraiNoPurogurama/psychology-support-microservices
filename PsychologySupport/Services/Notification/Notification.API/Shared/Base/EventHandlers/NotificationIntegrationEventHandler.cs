@@ -3,7 +3,7 @@ using MassTransit;
 using Notification.API.Infrastructure.Outbox;
 using Notification.API.Infrastructure.Persistence.Models;
 
-namespace Notification.API.Base.EventHandlers;
+namespace Notification.API.Shared.Base.EventHandlers;
 
 /// <summary>
 /// Handles the processing of integration events within the module.

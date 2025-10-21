@@ -1,6 +1,6 @@
 using Notification.API.Features.Preferences.Models;
 
-namespace Notification.API.Contracts;
+namespace Notification.API.Shared.Contracts;
 
 public interface IPreferencesCache
 {

@@ -1,6 +1,6 @@
 using BuildingBlocks.CQRS;
-using Notification.API.Contracts;
 using Notification.API.Features.Preferences.Models;
+using Notification.API.Shared.Contracts;
 
 namespace Notification.API.Features.Preferences.Commands.UpsertPreferences;
 

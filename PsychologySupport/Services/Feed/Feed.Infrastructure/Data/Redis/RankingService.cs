@@ -1,6 +1,9 @@
 using StackExchange.Redis;
 using Feed.Application.Abstractions.RankingService;
 using Feed.Application.Dtos;
+using Feed.Application.MessagePacks;
+using Feed.Domain.ViewerFollowing;
+using MessagePack;
 
 namespace Feed.Infrastructure.Data.Redis;
 
@@ -8,16 +11,7 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
 {
     private readonly IDatabase _database = redis.GetDatabase();
 
-    private static class RankFields
-    {
-        public const string Score = "score";
-        public const string Reactions = "reactions";
-        public const string Comments = "comments";
-        public const string Ctr = "ctr";
-        public const string UpdatedAt = "updated_at";
-        public const string CreatedAt = "created_at";
-        public const string AuthorId = "author_id";
-    }
+    private static readonly MessagePackSerializerOptions MtOpts = MessagePackSerializerOptions.Standard;
 
     public async Task<IReadOnlyList<Guid>> GetTrendingPostsAsync(DateTimeOffset date, CancellationToken ct)
     {
@@ -32,17 +26,9 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
     public async Task UpdatePostRankAsync(Guid postId, PostRankData rankData)
     {
         var key = GetRankKey(postId);
-        var hash = new HashEntry[]
-        {
-            new(RankFields.Score, rankData.Score),
-            new(RankFields.Reactions, rankData.Reactions),
-            new(RankFields.Comments, rankData.Comments),
-            new(RankFields.Ctr, rankData.Ctr),
-            new(RankFields.UpdatedAt, rankData.UpdatedAt.ToUnixTimeSeconds()),
-            new(RankFields.CreatedAt, rankData.CreatedAt.ToUnixTimeSeconds()),
-        };
-        await _database.HashSetAsync(key, hash);
-        await _database.KeyExpireAsync(key, TimeSpan.FromDays(7));
+        var bytes = MessagePackSerializer.Serialize(rankData.ToPack(), MtOpts);
+
+        await _database.StringSetAsync(key, bytes, expiry: TimeSpan.FromDays(7));
     }
 
     public async Task<IReadOnlyList<RankedPost>> RankPostsAsync(
@@ -52,19 +38,22 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
         CancellationToken ct)
     {
         var allPostIds = followedAliasIds.Concat(trendingPostIds).Distinct().ToList();
+        if (allPostIds.Count == 0) return [];
+
+        var map = await GetPostRanksAsync(allPostIds);
         var tasks = allPostIds.Select(async postId =>
         {
-            var rank = await GetPostRankAsync(postId);
-            var score = rank?.Score ?? 0;
-            var authorId = await GetPostAuthorAsync(postId, ct) ?? Guid.Empty;
-            return new RankedPost(
-                postId,
+            map.TryGetValue(postId, out var rank);
+            var score = rank?.Score ?? 0.0;
+            var authorId = await GetPostAuthorAsync(postId, ct) ?? rank?.AuthorAliasId ?? Guid.Empty;
+
+            return new RankedPost(postId,
                 authorId,
                 (sbyte)Math.Floor(score / 10),
                 (long)(score * 1_000_000),
-                rank?.CreatedAt ?? DateTimeOffset.UtcNow
-            );
+                rank?.CreatedAt ?? DateTimeOffset.UtcNow);
         });
+        
         var results = await Task.WhenAll(tasks);
         return results
             .OrderByDescending(p => p.RankI64)
@@ -82,95 +71,101 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
     public async Task InitializePostRankAsync(Guid postId, DateTimeOffset createdAt, CancellationToken ct)
     {
         var key = GetRankKey(postId);
-        await _database.HashSetAsync(key, new[]
+        var pack = new PostRankPack
         {
-            new HashEntry(RankFields.CreatedAt, createdAt.ToUnixTimeSeconds()),
-            new HashEntry(RankFields.Score, 0),
-            new HashEntry(RankFields.Reactions, 0),
-            new HashEntry(RankFields.Comments, 0),
-            new HashEntry(RankFields.Ctr, 0.0),
-            new HashEntry(RankFields.UpdatedAt, DateTimeOffset.UtcNow.ToUnixTimeSeconds())
-        });
-        await _database.KeyExpireAsync(key, TimeSpan.FromDays(7));
+            Score = 0,
+            Reactions = 0,
+            Comments = 0,
+            Ctr = 0.0,
+            UpdatedAtSec = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            CreatedAtSec = createdAt.ToUnixTimeSeconds(),
+            AuthorAliasId = Guid.Empty
+        };
+
+        var bytes = MessagePackSerializer.Serialize(pack, MtOpts, ct);
+
+        await _database.StringSetAsync(key, bytes, TimeSpan.FromDays(7));
     }
 
     public async Task<PostRankData?> GetPostRankAsync(Guid postId)
     {
         var key = GetRankKey(postId);
-        var hash = await _database.HashGetAllAsync(key);
-        if (hash.Length == 0) return null;
-        var dict = hash.ToDictionary(h => h.Name, h => h.Value);
+        var val = await _database.StringGetAsync(key, CommandFlags.PreferReplica);
+        if (val.IsNullOrEmpty) return null;
 
-        Guid? authorId = null;
-        if (dict.TryGetValue(RankFields.AuthorId, out var authorVal) && Guid.TryParse(authorVal.ToString(), out var parsed))
-            authorId = parsed;
-
-        return new PostRankData(
-            dict.TryGetValue(RankFields.Score, out var score) ? (double)score : 0.0,
-            dict.TryGetValue(RankFields.Reactions, out var reactions) ? (int)reactions : 0,
-            dict.TryGetValue(RankFields.Comments, out var comments) ? (int)comments : 0,
-            dict.TryGetValue(RankFields.Ctr, out var ctr) ? (double)ctr : 0.0,
-            dict.TryGetValue(RankFields.UpdatedAt, out var updatedAt) ? DateTimeOffset.FromUnixTimeSeconds((long)updatedAt) : DateTimeOffset.UtcNow,
-            dict.TryGetValue(RankFields.CreatedAt, out var createdAt) ? DateTimeOffset.FromUnixTimeSeconds((long)createdAt) : DateTimeOffset.UtcNow,
-            authorId ?? Guid.Empty
-        );
+        var pack = MessagePackSerializer.Deserialize<PostRankPack>(val, MtOpts);
+        return pack.ToPostRankData();
     }
 
-    private async Task<PostRankData?> GetPostRankDataAsync(Guid postId, CancellationToken ct)
+    public async Task<IReadOnlyDictionary<Guid, PostRankData>> GetPostRanksAsync(IReadOnlyList<Guid> postIds)
     {
-        var key = GetRankKey(postId);
-        var hash = await _database.HashGetAllAsync(key);
+        if (postIds.Count == 0) return new Dictionary<Guid, PostRankData>();
 
-        if (hash.Length == 0) return null;
+        var keys = postIds
+            .Select(GetRankKey)
+            .Select(k => (RedisKey)k)
+            .ToArray();
 
-        var hashDict = hash.ToDictionary(h => h.Name, h => h.Value);
+        var values = await _database.StringGetAsync(keys, CommandFlags.PreferReplica);
 
-        return new PostRankData(
-            hashDict.TryGetValue(RankFields.Score, out var score) ? (double)score : 0.0,
-            hashDict.TryGetValue(RankFields.Reactions, out var reactions) ? (int)reactions : 0,
-            hashDict.TryGetValue(RankFields.Comments, out var comments) ? (int)comments : 0,
-            hashDict.TryGetValue(RankFields.Ctr, out var ctr) ? (double)ctr : 0.0,
-            hashDict.TryGetValue(RankFields.UpdatedAt, out var updatedAt)
-                ? DateTimeOffset.FromUnixTimeSeconds((long)updatedAt)
-                : DateTimeOffset.UtcNow,
-            hashDict.TryGetValue(RankFields.CreatedAt, out var createdAt)
-                ? DateTimeOffset.FromUnixTimeSeconds((long)createdAt)  
-                : DateTimeOffset.UtcNow,
-            hashDict.TryGetValue(RankFields.AuthorId, out var authorId) && Guid.TryParse(authorId, out var parsedAuthorId)
-                ? parsedAuthorId
-                : Guid.Empty
-        );
+        var dict = new Dictionary<Guid, PostRankData>();
+        for (int i = 0; i < values.Length; i++)
+        {
+            var val = values[i];
+            if (val.IsNullOrEmpty)
+                continue;
+
+            var pack = MessagePackSerializer.Deserialize<PostRankPack>(val, MtOpts);
+
+            //Order giống nhau nên có thể lấy thẳng từ index
+            dict[postIds[i]] = pack.ToPostRankData();
+        }
+
+        return dict;
     }
-
+    
     public async Task IncrementReactionsAsync(Guid postId, int delta, CancellationToken ct)
     {
-        var key = GetRankKey(postId);
-        await _database.HashIncrementAsync(key, RankFields.Reactions, delta);
-        await _database.HashSetAsync(key, new[] { new HashEntry(RankFields.UpdatedAt, DateTimeOffset.UtcNow.ToUnixTimeSeconds()) });
-        await _database.KeyExpireAsync(key, TimeSpan.FromDays(7));
+        var dkey = GetDeltaKey(postId);
+        // ghi delta – nhanh, atomic theo field
+        await _database.HashIncrementAsync(dkey, "reactions", delta);
+        await _database.HashSetAsync(dkey, new[] { new HashEntry("updated_at", DateTimeOffset.UtcNow.ToUnixTimeSeconds()) });
+        await _database.KeyExpireAsync(dkey, TimeSpan.FromDays(7));
+        // job nền/luồng khác chịu trách nhiệm đọc base pack + delta để tính điểm và StringSet lại key base
     }
 
     public async Task IncrementCommentsAsync(Guid postId, int delta, CancellationToken ct)
     {
-        var key = GetRankKey(postId);
-        await _database.HashIncrementAsync(key, RankFields.Comments, delta);
-        await _database.HashSetAsync(key, new[] { new HashEntry(RankFields.UpdatedAt, DateTimeOffset.UtcNow.ToUnixTimeSeconds()) });
-        await _database.KeyExpireAsync(key, TimeSpan.FromDays(7));
+        var dkey = GetDeltaKey(postId);
+        await _database.HashIncrementAsync(dkey, "comments", delta);
+        await _database.HashSetAsync(dkey, new[] { new HashEntry("updated_at", DateTimeOffset.UtcNow.ToUnixTimeSeconds()) });
+        await _database.KeyExpireAsync(dkey, TimeSpan.FromDays(7));
     }
 
     public async Task SetPostAuthorAsync(Guid postId, Guid authorAliasId, CancellationToken ct)
     {
         var key = GetRankKey(postId);
-        await _database.HashSetAsync(key, new[] { new HashEntry(RankFields.AuthorId, authorAliasId.ToString()) });
-        await _database.KeyExpireAsync(key, TimeSpan.FromDays(7));
+        var val = await _database.StringGetAsync(key);
+        if(val.IsNullOrEmpty) 
+            return;
+        
+        var pack = MessagePackSerializer.Deserialize<PostRankPack>(val, MtOpts);
+        pack.AuthorAliasId = authorAliasId;
+        pack.UpdatedAtSec = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        
+        var bytes = MessagePackSerializer.Serialize(pack, MtOpts, ct);
+        await _database.StringSetAsync(key, bytes, expiry: TimeSpan.FromDays(7));
     }
 
     public async Task<Guid?> GetPostAuthorAsync(Guid postId, CancellationToken ct)
     {
         var key = GetRankKey(postId);
-        var value = await _database.HashGetAsync(key, RankFields.AuthorId);
-        if (value.HasValue && Guid.TryParse(value.ToString(), out var gid)) return gid;
-        return null;
+        var val = await _database.StringGetAsync(key, CommandFlags.PreferReplica);
+        if (val.IsNullOrEmpty) 
+            return null;
+        
+        var pack = MessagePackSerializer.Deserialize<PostRankPack>(val, MtOpts);
+        return pack.AuthorAliasId == Guid.Empty ? null : pack.AuthorAliasId;
     }
 
     public async Task<IReadOnlyList<Guid>> GetGlobalFallbackPostsAsync(int limit)
@@ -191,7 +186,7 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
         // 2. For each category, query trending:category:{categoryId}:{date}
         // 3. Merge and deduplicate results
         // 4. Return top N posts
-        
+
         // For now, return empty list as stub
         await Task.CompletedTask;
         return Array.Empty<Guid>();
@@ -200,29 +195,26 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
     public async Task UpdateGlobalFallbackAsync(IReadOnlyList<(Guid PostId, double Score)> posts)
     {
         const string key = "trending:global_fallback";
-        
+
         if (posts.Count == 0)
             return;
 
-        // Convert to SortedSetEntry array
         var entries = posts.Select(p => new SortedSetEntry(p.PostId.ToString(), p.Score)).ToArray();
-        
-        // Use a Redis transaction to ensure atomicity
+
         var transaction = _database.CreateTransaction();
-        
-        // Remove old entries
+
         transaction.KeyDeleteAsync(key);
-        
-        // Add new entries
+
         transaction.SortedSetAddAsync(key, entries);
-        
-        // Set expiration to 7 days
+
         transaction.KeyExpireAsync(key, TimeSpan.FromDays(7));
-        
-        // Execute transaction
+
+        // Execute transaction as atomic operation
         await transaction.ExecuteAsync();
     }
 
     private static string GetRankKey(Guid postId) => $"rank:{postId}";
     private static string GetTrendingKey(DateTimeOffset date) => $"trending:{date:yyyyMMdd}";
+    private static string GetDeltaKey(Guid postId) => $"rank:delta:{postId}";
+
 }

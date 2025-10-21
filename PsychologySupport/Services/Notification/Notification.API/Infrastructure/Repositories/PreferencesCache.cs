@@ -1,8 +1,8 @@
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Caching.Memory;
-using Notification.API.Contracts;
 using Notification.API.Features.Notifications.Models;
 using Notification.API.Features.Preferences.Models;
+using Notification.API.Shared.Contracts;
 
 namespace Notification.API.Infrastructure.Repositories;
 

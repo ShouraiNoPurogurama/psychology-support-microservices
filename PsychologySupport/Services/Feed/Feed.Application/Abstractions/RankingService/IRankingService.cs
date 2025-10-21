@@ -17,6 +17,7 @@ public interface IRankingService
     // Helpers to support background rank updates and filtering
     Task InitializePostRankAsync(Guid postId, DateTimeOffset createdAt, CancellationToken ct);
     Task<PostRankData?> GetPostRankAsync(Guid postId);
+    Task<IReadOnlyDictionary<Guid, PostRankData> > GetPostRanksAsync(IReadOnlyList<Guid> postIds);
     Task IncrementReactionsAsync(Guid postId, int delta, CancellationToken ct);
     Task IncrementCommentsAsync(Guid postId, int delta, CancellationToken ct);
 

@@ -14,7 +14,7 @@ using Feed.Application.Abstractions.ViewerBlocking;
 using Feed.Application.Abstractions.ViewerFollowing;
 using Feed.Application.Abstractions.ViewerMuting;
 using Feed.Application.Abstractions.VipService;
-using Feed.Infrastructure.BackgroundJobs;
+using Feed.Infrastructure.Data.Processors;
 using Feed.Infrastructure.Data.Redis;
 using Feed.Infrastructure.Data.Redis.Decorators;
 using Feed.Infrastructure.Data.Redis.Providers;

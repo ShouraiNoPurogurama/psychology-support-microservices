@@ -1,4 +1,4 @@
-namespace Notification.API.Contracts;
+namespace Notification.API.Shared.Contracts;
 
 public interface IProcessedEventRepository
 {

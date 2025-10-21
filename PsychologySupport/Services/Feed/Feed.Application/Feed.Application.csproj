@@ -17,4 +17,8 @@
       <Folder Include="Features\UserActivity\Commands\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="MessagePack" />
+    </ItemGroup>
+
 </Project>

@@ -1,7 +1,7 @@
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Notification.API.Contracts;
+using Notification.API.Shared.Contracts;
 
 namespace Notification.API.Features.Notifications.Consumers;
 

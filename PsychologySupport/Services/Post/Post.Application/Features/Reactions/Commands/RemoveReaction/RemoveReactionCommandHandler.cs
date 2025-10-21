@@ -5,7 +5,7 @@ using Post.Application.Abstractions.Authentication;
 using Post.Application.Abstractions.Integration;
 using Post.Application.Data;
 using Post.Domain.Aggregates.Reaction.DomainEvents;
-using Post.Domain.Aggregates.Reactions.Enums;
+using Post.Domain.Aggregates.Reaction.Enums;
 using StackExchange.Redis;
 
 namespace Post.Application.Features.Reactions.Commands.RemoveReaction;

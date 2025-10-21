@@ -1,5 +1,5 @@
 using BuildingBlocks.CQRS;
-using Notification.API.Contracts;
+using Notification.API.Shared.Contracts;
 
 namespace Notification.API.Features.Notifications.Commands.MarkRead;
 

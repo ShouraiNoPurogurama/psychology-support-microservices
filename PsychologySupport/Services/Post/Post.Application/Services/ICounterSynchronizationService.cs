@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Post.Application.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
-using Post.Domain.Aggregates.Reactions.Enums;
+using Post.Domain.Aggregates.Reaction.Enums;
 
 namespace Post.Application.Services;
 

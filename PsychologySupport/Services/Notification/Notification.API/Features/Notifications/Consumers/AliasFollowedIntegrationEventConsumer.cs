@@ -1,8 +1,8 @@
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Alias;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
 using MassTransit;
-using Notification.API.Contracts;
 using Notification.API.Features.Notifications.Models;
+using Notification.API.Shared.Contracts;
 
 namespace Notification.API.Features.Notifications.Consumers;
 

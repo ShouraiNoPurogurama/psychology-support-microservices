@@ -8,11 +8,11 @@ using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
-using Notification.API.Contracts;
 using Notification.API.Features.Firebase.Contracts;
 using Notification.API.Infrastructure.Outbox;
 using Notification.API.Features.Firebase.Services;
 using Notification.API.Infrastructure.Repositories;
+using Notification.API.Shared.Contracts;
 
 namespace Notification.API.Extensions;
 

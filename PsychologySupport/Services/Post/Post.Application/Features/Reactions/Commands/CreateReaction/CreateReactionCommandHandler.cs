@@ -8,8 +8,8 @@ using Post.Application.Data;
 using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Aggregates.Reaction;
 using Post.Domain.Aggregates.Reaction.DomainEvents;
+using Post.Domain.Aggregates.Reaction.Enums;
 using Post.Domain.Aggregates.Reaction.ValueObjects;
-using Post.Domain.Aggregates.Reactions.Enums;
 using StackExchange.Redis;
 
 namespace Post.Application.Features.Reactions.Commands.CreateReaction;
