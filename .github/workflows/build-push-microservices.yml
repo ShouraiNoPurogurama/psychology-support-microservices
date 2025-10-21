@@ -71,7 +71,6 @@ jobs:
           set -euo pipefail
           ALL_SERVICES=( "aimoderation.api" "alias.api" "auth.api" "chatbox.api" "digitalgoods.api" "feed.api" "media.api" "payment.api" "post.api" "profile.api" "promotion.grpc" "realtimehub.api" "subscription.api" "test.api" "translation.api" "yarpapigateway" )
           git fetch --no-tags --prune origin main
-
           if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then BUILD_ALL=1; else BUILD_ALL=0; fi
 
           if [[ -n "${BEFORE:-}" && "${BEFORE}" != "0000000000000000000000000000000000000000" ]]; then
@@ -126,15 +125,13 @@ jobs:
           printf '%s\n' "${!S[@]}" | sort | jq -R -s -c 'split("\n") - [""]' > services.json
           echo "services=$(cat services.json)" >> "$GITHUB_OUTPUT"
 
-  # 2) Build & Push (buildx bake, batch tối đa 5 service) + load .env vào môi trường trước khi bake
+  # 2) Build & Push (buildx bake, batch tối đa 5 service) – load .env từ repo
   build:
     needs: [pick-runner, detect-services]
     if: ${{ needs.detect-services.outputs.services != '[]' }}
     runs-on: ${{ fromJson(needs.pick-runner.outputs.runs_on) }}
     env:
       SERVICES_JSON: ${{ needs.detect-services.outputs.services }}
-      COMPOSE_DIR: PsychologySupport
-      COMPOSE_FILE: PsychologySupport/docker-compose.build.yml
     steps:
       - uses: actions/checkout@v4
 
@@ -151,65 +148,56 @@ jobs:
           username: ${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}
 
-      # Ghi PsychologySupport/.env từ secret + override IMAGE_TAG=SHA
-      - name: Write env file (Linux)
+      # Linux: load .env (root repo) -> export env -> override IMAGE_TAG -> bake theo batch 5
+      - name: Build & push with buildx bake (Linux, batches of 5, load .env)
         if: ${{ runner.os == 'Linux' }}
         shell: bash
         run: |
           set -euo pipefail
-          : "${{ secrets.ENV_PROD }}"
-          mkdir -p "${COMPOSE_DIR}"
-          printf "%s\n" "${{ secrets.ENV_PROD }}" > "${COMPOSE_DIR}/.env"
-          echo "IMAGE_TAG=${GITHUB_SHA}" >> "${COMPOSE_DIR}/.env"
 
-      - name: Write env file (Windows)
-        if: ${{ runner.os == 'Windows' }}
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path $env:COMPOSE_DIR | Out-Null
-          $content = @"
-          ${{ secrets.ENV_PROD }}
-          "@
-          Set-Content -Path "$env:COMPOSE_DIR/.env" -Value $content -Encoding UTF8
-          Add-Content -Path "$env:COMPOSE_DIR/.env" -Value "IMAGE_TAG=${{ github.sha }}"
+          # 1) Load .env ở ROOT REPO (yêu cầu file tồn tại trong repo)
+          ENV_FILE=".env"
+          [ -f "$ENV_FILE" ] || { echo "Missing $ENV_FILE at repo root"; exit 1; }
 
-      # Linux: export .env vào environment rồi buildx bake theo batch 5
-      - name: Build & push with buildx bake (Linux, batches of 5)
-        if: ${{ runner.os == 'Linux' }}
-        shell: bash
-        run: |
-          set -euo pipefail
+          # Export biến từ .env để docker compose / buildx bake đọc được
+          set -a
+          . "$ENV_FILE"
+          set +a
+
+          # 2) Override IMAGE_TAG bằng SHA cho lần build này (KHÔNG ghi file)
+          export IMAGE_TAG="${GITHUB_SHA}"
+
+          # 3) Bảo đảm build cho linux/amd64
           export DOCKER_DEFAULT_PLATFORM=linux/amd64
           export COMPOSE_DOCKER_CLI_BUILD=1
 
-          # Load toàn bộ biến từ .env để buildx bake nhận được
-          set -a
-          source "${COMPOSE_DIR}/.env"
-          set +a
-
+          # 4) Lấy danh sách service theo batches
           command -v jq >/dev/null || { sudo apt-get update -y && sudo apt-get install -y jq; }
-          mapfile -t SVCS < <(echo "$SERVICES_JSON" | jq -r '.[]')
+          mapfile -t SVCS < <(echo "${SERVICES_JSON}" | jq -r '.[]')
           N=${#SVCS[@]}
           [[ $N -eq 0 ]] && exit 0
 
           BATCH_SIZE=5
           for ((i=0; i<N; i+=BATCH_SIZE)); do
             BATCH=( "${SVCS[@]:i:BATCH_SIZE}" )
-            echo "Bake batch $((i/BATCH_SIZE+1)) : ${BATCH[*]}"
+            echo "Bake batch $((i/BATCH_SIZE+1)): ${BATCH[*]}"
+            # Chạy từ ROOT REPO để context '.' và 'Services/...' trong compose đúng
             docker buildx bake -f "${COMPOSE_FILE}" --push "${BATCH[@]}"
           done
 
-      # Windows: export .env vào environment rồi buildx bake theo batch 5
-      - name: Build & push with buildx bake (Windows, batches of 5)
+      # Windows: load .env (root repo) -> export env -> override IMAGE_TAG -> bake theo batch 5
+      - name: Build & push with buildx bake (Windows, batches of 5, load .env)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $env:DOCKER_DEFAULT_PLATFORM = "linux/amd64"
-          $env:COMPOSE_DOCKER_CLI_BUILD = "1"
 
-          # Load toàn bộ biến từ .env để buildx bake nhận được
-          Get-Content "$env:COMPOSE_DIR/.env" | ForEach-Object {
+          # 1) Load .env ở ROOT REPO
+          $envFile = ".env"
+          if (-not (Test-Path $envFile)) { Write-Error "Missing $envFile at repo root"; exit 1 }
+
+          # Export biến từ .env vào environment
+          Get-Content $envFile | ForEach-Object {
             if ($_ -match '^\s*#' -or -not $_.Trim()) { return }
             $kv = $_ -split '=',2
             if ($kv.Length -eq 2) {
@@ -219,6 +207,14 @@ jobs:
             }
           }
 
+          # 2) Override IMAGE_TAG bằng SHA cho build lần này (KHÔNG ghi file)
+          $env:IMAGE_TAG = "${{ github.sha }}"
+
+          # 3) Bảo đảm build cho linux/amd64
+          $env:DOCKER_DEFAULT_PLATFORM = "linux/amd64"
+          $env:COMPOSE_DOCKER_CLI_BUILD = "1"
+
+          # 4) Chia batch và bake từ ROOT REPO (COMPOSE_FILE là đường dẫn trong .env)
           $svcs = ($env:SERVICES_JSON | ConvertFrom-Json)
           if (-not $svcs -or $svcs.Count -eq 0) { exit 0 }
 
