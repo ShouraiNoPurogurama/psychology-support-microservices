@@ -15,7 +15,6 @@ public record GetUserSubscriptionsV2Request( int PageIndex = 1,
     string? SortBy = "StartDate",
     string? SortOrder = "asc",
     Guid? ServicePackageId = null,
-    Guid? PatientId = null, 
     SubscriptionStatus? Status = null);
 
 public record GetUserSubscriptionsV2Response(PaginatedResult<GetUserSubscriptionDto> UserSubscriptions);
@@ -24,18 +23,28 @@ public class GetUserSubscriptionsV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/v2/user-subscriptions", async (
+        app.MapGet("/v2/me/user-subscriptions", async (
                 [AsParameters] GetUserSubscriptionsV2Request request,
                 ISender sender, HttpContext httpContext) =>
             {
-                if(request.PatientId.HasValue && !(AuthorizationHelpers.CanViewPatientProfile(request.PatientId.Value ,httpContext.User) && AuthorizationHelpers.IsExclusiveAccess(httpContext.User)))
-                    throw new ForbiddenException();
-                
-                // Authorization check
-                if (!(AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User) || AuthorizationHelpers.IsExclusiveAccess(httpContext.User)))
-                    throw new ForbiddenException();
 
-                var query = request.Adapt<GetUserSubscriptionsQuery>();
+                // Lấy patientId từ token 
+                var patientIdClaim = httpContext.User.FindFirst("patientId")?.Value;
+                Guid? patientId = null;
+                if (!string.IsNullOrEmpty(patientIdClaim) && Guid.TryParse(patientIdClaim, out var parsedId))
+                    patientId = parsedId;
+
+                var query = new GetUserSubscriptionsQuery(
+                   PageIndex: request.PageIndex,
+                   PageSize: request.PageSize,
+                   Search: request.Search,
+                   SortBy: request.SortBy,
+                   SortOrder: request.SortOrder,
+                   ServicePackageId: request.ServicePackageId,
+                   PatientId: patientId,
+                   Status: request.Status
+               );
+
                 var result = await sender.Send(query);
                 var response = result.Adapt<GetUserSubscriptionsV2Response>();
 
