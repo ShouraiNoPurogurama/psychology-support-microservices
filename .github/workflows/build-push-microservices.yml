@@ -148,6 +148,28 @@ jobs:
           username: ${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}
 
+      # Viết .env từ secrets + override IMAGE_TAG=SHA
+      - name: Write env file (Linux)
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${{ secrets.ENV_PROD }}"
+          mkdir -p "${COMPOSE_DIR}"
+          printf "%s\n" "${{ secrets.ENV_PROD }}" > "${COMPOSE_DIR}/.env"
+          echo "IMAGE_TAG=${GITHUB_SHA}" >> "${COMPOSE_DIR}/.env"
+
+      - name: Write env file (Windows)
+        if: ${{ runner.os == 'Windows' }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path $env:COMPOSE_DIR | Out-Null
+          $content = @"
+          ${{ secrets.ENV_PROD }}
+          "@
+          Set-Content -Path "$env:COMPOSE_DIR/.env" -Value $content -Encoding UTF8
+          Add-Content -Path "$env:COMPOSE_DIR/.env" -Value "IMAGE_TAG=${{ github.sha }}"
+
       # Linux: load .env (root repo) -> export env -> override IMAGE_TAG -> bake theo batch 5
       - name: Build & push with buildx bake (Linux, batches of 5, load .env)
         if: ${{ runner.os == 'Linux' }}
