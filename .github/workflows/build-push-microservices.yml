@@ -19,7 +19,7 @@ env:
   OWNER: ${{ github.repository_owner }}
 
 jobs:
-  # 0) Chọn runner ưu tiên
+  # 0) Chọn runner (ưu tiên self-hosted; fallback ubuntu-latest)
   pick-runner:
     runs-on: ubuntu-latest
     outputs:
@@ -34,23 +34,8 @@ jobs:
             const owner = context.repo.owner;
             const repo  = context.repo.repo;
 
-            core.startGroup('📦 Fetching runners list from GitHub API');
             const res = await github.rest.actions.listSelfHostedRunnersForRepo({ owner, repo, per_page: 100 });
-            core.info(`Raw API status: ${res.status}`);
-            core.info(`Raw API response (first 500 chars): ${JSON.stringify(res.data, null, 2).slice(0, 500)}...`);
-            core.endGroup();
-
             const runners = res.data.runners ?? [];
-            if (runners.length === 0) {
-              core.warning('⚠️ No runners found for this repo.');
-            }
-
-            core.startGroup('📋 Runners summary');
-            for (const r of runners) {
-              const labels = (r.labels||[]).map(l => l.name).join(', ');
-              core.info(`→ name="${r.name}", status=${r.status}, busy=${r.busy}, labels=[${labels}]`);
-            }
-            core.endGroup();
 
             const target = 'na self hosted runner'; // match theo name hoặc label
             const wanted = runners.find(r => {
@@ -60,29 +45,20 @@ jobs:
             });
 
             if (wanted) {
-              // Lấy đúng các labels THỰC SỰ của runner
               const labelNames = (wanted.labels || []).map(l => l.name).filter(Boolean);
-              // Bảo hiểm: đảm bảo có "self-hosted"
               if (!labelNames.map(s=>s.toLowerCase()).includes('self-hosted')) labelNames.unshift('self-hosted');
-
-              // Thu gọn labels để ổn định (ưu tiên dùng label đặc trưng nếu có)
               const preferred = labelNames.includes('windows-prod')
                 ? ['self-hosted','windows-prod']
                 : labelNames;
-
-              core.notice(`✅ Runner selected: ${wanted.name}`);
-              core.notice(`🏷️ Using labels: [${preferred.join(', ')}]`);
               core.setOutput('runs_on', JSON.stringify(preferred));
             } else {
-              const fallback = "ubuntu-latest";
-              core.notice(`🌀 Fallback runner selected: ${fallback}`);
-              core.setOutput('runs_on', JSON.stringify(fallback));
+              core.setOutput('runs_on', JSON.stringify("ubuntu-latest"));
             }
 
       - name: Show decision output
         run: echo "runs_on=${{ steps.decide.outputs.runs_on }}"
 
-  # 1) Detect services (vẫn nên chạy GitHub-hosted để có bash/apt sẵn)
+  # 1) Detect services thay đổi (hoặc build all khi workflow_dispatch / diff rỗng)
   detect-services:
     runs-on: ubuntu-latest
     needs: pick-runner
@@ -103,9 +79,10 @@ jobs:
           set -euo pipefail
 
           ALL_SERVICES=(
-            "alias.api" "auth.api" "chatbox.api" "digitalgoods.api" "feed.api" "media.api" "realtimehub.api"
-            "payment.api" "post.api" "profile.api" "promotion.grpc"
-            "subscription.api" "test.api" "translation.api" "yarpapigateway"
+            "aimoderation.api" "alias.api" "auth.api" "chatbox.api" "digitalgoods.api"
+            "feed.api" "media.api" "payment.api" "post.api" "profile.api"
+            "promotion.grpc" "realtimehub.api" "subscription.api" "test.api"
+            "translation.api" "yarpapigateway"
           )
 
           git fetch --no-tags --prune origin main
@@ -148,22 +125,22 @@ jobs:
           else
             for f in "${CHANGED_FILES[@]}"; do
               case "$f" in
-                Services/AIModeration/AIModeration.API/*|PsychologySupport/Services/AIModeration/AIModeration.API/*)   add_svc "aimoderation.api" ;;
-                Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*)                     add_svc "alias.api" ;;
-                Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*)                         add_svc "auth.api" ;;
-                Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*)             add_svc "chatbox.api" ;;
+                Services/AIModeration/AIModeration.API/*|PsychologySupport/Services/AIModeration/AIModeration.API/*) add_svc "aimoderation.api" ;;
+                Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*)                             add_svc "alias.api" ;;
+                Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*)                                 add_svc "auth.api" ;;
+                Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*)                     add_svc "chatbox.api" ;;
                 Services/DigitalGoods/DigitalGoods.API/*|PsychologySupport/Services/DigitalGoods/DigitalGoods.API/*) add_svc "digitalgoods.api" ;;
-                Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*)                         add_svc "feed.api" ;;
-                Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*)                     add_svc "media.api" ;;
-                Services/RealtimeHub/RealtimeHub.API/*|PsychologySupport/Services/RealtimeHub/RealtimeHub.API/*)                     add_svc "realtimehub.api" ;;
-                Services/Payment/Payment.API/*|PsychologySupport/Services/Payment/Payment.API/*)             add_svc "payment.api" ;;
-                Services/Post/Post.API/*|PsychologySupport/Services/Post/Post.API/*)                         add_svc "post.api" ;;
-                Services/Profile/Profile.API/*|PsychologySupport/Services/Profile/Profile.API/*)             add_svc "profile.api" ;;
-                Services/Promotion/Promotion.Grpc/*|PsychologySupport/Services/Promotion/Promotion.Grpc/*)   add_svc "promotion.grpc" ;;
+                Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*)                                 add_svc "feed.api" ;;
+                Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*)                             add_svc "media.api" ;;
+                Services/Payment/Payment.API/*|PsychologySupport/Services/Payment/Payment.API/*)                     add_svc "payment.api" ;;
+                Services/Post/Post.API/*|PsychologySupport/Services/Post/Post.API/*)                                 add_svc "post.api" ;;
+                Services/Profile/Profile.API/*|PsychologySupport/Services/Profile/Profile.API/*)                     add_svc "profile.api" ;;
+                Services/Promotion/Promotion.Grpc/*|PsychologySupport/Services/Promotion/Promotion.Grpc/*)           add_svc "promotion.grpc" ;;
+                Services/RealtimeHub/RealtimeHub.API/*|PsychologySupport/Services/RealtimeHub/RealtimeHub.API/*)     add_svc "realtimehub.api" ;;
                 Services/Subscription/Subscription.API/*|PsychologySupport/Services/Subscription/Subscription.API/*) add_svc "subscription.api" ;;
-                Services/Test/Test.API/*|PsychologySupport/Services/Test/Test.API/*)                         add_svc "test.api" ;;
-                Services/Translation/Translation.API/*|PsychologySupport/Services/Translation/Translation.API/*) add_svc "translation.api" ;;
-                ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*)                 add_svc "yarpapigateway" ;;
+                Services/Test/Test.API/*|PsychologySupport/Services/Test/Test.API/*)                                 add_svc "test.api" ;;
+                Services/Translation/Translation.API/*|PsychologySupport/Services/Translation/Translation.API/*)     add_svc "translation.api" ;;
+                ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*)                         add_svc "yarpapigateway" ;;
               esac
             done
           fi
@@ -175,92 +152,75 @@ jobs:
           if ! command -v jq >/dev/null 2>&1; then
             sudo apt-get update -y && sudo apt-get install -y jq
           fi
+
           printf '%s\n' "${!SVC_SET[@]}" | sort | jq -R -s -c 'split("\n") - [""]' > services.json
           echo "Detected services: $(cat services.json)"
           echo "services=$(cat services.json)" >> "$GITHUB_OUTPUT"
 
-  # 2) Build job – chạy trên runner đã chọn (self-hosted nếu online, ngược lại ubuntu-latest)
+  # 2) Build & Push bằng docker compose build.yml + .env (tự fallback runner)
   build:
     needs: [pick-runner, detect-services]
     if: ${{ needs.detect-services.outputs.services != '[]' }}
     runs-on: ${{ fromJson(needs.pick-runner.outputs.runs_on) }}
-    strategy:
-      fail-fast: false
-      matrix:
-        service: ${{ fromJson(needs.detect-services.outputs.services) }}
     steps:
-      - name: Using which runner?
-        run: echo "Using runs-on=${{ needs.pick-runner.outputs.runs_on }}; Service=${{ matrix.service }}"
       - uses: actions/checkout@v4
 
       - uses: docker/setup-buildx-action@v3
 
-      - name: Login to GHCR (using your PAT secrets)
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}
 
-      - name: Resolve context & dockerfile
-        id: meta
-        shell: bash   # <- cần Git Bash nếu chạy trên Windows self-hosted
+      # Linux runner
+      - name: Compose build & push (Linux)
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
+        env:
+          SERVICES_JSON: ${{ needs.detect-services.outputs.services }}
         run: |
           set -euo pipefail
-          SVC="${{ matrix.service }}"
 
-          case "$SVC" in
-            aimoderation.api) CANDS=( "Services/AIModeration/AIModeration.API/Dockerfile" "PsychologySupport/Services/AIModeration/AIModeration.API/Dockerfile" ) ;;
-            alias.api)        CANDS=( "Services/Alias/Alias.API/Dockerfile" "PsychologySupport/Services/Alias/Alias.API/Dockerfile" ) ;;
-            auth.api)         CANDS=( "Services/Auth/Auth.API/Dockerfile" "PsychologySupport/Services/Auth/Auth.API/Dockerfile" ) ;;
-            chatbox.api)      CANDS=( "Services/ChatBox/ChatBox.API/Dockerfile" "PsychologySupport/Services/ChatBox/ChatBox.API/Dockerfile" ) ;;
-            digitalgoods.api) CANDS=( "Services/DigitalGoods/DigitalGoods.API/Dockerfile" "PsychologySupport/Services/DigitalGoods/DigitalGoods.API/Dockerfile" ) ;;
-            feed.api)         CANDS=( "Services/Feed/Feed.API/Dockerfile" "PsychologySupport/Services/Feed/Feed.API/Dockerfile" ) ;;
-            media.api)        CANDS=( "Services/Media/Media.API/Dockerfile" "PsychologySupport/Services/Media/Media.API/Dockerfile" ) ;;
-            realtimehub.api) CANDS=( "Services/RealtimeHub/RealtimeHub.API/Dockerfile" "PsychologySupport/Services/RealtimeHub/RealtimeHub.API/Dockerfile" ) ;;
-            payment.api)      CANDS=( "Services/Payment/Payment.API/Dockerfile" "PsychologySupport/Services/Payment/Payment.API/Dockerfile" ) ;;
-            post.api)         CANDS=( "Services/Post/Post.API/Dockerfile" "PsychologySupport/Services/Post/Post.API/Dockerfile" ) ;;
-            profile.api)      CANDS=( "Services/Profile/Profile.API/Dockerfile" "PsychologySupport/Services/Profile/Profile.API/Dockerfile" ) ;;
-            promotion.grpc)   CANDS=( "Services/Promotion/Promotion.Grpc/Dockerfile" "PsychologySupport/Services/Promotion/Promotion.Grpc/Dockerfile" ) ;;
-            subscription.api) CANDS=( "Services/Subscription/Subscription.API/Dockerfile" "PsychologySupport/Services/Subscription/Subscription.API/Dockerfile" ) ;;
-            test.api)         CANDS=( "Services/Test/Test.API/Dockerfile" "PsychologySupport/Services/Test/Test.API/Dockerfile" ) ;;
-            translation.api)  CANDS=( "Services/Translation/Translation.API/Dockerfile" "PsychologySupport/Services/Translation/Translation.API/Dockerfile" ) ;;
-            yarpapigateway)   CANDS=( "ApiGateways/YarpApiGateway/Dockerfile" "PsychologySupport/ApiGateways/YarpApiGateway/Dockerfile" ) ;;
-            *) echo "Unknown service $SVC"; exit 1 ;;
-          esac
-
-          DF=""
-          for p in "${CANDS[@]}"; do
-            if [[ -f "$p" ]]; then DF="$p"; break; fi
-          done
-
-          if [[ -z "$DF" ]]; then
-            echo "❌ Dockerfile not found for $SVC"; printf 'Tried:\n- %s\n' "${CANDS[@]}"; exit 1
+          # Nạp biến từ .env (cùng cấp docker-compose.build.yml)
+          if [[ -f .env ]]; then
+            set -o allexport; source .env; set +o allexport
           fi
 
-          if [[ "$DF" == PsychologySupport/* ]]; then
-            CTX="PsychologySupport"
-          else
-            CTX="."
-          fi
+          mapfile -t SVCS < <(echo "$SERVICES_JSON" | jq -r '.[]')
+          if [[ ${#SVCS[@]} -eq 0 ]]; then echo "No services"; exit 0; fi
+          echo "Services: ${SVCS[*]}"
 
-          echo "CTX=$CTX" >> $GITHUB_OUTPUT
-          echo "DF=$DF" >> $GITHUB_OUTPUT
-          echo "Resolved CTX=$CTX, DF=$DF"
+          # Build (ép linux/amd64 để chạy trên server Linux)
+          DOCKER_DEFAULT_PLATFORM=linux/amd64 \
+          IMAGE_TAG=${{ github.sha }} \
+          docker compose --env-file .env -f docker-compose.build.yml build --parallel "${SVCS[@]}"
 
-          OWNER_LC=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
-          SVC_LC=$(echo "$SVC" | tr '[:upper:]' '[:lower:]')
-          echo "IMG=ghcr.io/${OWNER_LC}/${SVC_LC}" >> $GITHUB_OUTPUT
+          # Push lên GHCR theo image: ${DOCKER_REGISTRY}${svc}:${IMAGE_TAG}
+          docker compose --env-file .env -f docker-compose.build.yml push "${SVCS[@]}"
 
-      - name: Build & Push ${{ matrix.service }}
-        uses: docker/build-push-action@v6
-        with:
-          context: ${{ steps.meta.outputs.CTX }}
-          file: ${{ steps.meta.outputs.DF }}
-          platforms: linux/amd64
-          push: true
-          provenance: false
-          tags: |
-            ${{ steps.meta.outputs.IMG }}:${{ github.sha }}
-            ${{ steps.meta.outputs.IMG }}:latest
-            ${{ steps.meta.outputs.IMG }}:main
+      # Windows self-hosted
+      - name: Compose build & push (Windows)
+        if: ${{ runner.os == 'Windows' }}
+        shell: pwsh
+        env:
+          SERVICES_JSON: ${{ needs.detect-services.outputs.services }}
+        run: |
+          if (Test-Path ".env") {
+            Get-Content .env | % {
+              if (-not ($_ -match '^\s*#') -and $_.Trim()) {
+                $kv = $_ -split '=', 2
+                if ($kv.Length -eq 2) { $env:$($kv[0].Trim()) = $kv[1].Trim() }
+              }
+            }
+          }
+
+          $svcs = ($env:SERVICES_JSON | ConvertFrom-Json)
+          if (-not $svcs -or $svcs.Count -eq 0) { Write-Host "No services"; exit 0 }
+          Write-Host "Services: $($svcs -join ' ')"
+
+          # Ép linux/amd64 khi build từ Windows
+          $env:DOCKER_DEFAULT_PLATFORM = "linux/amd64"
+          docker compose --env-file .env -f docker-compose.build.yml build --parallel $svcs
+          docker compose --env-file .env -f docker-compose.build.yml push $svcs
