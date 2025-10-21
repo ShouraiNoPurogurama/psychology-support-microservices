@@ -25,12 +25,13 @@ jobs:
     outputs:
       runs_on: ${{ steps.decide.outputs.runs_on }}
     steps:
-      - name: Decide runner (prefer self-hosted "NA Self Hosted Runner")
+      - name: 🤖 Decide runner (prefer self-hosted "NA Self Hosted Runner")
         id: decide
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.RUNNER_ADMIN_TOKEN }}
           script: |
+            core.info('🔎 Checking self-hosted runners…')
             const res = await github.rest.actions.listSelfHostedRunnersForRepo({ owner: context.repo.owner, repo: context.repo.repo, per_page: 100 });
             const runners = res.data.runners ?? [];
             const target = 'na self hosted runner';
@@ -43,8 +44,10 @@ jobs:
               const names = (wanted.labels||[]).map(l=>l.name).filter(Boolean);
               if (!names.map(s=>s.toLowerCase()).includes('self-hosted')) names.unshift('self-hosted');
               const preferred = names.includes('windows-prod') ? ['self-hosted','windows-prod'] : names;
+              core.info(`✅ Using self-hosted runner: ${wanted.name} [labels: ${(wanted.labels||[]).map(l=>l.name).join(', ')}]`);
               core.setOutput('runs_on', JSON.stringify(preferred));
             } else {
+              core.info('ℹ️ No suitable self-hosted runner online → fallback ubuntu-latest');
               core.setOutput('runs_on', JSON.stringify("ubuntu-latest"));
             }
 
@@ -55,11 +58,12 @@ jobs:
     outputs:
       services: ${{ steps.out.outputs.services }}
     steps:
-      - uses: actions/checkout@v4
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Compute smart diff & map to services
+      - name: 🧮 Compute smart diff & map to services
         id: out
         shell: bash
         env:
@@ -67,15 +71,24 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
+          echo "🔧 EVENT_NAME=${EVENT_NAME}"
+          echo "🔧 BEFORE=${BEFORE:-<empty>}"
           ALL_SERVICES=( "aimoderation.api" "alias.api" "auth.api" "chatbox.api" "digitalgoods.api" "feed.api" "media.api" "payment.api" "post.api" "profile.api" "promotion.grpc" "realtimehub.api" "subscription.api" "test.api" "translation.api" "yarpapigateway" )
+          echo "📦 All services: ${#ALL_SERVICES[@]}"
+
           git fetch --no-tags --prune origin main
           if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then BUILD_ALL=1; else BUILD_ALL=0; fi
+
           if [[ -n "${BEFORE:-}" && "${BEFORE}" != "0000000000000000000000000000000000000000" ]]; then
             BASE="${BEFORE}"
           else
             if git rev-parse -q --verify HEAD~1 >/dev/null; then BASE="$(git rev-parse HEAD~1)"; else BASE="$(git merge-base origin/main HEAD)"; fi
           fi
+          echo "📐 Diff base: ${BASE}"
+
           mapfile -t CHANGED < <(git diff --name-only --diff-filter=ACMR "${BASE}"..HEAD || true)
+          echo "📝 Changed files: ${#CHANGED[@]}"
+
           if [[ ${#CHANGED[@]} -eq 0 ]]; then BUILD_ALL=1; fi
           if [[ $BUILD_ALL -eq 0 ]]; then
             for f in "${CHANGED[@]}"; do
@@ -84,6 +97,10 @@ jobs:
               esac
             done
           fi
+          if [[ $BUILD_ALL -eq 1 ]]; then
+            echo "🔁 BUILD_ALL=1 → build all services"
+          fi
+
           declare -A S=(); add(){ S["$1"]=1; }
           if [[ $BUILD_ALL -eq 1 ]]; then
             for s in "${ALL_SERVICES[@]}"; do add "$s"; done
@@ -110,9 +127,13 @@ jobs:
             done
           fi
           if [[ ${#S[@]} -eq 0 ]]; then for s in "${ALL_SERVICES[@]}"; do add "$s"; done; fi
+
           command -v jq >/dev/null || { sudo apt-get update -y && sudo apt-get install -y jq; }
           printf '%s\n' "${!S[@]}" | sort | jq -R -s -c 'split("\n") - [""]' > services.json
           echo "services=$(cat services.json)" >> "$GITHUB_OUTPUT"
+
+          echo "🧩 Resolved services to build:"
+          jq -r '.[]' services.json | sed 's/^/  • /'
 
   # 2) Build & Push (buildx bake, batch tối đa 5 service)
   build:
@@ -124,23 +145,25 @@ jobs:
       COMPOSE_DIR: PsychologySupport
       COMPOSE_FILE: PsychologySupport/docker-compose.build.yml
     steps:
-      - uses: actions/checkout@v4
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
 
-      - uses: docker/setup-buildx-action@v3
+      - name: 🧰 Setup Buildx
+        uses: docker/setup-buildx-action@v3
         with:
           install: true
           driver-opts: |
             env.BUILDKIT_STEP_MAX_PARALLELISM=5
 
-      - name: Login to GHCR
+      - name: 🔐 Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}
 
-      # Viết .env từ secrets + override IMAGE_TAG=SHA
-      - name: Write env file (Linux)
+      # Viết PsychologySupport/.env từ secrets + override IMAGE_TAG=SHA
+      - name: 📝 Write env file (Linux)
         if: ${{ runner.os == 'Linux' }}
         shell: bash
         run: |
@@ -149,20 +172,30 @@ jobs:
           mkdir -p "${COMPOSE_DIR}"
           printf "%s\n" "${{ secrets.ENV_PROD }}" > "${COMPOSE_DIR}/.env"
           echo "IMAGE_TAG=${GITHUB_SHA}" >> "${COMPOSE_DIR}/.env"
+          echo "✅ .env written (content hidden)"
 
-      - name: Write env file (Windows)
+      - name: 📝 Write env file (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path $env:COMPOSE_DIR | Out-Null
           $content = @"
-          ${{ secrets.ENV_PROD }}
-          "@
+${{ secrets.ENV_PROD }}
+"@
           Set-Content -Path "$env:COMPOSE_DIR/.env" -Value $content -Encoding UTF8
           Add-Content -Path "$env:COMPOSE_DIR/.env" -Value "IMAGE_TAG=${{ github.sha }}"
+          Write-Host "✅ .env written (content hidden)"
 
-      # Linux: buildx bake theo batch 5
-      - name: Build & push with buildx bake (Linux, batches of 5)
+      - name: 🔎 Buildx info
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "🐳 docker version:" && docker version || true
+          echo "🧱 buildx version:" && docker buildx version || true
+          echo "📋 buildx builders:" && docker buildx ls || true
+
+      # Linux: export .env → buildx bake theo batch 5
+      - name: 🏗️ Build & push with buildx bake (Linux, batches of 5)
         if: ${{ runner.os == 'Linux' }}
         shell: bash
         run: |
@@ -170,34 +203,92 @@ jobs:
           export DOCKER_DEFAULT_PLATFORM=linux/amd64
           export COMPOSE_DOCKER_CLI_BUILD=1
 
+          # 👉 Export toàn bộ biến từ .env vào environment cho buildx bake
+          echo "📦 Loading env from ${COMPOSE_DIR}/.env"
+          set -a
+          # shellcheck disable=SC1090
+          source "${COMPOSE_DIR}/.env"
+          set +a
+          echo "🔖 DOCKER_REGISTRY=${DOCKER_REGISTRY:-<unset>} | IMAGE_TAG=${IMAGE_TAG:-<unset>}"
+
           command -v jq >/dev/null || { sudo apt-get update -y && sudo apt-get install -y jq; }
           mapfile -t SVCS < <(echo "$SERVICES_JSON" | jq -r '.[]')
           N=${#SVCS[@]}
-          [[ $N -eq 0 ]] && exit 0
+          [[ $N -eq 0 ]] && { echo "⚠️ No services to build"; exit 0; }
 
           BATCH_SIZE=5
+          TOTAL_BATCHES=$(( (N + BATCH_SIZE - 1) / BATCH_SIZE ))
+          echo "🧮 Services: $N  |  Batch size: $BATCH_SIZE  |  Total batches: $TOTAL_BATCHES"
+          echo "🗂️  Service list:"; for s in "${SVCS[@]}"; do echo "  • $s"; done
+
+          PIPE_START=$(date +%s)
           for ((i=0; i<N; i+=BATCH_SIZE)); do
             BATCH=( "${SVCS[@]:i:BATCH_SIZE}" )
-            echo "▶ Bake batch $((i/BATCH_SIZE+1)) / $(printf %.0f "$(echo "($N + $BATCH_SIZE - 1)/$BATCH_SIZE" | bc -l)") : ${BATCH[*]}"
-            # dùng compose file làm nguồn target; build & push
+            IDX=$(( i / BATCH_SIZE + 1 ))
+            echo ""
+            echo "⏱️  Batch ${IDX}/${TOTAL_BATCHES} → ${#BATCH[@]} targets"
+            for b in "${BATCH[@]}"; do echo "   🔸 $b"; done
+            BATCH_START=$(date +%s)
             docker buildx bake -f "${COMPOSE_FILE}" --push "${BATCH[@]}"
+            BATCH_END=$(date +%s)
+            echo "✅ Done batch ${IDX}/${TOTAL_BATCHES} in $((BATCH_END-BATCH_START))s"
           done
+          PIPE_END=$(date +%s)
+          echo ""
+          echo "🎉 All batches completed in $((PIPE_END-PIPE_START))s"
 
-      # Windows: buildx bake theo batch 5
-      - name: Build & push with buildx bake (Windows, batches of 5)
+      # Windows: export .env → buildx bake theo batch 5
+      - name: 🏗️ Build & push with buildx bake (Windows, batches of 5)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
           $env:DOCKER_DEFAULT_PLATFORM = "linux/amd64"
           $env:COMPOSE_DOCKER_CLI_BUILD = "1"
 
+          # 👉 Export toàn bộ biến từ .env vào environment cho buildx bake
+          Write-Host "📦 Loading env from $env:COMPOSE_DIR/.env"
+          Get-Content "$env:COMPOSE_DIR/.env" | ForEach-Object {
+            if ($_ -match '^\s*#' -or -not $_.Trim()) { return }
+            $kv = $_ -split '=',2
+            if ($kv.Length -eq 2) {
+              $k = $kv[0].Trim(); $v = $kv[1].Trim()
+              [System.Environment]::SetEnvironmentVariable($k, $v)
+              Set-Item -Path "Env:$k" -Value $v
+            }
+          }
+          Write-Host "🔖 DOCKER_REGISTRY=$env:DOCKER_REGISTRY | IMAGE_TAG=$env:IMAGE_TAG"
+
           $svcs = ($env:SERVICES_JSON | ConvertFrom-Json)
-          if (-not $svcs -or $svcs.Count -eq 0) { exit 0 }
+          if (-not $svcs -or $svcs.Count -eq 0) {
+            Write-Host "⚠️ No services to build"
+            exit 0
+          }
 
           $batchSize = 5
-          for ($i = 0; $i -lt $svcs.Count; $i += $batchSize) {
-            $end = [Math]::Min($i + $batchSize - 1, $svcs.Count - 1)
+          $total = [int]$svcs.Count
+          $totalBatches = [int][Math]::Ceiling($total / [double]$batchSize)
+
+          Write-Host "🧮 Services: $total  |  Batch size: $batchSize  |  Total batches: $totalBatches"
+          Write-Host "🗂️  Service list:"; $svcs | ForEach-Object { Write-Host "  • $_" }
+
+          $pipelineStart = Get-Date
+          for ($i = 0; $i -lt $total; $i += $batchSize) {
+            $idx = [int]($i / $batchSize) + 1
+            $end = [Math]::Min($i + $batchSize - 1, $total - 1)
             $batch = if ($i -eq $end) { @($svcs[$i]) } else { $svcs[$i..$end] }
-            Write-Host "▶ Bake batch $([int]($i/$batchSize)+1): $($batch -join ', ')"
+
+            Write-Host ""
+            Write-Host "⏱️  Batch $idx/$totalBatches → $($batch.Count) targets"
+            $batch | ForEach-Object { Write-Host "   🔸 $_" }
+
+            $batchStart = Get-Date
             docker buildx bake -f "$env:COMPOSE_FILE" --push $batch
+            $batchEnd = Get-Date
+            $elapsed = [int]([TimeSpan]::op_Subtraction($batchEnd, $batchStart).TotalSeconds)
+            Write-Host "✅ Done batch $idx/$totalBatches in ${elapsed}s"
           }
+
+          $totalElapsed = [int]([TimeSpan]::op_Subtraction((Get-Date), $pipelineStart).TotalSeconds)
+          Write-Host ""
+          Write-Host "🎉 All batches completed in ${totalElapsed}s"
