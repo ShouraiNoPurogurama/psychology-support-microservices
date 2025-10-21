@@ -130,11 +130,13 @@ jobs:
         with:
           driver: docker-container
           buildkitd-flags: --debug
+          name: emoease-buildx
+          append: true
           use: true
           install: true
-          cleanup: false                 # không xóa builder, giữ cache
-          driver-opts: |                 
-            image=moby/buildkit:latest
+          cleanup: false
+          driver-opts: |
+            image=moby/buildkit:v0.16.0
             network=host
 
       - name: Login to GHCR
@@ -166,8 +168,8 @@ jobs:
           Set-Content -Path "PsychologySupport/.env" -Value $content -Encoding UTF8
           Add-Content -Path "PsychologySupport/.env" -Value "IMAGE_TAG=${{ github.sha }}"
 
-      # --- Bake build & push (Linux)
-      - name: buildx bake (Linux)
+      # --- Bake build & push (Linux) — chia lô 5 services/đợt
+      - name: buildx bake in batches of 5 (Linux)
         if: ${{ runner.os == 'Linux' }}
         shell: bash
         working-directory: PsychologySupport
@@ -176,23 +178,58 @@ jobs:
         run: |
           set -euo pipefail
           command -v jq >/dev/null || { sudo apt-get update -y && sudo apt-get install -y jq; }
-          mapfile -t SVCS < <(echo "$SERVICES_JSON" | jq -r '.[]')
-          [[ ${#SVCS[@]} -eq 0 ]] && exit 0
-          docker buildx bake -f docker-compose.build.yml --print
-          docker buildx bake -f docker-compose.build.yml --set *.platform=linux/amd64 --push "${SVCS[@]}"
+          mapfile -t SVCS < <(echo "$SERVICES_JSON" | jq -r '.[]' | sed '/^$/d')
+          [[ ${#SVCS[@]} -eq 0 ]] && { echo "No services to build"; exit 0; }
 
-      # --- Bake build & push (Windows)
-      - name: buildx bake (Windows)
+          echo "Services to build: ${SVCS[*]}"
+          # In kế hoạch (tuỳ chọn)
+          docker buildx bake -f docker-compose.build.yml --print >/dev/null || true
+
+          BATCH_SIZE=5
+          total=${#SVCS[@]}
+          idx=0
+          batchNo=1
+          while (( idx < total )); do
+            batch=( "${SVCS[@]:idx:BATCH_SIZE}" )
+            echo "::group::Batch ${batchNo} (size=${#batch[@]}) -> ${batch[*]}"
+            # Mỗi lần gọi bake sẽ build PARALLEL các target trong batch
+            docker buildx bake \
+              -f docker-compose.build.yml \
+              --set *.platform=linux/amd64 \
+              --push \
+              "${batch[@]}"
+            echo "::endgroup::"
+            idx=$(( idx + BATCH_SIZE ))
+            batchNo=$(( batchNo + 1 ))
+          done
+
+      # --- Bake build & push (Windows) — chia lô 5 services/đợt
+      - name: buildx bake in batches of 5 (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
         working-directory: PsychologySupport
         run: |
-          $svcs = ($env:SERVICES_JSON | ConvertFrom-Json)
-          if (-not $svcs -or $svcs.Count -eq 0) { exit 0 }
+          $svcs = ($env:SERVICES_JSON | ConvertFrom-Json) | Where-Object { $_ -and $_.Trim() -ne "" }
+          if (-not $svcs -or $svcs.Count -eq 0) { Write-Host "No services to build"; exit 0 }
           $env:DOCKER_DEFAULT_PLATFORM = "linux/amd64"
-          docker buildx bake -f docker-compose.build.yml --print
-          docker buildx bake `
-            -f docker-compose.build.yml `
-            --set *.platform=linux/amd64 `
-            --push `
-            $svcs
+
+          # In kế hoạch (tuỳ chọn)
+          try { docker buildx bake -f docker-compose.build.yml --print | Out-Null } catch {}
+
+          $BATCH_SIZE = 5
+          $total = $svcs.Count
+          $idx = 0
+          $batchNo = 1
+          while ($idx -lt $total) {
+            $count = [Math]::Min($BATCH_SIZE, $total - $idx)
+            $batch = $svcs[$idx..($idx + $count - 1)]
+            Write-Host "::group::Batch $batchNo (size=$($batch.Count)) -> $($batch -join ', ')"
+            docker buildx bake `
+              -f docker-compose.build.yml `
+              --set *.platform=linux/amd64 `
+              --push `
+              $batch
+            Write-Host "::endgroup::"
+            $idx += $count
+            $batchNo += 1
+          }
