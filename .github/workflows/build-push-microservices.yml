@@ -173,8 +173,8 @@ jobs:
         run: |
           $tmp = Join-Path $env:RUNNER_TEMP "env_prod.txt"
           @"
-${{ secrets.ENV_PROD }}
-"@ | Set-Content -Path $tmp -Encoding UTF8
+          ${{ secrets.ENV_PROD }}
+          "@ | Set-Content -Path $tmp -Encoding UTF8
 
           Get-Content $tmp | ForEach-Object {
             if ($_ -match '^\s*#' -or -not $_.Trim()) { return }
