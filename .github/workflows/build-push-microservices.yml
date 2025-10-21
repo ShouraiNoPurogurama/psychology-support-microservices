@@ -50,7 +50,7 @@ jobs:
               core.setOutput('runs_on', JSON.stringify("ubuntu-latest"));
             }
 
-  # 1) Detect services thay đổi (hoặc build all khi dispatch / diff rỗng)
+  # 1) Detect services thay đổi (hoặc build all khi dispatch)
   detect-services:
     runs-on: ubuntu-latest
     needs: pick-runner
@@ -85,47 +85,15 @@ jobs:
 
           mapfile -t CHANGED < <(git diff --name-only --diff-filter=ACMR "${BASE}"..HEAD || true)
           if [[ ${#CHANGED[@]} -eq 0 ]]; then BUILD_ALL=1; fi
-          if [[ $BUILD_ALL -eq 0 ]]; then
-            for f in "${CHANGED[@]}"; do
-              case "$f" in
-                Directory.Packages.props|nuget.config|packages.lock.json|.dockerignore) BUILD_ALL=1; break;;
-              esac
-            done
-          fi
-
           declare -A S=(); add(){ S["$1"]=1; }
           if [[ $BUILD_ALL -eq 1 ]]; then
             for s in "${ALL_SERVICES[@]}"; do add "$s"; done
-          else
-            for f in "${CHANGED[@]}"; do
-              case "$f" in
-                Services/AIModeration/AIModeration.API/*|PsychologySupport/Services/AIModeration/AIModeration.API/*) add "aimoderation.api" ;;
-                Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*) add "alias.api" ;;
-                Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*) add "auth.api" ;;
-                Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*) add "chatbox.api" ;;
-                Services/DigitalGoods/DigitalGoods.API/*|PsychologySupport/Services/DigitalGoods/DigitalGoods.API/*) add "digitalgoods.api" ;;
-                Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*) add "feed.api" ;;
-                Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*) add "media.api" ;;
-                Services/Payment/Payment.API/*|PsychologySupport/Services/Payment/Payment.API/*) add "payment.api" ;;
-                Services/Post/Post.API/*|PsychologySupport/Services/Post/Post.API/*) add "post.api" ;;
-                Services/Profile/Profile.API/*|PsychologySupport/Services/Profile/Profile.API/*) add "profile.api" ;;
-                Services/Promotion/Promotion.Grpc/*|PsychologySupport/Services/Promotion/Promotion.Grpc/*) add "promotion.grpc" ;;
-                Services/RealtimeHub/RealtimeHub.API/*|PsychologySupport/Services/RealtimeHub/RealtimeHub.API/*) add "realtimehub.api" ;;
-                Services/Subscription/Subscription.API/*|PsychologySupport/Services/Subscription/Subscription.API/*) add "subscription.api" ;;
-                Services/Test/Test.API/*|PsychologySupport/Services/Test/Test.API/*) add "test.api" ;;
-                Services/Translation/Translation.API/*|PsychologySupport/Services/Translation/Translation.API/*) add "translation.api" ;;
-                ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*) add "yarpapigateway" ;;
-              esac
-            done
           fi
-
-          if [[ ${#S[@]} -eq 0 ]]; then for s in "${ALL_SERVICES[@]}"; do add "$s"; done; fi
-
           command -v jq >/dev/null || { sudo apt-get update -y && sudo apt-get install -y jq; }
           printf '%s\n' "${!S[@]}" | sort | jq -R -s -c 'split("\n") - [""]' > services.json
           echo "services=$(cat services.json)" >> "$GITHUB_OUTPUT"
 
-  # 2) Build & Push (buildx bake, batch tối đa 5 service)
+  # 2) Build & Push
   build:
     needs: [pick-runner, detect-services]
     if: ${{ needs.detect-services.outputs.services != '[]' }}
@@ -148,26 +116,20 @@ jobs:
           username: ${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}
 
-      # === Load ENV_PROD, export biến và ghi file .env ===
-      - name: Load ENV_PROD -> GITHUB_ENV & write ${COMPOSE_DIR}/.env (Linux)
+      # --- A) Export ENV_PROD vào GITHUB_ENV ---
+      - name: Export ENV_PROD to GITHUB_ENV (Linux)
         if: ${{ runner.os == 'Linux' }}
         shell: bash
         run: |
           set -euo pipefail
           tmp="$RUNNER_TEMP/env_prod"
           printf "%s\n" "${{ secrets.ENV_PROD }}" > "$tmp"
-
           while IFS= read -r line; do
             [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
             printf '%s\n' "$line" >> "$GITHUB_ENV"
           done < "$tmp"
 
-          : "${COMPOSE_DIR:?COMPOSE_DIR not set from ENV_PROD}"
-          mkdir -p "${COMPOSE_DIR}"
-          cp "$tmp" "${COMPOSE_DIR}/.env"
-          echo "IMAGE_TAG=${GITHUB_SHA}" >> "${COMPOSE_DIR}/.env"
-
-      - name: Load ENV_PROD -> GITHUB_ENV & write ${env:COMPOSE_DIR}\.env (Windows)
+      - name: Export ENV_PROD to GITHUB_ENV (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
         run: |
@@ -175,7 +137,6 @@ jobs:
           @"
           ${{ secrets.ENV_PROD }}
           "@ | Set-Content -Path $tmp -Encoding UTF8
-
           Get-Content $tmp | ForEach-Object {
             if ($_ -match '^\s*#' -or -not $_.Trim()) { return }
             $kv = $_ -split '=', 2
@@ -184,12 +145,29 @@ jobs:
             }
           }
 
-          if (-not $env:COMPOSE_DIR) { throw "COMPOSE_DIR not set from ENV_PROD" }
+      # --- B) Sinh file ${COMPOSE_DIR}/.env ---
+      - name: Write ${COMPOSE_DIR}/.env (Linux)
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${COMPOSE_DIR:?COMPOSE_DIR is missing (must come from ENV_PROD)}"
+          mkdir -p "${COMPOSE_DIR}"
+          printf "%s\n" "${{ secrets.ENV_PROD }}" > "${COMPOSE_DIR}/.env"
+          echo "IMAGE_TAG=${GITHUB_SHA}" >> "${COMPOSE_DIR}/.env"
+
+      - name: Write ${env:COMPOSE_DIR}\.env (Windows)
+        if: ${{ runner.os == 'Windows' }}
+        shell: pwsh
+        run: |
+          if (-not $env:COMPOSE_DIR) { throw "COMPOSE_DIR is missing (must come from ENV_PROD)" }
           New-Item -ItemType Directory -Force -Path $env:COMPOSE_DIR | Out-Null
-          Copy-Item -Path $tmp -Destination (Join-Path $env:COMPOSE_DIR ".env") -Force
+          @"
+          ${{ secrets.ENV_PROD }}
+          "@ | Set-Content -Path (Join-Path $env:COMPOSE_DIR ".env") -Encoding UTF8
           Add-Content -Path (Join-Path $env:COMPOSE_DIR ".env") -Value "IMAGE_TAG=${{ github.sha }}"
 
-      # === Build & Push (Linux) ===
+      # --- C) Build & Push ---
       - name: Build & push with buildx bake (Linux)
         if: ${{ runner.os == 'Linux' }}
         shell: bash
@@ -211,7 +189,6 @@ jobs:
             docker buildx bake -f "${COMPOSE_FILE}" --push "${BATCH[@]}"
           done
 
-      # === Build & Push (Windows) ===
       - name: Build & push with buildx bake (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
