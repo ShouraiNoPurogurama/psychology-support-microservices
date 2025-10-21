@@ -22,10 +22,18 @@ public class SubscriptionPaymentDetailFailedEventHandler(
         SubscriptionPaymentFailedIntegrationEvent paymentFailedEvent =
             notification.Adapt<SubscriptionPaymentFailedIntegrationEvent>();
 
-        SendEmailIntegrationEvent sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
+        // Load HTML template
+        var basePath = Path.Combine(AppContext.BaseDirectory, "Payments", "EmailTemplates");
+        var templatePath = Path.Combine(basePath, "SubscriptionPaymentFailed.html");
+
+        var template = await File.ReadAllTextAsync(templatePath, cancellationToken);
+        var body = template.Replace("{{Year}}", DateTime.UtcNow.Year.ToString());
+
+        // Gửi email 
+        var sendEmailIntegrationEvent = new SendEmailIntegrationEvent(
             notification.PatientEmail,
             "Thanh toán gói đăng ký thất bại",
-            "Thanh toán cho gói đăng ký của bạn đã thất bại. Vui lòng kiểm tra lại thông tin thanh toán và thử lại.");
+            body);
 
         var userDataResponse =
             await authClient.GetResponse<GetUserDataResponse>(new GetUserDataRequest(null, notification.PatientEmail),
