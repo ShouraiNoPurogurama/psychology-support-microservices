@@ -125,7 +125,7 @@ jobs:
           printf '%s\n' "${!S[@]}" | sort | jq -R -s -c 'split("\n") - [""]' > services.json
           echo "services=$(cat services.json)" >> "$GITHUB_OUTPUT"
 
-  # 2) Build & Push (buildx bake, batch tối đa 5 service) – load .env từ repo
+  # 2) Build & Push (buildx bake, batch tối đa 5 service)
   build:
     needs: [pick-runner, detect-services]
     if: ${{ needs.detect-services.outputs.services != '[]' }}
@@ -148,52 +148,57 @@ jobs:
           username: ${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}
 
-      # Viết .env từ secrets + override IMAGE_TAG=SHA
-      - name: Write env file (Linux)
+      # === Load ENV_PROD, export biến và ghi file .env ===
+      - name: Load ENV_PROD -> GITHUB_ENV & write ${COMPOSE_DIR}/.env (Linux)
         if: ${{ runner.os == 'Linux' }}
         shell: bash
         run: |
           set -euo pipefail
-          : "${{ secrets.ENV_PROD }}"
+          tmp="$RUNNER_TEMP/env_prod"
+          printf "%s\n" "${{ secrets.ENV_PROD }}" > "$tmp"
+
+          while IFS= read -r line; do
+            [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+            printf '%s\n' "$line" >> "$GITHUB_ENV"
+          done < "$tmp"
+
+          : "${COMPOSE_DIR:?COMPOSE_DIR not set from ENV_PROD}"
           mkdir -p "${COMPOSE_DIR}"
-          printf "%s\n" "${{ secrets.ENV_PROD }}" > "${COMPOSE_DIR}/.env"
+          cp "$tmp" "${COMPOSE_DIR}/.env"
           echo "IMAGE_TAG=${GITHUB_SHA}" >> "${COMPOSE_DIR}/.env"
 
-      - name: Write env file (Windows)
+      - name: Load ENV_PROD -> GITHUB_ENV & write ${env:COMPOSE_DIR}\.env (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path $env:COMPOSE_DIR | Out-Null
-          $content = @"
-          ${{ secrets.ENV_PROD }}
-          "@
-          Set-Content -Path "$env:COMPOSE_DIR/.env" -Value $content -Encoding UTF8
-          Add-Content -Path "$env:COMPOSE_DIR/.env" -Value "IMAGE_TAG=${{ github.sha }}"
+          $tmp = Join-Path $env:RUNNER_TEMP "env_prod.txt"
+          @"
+${{ secrets.ENV_PROD }}
+"@ | Set-Content -Path $tmp -Encoding UTF8
 
-      # Linux: load .env (root repo) -> export env -> override IMAGE_TAG -> bake theo batch 5
-      - name: Build & push with buildx bake (Linux, batches of 5, load .env)
+          Get-Content $tmp | ForEach-Object {
+            if ($_ -match '^\s*#' -or -not $_.Trim()) { return }
+            $kv = $_ -split '=', 2
+            if ($kv.Length -eq 2) {
+              "$($kv[0].Trim())=$($kv[1])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            }
+          }
+
+          if (-not $env:COMPOSE_DIR) { throw "COMPOSE_DIR not set from ENV_PROD" }
+          New-Item -ItemType Directory -Force -Path $env:COMPOSE_DIR | Out-Null
+          Copy-Item -Path $tmp -Destination (Join-Path $env:COMPOSE_DIR ".env") -Force
+          Add-Content -Path (Join-Path $env:COMPOSE_DIR ".env") -Value "IMAGE_TAG=${{ github.sha }}"
+
+      # === Build & Push (Linux) ===
+      - name: Build & push with buildx bake (Linux)
         if: ${{ runner.os == 'Linux' }}
         shell: bash
         run: |
           set -euo pipefail
-
-          # 1) Load .env ở ROOT REPO (yêu cầu file tồn tại trong repo)
-          ENV_FILE=".env"
-          [ -f "$ENV_FILE" ] || { echo "Missing $ENV_FILE at repo root"; exit 1; }
-
-          # Export biến từ .env để docker compose / buildx bake đọc được
-          set -a
-          . "$ENV_FILE"
-          set +a
-
-          # 2) Override IMAGE_TAG bằng SHA cho lần build này (KHÔNG ghi file)
-          export IMAGE_TAG="${GITHUB_SHA}"
-
-          # 3) Bảo đảm build cho linux/amd64
           export DOCKER_DEFAULT_PLATFORM=linux/amd64
           export COMPOSE_DOCKER_CLI_BUILD=1
+          export IMAGE_TAG="${GITHUB_SHA}"
 
-          # 4) Lấy danh sách service theo batches
           command -v jq >/dev/null || { sudo apt-get update -y && sudo apt-get install -y jq; }
           mapfile -t SVCS < <(echo "${SERVICES_JSON}" | jq -r '.[]')
           N=${#SVCS[@]}
@@ -203,40 +208,18 @@ jobs:
           for ((i=0; i<N; i+=BATCH_SIZE)); do
             BATCH=( "${SVCS[@]:i:BATCH_SIZE}" )
             echo "Bake batch $((i/BATCH_SIZE+1)): ${BATCH[*]}"
-            # Chạy từ ROOT REPO để context '.' và 'Services/...' trong compose đúng
             docker buildx bake -f "${COMPOSE_FILE}" --push "${BATCH[@]}"
           done
 
-      # Windows: load .env (root repo) -> export env -> override IMAGE_TAG -> bake theo batch 5
-      - name: Build & push with buildx bake (Windows, batches of 5, load .env)
+      # === Build & Push (Windows) ===
+      - name: Build & push with buildx bake (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
         run: |
-          $ErrorActionPreference = 'Stop'
-
-          # 1) Load .env ở ROOT REPO
-          $envFile = ".env"
-          if (-not (Test-Path $envFile)) { Write-Error "Missing $envFile at repo root"; exit 1 }
-
-          # Export biến từ .env vào environment
-          Get-Content $envFile | ForEach-Object {
-            if ($_ -match '^\s*#' -or -not $_.Trim()) { return }
-            $kv = $_ -split '=',2
-            if ($kv.Length -eq 2) {
-              $k = $kv[0].Trim(); $v = $kv[1].Trim()
-              [System.Environment]::SetEnvironmentVariable($k, $v)
-              Set-Item -Path "Env:$k" -Value $v
-            }
-          }
-
-          # 2) Override IMAGE_TAG bằng SHA cho build lần này (KHÔNG ghi file)
-          $env:IMAGE_TAG = "${{ github.sha }}"
-
-          # 3) Bảo đảm build cho linux/amd64
           $env:DOCKER_DEFAULT_PLATFORM = "linux/amd64"
           $env:COMPOSE_DOCKER_CLI_BUILD = "1"
+          $env:IMAGE_TAG = "${{ github.sha }}"
 
-          # 4) Chia batch và bake từ ROOT REPO (COMPOSE_FILE là đường dẫn trong .env)
           $svcs = ($env:SERVICES_JSON | ConvertFrom-Json)
           if (-not $svcs -or $svcs.Count -eq 0) { exit 0 }
 
