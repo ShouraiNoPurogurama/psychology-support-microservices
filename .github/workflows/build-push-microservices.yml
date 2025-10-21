@@ -31,33 +31,22 @@ jobs:
         with:
           github-token: ${{ secrets.RUNNER_ADMIN_TOKEN }}
           script: |
-            const owner = context.repo.owner;
-            const repo  = context.repo.repo;
-            const res = await github.rest.actions.listSelfHostedRunnersForRepo({ owner, repo, per_page: 100 });
+            const res = await github.rest.actions.listSelfHostedRunnersForRepo({ owner: context.repo.owner, repo: context.repo.repo, per_page: 100 });
             const runners = res.data.runners ?? [];
-
-            const target = 'na self hosted runner'; // match theo name hoặc label
+            const target = 'na self hosted runner';
             const wanted = runners.find(r => {
               const labels = (r.labels || []).map(l => (l.name || '').toLowerCase());
               const nameLc = (r.name || '').toLowerCase();
-              return (labels.includes(target) || nameLc === target) && r.status === 'online' && !r.busy;
+              return (labels.includes(target) || nameLc === target) && r.status==='online' && !r.busy;
             });
-
             if (wanted) {
-              const labelNames = (wanted.labels || []).map(l => l.name).filter(Boolean);
-              if (!labelNames.map(s=>s.toLowerCase()).includes('self-hosted')) labelNames.unshift('self-hosted');
-              const preferred = labelNames.includes('windows-prod')
-                ? ['self-hosted','windows-prod']
-                : labelNames;
-              core.notice(`✅ Runner selected: ${wanted.name}`);
+              const names = (wanted.labels||[]).map(l=>l.name).filter(Boolean);
+              if (!names.map(s=>s.toLowerCase()).includes('self-hosted')) names.unshift('self-hosted');
+              const preferred = names.includes('windows-prod') ? ['self-hosted','windows-prod'] : names;
               core.setOutput('runs_on', JSON.stringify(preferred));
             } else {
-              core.notice(`🌀 Fallback runner selected: ubuntu-latest`);
               core.setOutput('runs_on', JSON.stringify("ubuntu-latest"));
             }
-
-      - name: Show decision output
-        run: echo "runs_on=${{ steps.decide.outputs.runs_on }}"
 
   # 1) Detect services thay đổi (hoặc build all khi dispatch / diff rỗng)
   detect-services:
@@ -78,87 +67,54 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
-
-          ALL_SERVICES=(
-            "aimoderation.api" "alias.api" "auth.api" "chatbox.api" "digitalgoods.api"
-            "feed.api" "media.api" "payment.api" "post.api" "profile.api"
-            "promotion.grpc" "realtimehub.api" "subscription.api" "test.api"
-            "translation.api" "yarpapigateway"
-          )
-
+          ALL_SERVICES=( "aimoderation.api" "alias.api" "auth.api" "chatbox.api" "digitalgoods.api" "feed.api" "media.api" "payment.api" "post.api" "profile.api" "promotion.grpc" "realtimehub.api" "subscription.api" "test.api" "translation.api" "yarpapigateway" )
           git fetch --no-tags --prune origin main
-
-          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
-            BUILD_ALL=1
-          else
-            BUILD_ALL=0
-          fi
-
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then BUILD_ALL=1; else BUILD_ALL=0; fi
           if [[ -n "${BEFORE:-}" && "${BEFORE}" != "0000000000000000000000000000000000000000" ]]; then
             BASE="${BEFORE}"
           else
-            if git rev-parse -q --verify HEAD~1 >/dev/null; then
-              BASE="$(git rev-parse HEAD~1)"
-            else
-              BASE="$(git merge-base origin/main HEAD)"
-            fi
+            if git rev-parse -q --verify HEAD~1 >/dev/null; then BASE="$(git rev-parse HEAD~1)"; else BASE="$(git merge-base origin/main HEAD)"; fi
           fi
-
-          echo "Diff range: ${BASE}..HEAD"
-          mapfile -t CHANGED_FILES < <(git diff --name-only --diff-filter=ACMR "${BASE}"..HEAD || true)
-
-          if [[ ${#CHANGED_FILES[@]} -eq 0 ]]; then BUILD_ALL=1; fi
-
+          mapfile -t CHANGED < <(git diff --name-only --diff-filter=ACMR "${BASE}"..HEAD || true)
+          if [[ ${#CHANGED[@]} -eq 0 ]]; then BUILD_ALL=1; fi
           if [[ $BUILD_ALL -eq 0 ]]; then
-            for f in "${CHANGED_FILES[@]}"; do
+            for f in "${CHANGED[@]}"; do
               case "$f" in
-                Directory.Packages.props|nuget.config|packages.lock.json|.dockerignore)
-                  BUILD_ALL=1; break ;;
+                Directory.Packages.props|nuget.config|packages.lock.json|.dockerignore) BUILD_ALL=1; break;;
               esac
             done
           fi
-
-          declare -A SVC_SET=()
-          add_svc(){ SVC_SET["$1"]=1; }
-
+          declare -A S=(); add(){ S["$1"]=1; }
           if [[ $BUILD_ALL -eq 1 ]]; then
-            for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
+            for s in "${ALL_SERVICES[@]}"; do add "$s"; done
           else
-            for f in "${CHANGED_FILES[@]}"; do
+            for f in "${CHANGED[@]}"; do
               case "$f" in
-                Services/AIModeration/AIModeration.API/*|PsychologySupport/Services/AIModeration/AIModeration.API/*) add_svc "aimoderation.api" ;;
-                Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*)                             add_svc "alias.api" ;;
-                Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*)                                 add_svc "auth.api" ;;
-                Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*)                     add_svc "chatbox.api" ;;
-                Services/DigitalGoods/DigitalGoods.API/*|PsychologySupport/Services/DigitalGoods/DigitalGoods.API/*) add_svc "digitalgoods.api" ;;
-                Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*)                                 add_svc "feed.api" ;;
-                Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*)                             add_svc "media.api" ;;
-                Services/Payment/Payment.API/*|PsychologySupport/Services/Payment/Payment.API/*)                     add_svc "payment.api" ;;
-                Services/Post/Post.API/*|PsychologySupport/Services/Post/Post.API/*)                                 add_svc "post.api" ;;
-                Services/Profile/Profile.API/*|PsychologySupport/Services/Profile/Profile.API/*)                     add_svc "profile.api" ;;
-                Services/Promotion/Promotion.Grpc/*|PsychologySupport/Services/Promotion/Promotion.Grpc/*)           add_svc "promotion.grpc" ;;
-                Services/RealtimeHub/RealtimeHub.API/*|PsychologySupport/Services/RealtimeHub/RealtimeHub.API/*)     add_svc "realtimehub.api" ;;
-                Services/Subscription/Subscription.API/*|PsychologySupport/Services/Subscription/Subscription.API/*) add_svc "subscription.api" ;;
-                Services/Test/Test.API/*|PsychologySupport/Services/Test/Test.API/*)                                 add_svc "test.api" ;;
-                Services/Translation/Translation.API/*|PsychologySupport/Services/Translation/Translation.API/*)     add_svc "translation.api" ;;
-                ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*)                         add_svc "yarpapigateway" ;;
+                Services/AIModeration/AIModeration.API/*|PsychologySupport/Services/AIModeration/AIModeration.API/*) add "aimoderation.api" ;;
+                Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*) add "alias.api" ;;
+                Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*) add "auth.api" ;;
+                Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*) add "chatbox.api" ;;
+                Services/DigitalGoods/DigitalGoods.API/*|PsychologySupport/Services/DigitalGoods/DigitalGoods.API/*) add "digitalgoods.api" ;;
+                Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*) add "feed.api" ;;
+                Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*) add "media.api" ;;
+                Services/Payment/Payment.API/*|PsychologySupport/Services/Payment/Payment.API/*) add "payment.api" ;;
+                Services/Post/Post.API/*|PsychologySupport/Services/Post/Post.API/*) add "post.api" ;;
+                Services/Profile/Profile.API/*|PsychologySupport/Services/Profile/Profile.API/*) add "profile.api" ;;
+                Services/Promotion/Promotion.Grpc/*|PsychologySupport/Services/Promotion/Promotion.Grpc/*) add "promotion.grpc" ;;
+                Services/RealtimeHub/RealtimeHub.API/*|PsychologySupport/Services/RealtimeHub/RealtimeHub.API/*) add "realtimehub.api" ;;
+                Services/Subscription/Subscription.API/*|PsychologySupport/Services/Subscription/Subscription.API/*) add "subscription.api" ;;
+                Services/Test/Test.API/*|PsychologySupport/Services/Test/Test.API/*) add "test.api" ;;
+                Services/Translation/Translation.API/*|PsychologySupport/Services/Translation/Translation.API/*) add "translation.api" ;;
+                ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*) add "yarpapigateway" ;;
               esac
             done
           fi
-
-          if [[ ${#SVC_SET[@]} -eq 0 ]]; then
-            for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
-          fi
-
-          if ! command -v jq >/dev/null 2>&1; then
-            sudo apt-get update -y && sudo apt-get install -y jq
-          fi
-
-          printf '%s\n' "${!SVC_SET[@]}" | sort | jq -R -s -c 'split("\n") - [""]' > services.json
-          echo "Detected services: $(cat services.json)"
+          if [[ ${#S[@]} -eq 0 ]]; then for s in "${ALL_SERVICES[@]}"; do add "$s"; done; fi
+          command -v jq >/dev/null || { sudo apt-get update -y && sudo apt-get install -y jq; }
+          printf '%s\n' "${!S[@]}" | sort | jq -R -s -c 'split("\n") - [""]' > services.json
           echo "services=$(cat services.json)" >> "$GITHUB_OUTPUT"
 
-  # 2) Build & Push bằng docker-compose.build.yml + .env (ghi .env từ secret, ép IMAGE_TAG=SHA)
+  # 2) Build & Push bằng docker-compose.build.yml + .env (đọc .env và override IMAGE_TAG=SHA)
   build:
     needs: [pick-runner, detect-services]
     if: ${{ needs.detect-services.outputs.services != '[]' }}
@@ -177,57 +133,57 @@ jobs:
           username: ${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}
 
-      # --- Write .env từ secret + chèn IMAGE_TAG=SHA (Linux)
-      - name: Write .env from secret (Linux)
+      # Load .env -> GITHUB_ENV (Linux)
+      - name: Load .env to env (Linux)
         if: ${{ runner.os == 'Linux' }}
         shell: bash
         run: |
           set -euo pipefail
-          : "${{ secrets.ENV_PROD }}"  # ensure exists
-          printf "%s\n" "${{ secrets.ENV_PROD }}" > .env
-          echo "IMAGE_TAG=${{ github.sha }}" >> .env
-          echo "✅ .env content:"
-          cat .env
+          ENV_FILE="PsychologySupport/.env"
+          [ -f "$ENV_FILE" ] || { echo "Missing $ENV_FILE"; exit 1; }
+          while IFS='=' read -r k v; do
+            [[ -z "$k" || "$k" =~ ^# ]] && continue
+            echo "${k}=${v}" >> "$GITHUB_ENV"
+          done < "$ENV_FILE"
+          # Override IMAGE_TAG bằng SHA cho build này
+          echo "IMAGE_TAG=${GITHUB_SHA}" >> "$GITHUB_ENV"
 
-      # --- Write .env từ secret + chèn IMAGE_TAG=SHA (Windows)
-      - name: Write .env from secret (Windows)
+      # Load .env -> GITHUB_ENV (Windows)
+      - name: Load .env to env (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
         run: |
-          $content = @"
-          ${{ secrets.ENV_PROD }}
-          "@
-          Set-Content -Path .env -Value $content -Encoding UTF8
-          Add-Content -Path .env -Value "IMAGE_TAG=${{ github.sha }}"
-          Write-Host "✅ .env content:"
-          Get-Content .env
+          $envFile = "PsychologySupport/.env"
+          if (-not (Test-Path $envFile)) { Write-Error "Missing $envFile"; exit 1 }
+          Get-Content $envFile | ForEach-Object {
+            if ($_ -match '^\s*#' -or -not $_.Trim()) { return }
+            $kv = $_ -split '=',2
+            if ($kv.Length -eq 2) {
+              Add-Content -Path $env:GITHUB_ENV -Value ("{0}={1}" -f $kv[0].Trim(), $kv[1].Trim())
+            }
+          }
+          Add-Content -Path $env:GITHUB_ENV -Value ("IMAGE_TAG={0}" -f $env:GITHUB_SHA)
 
-      # --- Compose build/push (Linux)
+      # Compose build/push (Linux)
       - name: Compose build & push (Linux)
         if: ${{ runner.os == 'Linux' }}
         shell: bash
         run: |
           set -euo pipefail
+          command -v jq >/dev/null || { sudo apt-get update -y && sudo apt-get install -y jq; }
           mapfile -t SVCS < <(echo "$SERVICES_JSON" | jq -r '.[]')
-          if [[ ${#SVCS[@]} -eq 0 ]]; then echo "No services"; exit 0; fi
-          echo "Services: ${SVCS[*]}"
-
-          # ép linux/amd64 để chạy trên VPS Linux
+          [[ ${#SVCS[@]} -eq 0 ]] && exit 0
           DOCKER_DEFAULT_PLATFORM=linux/amd64 \
-          docker compose --env-file .env -f docker-compose.build.yml build --parallel "${SVCS[@]}"
+          docker compose --env-file "${COMPOSE_DIR}/.env" -f "${COMPOSE_FILE}" build --parallel "${SVCS[@]}"
+          docker compose --env-file "${COMPOSE_DIR}/.env" -f "${COMPOSE_FILE}" push "${SVCS[@]}"
 
-          docker compose --env-file .env -f docker-compose.build.yml push "${SVCS[@]}"
-
-      # --- Compose build/push (Windows)
+      # Compose build/push (Windows)
       - name: Compose build & push (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
         run: |
           $svcs = ($env:SERVICES_JSON | ConvertFrom-Json)
-          if (-not $svcs -or $svcs.Count -eq 0) { Write-Host "No services"; exit 0 }
-          Write-Host "Services: $($svcs -join ' ')"
-
-          # ép linux/amd64 để build từ Windows
+          if (-not $svcs -or $svcs.Count -eq 0) { exit 0 }
           $env:DOCKER_DEFAULT_PLATFORM = "linux/amd64"
-          docker compose --env-file .env -f docker-compose.build.yml build --parallel $svcs
-          docker compose --env-file .env -f docker-compose.build.yml push $svcs
+          docker compose --env-file "$env:COMPOSE_DIR/.env" -f "$env:COMPOSE_FILE" build --parallel $svcs
+          docker compose --env-file "$env:COMPOSE_DIR/.env" -f "$env:COMPOSE_FILE" push $svcs
