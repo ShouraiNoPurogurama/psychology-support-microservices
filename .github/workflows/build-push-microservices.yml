@@ -114,20 +114,23 @@ jobs:
           printf '%s\n' "${!S[@]}" | sort | jq -R -s -c 'split("\n") - [""]' > services.json
           echo "services=$(cat services.json)" >> "$GITHUB_OUTPUT"
 
-  # 2) Build & Push bằng docker-compose.build.yml + .env (đọc .env secret và override IMAGE_TAG=SHA)
+  # 2) Build & Push (buildx bake, batch tối đa 5 service)
   build:
     needs: [pick-runner, detect-services]
     if: ${{ needs.detect-services.outputs.services != '[]' }}
     runs-on: ${{ fromJson(needs.pick-runner.outputs.runs_on) }}
     env:
       SERVICES_JSON: ${{ needs.detect-services.outputs.services }}
-      # Đặt sẵn path compose để dùng ngay cả trước khi load .env
       COMPOSE_DIR: PsychologySupport
       COMPOSE_FILE: PsychologySupport/docker-compose.build.yml
     steps:
       - uses: actions/checkout@v4
 
       - uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+          driver-opts: |
+            env.BUILDKIT_STEP_MAX_PARALLELISM=5
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -136,7 +139,7 @@ jobs:
           username: ${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}
 
-      # --- Ghi PsychologySupport/.env từ secrets + chèn IMAGE_TAG=SHA (Linux)
+      # Viết .env từ secrets + override IMAGE_TAG=SHA
       - name: Write env file (Linux)
         if: ${{ runner.os == 'Linux' }}
         shell: bash
@@ -147,7 +150,6 @@ jobs:
           printf "%s\n" "${{ secrets.ENV_PROD }}" > "${COMPOSE_DIR}/.env"
           echo "IMAGE_TAG=${GITHUB_SHA}" >> "${COMPOSE_DIR}/.env"
 
-      # --- Ghi PsychologySupport/.env từ secrets + chèn IMAGE_TAG=SHA (Windows)
       - name: Write env file (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
@@ -159,26 +161,43 @@ jobs:
           Set-Content -Path "$env:COMPOSE_DIR/.env" -Value $content -Encoding UTF8
           Add-Content -Path "$env:COMPOSE_DIR/.env" -Value "IMAGE_TAG=${{ github.sha }}"
 
-      # Compose build/push (Linux)
-      - name: Compose build & push (Linux)
+      # Linux: buildx bake theo batch 5
+      - name: Build & push with buildx bake (Linux, batches of 5)
         if: ${{ runner.os == 'Linux' }}
         shell: bash
         run: |
           set -euo pipefail
+          export DOCKER_DEFAULT_PLATFORM=linux/amd64
+          export COMPOSE_DOCKER_CLI_BUILD=1
+
           command -v jq >/dev/null || { sudo apt-get update -y && sudo apt-get install -y jq; }
           mapfile -t SVCS < <(echo "$SERVICES_JSON" | jq -r '.[]')
-          [[ ${#SVCS[@]} -eq 0 ]] && exit 0
-          DOCKER_DEFAULT_PLATFORM=linux/amd64 \
-          docker compose --env-file "${COMPOSE_DIR}/.env" -f "${COMPOSE_FILE}" build --parallel "${SVCS[@]}"
-          docker compose --env-file "${COMPOSE_DIR}/.env" -f "${COMPOSE_FILE}" push "${SVCS[@]}"
+          N=${#SVCS[@]}
+          [[ $N -eq 0 ]] && exit 0
 
-      # Compose build/push (Windows)
-      - name: Compose build & push (Windows)
+          BATCH_SIZE=5
+          for ((i=0; i<N; i+=BATCH_SIZE)); do
+            BATCH=( "${SVCS[@]:i:BATCH_SIZE}" )
+            echo "▶ Bake batch $((i/BATCH_SIZE+1)) / $(printf %.0f "$(echo "($N + $BATCH_SIZE - 1)/$BATCH_SIZE" | bc -l)") : ${BATCH[*]}"
+            # dùng compose file làm nguồn target; build & push
+            docker buildx bake -f "${COMPOSE_FILE}" --push "${BATCH[@]}"
+          done
+
+      # Windows: buildx bake theo batch 5
+      - name: Build & push with buildx bake (Windows, batches of 5)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
         run: |
+          $env:DOCKER_DEFAULT_PLATFORM = "linux/amd64"
+          $env:COMPOSE_DOCKER_CLI_BUILD = "1"
+
           $svcs = ($env:SERVICES_JSON | ConvertFrom-Json)
           if (-not $svcs -or $svcs.Count -eq 0) { exit 0 }
-          $env:DOCKER_DEFAULT_PLATFORM = "linux/amd64"
-          docker compose --env-file "$env:COMPOSE_DIR/.env" -f "$env:COMPOSE_FILE" build --parallel $svcs
-          docker compose --env-file "$env:COMPOSE_DIR/.env" -f "$env:COMPOSE_FILE" push $svcs
+
+          $batchSize = 5
+          for ($i = 0; $i -lt $svcs.Count; $i += $batchSize) {
+            $end = [Math]::Min($i + $batchSize - 1, $svcs.Count - 1)
+            $batch = if ($i -eq $end) { @($svcs[$i]) } else { $svcs[$i..$end] }
+            Write-Host "▶ Bake batch $([int]($i/$batchSize)+1): $($batch -join ', ')"
+            docker buildx bake -f "$env:COMPOSE_FILE" --push $batch
+          }
