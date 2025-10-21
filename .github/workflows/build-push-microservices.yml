@@ -131,7 +131,6 @@ jobs:
           driver: docker-container
           buildkitd-flags: --debug
           name: emoease-buildx
-          append: true
           use: true
           install: true
           cleanup: false
