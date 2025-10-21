@@ -16,5 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include=".env" />
+    <Content Include="docker-compose.build.yml" />
   </ItemGroup>
 </Project>

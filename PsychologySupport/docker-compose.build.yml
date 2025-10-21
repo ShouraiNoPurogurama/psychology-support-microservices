@@ -1,0 +1,118 @@
+﻿version: "3.9"
+
+x-dotnet: &dotnet
+  platforms:
+    - linux/amd64
+
+services:
+  aimoderation.api:
+    image: ${DOCKER_REGISTRY}aimoderation.api:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/AIModeration/AIModeration.API/Dockerfile
+    <<: *dotnet
+
+  alias.api:
+    image: ${DOCKER_REGISTRY}alias.api:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/Alias/Alias.API/Dockerfile
+    <<: *dotnet
+
+  auth.api:
+    image: ${DOCKER_REGISTRY}auth.api:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/Auth/Auth.API/Dockerfile
+    <<: *dotnet
+
+  chatbox.api:
+    image: ${DOCKER_REGISTRY}chatbox.api:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/ChatBox/ChatBox.API/Dockerfile
+    <<: *dotnet
+
+  feed.api:
+    image: ${DOCKER_REGISTRY}feed.api:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/Feed/Feed.API/Dockerfile
+    <<: *dotnet
+
+  media.api:
+    image: ${DOCKER_REGISTRY}media.api:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/Media/Media.API/Dockerfile
+    <<: *dotnet
+
+  payment.api:
+    image: ${DOCKER_REGISTRY}payment.api:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/Payment/Payment.API/Dockerfile
+    <<: *dotnet
+
+  post.api:
+    image: ${DOCKER_REGISTRY}post.api:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/Post/Post.API/Dockerfile
+    <<: *dotnet
+
+  profile.api:
+    image: ${DOCKER_REGISTRY}profile.api:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/Profile/Profile.API/Dockerfile
+    <<: *dotnet
+
+  promotion.grpc:
+    image: ${DOCKER_REGISTRY}promotion.grpc:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/Promotion/Promotion.Grpc/Dockerfile
+    <<: *dotnet
+
+  subscription.api:
+    image: ${DOCKER_REGISTRY}subscription.api:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/Subscription/Subscription.API/Dockerfile
+    <<: *dotnet
+
+  test.api:
+    image: ${DOCKER_REGISTRY}test.api:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/Test/Test.API/Dockerfile
+    <<: *dotnet
+
+  translation.api:
+    image: ${DOCKER_REGISTRY}translation.api:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/Translation/Translation.API/Dockerfile
+    <<: *dotnet
+
+  digitalgoods.api:
+    image: ${DOCKER_REGISTRY}digitalgoods.api:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/DigitalGoods/DigitalGoods.API/Dockerfile
+    <<: *dotnet
+
+  realtimehub.api:
+    image: ${DOCKER_REGISTRY}realtimehub.api:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Services/RealtimeHub/RealtimeHub.API/Dockerfile
+    <<: *dotnet
+
+  yarpapigateway:
+    image: ${DOCKER_REGISTRY}yarpapigateway:${IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: ApiGateways/YarpApiGateway/Dockerfile
+    <<: *dotnet
