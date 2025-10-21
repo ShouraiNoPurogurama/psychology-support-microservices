@@ -34,7 +34,7 @@ jobs:
         uses: appleboy/ssh-action@master
         env:
           # Khi workflow_run: dùng head_sha của run build; khi bấm tay: dùng input image_tag (mặc định main)
-          EFFECTIVE_TAG: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || inputs.image_tag }}
+          EFFECTIVE_TAG: ${{ github.event.workflow_run.head_sha || inputs.image_tag || github.sha }}
           FORCE_ALL: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_all || 'false' }}
         with:
           host: ${{ secrets.VPS_HOST }}
