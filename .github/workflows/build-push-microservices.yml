@@ -19,7 +19,7 @@ env:
   OWNER: ${{ github.repository_owner }}
 
 jobs:
-  # 0) Chọn runner (ưu tiên self-hosted; fallback ubuntu-latest)
+  # 0) Chọn runner ưu tiên (self-hosted nếu online; fallback ubuntu-latest)
   pick-runner:
     runs-on: ubuntu-latest
     outputs:
@@ -33,7 +33,6 @@ jobs:
           script: |
             const owner = context.repo.owner;
             const repo  = context.repo.repo;
-
             const res = await github.rest.actions.listSelfHostedRunnersForRepo({ owner, repo, per_page: 100 });
             const runners = res.data.runners ?? [];
 
@@ -50,15 +49,17 @@ jobs:
               const preferred = labelNames.includes('windows-prod')
                 ? ['self-hosted','windows-prod']
                 : labelNames;
+              core.notice(`✅ Runner selected: ${wanted.name}`);
               core.setOutput('runs_on', JSON.stringify(preferred));
             } else {
+              core.notice(`🌀 Fallback runner selected: ubuntu-latest`);
               core.setOutput('runs_on', JSON.stringify("ubuntu-latest"));
             }
 
       - name: Show decision output
         run: echo "runs_on=${{ steps.decide.outputs.runs_on }}"
 
-  # 1) Detect services thay đổi (hoặc build all khi workflow_dispatch / diff rỗng)
+  # 1) Detect services thay đổi (hoặc build all khi dispatch / diff rỗng)
   detect-services:
     runs-on: ubuntu-latest
     needs: pick-runner
@@ -157,11 +158,13 @@ jobs:
           echo "Detected services: $(cat services.json)"
           echo "services=$(cat services.json)" >> "$GITHUB_OUTPUT"
 
-  # 2) Build & Push bằng docker compose build.yml + .env (tự fallback runner)
+  # 2) Build & Push bằng docker-compose.build.yml + .env (ghi .env từ secret, ép IMAGE_TAG=SHA)
   build:
     needs: [pick-runner, detect-services]
     if: ${{ needs.detect-services.outputs.services != '[]' }}
     runs-on: ${{ fromJson(needs.pick-runner.outputs.runs_on) }}
+    env:
+      SERVICES_JSON: ${{ needs.detect-services.outputs.services }}
     steps:
       - uses: actions/checkout@v4
 
@@ -174,61 +177,57 @@ jobs:
           username: ${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}
 
-      # Linux runner
+      # --- Write .env từ secret + chèn IMAGE_TAG=SHA (Linux)
+      - name: Write .env from secret (Linux)
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${{ secrets.ENV_PROD }}"  # ensure exists
+          printf "%s\n" "${{ secrets.ENV_PROD }}" > .env
+          echo "IMAGE_TAG=${{ github.sha }}" >> .env
+          echo "✅ .env content:"
+          cat .env
+
+      # --- Write .env từ secret + chèn IMAGE_TAG=SHA (Windows)
+      - name: Write .env from secret (Windows)
+        if: ${{ runner.os == 'Windows' }}
+        shell: pwsh
+        run: |
+          $content = @"
+          ${{ secrets.ENV_PROD }}
+          "@
+          Set-Content -Path .env -Value $content -Encoding UTF8
+          Add-Content -Path .env -Value "IMAGE_TAG=${{ github.sha }}"
+          Write-Host "✅ .env content:"
+          Get-Content .env
+
+      # --- Compose build/push (Linux)
       - name: Compose build & push (Linux)
         if: ${{ runner.os == 'Linux' }}
         shell: bash
-        env:
-          SERVICES_JSON: ${{ needs.detect-services.outputs.services }}
         run: |
           set -euo pipefail
-
-          # Nạp biến từ .env (cùng cấp docker-compose.build.yml)
-          if [[ -f .env ]]; then
-            set -o allexport; source .env; set +o allexport
-          fi
-
           mapfile -t SVCS < <(echo "$SERVICES_JSON" | jq -r '.[]')
           if [[ ${#SVCS[@]} -eq 0 ]]; then echo "No services"; exit 0; fi
           echo "Services: ${SVCS[*]}"
 
-          # Build (ép linux/amd64 để chạy trên server Linux)
+          # ép linux/amd64 để chạy trên VPS Linux
           DOCKER_DEFAULT_PLATFORM=linux/amd64 \
-          IMAGE_TAG=${{ github.sha }} \
           docker compose --env-file .env -f docker-compose.build.yml build --parallel "${SVCS[@]}"
 
-          # Push lên GHCR theo image: ${DOCKER_REGISTRY}${svc}:${IMAGE_TAG}
           docker compose --env-file .env -f docker-compose.build.yml push "${SVCS[@]}"
 
+      # --- Compose build/push (Windows)
       - name: Compose build & push (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: pwsh
-        env:
-          SERVICES_JSON: ${{ needs.detect-services.outputs.services }}
         run: |
-          # Nạp .env (bỏ qua dòng trống / comment), set Env:<key> = <value>
-          if (Test-Path ".env") {
-            Get-Content .env | ForEach-Object {
-              $line = $_.Trim()
-              if (-not $line -or $line -match '^\s*#') { return }
-              $kv = $line -split '=', 2
-              if ($kv.Length -eq 2) {
-                $name  = $kv[0].Trim()
-                $value = $kv[1].Trim()
-                Set-Item -Path ("Env:{0}" -f $name) -Value $value
-              }
-            }
-          }
-
-          # Danh sách service từ JSON
           $svcs = ($env:SERVICES_JSON | ConvertFrom-Json)
           if (-not $svcs -or $svcs.Count -eq 0) { Write-Host "No services"; exit 0 }
           Write-Host "Services: $($svcs -join ' ')"
 
-          # Ép platform & gán IMAGE_TAG = SHA hiện tại (quan trọng!)
+          # ép linux/amd64 để build từ Windows
           $env:DOCKER_DEFAULT_PLATFORM = "linux/amd64"
-          $env:IMAGE_TAG = "${{ github.sha }}"
-
-          # Build & Push dùng docker-compose.build.yml + .env
           docker compose --env-file .env -f docker-compose.build.yml build --parallel $svcs
           docker compose --env-file .env -f docker-compose.build.yml push $svcs
