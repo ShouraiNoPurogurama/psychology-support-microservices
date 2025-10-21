@@ -85,8 +85,8 @@ jobs:
 
             # ====== Danh sách services chuẩn ======
             ALL_SERVICES=(
-              "alias.api" "auth.api" "chatbox.api" "feed.api" "media.api"
-              "payment.api" "post.api" "profile.api" "promotion.grpc"
+              "aimoderation.api" "alias.api" "auth.api" "chatbox.api" "digitalgoods.api" "feed.api" 
+              "media.api" "payment.api" "post.api" "profile.api" "promotion.grpc" "realtimehub.api" 
               "subscription.api" "test.api" "translation.api" "yarpapigateway"
             )
 
@@ -145,9 +145,9 @@ jobs:
             echo "📥 Pull + 🚀 Up"
             for s in "${SERVICES[@]}"; do
               echo "📥 Pull $s (tag=${NEW_TAG})"
-              docker compose -f "${COMPOSE}" pull "$s" || true
+              docker compose --env-file .env -f "${COMPOSE}" pull "$s" || true
               echo "🚀 Up $s"
-              docker compose -f "${COMPOSE}" up -d "$s"
+              docker compose --env-file .env -f "${COMPOSE}" up -d "$s"
             done
 
             # # ====== Health-check cho các service vừa deploy ======

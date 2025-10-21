@@ -19,6 +19,15 @@
           { "PathPattern": "/swagger/{**catch-all}" }
         ]
       },
+      "payment-webhook": {
+        "ClusterId": "payment-cluster",
+        "Match": {
+          "Path": "/payment-service/payments/payos/webhook"
+        },
+        "Transforms": [
+          { "PathPattern": "/payments/payos/webhook" }
+        ]
+      },
       "payment-route": {
         "ClusterId": "payment-cluster",
         "RateLimiterPolicy": "fixed",
