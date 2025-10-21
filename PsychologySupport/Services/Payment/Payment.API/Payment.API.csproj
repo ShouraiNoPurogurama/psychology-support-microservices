@@ -42,4 +42,11 @@
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </None>
     </ItemGroup>
+	<ItemGroup>
+  <None Include="..\Payment.Application\Payments\EmailTemplates\*.html">
+    <Link>Payments\EmailTemplates\%(Filename)%(Extension)</Link>
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+</ItemGroup>
+
 </Project>

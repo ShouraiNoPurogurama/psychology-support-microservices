@@ -33,4 +33,12 @@
 		</Protobuf>
 	</ItemGroup>
 
+	<ItemGroup>
+		<None Include="Payments\EmailTemplates\*.html">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Link>Payments\EmailTemplates\%(Filename)%(Extension)</Link>
+		</None>
+	</ItemGroup>
+
+
 </Project>

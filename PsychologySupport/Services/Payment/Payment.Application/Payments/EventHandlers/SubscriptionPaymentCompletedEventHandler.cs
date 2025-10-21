@@ -19,12 +19,19 @@ public class SubscriptionPaymentCompletedEventHandler(
             notification.SubscriptionId);
 
         var activateSubscriptionEvent = new SubscriptionPaymentSuccessIntegrationEvent(notification.SubjectRef,notification.SubscriptionId);
-        
-        //TODO PRM
-        //var generateScheduleEvent = new SchedulePaymentSuccessIntegrationEvent(notification.PatientId);
 
-        var sendEmailEvent = new SendEmailIntegrationEvent(notification.PatientEmail,  "Gói đăng ký đã được kích hoạt",
-            "Gói đăng ký của bạn đã được kích hoạt thành công.");
+        // Load HTML template
+        var basePath = Path.Combine(AppContext.BaseDirectory, "Payments", "EmailTemplates");
+        var templatePath = Path.Combine(basePath, "SubscriptionActivated.html");
+
+        var template = await File.ReadAllTextAsync(templatePath, cancellationToken);
+        var body = template.Replace("{{Year}}", DateTime.UtcNow.Year.ToString());
+
+        var sendEmailEvent = new SendEmailIntegrationEvent(
+            notification.PatientEmail,
+            "Gói đăng ký đã được kích hoạt",
+            body);
+
         var userDataResponse =
             await authClient.GetResponse<GetUserDataResponse>(new GetUserDataRequest(null, notification.PatientEmail),
                 cancellationToken);
