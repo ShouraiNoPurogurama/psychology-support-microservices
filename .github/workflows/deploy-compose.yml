@@ -34,14 +34,13 @@ jobs:
         uses: appleboy/ssh-action@master
         env:
           # Khi workflow_run: dùng head_sha của run build; khi bấm tay: dùng input image_tag (mặc định main)
-          EFFECTIVE_TAG: ${{ github.event.workflow_run.head_sha || inputs.image_tag || github.sha }}
+          EFFECTIVE_TAG: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || inputs.image_tag }}
           FORCE_ALL: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_all || 'false' }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           command_timeout: 30m
-          envs: EFFECTIVE_TAG,FORCE_ALL   # ⬅️ thêm dòng này
           script: |
             set -euo pipefail
 
@@ -55,15 +54,24 @@ jobs:
 
             cd "$WORKDIR"
 
+            echo ""
+            echo "━━━━━━━━━━━━━━━━ DEPLOY (selective) ━━━━━━━━━━━━━━━━"
+            echo "Repo dir: $(pwd)"
+            echo "Event tag: ${NEW_TAG}"
+            echo "------------------------------------------------------------------------"
+
             echo "📝 Lấy mốc commit cũ (nếu có)"
             OLD_COMMIT="$(cat .deploy_commit 2>/dev/null || git rev-parse HEAD)"
+            echo "OLD_COMMIT=${OLD_COMMIT}"
 
             echo "📝 Git pull main"
             git reset --hard
             git pull origin main
 
             NEW_COMMIT="$(git rev-parse HEAD)"
+            echo "NEW_COMMIT=${NEW_COMMIT}"
             echo "Diff range: ${OLD_COMMIT}..${NEW_COMMIT}"
+            echo "------------------------------------------------------------------------"
 
             echo "🔐 Login GHCR"
             echo "${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}" | docker login ghcr.io -u "${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}" --password-stdin
@@ -83,6 +91,7 @@ jobs:
             }
             set_kv IMAGE_TAG "${NEW_TAG}"
             echo "📄 .env hiện tại:"; cat .env || true
+            echo "------------------------------------------------------------------------"
 
             # ====== Danh sách services chuẩn ======
             ALL_SERVICES=(
@@ -91,49 +100,130 @@ jobs:
               "subscription.api" "test.api" "translation.api" "yarpapigateway"
             )
 
+            # ====== File nền thay đổi → deploy all (có thể tinh chỉnh) ======
+            GLOBAL_DEPS_PATTERNS=(
+              "Directory.Packages.props"
+              "nuget.config"
+              "docker-compose-apis.yml"
+              # Nếu lock file gây deploy all quá nhiều, để comment lại:
+              # "packages.lock.json"
+              "BuildingBlocks/*"
+              "BuildingBlocks.Messaging/*"
+              "PsychologySupport/BuildingBlocks/*"
+              "PsychologySupport/BuildingBlocks.Messaging/*"
+            )
+
+            # ====== Helper: map path → service (pattern Post.* giống workflow build) ======
+            svc_map() {
+              local f="$1"
+              case "$f" in
+                # AIModeration
+                Services/AIModeration/AIModeration.*/*|PsychologySupport/Services/AIModeration/AIModeration.*/*) echo "aimoderation.api" ;;
+
+                # Alias
+                Services/Alias/Alias.*/*|PsychologySupport/Services/Alias/Alias.*/*) echo "alias.api" ;;
+
+                # Auth
+                Services/Auth/Auth.*/*|PsychologySupport/Services/Auth/Auth.*/*) echo "auth.api" ;;
+
+                # ChatBox
+                Services/ChatBox/ChatBox.*/*|PsychologySupport/Services/ChatBox/ChatBox.*/*) echo "chatbox.api" ;;
+
+                # DigitalGoods
+                Services/DigitalGoods/DigitalGoods.*/*|PsychologySupport/Services/DigitalGoods/DigitalGoods.*/*) echo "digitalgoods.api" ;;
+
+                # Feed
+                Services/Feed/Feed.*/*|PsychologySupport/Services/Feed/Feed.*/*) echo "feed.api" ;;
+
+                # Media
+                Services/Media/Media.*/*|PsychologySupport/Services/Media/Media.*/*) echo "media.api" ;;
+
+                # RealtimeHub
+                Services/RealtimeHub/RealtimeHub.*/*|PsychologySupport/Services/RealtimeHub/RealtimeHub.*/*) echo "realtimehub.api" ;;
+
+                # Payment
+                Services/Payment/Payment.*/*|PsychologySupport/Services/Payment/Payment.*/*) echo "payment.api" ;;
+
+                # Post (Domain/Application/Infrastructure/…)
+                Services/Post/Post.*/*|PsychologySupport/Services/Post/Post.*/*) echo "post.api" ;;
+
+                # Profile
+                Services/Profile/Profile.*/*|PsychologySupport/Services/Profile/Profile.*/*) echo "profile.api" ;;
+
+                # Promotion (gRPC)
+                Services/Promotion/Promotion.*/*|PsychologySupport/Services/Promotion/Promotion.*/*) echo "promotion.grpc" ;;
+
+                # Subscription
+                Services/Subscription/Subscription.*/*|PsychologySupport/Services/Subscription/Subscription.*/*) echo "subscription.api" ;;
+
+                # Test
+                Services/Test/Test.*/*|PsychologySupport/Services/Test/Test.*/*) echo "test.api" ;;
+
+                # Translation
+                Services/Translation/Translation.*/*|PsychologySupport/Services/Translation/Translation.*/*) echo "translation.api" ;;
+
+                # YARP gateway
+                ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*) echo "yarpapigateway" ;;
+
+                *) echo "" ;;
+              esac
+            }
+
             # ====== Chế độ deploy-all khi bấm nút ======
             if [ "${FORCE_ALL}" = "true" ]; then
               echo "🔘 FORCE_ALL=true → Deploy ALL services (tag: ${NEW_TAG})"
               mapfile -t SERVICES < <(printf '%s\n' "${ALL_SERVICES[@]}" | sort)
             else
-              echo "🧮 Tính file thay đổi"
+              echo "🧮 Tính file thay đổi trên VPS"
               mapfile -t CHANGED_FILES < <(git diff --name-only --diff-filter=ACMR "${OLD_COMMIT}".."${NEW_COMMIT}" || true)
+
+              echo "Changed files count: ${#CHANGED_FILES[@]}"
+              if [ ${#CHANGED_FILES[@]} -gt 0 ]; then
+                printf '%s\n' "${CHANGED_FILES[@]}" | awk '{printf "  • %s\n", $0}'
+              else
+                echo "  (no changed files)"
+              fi
+              echo "------------------------------------------------------------------------"
+
+              # Kiểm tra global deps
+              DEPLOY_ALL_BY_GLOBAL=0
+              if [ ${#CHANGED_FILES[@]} -gt 0 ]; then
+                for f in "${CHANGED_FILES[@]}"; do
+                  for p in "${GLOBAL_DEPS_PATTERNS[@]}"; do
+                    case "$p" in
+                      *\**)
+                        # pattern có wildcard
+                        if [[ "$f" == $p ]]; then DEPLOY_ALL_BY_GLOBAL=1; REASON="$p"; break 2; fi
+                        ;;
+                      *)
+                        if [[ "$f" == "$p" ]]; then DEPLOY_ALL_BY_GLOBAL=1; REASON="$p"; break 2; fi
+                        ;;
+                    esac
+                  done
+                done
+              fi
 
               declare -A SVC_SET=()
               add_svc(){ SVC_SET["$1"]=1; }
 
-              if [ ${#CHANGED_FILES[@]} -eq 0 ]; then
-                echo "⚠️ Không có file thay đổi (có thể lần đầu deploy) → deploy all"
+              if [ ${DEPLOY_ALL_BY_GLOBAL} -eq 1 ]; then
+                echo "⚠️ GLOBAL DEPS matched: ${REASON} → deploy ALL services"
                 for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
               else
+                echo "Mapping changed files to services:"
+                printf "%-70s | %s\n" "File" "Service(+)"
+                printf -- "----------------------------------------------------------------------|-----------------\n"
                 for f in "${CHANGED_FILES[@]}"; do
-                  case "$f" in
-                    Services/AIModeration/AIModeration.API/*|PsychologySupport/Services/AIModeration/AIModeration.API/*)     add_svc "aimoderation.api" ;;
-                    Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*)                     add_svc "alias.api" ;;
-                    Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*)                         add_svc "auth.api" ;;
-                    Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*)             add_svc "chatbox.api" ;;
-                    Services/DigitalGoods/DigitalGoods.API/*|PsychologySupport/Services/DigitalGoods/DigitalGoods.API/*) add_svc "digitalgoods.api" ;;
-                    Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*)                         add_svc "feed.api" ;;
-                    Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*)                     add_svc "media.api" ;;
-                    Services/RealtimeHub/RealtimeHub.API/*|PsychologySupport/Services/RealtimeHub/RealtimeHub.API/*)   add_svc "realtimehub.api" ;;
-                    Services/Payment/Payment.API/*|PsychologySupport/Services/Payment/Payment.API/*)             add_svc "payment.api" ;;
-                    Services/Post/Post.API/*|PsychologySupport/Services/Post/Post.API/*)                         add_svc "post.api" ;;
-                    Services/Profile/Profile.API/*|PsychologySupport/Services/Profile/Profile.API/*)             add_svc "profile.api" ;;
-                    Services/Promotion/Promotion.Grpc/*|PsychologySupport/Services/Promotion/Promotion.Grpc/*)   add_svc "promotion.grpc" ;;
-                    Services/Subscription/Subscription.API/*|PsychologySupport/Services/Subscription/Subscription.API/*) add_svc "subscription.api" ;;
-                    Services/Test/Test.API/*|PsychologySupport/Services/Test/Test.API/*)                         add_svc "test.api" ;;
-                    Services/Translation/Translation.API/*|PsychologySupport/Services/Translation/Translation.API/*) add_svc "translation.api" ;;
-                    ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*)                 add_svc "yarpapigateway" ;;
-                    # Động chạm file nền → deploy all để an toàn
-                    Directory.Packages.props|nuget.config|packages.lock.json|.dockerignore|docker-compose-apis.yml|BuildingBlocks/*|BuildingBlocks.Messaging/*|PsychologySupport/BuildingBlocks/*|PsychologySupport/BuildingBlocks.Messaging/*)
-                      for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done ;;
-                  esac
+                  svc="$(svc_map "$f")"
+                  if [ -n "$svc" ]; then add_svc "$svc"; fi
+                  printf "%-70s | %s\n" "$f" "${svc:--}"
                 done
-              fi
 
-              if [ ${#SVC_SET[@]} -eq 0 ]; then
-                echo "⚠️ Không detect service nào → deploy all"
-                for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
+                # Nếu không detect được service nào (edge-case: chỉnh docs, etc.)
+                if [ ${#SVC_SET[@]} -eq 0 ]; then
+                  echo "ℹ️ Không detect service nào từ path → deploy ALL (an toàn)."
+                  for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
+                fi
               fi
 
               mapfile -t SERVICES < <(printf '%s\n' "${!SVC_SET[@]}" | sort)
@@ -141,6 +231,7 @@ jobs:
 
             echo "🧩 Sẽ deploy các service:"
             printf ' - %s\n' "${SERVICES[@]}"
+            echo "------------------------------------------------------------------------"
 
             echo "📥 Pull + 🚀 Up"
             for s in "${SERVICES[@]}"; do
@@ -155,3 +246,5 @@ jobs:
 
             echo "🧹 Cleanup dangling"
             docker image prune -f
+
+            echo "✅ DONE"

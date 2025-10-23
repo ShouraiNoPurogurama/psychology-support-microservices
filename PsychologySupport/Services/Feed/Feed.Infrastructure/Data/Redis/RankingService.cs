@@ -60,7 +60,7 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
             .Take(limit)
             .ToList();
     }
-
+ 
     public async Task AddToTrendingAsync(Guid postId, double score, DateTimeOffset date, CancellationToken ct)
     {
         var key = GetTrendingKey(date);
@@ -81,7 +81,7 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
             CreatedAtSec = createdAt.ToUnixTimeSeconds(),
             AuthorAliasId = Guid.Empty
         };
-
+ 
         var bytes = MessagePackSerializer.Serialize(pack, MtOpts, ct);
 
         await _database.StringSetAsync(key, bytes, TimeSpan.FromDays(7));

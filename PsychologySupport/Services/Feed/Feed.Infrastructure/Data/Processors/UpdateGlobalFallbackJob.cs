@@ -140,14 +140,13 @@ public sealed class UpdateGlobalFallbackJob : IJob //
             {
                 if (rankMap.TryGetValue(postId, out var rank))
                 {
-                    // Điểm cơ bản
-                    var baseScore = rank.Reactions + (rank.Comments * 2.0) + (rank.Ctr * 100.0);
-
-                    var ageH = (DateTimeOffset.UtcNow - rank.CreatedAt).TotalHours;
-                    var decay = Math.Max(floorDecay, Math.Exp(-lambdaPerHour * ageH));
-                    var adjusted = baseScore * decay;
-
-                    PushTopK(heap, k, postId, adjusted);
+                    var blended = ComputeBlendedScore(
+                        reactions: rank.Reactions,
+                        comments : rank.Comments,
+                        ctr      : rank.Ctr,
+                        createdAtUtc: rank.CreatedAt
+                    );
+                    PushTopK(heap, k, postId, blended);
                     processedCount++;
                 }
             }
@@ -218,6 +217,36 @@ public sealed class UpdateGlobalFallbackJob : IJob //
             heap.Enqueue((id, score), score);
         }
     }
+    private static double ComputeBlendedScore(
+        double reactions,
+        double comments,
+        double ctr,
+        DateTimeOffset createdAtUtc)
+    {
+        var ageH = (DateTimeOffset.UtcNow - createdAtUtc).TotalHours;
+
+        // 1) Recency-only
+        var recencyScore = ComputeRecencyOnlyScore(createdAtUtc); // ~0..100
+
+        // 2) Engagement + decay + prior
+        const double engagementPrior = 5.0;          // tune: 2–10
+        var engagement = reactions + 2.0 * comments + 100.0 * ctr + engagementPrior;
+
+        const double lambdaPerHour = 0.015;          
+        const double floorDecay   = 0.25;
+        var decay = Math.Max(floorDecay, Math.Exp(-lambdaPerHour * ageH));
+        var engagementDecayScore = engagement * decay;
+
+        // 3) Trọng số chuyển pha theo tuổi bài (logistic)
+        const double halfLifeHours = 24.0;           // sau ~24h bắt đầu bớt ưu tiên recency
+        const double softnessHours = 6.0;            // độ dốc chuyển pha
+        var wRecency = 1.0 / (1.0 + Math.Exp((ageH - halfLifeHours) / softnessHours));
+        // ageH = 0h  -> w ~ 0.98 (gần như recency)
+        // ageH = 24h -> w ~ 0.5
+        // ageH >>    -> w ~ 0 (nghiêng engagement)
+
+        return wRecency * recencyScore + (1.0 - wRecency) * engagementDecayScore;
+    }
     
     private static double ComputeRecencyOnlyScore(DateTimeOffset createdAtUtc)
     {
@@ -228,4 +257,5 @@ public sealed class UpdateGlobalFallbackJob : IJob //
         var decay = Math.Exp(-lambdaPerHour * Math.Max(0, ageH));
         return scale * decay;                  //chỉ dựa recency
     }
+
 }

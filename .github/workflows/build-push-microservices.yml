@@ -19,7 +19,7 @@ env:
   OWNER: ${{ github.repository_owner }}
 
 jobs:
-  # 0) Chọn runner ưu tiên (self-hosted nếu online; fallback ubuntu-latest)
+  # 0) Chọn runner ưu tiên
   pick-runner:
     runs-on: ubuntu-latest
     outputs:
@@ -31,24 +31,52 @@ jobs:
         with:
           github-token: ${{ secrets.RUNNER_ADMIN_TOKEN }}
           script: |
-            const res = await github.rest.actions.listSelfHostedRunnersForRepo({ owner: context.repo.owner, repo: context.repo.repo, per_page: 100 });
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+
+            core.startGroup('📦 Fetching runners list from GitHub API');
+            const res = await github.rest.actions.listSelfHostedRunnersForRepo({ owner, repo, per_page: 100 });
+            core.info(`Raw API status: ${res.status}`);
+            core.info(`Raw API response (first 500 chars): ${JSON.stringify(res.data, null, 2).slice(0, 500)}...`);
+            core.endGroup();
+
             const runners = res.data.runners ?? [];
+            if (runners.length === 0) core.warning('⚠️ No runners found for this repo.');
+
+            core.startGroup('📋 Runners summary');
+            for (const r of runners) {
+              const labels = (r.labels||[]).map(l => l.name).join(', ');
+              core.info(`→ name="${r.name}", status=${r.status}, busy=${r.busy}, labels=[${labels}]`);
+            }
+            core.endGroup();
+
             const target = 'na self hosted runner';
-            const wanted = runners.find(r => {
+            const wanted = (res.data.runners||[]).find(r => {
               const labels = (r.labels || []).map(l => (l.name || '').toLowerCase());
               const nameLc = (r.name || '').toLowerCase();
-              return (labels.includes(target) || nameLc === target) && r.status==='online' && !r.busy;
+              return (labels.includes(target) || nameLc === target) && r.status === 'online' && !r.busy;
             });
+
             if (wanted) {
-              const names = (wanted.labels||[]).map(l=>l.name).filter(Boolean);
-              if (!names.map(s=>s.toLowerCase()).includes('self-hosted')) names.unshift('self-hosted');
-              const preferred = names.includes('windows-prod') ? ['self-hosted','windows-prod'] : names;
+              const labelNames = (wanted.labels || []).map(l => l.name).filter(Boolean);
+              if (!labelNames.map(s=>s.toLowerCase()).includes('self-hosted')) labelNames.unshift('self-hosted');
+              const preferred = labelNames.includes('windows-prod')
+                ? ['self-hosted','windows-prod']
+                : labelNames;
+
+              core.notice(`✅ Runner selected: ${wanted.name}`);
+              core.notice(`🏷️ Using labels: [${preferred.join(', ')}]`);
               core.setOutput('runs_on', JSON.stringify(preferred));
             } else {
-              core.setOutput('runs_on', JSON.stringify("ubuntu-latest"));
+              const fallback = "ubuntu-latest";
+              core.notice(`🌀 Fallback runner selected: ${fallback}`);
+              core.setOutput('runs_on', JSON.stringify(fallback));
             }
 
-  # 1) Detect services thay đổi (hoặc build all khi dispatch / diff rỗng)
+      - name: Show decision output
+        run: echo "runs_on=${{ steps.decide.outputs.runs_on }}"
+
+  # 1) Detect services (GitHub-hosted để có bash/apt)
   detect-services:
     runs-on: ubuntu-latest
     needs: pick-runner
@@ -59,7 +87,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Compute smart diff & map to services
+      - name: Compute smart diff & map to services (with verbose logs)
         id: out
         shell: bash
         env:
@@ -67,132 +95,262 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
-          ALL_SERVICES=( "aimoderation.api" "alias.api" "auth.api" "chatbox.api" "digitalgoods.api" "feed.api" "media.api" "payment.api" "post.api" "profile.api" "promotion.grpc" "realtimehub.api" "subscription.api" "test.api" "translation.api" "yarpapigateway" )
-          git fetch --no-tags --prune origin main
-          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then BUILD_ALL=1; else BUILD_ALL=0; fi
-          if [[ -n "${BEFORE:-}" && "${BEFORE}" != "0000000000000000000000000000000000000000" ]]; then
-            BASE="${BEFORE}"
-          else
-            if git rev-parse -q --verify HEAD~1 >/dev/null; then BASE="$(git rev-parse HEAD~1)"; else BASE="$(git merge-base origin/main HEAD)"; fi
-          fi
-          mapfile -t CHANGED < <(git diff --name-only --diff-filter=ACMR "${BASE}"..HEAD || true)
-          if [[ ${#CHANGED[@]} -eq 0 ]]; then BUILD_ALL=1; fi
-          if [[ $BUILD_ALL -eq 0 ]]; then
-            for f in "${CHANGED[@]}"; do
-              case "$f" in
-                Directory.Packages.props|nuget.config|packages.lock.json|.dockerignore) BUILD_ALL=1; break;;
-              esac
-            done
-          fi
-          declare -A S=(); add(){ S["$1"]=1; }
-          if [[ $BUILD_ALL -eq 1 ]]; then
-            for s in "${ALL_SERVICES[@]}"; do add "$s"; done
-          else
-            for f in "${CHANGED[@]}"; do
-              case "$f" in
-                Services/AIModeration/AIModeration.API/*|PsychologySupport/Services/AIModeration/AIModeration.API/*) add "aimoderation.api" ;;
-                Services/Alias/Alias.API/*|PsychologySupport/Services/Alias/Alias.API/*) add "alias.api" ;;
-                Services/Auth/Auth.API/*|PsychologySupport/Services/Auth/Auth.API/*) add "auth.api" ;;
-                Services/ChatBox/ChatBox.API/*|PsychologySupport/Services/ChatBox/ChatBox.API/*) add "chatbox.api" ;;
-                Services/DigitalGoods/DigitalGoods.API/*|PsychologySupport/Services/DigitalGoods/DigitalGoods.API/*) add "digitalgoods.api" ;;
-                Services/Feed/Feed.API/*|PsychologySupport/Services/Feed/Feed.API/*) add "feed.api" ;;
-                Services/Media/Media.API/*|PsychologySupport/Services/Media/Media.API/*) add "media.api" ;;
-                Services/Payment/Payment.API/*|PsychologySupport/Services/Payment/Payment.API/*) add "payment.api" ;;
-                Services/Post/Post.API/*|PsychologySupport/Services/Post/Post.API/*) add "post.api" ;;
-                Services/Profile/Profile.API/*|PsychologySupport/Services/Profile/Profile.API/*) add "profile.api" ;;
-                Services/Promotion/Promotion.Grpc/*|PsychologySupport/Services/Promotion/Promotion.Grpc/*) add "promotion.grpc" ;;
-                Services/RealtimeHub/RealtimeHub.API/*|PsychologySupport/Services/RealtimeHub/RealtimeHub.API/*) add "realtimehub.api" ;;
-                Services/Subscription/Subscription.API/*|PsychologySupport/Services/Subscription/Subscription.API/*) add "subscription.api" ;;
-                Services/Test/Test.API/*|PsychologySupport/Services/Test/Test.API/*) add "test.api" ;;
-                Services/Translation/Translation.API/*|PsychologySupport/Services/Translation/Translation.API/*) add "translation.api" ;;
-                ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*) add "yarpapigateway" ;;
-              esac
-            done
-          fi
-          if [[ ${#S[@]} -eq 0 ]]; then for s in "${ALL_SERVICES[@]}"; do add "$s"; done; fi
-          command -v jq >/dev/null || { sudo apt-get update -y && sudo apt-get install -y jq; }
-          printf '%s\n' "${!S[@]}" | sort | jq -R -s -c 'split("\n") - [""]' > services.json
-          echo "services=$(cat services.json)" >> "$GITHUB_OUTPUT"
 
-  # 2) Build & Push bằng buildx bake + .env (bake tự đọc .env trong CWD)
+          # ==== Config =========================================================
+          ALL_SERVICES=(
+            "aimoderation.api"
+            "alias.api" "auth.api" "chatbox.api" "digitalgoods.api" "feed.api" "media.api" "realtimehub.api"
+            "payment.api" "post.api" "profile.api" "promotion.grpc"
+            "subscription.api" "test.api" "translation.api" "yarpapigateway"
+          )
+
+          # Thay đổi các file này → build all (tuỳ dự án, cân nhắc bỏ packages.lock.json)
+          GLOBAL_DEPS_PATTERNS=(
+            "Directory.Packages.props"
+            "nuget.config"
+            # "packages.lock.json"
+            ".dockerignore"
+          )
+
+          echo ""
+          echo "━━━━━━━━━━━━━━━━ DETECT SERVICES (verbose) ━━━━━━━━━━━━━━━━"
+          echo "Repo: $GITHUB_REPOSITORY"
+          echo "Actor: $GITHUB_ACTOR"
+          echo "Event: ${EVENT_NAME}"
+          echo "SHA:   $GITHUB_SHA"
+          echo "------------------------------------------------------------------------"
+
+          git fetch --no-tags --prune origin main >/dev/null 2>&1 || true
+
+          # ==== Xác định commit base ===========================================
+          if [[ -n "${BEFORE:-}" && "${BEFORE}" != "0000000000000000000000000000000000000000" ]]; then
+            BASE="${BEFORE}"; BASE_REASON="github.event.before"
+          else
+            if git rev-parse -q --verify HEAD~1 >/dev/null; then
+              BASE="$(git rev-parse HEAD~1)"; BASE_REASON="HEAD~1"
+            else
+              BASE="$(git merge-base origin/main HEAD)"; BASE_REASON="merge-base origin/main HEAD"
+            fi
+          fi
+
+          echo "Diff range: ${BASE}..HEAD  (base by: ${BASE_REASON})"
+          echo "------------------------------------------------------------------------"
+
+          # ==== Lấy danh sách file thay đổi ====================================
+          mapfile -t CHANGED_FILES < <(git diff --name-only --diff-filter=ACMR "${BASE}"..HEAD || true)
+
+          echo "Changed files count: ${#CHANGED_FILES[@]}"
+          if [[ ${#CHANGED_FILES[@]} -gt 0 ]]; then
+            printf '%s\n' "${CHANGED_FILES[@]}" | awk '{printf "  • %s\n", $0}'
+          else
+            echo "  (no changed files)"
+          fi
+          echo "------------------------------------------------------------------------"
+
+          # ==== Quyết định BUILD_ALL ===========================================
+          BUILD_ALL=0
+          BUILD_ALL_REASON=""
+
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
+            BUILD_ALL=1; BUILD_ALL_REASON="manual dispatch"
+          fi
+
+          if [[ ${#CHANGED_FILES[@]} -eq 0 && $BUILD_ALL -eq 0 ]]; then
+            # KHÔNG set BUILD_ALL ở đây nữa → để trống => skip build
+            echo "ℹ️ No changed files → will output empty service list."
+          fi
+
+          if [[ $BUILD_ALL -eq 0 ]]; then
+            for f in "${CHANGED_FILES[@]}"; do
+              for p in "${GLOBAL_DEPS_PATTERNS[@]}"; do
+                if [[ "$f" == "$p" ]]; then
+                  BUILD_ALL=1; BUILD_ALL_REASON="global dep matched: ${p}"; break 2
+                fi
+              done
+            done
+          fi
+
+          if [[ $BUILD_ALL -eq 1 ]]; then
+            echo "⚠️ BUILD_ALL=1 → reason: ${BUILD_ALL_REASON}"
+          else
+            echo "✅ BUILD_ALL=0 → selective build by path mapping"
+          fi
+          echo "------------------------------------------------------------------------"
+
+          # ==== Helper: map file path → service slug ===========================
+          svc_map() {
+            local f="$1"
+            case "$f" in
+              # AIModeration
+              Services/AIModeration/AIModeration.*/*|PsychologySupport/Services/AIModeration/AIModeration.*/*) echo "aimoderation.api" ;;
+
+              # Alias
+              Services/Alias/Alias.*/*|PsychologySupport/Services/Alias/Alias.*/*) echo "alias.api" ;;
+
+              # Auth
+              Services/Auth/Auth.*/*|PsychologySupport/Services/Auth/Auth.*/*) echo "auth.api" ;;
+
+              # ChatBox
+              Services/ChatBox/ChatBox.*/*|PsychologySupport/Services/ChatBox/ChatBox.*/*) echo "chatbox.api" ;;
+
+              # DigitalGoods
+              Services/DigitalGoods/DigitalGoods.*/*|PsychologySupport/Services/DigitalGoods/DigitalGoods.*/*) echo "digitalgoods.api" ;;
+
+              # Feed
+              Services/Feed/Feed.*/*|PsychologySupport/Services/Feed/Feed.*/*) echo "feed.api" ;;
+
+              # Media
+              Services/Media/Media.*/*|PsychologySupport/Services/Media/Media.*/*) echo "media.api" ;;
+
+              # RealtimeHub
+              Services/RealtimeHub/RealtimeHub.*/*|PsychologySupport/Services/RealtimeHub/RealtimeHub.*/*) echo "realtimehub.api" ;;
+
+              # Payment
+              Services/Payment/Payment.*/*|PsychologySupport/Services/Payment/Payment.*/*) echo "payment.api" ;;
+
+              # Post  ← BỔ SUNG: match Post.Domain / Application / ...
+              Services/Post/Post.*/*|PsychologySupport/Services/Post/Post.*/*) echo "post.api" ;;
+
+              # Profile
+              Services/Profile/Profile.*/*|PsychologySupport/Services/Profile/Profile.*/*) echo "profile.api" ;;
+
+              # Promotion (gRPC)
+              Services/Promotion/Promotion.*/*|PsychologySupport/Services/Promotion/Promotion.*/*) echo "promotion.grpc" ;;
+
+              # Subscription
+              Services/Subscription/Subscription.*/*|PsychologySupport/Services/Subscription/Subscription.*/*) echo "subscription.api" ;;
+
+              # Test
+              Services/Test/Test.*/*|PsychologySupport/Services/Test/Test.*/*) echo "test.api" ;;
+
+              # Translation
+              Services/Translation/Translation.*/*|PsychologySupport/Services/Translation/Translation.*/*) echo "translation.api" ;;
+
+              # YARP gateway
+              ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*) echo "yarpapigateway" ;;
+
+              *) echo "" ;;
+            esac
+          }
+
+          # ==== Map file → service =============================================
+          declare -A SVC_SET=()
+          add_svc(){ SVC_SET["$1"]=1; }
+
+          if [[ $BUILD_ALL -eq 1 ]]; then
+            echo "Adding ALL services to build set:"
+            printf '  • %s\n' "${ALL_SERVICES[@]}"
+            for s in "${ALL_SERVICES[@]}"; do add_svc "$s"; done
+          else
+            echo "Mapping changed files to services:"
+            printf "%-65s | %s\n" "File" "Service(+)"
+            printf -- "-------------------------------------------------------------------|-----------------\n"
+            for f in "${CHANGED_FILES[@]}"; do
+              svc="$(svc_map "$f")"
+              if [[ -n "$svc" ]]; then add_svc "$svc"; fi
+              printf "%-65s | %s\n" "$f" "${svc:--}"
+            done
+          fi
+          echo "------------------------------------------------------------------------"
+
+          # ==== KHÔNG fallback build-all khi rỗng ===============================
+          if [[ ${#SVC_SET[@]} -eq 0 ]]; then
+            echo "ℹ️ No service matched by path rules → output empty list (build job will skip)."
+          fi
+
+          # ==== Xuất kết quả ====================================================
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update -y >/dev/null 2>&1 && sudo apt-get install -y jq >/dev/null 2>&1
+          fi
+
+          printf '%s\n' "${!SVC_SET[@]}" | sort | jq -R -s -c 'split("\n") - [""]' > services.json
+          echo "Detected services JSON: $(cat services.json)"
+          echo "services=$(cat services.json)" >> "$GITHUB_OUTPUT"
+          echo "━━━━━━━━━━━━━━━━ END DETECT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+
+  # 2) Build job – chạy trên runner đã chọn (self-hosted nếu online, otherwise ubuntu-latest)
   build:
     needs: [pick-runner, detect-services]
     if: ${{ needs.detect-services.outputs.services != '[]' }}
     runs-on: ${{ fromJson(needs.pick-runner.outputs.runs_on) }}
-    env:
-      SERVICES_JSON: ${{ needs.detect-services.outputs.services }}
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJson(needs.detect-services.outputs.services) }}
     steps:
+      - name: Using which runner?
+        run: echo "Using runs-on=${{ needs.pick-runner.outputs.runs_on }}; Service=${{ matrix.service }}"
       - uses: actions/checkout@v4
 
-      - uses: docker/setup-qemu-action@v3
-
       - uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker-container
-          buildkitd-flags: --debug
-          use: true
-          install: true
-          cleanup: false                 # không xóa builder, giữ cache
-          driver-opts: |                 
-            image=moby/buildkit:latest
-            network=host
 
-      - name: Login to GHCR
+      - name: Login to GHCR (using your PAT secrets)
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ secrets.GIT_CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.GIT_CONTAINER_REGISTRY_PASSWORD }}
 
-      # --- Viết PsychologySupport/.env từ secrets + chèn IMAGE_TAG=SHA
-      - name: Write .env (Linux)
-        if: ${{ runner.os == 'Linux' }}
+      - name: Resolve context & dockerfile
+        id: meta
         shell: bash
         run: |
           set -euo pipefail
-          : "${{ secrets.ENV_PROD }}"
-          mkdir -p PsychologySupport
-          printf "%s\n" "${{ secrets.ENV_PROD }}" > PsychologySupport/.env
-          echo "IMAGE_TAG=${GITHUB_SHA}" >> PsychologySupport/.env
+          SVC="${{ matrix.service }}"
 
-      - name: Write .env (Windows)
-        if: ${{ runner.os == 'Windows' }}
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path PsychologySupport | Out-Null
-          $content = @"
-          ${{ secrets.ENV_PROD }}
-          "@
-          Set-Content -Path "PsychologySupport/.env" -Value $content -Encoding UTF8
-          Add-Content -Path "PsychologySupport/.env" -Value "IMAGE_TAG=${{ github.sha }}"
+          case "$SVC" in
+            aimoderation.api) CANDS=( "Services/AIModeration/AIModeration.API/Dockerfile" "PsychologySupport/Services/AIModeration/AIModeration.API/Dockerfile" ) ;;
+            alias.api)        CANDS=( "Services/Alias/Alias.API/Dockerfile" "PsychologySupport/Services/Alias/Alias.API/Dockerfile" ) ;;
+            auth.api)         CANDS=( "Services/Auth/Auth.API/Dockerfile" "PsychologySupport/Services/Auth/Auth.API/Dockerfile" ) ;;
+            chatbox.api)      CANDS=( "Services/ChatBox/ChatBox.API/Dockerfile" "PsychologySupport/Services/ChatBox/ChatBox.API/Dockerfile" ) ;;
+            digitalgoods.api) CANDS=( "Services/DigitalGoods/DigitalGoods.API/Dockerfile" "PsychologySupport/Services/DigitalGoods/DigitalGoods.API/Dockerfile" ) ;;
+            feed.api)         CANDS=( "Services/Feed/Feed.API/Dockerfile" "PsychologySupport/Services/Feed/Feed.API/Dockerfile" ) ;;
+            media.api)        CANDS=( "Services/Media/Media.API/Dockerfile" "PsychologySupport/Services/Media/Media.API/Dockerfile" ) ;;
+            realtimehub.api)  CANDS=( "Services/RealtimeHub/RealtimeHub.API/Dockerfile" "PsychologySupport/Services/RealtimeHub/RealtimeHub.API/Dockerfile" ) ;;
+            payment.api)      CANDS=( "Services/Payment/Payment.API/Dockerfile" "PsychologySupport/Services/Payment/Payment.API/Dockerfile" ) ;;
+            post.api)         CANDS=( "Services/Post/Post.API/Dockerfile" "PsychologySupport/Services/Post/Post.API/Dockerfile" ) ;;
+            profile.api)      CANDS=( "Services/Profile/Profile.API/Dockerfile" "PsychologySupport/Services/Profile/Profile.API/Dockerfile" ) ;;
+            promotion.grpc)   CANDS=( "Services/Promotion/Promotion.Grpc/Dockerfile" "PsychologySupport/Services/Promotion/Promotion.Grpc/Dockerfile" ) ;;
+            subscription.api) CANDS=( "Services/Subscription/Subscription.API/Dockerfile" "PsychologySupport/Services/Subscription/Subscription.API/Dockerfile" ) ;;
+            test.api)         CANDS=( "Services/Test/Test.API/Dockerfile" "PsychologySupport/Services/Test/Test.API/Dockerfile" ) ;;
+            translation.api)  CANDS=( "Services/Translation/Translation.API/Dockerfile" "PsychologySupport/Services/Translation/Translation.API/Dockerfile" ) ;;
+            yarpapigateway)   CANDS=( "ApiGateways/YarpApiGateway/Dockerfile" "PsychologySupport/ApiGateways/YarpApiGateway/Dockerfile" ) ;;
+            *) echo "Unknown service $SVC"; exit 1 ;;
+          esac
 
-      # --- Bake build & push (Linux)
-      - name: buildx bake (Linux)
-        if: ${{ runner.os == 'Linux' }}
-        shell: bash
-        working-directory: PsychologySupport
-        env:
-          DOCKER_DEFAULT_PLATFORM: linux/amd64
-        run: |
-          set -euo pipefail
-          command -v jq >/dev/null || { sudo apt-get update -y && sudo apt-get install -y jq; }
-          mapfile -t SVCS < <(echo "$SERVICES_JSON" | jq -r '.[]')
-          [[ ${#SVCS[@]} -eq 0 ]] && exit 0
-          docker buildx bake -f docker-compose.build.yml --print
-          docker buildx bake -f docker-compose.build.yml --set *.platform=linux/amd64 --push "${SVCS[@]}"
+          DF=""
+          for p in "${CANDS[@]}"; do
+            if [[ -f "$p" ]]; then DF="$p"; break; fi
+          done
 
-      # --- Bake build & push (Windows)
-      - name: buildx bake (Windows)
-        if: ${{ runner.os == 'Windows' }}
-        shell: pwsh
-        working-directory: PsychologySupport
-        run: |
-          $svcs = ($env:SERVICES_JSON | ConvertFrom-Json)
-          if (-not $svcs -or $svcs.Count -eq 0) { exit 0 }
-          $env:DOCKER_DEFAULT_PLATFORM = "linux/amd64"
-          docker buildx bake -f docker-compose.build.yml --print
-          docker buildx bake `
-            -f docker-compose.build.yml `
-            --set *.platform=linux/amd64 `
-            --push `
-            $svcs
+          if [[ -z "$DF" ]]; then
+            echo "❌ Dockerfile not found for $SVC"; printf 'Tried:\n- %s\n' "${CANDS[@]}"; exit 1
+          fi
+
+          if [[ "$DF" == PsychologySupport/* ]]; then
+            CTX="PsychologySupport"
+          else
+            CTX="."
+          fi
+
+          echo "CTX=$CTX" >> $GITHUB_OUTPUT
+          echo "DF=$DF" >> $GITHUB_OUTPUT
+          echo "Resolved CTX=$CTX, DF=$DF"
+
+          OWNER_LC=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
+          SVC_LC=$(echo "$SVC" | tr '[:upper:]' '[:lower:]')
+          echo "IMG=ghcr.io/${OWNER_LC}/${SVC_LC}" >> $GITHUB_OUTPUT
+
+      - name: Build & Push ${{ matrix.service }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ steps.meta.outputs.CTX }}
+          file: ${{ steps.meta.outputs.DF }}
+          platforms: linux/amd64
+          push: true
+          provenance: false
+          tags: |
+            ${{ steps.meta.outputs.IMG }}:${{ github.sha }}
+            ${{ steps.meta.outputs.IMG }}:latest
+            ${{ steps.meta.outputs.IMG }}:main

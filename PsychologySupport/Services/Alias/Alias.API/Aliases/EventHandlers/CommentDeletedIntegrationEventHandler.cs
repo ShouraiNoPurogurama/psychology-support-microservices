@@ -1,9 +1,8 @@
 using Alias.API.Data.Public;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 
-namespace Alias.API.Aliases.Features.UpdateMetadata.IntegrationEventHandlers;
+namespace Alias.API.Aliases.EventHandlers;
 
 /// <summary>
 /// Handles CommentDeletedIntegrationEvent to update alias metadata when a comment is deleted

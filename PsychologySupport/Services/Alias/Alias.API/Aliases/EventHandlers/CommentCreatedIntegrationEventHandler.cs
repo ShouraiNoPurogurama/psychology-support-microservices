@@ -1,9 +1,8 @@
 using Alias.API.Data.Public;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 
-namespace Alias.API.Aliases.Features.UpdateMetadata.IntegrationEventHandlers;
+namespace Alias.API.Aliases.EventHandlers;
 
 /// <summary>
 /// Handles CommentCreatedIntegrationEvent to update alias metadata when a comment is created
@@ -13,7 +12,7 @@ public class CommentCreatedIntegrationEventHandler : IConsumer<CommentCreatedInt
 {
     private readonly AliasDbContext _dbContext;
     private readonly ILogger<CommentCreatedIntegrationEventHandler> _logger;
-
+ 
     public CommentCreatedIntegrationEventHandler(
         AliasDbContext dbContext,
         ILogger<CommentCreatedIntegrationEventHandler> logger)
