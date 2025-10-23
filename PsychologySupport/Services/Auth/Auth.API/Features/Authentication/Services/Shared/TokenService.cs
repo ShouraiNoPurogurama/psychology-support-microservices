@@ -39,7 +39,6 @@ public class TokenService(
         {
             new Claim(JwtRegisteredClaimNames.Jti, jti),
             new Claim(JwtRegisteredClaimNames.Sub, sub),
-            new Claim(ClaimTypes.NameIdentifier, sub),
             new Claim(ClaimTypes.Authentication, onboarding)
         };
 
