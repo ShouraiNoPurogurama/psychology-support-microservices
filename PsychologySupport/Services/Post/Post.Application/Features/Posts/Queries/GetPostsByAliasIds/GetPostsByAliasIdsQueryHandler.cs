@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Features.Posts.Dtos;
+using Post.Domain.Aggregates.Gifts.Enums;
 using Post.Domain.Aggregates.Posts.Enums;
 using Post.Domain.Aggregates.Reaction.Enums;
 
@@ -45,6 +46,8 @@ internal sealed class GetPostsByAliasIdsQueryHandler : IQueryHandler<GetPostsByA
             .Skip((request.Page - 1) * request.Size)
             .Take(request.Size)
             .ToListAsync(cancellationToken);
+        
+        var postDataIds = postsData.Select(p => p.Id).ToList();
 
         var authorIds = postsData.Select(p => p.Author.AliasId).Distinct().ToList();
         var authorAliases = await _queryContext.AliasVersionReplica
@@ -52,6 +55,21 @@ internal sealed class GetPostsByAliasIdsQueryHandler : IQueryHandler<GetPostsByA
             .Where(a => authorIds.Contains(a.AliasId))
             .ToListAsync(cancellationToken);
 
+        var giftAttachesQuery = _context.GiftAttaches
+            .AsNoTracking()
+            .Where(g => g.Target.TargetType == nameof(GiftTargetType.Post) &&
+                        postDataIds.Contains(g.Target.TargetId) &&
+                        !g.IsDeleted);
+        
+        var giftAttachCountMap = await giftAttachesQuery
+            .GroupBy(g => g.Target.TargetId)
+            .Select(g => new
+            {
+                PostId = g.Key,
+                Count = g.Count()
+            })
+            .ToDictionaryAsync(g => g.PostId, g => g.Count, cancellationToken);
+        
         var postDtos = postsData.Select(p =>
         {
             var author = authorAliases
@@ -74,6 +92,7 @@ internal sealed class GetPostsByAliasIdsQueryHandler : IQueryHandler<GetPostsByA
                 p.Metrics.ReactionCount,
                 p.Metrics.CommentCount,
                 p.Metrics.ViewCount,
+                giftAttachCountMap.TryGetValue(p.Id, out var value) ? value : 0,
                 p.HasMedia,
                 p.Media.Select(m => new MediaItemDto(m.Id, m.MediaUrl)).ToList(),
                 p.Categories.Select(c => c.CategoryTagId).ToList(),

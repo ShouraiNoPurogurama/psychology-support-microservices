@@ -17,5 +17,6 @@ public record AttachGiftResult(
     Guid TargetId,
     Guid GiftId,
     string? Message,
+    int Quantity,
     DateTimeOffset CreatedAt
 );

@@ -1,23 +1,21 @@
+﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
-using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
 using MassTransit;
 using Notification.API.Features.Notifications.Models;
 using Notification.API.Shared.Contracts;
 
 namespace Notification.API.Features.Notifications.Consumers;
 
-public class ReactionAddedIntegrationEventConsumer : IConsumer<ReactionAddedIntegrationEvent>
+public class GiftAttachedIntegrationEventConsumer : IConsumer<GiftAttachedIntegrationEvent>
 {
     private readonly INotificationRepository _notificationRepo;
     private readonly IProcessedEventRepository _processedEventRepo;
     private readonly IPreferencesCache _preferencesCache;
-    private readonly ILogger<ReactionAddedIntegrationEventConsumer> _logger;
+    private readonly ILogger<GiftAttachedIntegrationEventConsumer> _logger;
 
-    public ReactionAddedIntegrationEventConsumer(
-        INotificationRepository notificationRepo,
-        IProcessedEventRepository processedEventRepo,
-        IPreferencesCache preferencesCache,
-        ILogger<ReactionAddedIntegrationEventConsumer> logger)
+    public GiftAttachedIntegrationEventConsumer(INotificationRepository notificationRepo,
+        IProcessedEventRepository processedEventRepo, IPreferencesCache preferencesCache,
+        ILogger<GiftAttachedIntegrationEventConsumer> logger)
     {
         _notificationRepo = notificationRepo;
         _processedEventRepo = processedEventRepo;
@@ -25,69 +23,58 @@ public class ReactionAddedIntegrationEventConsumer : IConsumer<ReactionAddedInte
         _logger = logger;
     }
 
-    public async Task Consume(ConsumeContext<ReactionAddedIntegrationEvent> context)
+    public async Task Consume(ConsumeContext<GiftAttachedIntegrationEvent> context)
     {
         var msg = context.Message;
         var msgId = context.MessageId ?? Guid.NewGuid();
 
-        _logger.LogInformation("Processing ReactionAdded {MessageId} -> {TargetType}:{TargetId}",
-            msgId, msg.TargetType, msg.TargetId);
+        _logger.LogInformation("Processing Gift Attached {MessageId} -> {TargetId}",
+            msgId, msg.PostId);
 
         // Idempotent
-        if (!await _processedEventRepo.TryAddAsync(msgId, nameof(ReactionAddedIntegrationEvent), context.CancellationToken))
+        if (!await _processedEventRepo.TryAddAsync(msgId, nameof(GiftAttachedIntegrationEventConsumer), context.CancellationToken))
         {
             _logger.LogInformation("Event {MessageId} already processed, skip.", msgId);
             return;
         }
 
         // Preferences
-        var prefs = await _preferencesCache.GetOrDefaultAsync(msg.TargetAuthorAliasId, context.CancellationToken);
+        var prefs = await _preferencesCache.GetOrDefaultAsync(msg.PostAuthorAliasId, context.CancellationToken);
         if (!prefs.IsTypeEnabled(NotificationType.Reaction))
         {
-            _logger.LogDebug("Recipient {Recipient} disabled Reaction notifications.", msg.TargetAuthorAliasId);
+            _logger.LogDebug("Recipient {Recipient} disabled Gift notifications.", msg.PostAuthorAliasId);
             return;
         }
 
         // Self-protection (thường upstream đã check, nhưng bảo hiểm)
-        if (msg.TargetAuthorAliasId == msg.ReactorAliasId)
+        if (msg.PostAuthorAliasId == msg.SenderAliasId)
         {
-            _logger.LogDebug("Skip self reaction for alias {AliasId}", msg.ReactorAliasId);
+            _logger.LogDebug("Skip self gift sent for alias {AliasId}", msg.SenderAliasId);
             return;
         }
 
         // Build source/target
         var source = new NotificationSource
         {
-            ReactionId = msg.ReactionId,
-            Snippet = $"Đã bày tỏ cảm xúc về" 
+            GiftId = msg.GiftId,
+            Snippet = $"Đã gửi bạn một món quà với thông điệp: {msg.Message}"
         };
-
-        if (msg.TargetType.Equals("post", StringComparison.OrdinalIgnoreCase))
-        {
-            source.PostId = msg.TargetId;
-            source.Snippet += " bài viết của bạn.";
-        }
-        else if (msg.TargetType.Equals("comment", StringComparison.OrdinalIgnoreCase))
-        {
-            source.CommentId = msg.TargetId;
-            source.Snippet += $" bình luận của bạn: {msg.CommentSnippet}.";
-        }
-
+        
         //Grouping key để tránh flood
-        var groupingKey = $"reaction:{msg.TargetType}:{msg.TargetId}";
+        var groupingKey = $"gift:post:{msg.PostId}";
 
         //merge nếu trong cửa sổ 30s đã có 1 notif cùng groupingKey
         var merged = await _notificationRepo.TryMergeLatestAsync(
-            recipientAliasId: msg.TargetAuthorAliasId,
+            recipientAliasId: msg.PostAuthorAliasId,
             groupingKey: groupingKey,
             updater: n =>
             {
-                n.ActorAliasId = msg.ReactorAliasId;
-                n.ActorDisplayName = msg.ReactorLabel;
+                n.ActorAliasId = msg.SenderAliasId;
+                n.ActorDisplayName = msg.SenderAliasLabel;
                 n.Snippet = source.Snippet;
-                n.ReactionId = msg.ReactionId;
-                n.LastModified = msg.ReactedAt;       
-                n.CreatedAt = n.CreatedAt;        
+                n.GiftId = msg.GiftId;
+                n.LastModified = msg.SentAt;
+                n.CreatedAt = n.CreatedAt;
             },
             window: TimeSpan.FromSeconds(30),
             ct: context.CancellationToken
@@ -97,16 +84,16 @@ public class ReactionAddedIntegrationEventConsumer : IConsumer<ReactionAddedInte
         {
             // Tạo mới
             var notification = UserNotification.Create(
-                recipientAliasId: msg.TargetAuthorAliasId,
-                actorAliasId: msg.ReactorAliasId,
-                actorDisplayName: msg.ReactorLabel,
-                type: NotificationType.Reaction,
+                recipientAliasId: msg.PostAuthorAliasId,
+                actorAliasId: msg.SenderAliasId,
+                actorDisplayName: msg.SenderAliasLabel,
+                type: NotificationType.Gift,
                 source: source,
                 groupingKey: groupingKey
             );
 
-            // **dùng ReactedAt** để thống nhất thời gian giữa services
-            notification.CreatedAt = msg.ReactedAt;
+            // **dùng SentAt** để thống nhất thời gian giữa services
+            notification.CreatedAt = msg.SentAt;
 
             await _notificationRepo.AddAsync(notification, context.CancellationToken);
 
@@ -137,7 +124,7 @@ public class ReactionAddedIntegrationEventConsumer : IConsumer<ReactionAddedInte
         else
         {
             _logger.LogInformation("Merged reaction notification for recipient {Recipient} G={Grouping}",
-                msg.TargetAuthorAliasId, groupingKey);
+                msg.PostAuthorAliasId, groupingKey);
         }
     }
 }

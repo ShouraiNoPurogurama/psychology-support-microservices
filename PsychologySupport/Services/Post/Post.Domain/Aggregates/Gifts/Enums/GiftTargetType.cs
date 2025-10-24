@@ -5,6 +5,6 @@ namespace Post.Domain.Aggregates.Gifts.Enums;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum GiftTargetType
 {
-    Post = 0,
-    Comment = 1
+    Post = 0
+    // Comment = 1 //Tạm thời chỉ tặng quà cho Post
 }

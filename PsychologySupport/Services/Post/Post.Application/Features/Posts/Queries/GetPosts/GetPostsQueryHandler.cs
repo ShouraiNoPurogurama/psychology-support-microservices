@@ -3,7 +3,9 @@ using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
+using Post.Application.Features.Gifts.Dtos;
 using Post.Application.Features.Posts.Dtos;
+using Post.Domain.Aggregates.Gifts.Enums;
 using Post.Domain.Aggregates.Posts.Enums;
 using Post.Domain.Aggregates.Reaction.Enums;
 
@@ -81,11 +83,31 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, GetPos
                     r.Target.TargetId == p.Id)
             })
             .ToListAsync(cancellationToken);
-
+        
+        var postDataIds = postsData.Select(p => p.Post.Id).ToList();
+        
         var authorIds = postsData.Select(p => p.Post.Author.AliasId).Distinct().ToList();
+
+        var giftAttachesQuery =  _context.GiftAttaches
+            .AsNoTracking()
+            .Where(g => g.Target.TargetType == nameof(GiftTargetType.Post) &&
+                        postDataIds.Contains(g.Target.TargetId) &&
+                        !g.IsDeleted)
+            .OrderByDescending(g => g.CreatedAt);
+        
+        var giftAttachCountMap = await giftAttachesQuery
+            .GroupBy(g => g.Target.TargetId)
+            .Select(g => new
+            {
+                PostId = g.Key,
+                Count = g.Count()
+            })
+            .ToDictionaryAsync(g => g.PostId, g => g.Count, cancellationToken);
+        
+        
         var authorAliases = await _queryContext.AliasVersionReplica
             .AsNoTracking()
-            .Where(a => authorIds.Contains(a.AliasId))
+            .Where(a => authorIds.Contains(a.AliasId) )
             .ToListAsync(cancellationToken);
 
         var postDtos = postsData.Select(p =>
@@ -93,7 +115,8 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, GetPos
             var author = authorAliases
                 .Select(a => new AuthorDto(a.AliasId, a.Label, a.AvatarUrl))
                 .FirstOrDefault(a => a.AliasId == p.Post.Author.AliasId);
-
+            
+            
             return new PostSummaryDto(
                 p.Post.Id,
                 p.Post.Content.Title,
@@ -106,6 +129,7 @@ internal sealed class GetPostsQueryHandler : IQueryHandler<GetPostsQuery, GetPos
                 p.Post.Metrics.ReactionCount,
                 p.Post.Metrics.CommentCount,
                 p.Post.Metrics.ViewCount,
+                giftAttachCountMap.TryGetValue(p.Post.Id, out var value) ? value : 0,
                 p.Post.HasMedia,
                 p.Post.Media.Select(m => new MediaItemDto(m.Id, m.MediaUrl)).ToList(),
                 p.Post.Categories

@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Alias.API.Aliases.Models.OutboxMessages;
 using Alias.API.Data.Public;
 
 namespace Alias.API.Common.Outbox;

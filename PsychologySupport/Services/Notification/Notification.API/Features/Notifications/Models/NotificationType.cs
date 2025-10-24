@@ -8,5 +8,6 @@ public enum NotificationType
     Follow = 4,
     Moderation = 5,
     BotReply = 6,
-    System = 7
+    System = 7,
+    Gift = 8
 }

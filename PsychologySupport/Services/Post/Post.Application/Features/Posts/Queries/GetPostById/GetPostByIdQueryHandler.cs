@@ -5,6 +5,7 @@ using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Features.CategoryTags.Dtos;
 using Post.Application.Features.Posts.Dtos;
+using Post.Domain.Aggregates.Gifts.Enums;
 using Post.Domain.Aggregates.Reaction.Enums;
 
 namespace Post.Application.Features.Posts.Queries.GetPostById;
@@ -55,6 +56,15 @@ internal sealed class GetPostByIdQueryHandler : IQueryHandler<GetPostByIdQuery, 
             .Select(ap => new AuthorDto(ap.AliasId, ap.Label, ap.AvatarUrl))
             .FirstOrDefaultAsync(cancellationToken);
 
+        var giftAttachesQuery = _context.GiftAttaches
+            .AsNoTracking()
+            .Where(g => g.Target.TargetType == nameof(GiftTargetType.Post) &&
+                        postData.Post.Id == g.Target.TargetId &&
+                        !g.IsDeleted);
+        
+        var giftAttachCount = await giftAttachesQuery
+            .CountAsync(cancellationToken: cancellationToken);
+        
         var postDto = new PostSummaryDto(
             postData.Post.Id,
             postData.Post.Content.Title,
@@ -67,6 +77,7 @@ internal sealed class GetPostByIdQueryHandler : IQueryHandler<GetPostByIdQuery, 
             postData.Post.Metrics.ReactionCount,
             postData.Post.Metrics.CommentCount,
             postData.Post.Metrics.ViewCount,
+            giftAttachCount,
             postData.Post.HasMedia,
             postData.Post.Media
                 .Where(m => !m.IsDeleted)

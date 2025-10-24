@@ -2,8 +2,10 @@
 
 public sealed record GiftAttachedEvent(
     Guid PostId,
-    Guid GiftId,
+    Guid PostAuthorAliasId,
     Guid SenderAliasId,
+    Guid GiftId,
     decimal Amount,
-    string? Message
+    string? Message,
+    DateTimeOffset SentAt
 ) : DomainEvent;

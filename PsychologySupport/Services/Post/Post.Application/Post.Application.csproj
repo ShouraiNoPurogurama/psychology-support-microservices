@@ -13,10 +13,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Features\Gifts\Dtos\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Compile Remove="Aggregates\CategoryTags\Commands\UpdatePostTags\UpdatePostCategoryTagsCommandValidator.cs" />
       <Compile Remove="Aggregates\CategoryTags\Commands\UpdatePostTags\UpdatePostCategoryTagsCommandHandler.cs" />
       <Compile Remove="Aggregates\CategoryTags\Commands\DetachTagsFromPost\DetachCategoryTagsFromPostCommandValidator.cs" />

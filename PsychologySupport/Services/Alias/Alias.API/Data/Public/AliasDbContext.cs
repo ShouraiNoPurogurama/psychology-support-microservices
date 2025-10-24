@@ -1,20 +1,10 @@
-﻿using Alias.API.Aliases.Models;
-using Alias.API.Aliases.Models.Aliases;
+﻿using Alias.API.Aliases.Models.Aliases;
 using Alias.API.Aliases.Models.Aliases.Enums;
 using Alias.API.Aliases.Models.Follows;
 
 namespace Alias.API.Data.Public;
 
 using Alias = Aliases.Models.Aliases.Alias;
-
-public class OutboxMessage
-{
-    public Guid Id { get; set; }
-    public string Type { get; set; } = default!;
-    public string Content { get; set; } = default!;
-    public DateTimeOffset OccurredOn { get; set; }
-    public DateTimeOffset? ProcessedOn { get; set; }
-}
 
 public partial class AliasDbContext : DbContext
 {
