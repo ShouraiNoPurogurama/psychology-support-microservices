@@ -7,5 +7,6 @@ public record UserRegisteredIntegrationEvent(
     string Email,
     string? PhoneNumber,
     string FullName,
-    string Role = "User"
+    string Role = "User",
+    string? ReferralCode = null
 ) : IntegrationEvent;

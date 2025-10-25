@@ -17,7 +17,7 @@ public class UserProvisioningService(
     IPublishEndpoint publishEndpoint)
     : IUserProvisioningService
 {
-    public async Task<User> FindOrCreateGoogleUserAsync(GoogleJsonWebSignature.Payload payload)
+    public async Task<User> FindOrCreateGoogleUserAsync(GoogleJsonWebSignature.Payload payload, string? referralCode)
     {
         var user = await userManager.FindByEmailAsync(payload.Email);
 
@@ -40,7 +40,7 @@ public class UserProvisioningService(
 
         await AssignUserRoleAsync(user);
 
-        await CreateUserProfileFromGoogleAsync(user, payload);
+        await CreateUserProfileFromGoogleAsync(user, payload, referralCode);
         
         var onboardingRecord = new UserOnboarding
         {
@@ -64,7 +64,7 @@ public class UserProvisioningService(
             throw new InvalidDataException("Gán vai trò thất bại");
     }
 
-    private async Task CreateUserProfileFromGoogleAsync(User user, GoogleJsonWebSignature.Payload payload)
+    private async Task CreateUserProfileFromGoogleAsync(User user, GoogleJsonWebSignature.Payload payload, string? referralCode)
     {
         var userRegisteredIntegrationEvent = new UserRegisteredIntegrationEvent(
             SeedPatientProfileId: Guid.NewGuid(),
@@ -72,7 +72,8 @@ public class UserProvisioningService(
             UserId: user.Id,
             Email: user.Email!,
             PhoneNumber: user.PhoneNumber,
-            FullName: payload.Name
+            FullName: payload.Name,
+            ReferralCode: referralCode
         );
 
         await publishEndpoint.Publish(userRegisteredIntegrationEvent);

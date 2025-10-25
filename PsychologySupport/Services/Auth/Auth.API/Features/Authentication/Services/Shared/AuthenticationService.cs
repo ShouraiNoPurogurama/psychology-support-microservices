@@ -31,7 +31,7 @@ public class AuthenticationService(
     public async Task<User> AuthenticateWithGoogleAsync(GoogleLoginRequest request)
     {
         var payload = await ValidateGoogleTokenAsync(request.GoogleIdToken);
-        var user = await userProvisioningService.FindOrCreateGoogleUserAsync(payload); // Vẫn cần UserProvisioning
+        var user = await userProvisioningService.FindOrCreateGoogleUserAsync(payload, request.ReferralCode); // Vẫn cần UserProvisioning
         ValidateUserLockout(user);
         return user;
     }

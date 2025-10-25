@@ -4,5 +4,5 @@ namespace Auth.API.Features.Authentication.ServiceContracts.Shared;
 
 public interface IUserProvisioningService
 {
-    Task<User> FindOrCreateGoogleUserAsync(GoogleJsonWebSignature.Payload payload);
+    Task<User> FindOrCreateGoogleUserAsync(GoogleJsonWebSignature.Payload payload, string? ReferralCode);
 }

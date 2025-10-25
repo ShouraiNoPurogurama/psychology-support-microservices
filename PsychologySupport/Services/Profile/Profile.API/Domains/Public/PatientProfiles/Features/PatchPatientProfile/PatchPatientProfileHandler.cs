@@ -28,7 +28,8 @@ public class PatchPatientProfileHandler : ICommandHandler<PatchPatientProfileCom
         patientProfile.Update(
             dto.Allergies ?? patientProfile.Allergies,
             dto.PersonalityTraits ?? patientProfile.PersonalityTraits,
-            dto.JobId ?? patientProfile.JobId
+            dto.JobId ?? patientProfile.JobId,
+            null
         );
 
         var result = await _context.SaveChangesAsync(cancellationToken) > 0;

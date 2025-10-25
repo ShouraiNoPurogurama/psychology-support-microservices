@@ -6,4 +6,5 @@ public record GoogleLoginRequest
     public string? DeviceToken { get; set; }
     public DeviceType? DeviceType { get; set; }
     public string? ClientDeviceId { get; set; }
+    public string? ReferralCode { get; set; }
 }

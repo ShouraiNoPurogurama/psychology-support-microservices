@@ -13,22 +13,27 @@ public class PatientProfile : AggregateRoot<Guid>
 
     //Ctor cho seed
     private PatientProfile(
-        Guid seedProfileId)
+     Guid seedProfileId,
+     string? referralCode)  
     {
         Id = seedProfileId;
         Allergies = null;
         PersonalityTraits = PersonalityTrait.None;
         JobId = null;
         IsProfileCompleted = false;
+        ReferralCode = referralCode;  
     }
 
     private PatientProfile(
         string? allergies,
-        PersonalityTrait personalityTraits, Guid? jobId)
+        PersonalityTrait personalityTraits, 
+        Guid jobId,
+        string? referralCode)
     {
         Allergies = allergies;
         PersonalityTraits = personalityTraits;
         JobId = jobId;
+        ReferralCode = referralCode;
         IsProfileCompleted = CheckProfileCompleted();
     }
 
@@ -43,12 +48,14 @@ public class PatientProfile : AggregateRoot<Guid>
 
     public bool IsProfileCompleted { get; private set; }
 
+    public string? ReferralCode { get; private set; }
+
 
     private readonly List<MedicalRecord> _medicalRecords = [];
     public IReadOnlyList<MedicalRecord> MedicalRecords => _medicalRecords.AsReadOnly();
 
     public static PatientProfile Create(Guid subjectRef, string? allergies,
-        PersonalityTrait personalityTraits, Guid jobId)
+        PersonalityTrait personalityTraits, Guid jobId, string? referralCode)
     {
         var errors = new Dictionary<string, string[]>();
 
@@ -63,46 +70,58 @@ public class PatientProfile : AggregateRoot<Guid>
             errors.Add("INVALID_ALLERGIES", ["Thông tin dị ứng không được vượt quá 300 ký tự."]);
         }
 
+        if (referralCode != null && referralCode.Length > 100)
+        {
+            errors.Add("INVALID_REFERRAL_CODE", ["Mã giới thiệu không được vượt quá 100 ký tự."]);
+        }
+
         if (errors.Count > 0)
         {
             throw new CustomValidationException(errors);
         }
 
-        var profile = new PatientProfile(allergies, personalityTraits, jobId);
+        var profile = new PatientProfile(allergies, personalityTraits, jobId, referralCode);
 
         profile.AddDomainEvent(new PatientProfileCreatedEvent(profile.Id));
 
         return profile;
     }
 
-    public static PatientProfile CreateSeed(Guid seedProfileId)
-    {
+    public static PatientProfile CreateSeed(Guid seedProfileId, string? referralCode = null) { 
         var errors = new Dictionary<string, string[]>();
 
         if (seedProfileId == Guid.Empty)
             errors.Add("INVALID_PROFILE_ID", ["Profile Id không được để trống."]);
-        
+
+        if (referralCode != null && referralCode.Length > 100)  
+        {
+            errors.Add("INVALID_REFERRAL_CODE", ["Mã giới thiệu không được vượt quá 100 ký tự."]);
+        }
+
         if (errors.Count > 0)
         {
             throw new CustomValidationException(errors);
         }
 
-        var profile = new PatientProfile(seedProfileId);
+        var profile = new PatientProfile(seedProfileId, referralCode); 
 
         profile.AddDomainEvent(new PatientProfileCreatedEvent(profile.Id));
 
         return profile;
     }
 
-    public void Update(string? allergies, PersonalityTrait personalityTraits, Guid? jobId)
+    public void Update(string? allergies, PersonalityTrait personalityTraits, Guid? jobId, string? referralCode)
     {
         ValidationBuilder<PatientProfile>.Create(this)
             .When(_ => allergies is not null && allergies.Length > 300)
             .WithErrorCode("INVALID_ALLERGIES")
             .WithMessage("Thông tin dị ứng không được vượt quá 300 ký tự.")
+            .When(_ => referralCode is not null && referralCode.Length > 100)
+            .WithErrorCode("INVALID_REFERRAL_CODE")
+            .WithMessage("Mã giới thiệu không được vượt quá 100 ký tự.")
             .ThrowIfInvalid();
 
-        bool updated = allergies != Allergies || personalityTraits != PersonalityTraits || jobId != JobId;
+        bool updated = allergies != Allergies || personalityTraits != PersonalityTraits || jobId != JobId || referralCode != ReferralCode;
 
         Allergies = allergies;
 
@@ -110,8 +129,10 @@ public class PatientProfile : AggregateRoot<Guid>
 
         JobId = jobId;
 
+        ReferralCode = referralCode;
+
         RecalculateCompletionStatus();
-        
+
         if (updated)
             AddDomainEvent(new PatientProfileUpdatedEvent(Id, allergies, personalityTraits, jobId));
     }
@@ -125,7 +146,7 @@ public class PatientProfile : AggregateRoot<Guid>
 
         if (JobId != jobId)
         {
-            UpdateJob(jobId); 
+            UpdateJob(jobId);
         }
         else
         {
@@ -151,7 +172,7 @@ public class PatientProfile : AggregateRoot<Guid>
         {
             Allergies = allergies;
             // AddDomainEvent(new PatientAllergiesUpdatedEvent(Id, allergies));
-            
+
             RecalculateCompletionStatus();
         }
     }
@@ -171,7 +192,7 @@ public class PatientProfile : AggregateRoot<Guid>
         {
             JobId = jobId;
             // AddDomainEvent(new PatientJobUpdatedEvent(Id, jobId));
-            
+
             RecalculateCompletionStatus();
         }
     }
@@ -238,7 +259,7 @@ public class PatientProfile : AggregateRoot<Guid>
     private void RecalculateCompletionStatus()
     {
         var oldStatus = IsProfileCompleted;
-        var newStatus = CheckProfileCompleted(); 
+        var newStatus = CheckProfileCompleted();
 
         if (!oldStatus && newStatus)
         {
@@ -250,7 +271,6 @@ public class PatientProfile : AggregateRoot<Guid>
         }
     }
 
-// Sửa lại hàm này cho đúng logic (bỏ cái "return true" đi)
     private bool CheckProfileCompleted()
     {
         //Khi user đã chọn Job thì là xong

@@ -129,7 +129,7 @@ namespace Profile.API.Domains.Public.PatientProfiles.Services
                 }
 
                 // Create new profile
-                var newProfile = PatientProfile.Create(userId, "", personalityTrait, Guid.Parse(request.JobId));
+                var newProfile = PatientProfile.Create(userId, "", personalityTrait, Guid.Parse(request.JobId), null);
 
                 var newPiiProfile = PersonProfile.CreateActive(
                     subjectRef: Guid.NewGuid(),

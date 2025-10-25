@@ -20,6 +20,7 @@ public class ProfileDbContext : DbContext
     public DbSet<Specialty> Specialties => Set<Specialty>();
     public DbSet<Industry> Industries => Set<Industry>();
     public DbSet<Job> Jobs => Set<Job>();
+    public DbSet<AffiliateProfile> AffiliateProfiles => Set<AffiliateProfile>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -34,6 +35,9 @@ public class ProfileDbContext : DbContext
             typeBuilder.HasOne(p => p.MedicalHistory)
                 .WithOne()
                 .HasForeignKey<MedicalHistory>(m => m.PatientId);
+
+            typeBuilder.Property(p => p.ReferralCode)
+                .HasMaxLength(50);
         });
 
 
@@ -66,5 +70,24 @@ public class ProfileDbContext : DbContext
           .HasConversion(new EnumToStringConverter<EducationLevel>())
           .HasColumnType("VARCHAR(30)");
         base.OnModelCreating(builder);
+
+        builder.Entity<AffiliateProfile>(typeBuilder =>
+        {
+            typeBuilder.HasKey(a => a.Id); 
+
+            typeBuilder.Property(a => a.UserId).IsRequired();
+            typeBuilder.Property(a => a.FullName).IsRequired().HasMaxLength(50);
+            typeBuilder.Property(a => a.ReferralCode).IsRequired().HasMaxLength(50);
+            typeBuilder.Property(a => a.ReferralLink).IsRequired().HasMaxLength(250);
+
+            // Mapping ContactInfo nếu là Value Object
+            typeBuilder.OwnsOne(a => a.ContactInfo, contactInfoBuilder =>
+            {
+                contactInfoBuilder.Property(c => c.Address).HasColumnName("address").HasMaxLength(50);
+                contactInfoBuilder.Property(c => c.Email).HasColumnName("email").HasMaxLength(50);
+                contactInfoBuilder.Property(c => c.PhoneNumber).HasColumnName("phone_number").HasMaxLength(20);
+            });
+        });
+
     }
 }
