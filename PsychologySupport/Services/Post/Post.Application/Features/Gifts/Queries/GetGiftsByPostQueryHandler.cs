@@ -73,7 +73,7 @@ internal sealed class GetGiftsByPostQueryHandler : IQueryHandler<GetGiftsByPostQ
                      ?? new AuthorDto(gift.Sender.AliasId, "Người dùng ẩn", null);
 
         return new GiftAttachDto(
-            gift.Id,
+            gift.Info.GiftId, // Use Info.GiftId property
             gift.Target.TargetId, // PostId
             gift.Message,
             author,
