@@ -32,17 +32,14 @@ public class SeedPatientProfileHandler(ProfileDbContext dbContext, ILogger<SeedP
 
         if (!string.IsNullOrWhiteSpace(referralCode))
         {
-            var existedInPatient = await dbContext.PatientProfiles
-                .AsNoTracking()
-                .AnyAsync(p => p.ReferralCode == referralCode, cancellationToken);
-
+            // Kiểm tra xem referralCode đã tồn tại trong AffiliateProfiles chưa
             var existedInAffiliate = await dbContext.AffiliateProfiles
                 .AsNoTracking()
                 .AnyAsync(a => a.ReferralCode == referralCode, cancellationToken);
 
-            if (existedInPatient || existedInAffiliate)
+            if (!existedInAffiliate)
             {
-                logger.LogWarning($"Referral code '{referralCode}' already exists in PatientProfile or AffiliateProfile, cannot create duplicate.");
+                logger.LogWarning($"Referral code '{referralCode}' không hợp lệ: chưa tồn tại trong AffiliateProfile");
 
                 return new SeedPatientProfileResult(false);
             }
