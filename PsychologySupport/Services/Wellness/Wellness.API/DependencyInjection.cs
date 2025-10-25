@@ -3,6 +3,7 @@ using Carter;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
+using Wellness.API.Common.Authentication;
 using Wellness.API.Extensions;
 
 namespace Wellness.API
@@ -23,6 +24,7 @@ namespace Wellness.API
             services.AddAuthorization();
 
             services.AddIdentityServices(config);
+            services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
 
             ConfigureCORS(services);
             ConfigureSwagger(services, env);
@@ -54,14 +56,14 @@ namespace Wellness.API
                     Version = "v1"
                 });
 
-                //var url = env.IsProduction()
-                //    ? "/wellness-service"
-                //    : "https://localhost:5523/wellness-service";
+                var url = env.IsProduction()
+                    ? "/wellness-service"
+                    : "https://localhost:5510/wellness-service";
 
-                //options.AddServer(new OpenApiServer
-                //{
-                //    Url = url
-                //});
+                options.AddServer(new OpenApiServer
+                {
+                    Url = url
+                });
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

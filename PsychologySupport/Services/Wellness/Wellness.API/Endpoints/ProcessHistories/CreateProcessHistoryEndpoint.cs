@@ -4,14 +4,12 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Wellness.API.Common;
-using Wellness.Application.Features.Challenges.Commands;
+using Wellness.API.Common.Authentication;
 using Wellness.Application.Features.ProcessHistories.Commands;
 
 namespace Wellness.API.Endpoints.ProcessHistories;
 
 public record CreateProcessHistoryRequest(
-    Guid SubjectRef,
     Guid ActivityId
 );
 
@@ -28,23 +26,23 @@ public class CreateProcessHistoryEndpoint : ICarterModule
         app.MapPost("/v1/me/process-histories", async (
             [FromBody] CreateProcessHistoryRequest request,
             [FromHeader(Name = "Idempotency-Key")] Guid? requestKey,
-            ISender sender, HttpContext httpContext) =>
+            ICurrentActorAccessor currentActor, 
+            ISender sender
+        ) =>
         {
-            // Authorization check
-            //if (!AuthorizationHelpers.CanModify(request.SubjectRef, httpContext.User))
-            //    throw new ForbiddenException();
-
             if (requestKey is null || requestKey == Guid.Empty)
                 throw new BadRequestException(
                     "Missing or invalid Idempotency-Key header.",
                     "MISSING_IDEMPOTENCY_KEY"
                 );
 
+            var subjectRef = currentActor.GetRequiredSubjectRef();
+
             var command = new CreateProcessHistoryCommand(
-                 IdempotencyKey: requestKey.Value,
-                 SubjectRef: request.SubjectRef,
-                 ActivityId: request.ActivityId
-              );
+                IdempotencyKey: requestKey.Value,
+                SubjectRef: subjectRef,
+                ActivityId: request.ActivityId
+            );
 
             var result = await sender.Send(command);
 
@@ -59,14 +57,14 @@ public class CreateProcessHistoryEndpoint : ICarterModule
                 response
             );
         })
-        //.RequireAuthorization()
+        .RequireAuthorization() 
         .WithName("CreateProcessHistory")
         .WithTags("ProcessHistories")
         .Produces<CreateProcessHistoryResponse>(201)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status404NotFound)
-        .WithSummary("Create Process History")
-        .WithDescription("Initialize a new Process History for a subject and optional activity.");
+        .WithSummary("Create Process History for the current user")
+        .WithDescription("Initializes a new Process History for the authenticated user and specified activity. Uses Idempotency-Key for safe retry.");
     }
 }

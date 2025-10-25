@@ -2,6 +2,7 @@
 using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Wellness.API.Common.Authentication;
 using Wellness.Application.Features.Challenges.Dtos;
 using Wellness.Application.Features.Challenges.Queries;
 using Wellness.Domain.Aggregates.Challenges.Enums;
@@ -10,7 +11,6 @@ using Wellness.Domain.Enums;
 namespace Wellness.API.Endpoints.Challenges;
 
 public record GetChallengeProgressRequest(
-    Guid SubjectRef,
     ProcessStatus? ProcessStatus,
     ChallengeType? ChallengeType,
     int PageIndex = 1,
@@ -26,20 +26,25 @@ public class GetChallengeProgressEndpoint : ICarterModule
     {
         app.MapGet("/v1/me/challenge-progress", async (
             [AsParameters] GetChallengeProgressRequest request,
-            ISender sender) =>
+            ICurrentActorAccessor currentActor,
+            ISender sender
+        ) =>
         {
+            var subjectRef = currentActor.GetRequiredSubjectRef();
+
             var query = new GetChallengeProgressQuery(
-                request.SubjectRef,
-                request.ProcessStatus,
-                request.ChallengeType,
-                new PaginationRequest(request.PageIndex, request.PageSize),
-                request.TargetLang
+                SubjectRef: subjectRef,
+                ProcessStatus: request.ProcessStatus,
+                ChallengeType: request.ChallengeType,
+                PaginationRequest: new PaginationRequest(request.PageIndex, request.PageSize),
+                TargetLang: request.TargetLang
             );
 
             var result = await sender.Send(query);
 
             return Results.Ok(new GetChallengeProgressResponse(result.ChallengeProgresses));
         })
+        .RequireAuthorization()
         .WithName("GetChallengeProgress")
         .WithTags("ChallengeProgress")
         .Produces<GetChallengeProgressResponse>(200)
@@ -47,6 +52,6 @@ public class GetChallengeProgressEndpoint : ICarterModule
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .WithSummary("Get paginated ChallengeProgress with translation")
-        .WithDescription("Returns paginated challenge progress list filtered by SubjectRef, ProcessStatus, and ChallengeType. Challenge and Activities are translated if TargetLang is provided.");
+        .WithDescription("Returns the paginated challenge progress list for the current user, filtered by ProcessStatus and ChallengeType. Challenge and Activities are translated if TargetLang is provided.");
     }
 }
