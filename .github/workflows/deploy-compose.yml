@@ -97,7 +97,7 @@ jobs:
             ALL_SERVICES=(
               "aimoderation.api" "alias.api" "auth.api" "chatbox.api" "digitalgoods.api" "feed.api"
               "media.api" "payment.api" "post.api" "profile.api" "promotion.grpc" "realtimehub.api"
-              "subscription.api" "test.api" "translation.api" "yarpapigateway"
+              "subscription.api" "test.api" "translation.api" "wellness.api" "yarpapigateway" 
             )
 
             # ====== File nền thay đổi → deploy all (có thể tinh chỉnh) ======
@@ -161,6 +161,10 @@ jobs:
 
                 # Translation
                 Services/Translation/Translation.*/*|PsychologySupport/Services/Translation/Translation.*/*) echo "translation.api" ;;
+
+                # Wellness
+                Services/Wellness/Wellness.*/*|PsychologySupport/Services/Wellness/Wellness.*/*) echo "wellness.api" ;;
+
 
                 # YARP gateway
                 ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*) echo "yarpapigateway" ;;
