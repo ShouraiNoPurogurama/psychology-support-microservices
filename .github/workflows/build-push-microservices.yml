@@ -101,7 +101,7 @@ jobs:
             "aimoderation.api"
             "alias.api" "auth.api" "chatbox.api" "digitalgoods.api" "feed.api" "media.api" "realtimehub.api"
             "payment.api" "post.api" "profile.api" "promotion.grpc"
-            "subscription.api" "test.api" "translation.api" "yarpapigateway"
+            "subscription.api" "test.api" "translation.api" "wellness.api" "yarpapigateway" 
           )
 
           # Thay đổi các file này → build all (tuỳ dự án, cân nhắc bỏ packages.lock.json)
@@ -226,6 +226,9 @@ jobs:
               # Translation
               Services/Translation/Translation.*/*|PsychologySupport/Services/Translation/Translation.*/*) echo "translation.api" ;;
 
+              # Wellness
+              Services/Wellness/Wellness.*/*|PsychologySupport/Services/Wellness/Wellness.*/*) echo "wellness.api" ;;
+
               # YARP gateway
               ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*) echo "yarpapigateway" ;;
 
@@ -315,6 +318,7 @@ jobs:
             subscription.api) CANDS=( "Services/Subscription/Subscription.API/Dockerfile" "PsychologySupport/Services/Subscription/Subscription.API/Dockerfile" ) ;;
             test.api)         CANDS=( "Services/Test/Test.API/Dockerfile" "PsychologySupport/Services/Test/Test.API/Dockerfile" ) ;;
             translation.api)  CANDS=( "Services/Translation/Translation.API/Dockerfile" "PsychologySupport/Services/Translation/Translation.API/Dockerfile" ) ;;
+            wellness.api)     CANDS=( "Services/Wellness/Wellness.API/Dockerfile" "PsychologySupport/Services/Wellness/Wellness.API/Dockerfile" ) ;;
             yarpapigateway)   CANDS=( "ApiGateways/YarpApiGateway/Dockerfile" "PsychologySupport/ApiGateways/YarpApiGateway/Dockerfile" ) ;;
             *) echo "Unknown service $SVC"; exit 1 ;;
           esac
