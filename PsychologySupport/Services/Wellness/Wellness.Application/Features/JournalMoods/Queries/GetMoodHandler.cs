@@ -29,7 +29,7 @@ internal class GetMoodsHandler : IQueryHandler<GetMoodsQuery, GetMoodsResult>
         // 1️⃣ Lấy danh sách moods
         var moods = await _context.Moods
             .AsNoTracking()
-            .OrderBy(m => m.Id)
+            .OrderBy(m => m.Value)
             .ToListAsync(cancellationToken);
 
         // 2️⃣ Nếu có yêu cầu dịch, gọi TranslationService
