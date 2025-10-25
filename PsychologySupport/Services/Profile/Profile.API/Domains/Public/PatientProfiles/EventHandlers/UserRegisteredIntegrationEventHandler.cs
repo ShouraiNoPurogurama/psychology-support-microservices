@@ -16,7 +16,8 @@ public class UserRegisteredIntegrationEventHandler(
 
         var command = new SeedPatientProfileCommand
         (
-            message.SeedPatientProfileId
+            message.SeedPatientProfileId,
+            message.ReferralCode
         );
 
         var result = await sender.Send(command, context.CancellationToken);
