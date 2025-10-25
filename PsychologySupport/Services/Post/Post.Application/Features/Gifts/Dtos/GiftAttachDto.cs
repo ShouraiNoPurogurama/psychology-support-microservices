@@ -3,7 +3,7 @@
 namespace Post.Application.Features.Gifts.Dtos;
 
 public record GiftAttachDto(
-    Guid Id,
+    Guid GiftId,
     Guid PostId,
     string? Message,
     AuthorDto Author,
