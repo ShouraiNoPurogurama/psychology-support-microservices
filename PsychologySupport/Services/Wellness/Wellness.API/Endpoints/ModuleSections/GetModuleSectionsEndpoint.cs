@@ -1,11 +1,13 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Wellness.API.Common.Authentication;
 using Wellness.Application.Features.ModuleSections.Dtos;
+using BuildingBlocks.Exceptions;
 
 public record GetModuleSectionsRequest(
     Guid WellnessModuleId,
-    Guid SubjectRef,
     int PageIndex = 1,
     int PageSize = 10,
     string? TargetLang = null
@@ -22,29 +24,32 @@ public class GetModuleSectionsEndpoint : ICarterModule
     {
         app.MapGet("/v1/me/wellness-modules/{WellnessModuleId}/module-sections", async (
                 [AsParameters] GetModuleSectionsRequest request,
-                ISender sender, HttpContext httpContext) =>
+                ICurrentActorAccessor currentActor,  
+                ISender sender
+            ) =>
         {
-            // Optional: Authorization check
-            //if (!AuthorizationHelpers.CanView(request.SubjectRef, httpContext.User))
-            //    throw new ForbiddenException();
+
+            var subjectRef = currentActor.GetRequiredSubjectRef();
 
             var query = new GetModuleSectionsQuery(
-                request.WellnessModuleId,
-                request.SubjectRef,
-                request.ToPaginationRequest(),
-                request.TargetLang
+                WellnessModuleId: request.WellnessModuleId,
+                SubjectRef: subjectRef,
+                PaginationRequest: request.ToPaginationRequest(),
+                TargetLang: request.TargetLang
             );
 
             var result = await sender.Send(query);
 
             return Results.Ok(new GetModuleSectionsResponse(result.Sections));
         })
+        .RequireAuthorization() 
         .WithName("GetModuleSections")
         .WithTags("ModuleSections")
         .Produces<GetModuleSectionsResponse>()
         .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status404NotFound)
-        .WithSummary("Get paginated list of ModuleSections with MediaUrl and optional translation")
-        .WithDescription("Returns ModuleSections for a WellnessModule. MediaUrl is fetched via Media Service, translation via Translation Service.");
+        .WithSummary("Get paginated list of ModuleSections for current user")
+        .WithDescription("Returns ModuleSections for the specified WellnessModule of the authenticated user.");
     }
 }

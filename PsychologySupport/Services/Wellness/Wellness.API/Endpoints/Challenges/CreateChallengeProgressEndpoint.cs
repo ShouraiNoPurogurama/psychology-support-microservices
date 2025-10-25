@@ -4,13 +4,12 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Wellness.API.Common;
+using Wellness.API.Common.Authentication;
 using Wellness.Application.Features.Challenges.Commands;
 
 namespace Wellness.API.Endpoints.Challenges;
 
 public record CreateChallengeProgressRequest(
-    Guid SubjectRef,
     Guid ChallengeId
 );
 
@@ -27,25 +26,23 @@ public class CreateChallengeProgressEndpoint : ICarterModule
         app.MapPost("/v1/me/challenge-progresses", async (
             [FromBody] CreateChallengeProgressRequest request,
             [FromHeader(Name = "Idempotency-Key")] Guid? requestKey,
-            ISender sender,HttpContext httpContext) =>
+            ICurrentActorAccessor currentActor,
+            ISender sender
+        ) =>
         {
-
-            // Authorization check
-            //if (!AuthorizationHelpers.CanModify(request.SubjectRef, httpContext.User))
-            //    throw new ForbiddenException();
-
             if (requestKey is null || requestKey == Guid.Empty)
                 throw new BadRequestException(
                     "Missing or invalid Idempotency-Key header.",
                     "MISSING_IDEMPOTENCY_KEY"
                 );
 
+            var subjectRef = currentActor.GetRequiredSubjectRef();
 
             var command = new CreateChallengeProgressCommand(
-                  IdempotencyKey: requestKey.Value,
-                  SubjectRef: request.SubjectRef,
-                  ChallengeId: request.ChallengeId
-               );
+                IdempotencyKey: requestKey.Value,
+                SubjectRef: subjectRef,
+                ChallengeId: request.ChallengeId
+            );
 
             var result = await sender.Send(command);
 
@@ -60,7 +57,7 @@ public class CreateChallengeProgressEndpoint : ICarterModule
                 response
             );
         })
-        //.RequireAuthorization()
+        .RequireAuthorization()
         .WithName("CreateChallengeProgress")
         .WithTags("ChallengeProgress")
         .Produces<CreateChallengeProgressResponse>(201)
@@ -68,6 +65,6 @@ public class CreateChallengeProgressEndpoint : ICarterModule
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .WithSummary("Create Challenge Progress")
-        .WithDescription("Initialize a new Challenge Progress for a subject and challenge.");
+        .WithDescription("Initialize a new Challenge Progress for the current user and a given challenge.");
     }
 }

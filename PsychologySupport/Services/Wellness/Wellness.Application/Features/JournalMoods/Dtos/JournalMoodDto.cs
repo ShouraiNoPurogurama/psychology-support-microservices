@@ -9,7 +9,8 @@ namespace Wellness.Application.Features.JournalMoods.Dtos
     public record JournalMoodDto(
         Guid Id,
         Guid SubjectRef,
-        Guid MoodId,
+        string MoodName,
+        string? MoodIconCode,
         string? Note,
         DateTimeOffset CreatedAt
     );

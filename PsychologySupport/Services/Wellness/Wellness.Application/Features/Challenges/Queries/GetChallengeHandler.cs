@@ -1,10 +1,10 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
-using BuildingBlocks.Utils;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Translation.API.Protos;
 using Wellness.Application.Data;
+using Wellness.Application.Extensions;
 using Wellness.Application.Features.Challenges.Dtos;
 using Wellness.Domain.Aggregates.Challenges;
 using Wellness.Domain.Aggregates.Challenges.Enums;
@@ -47,95 +47,82 @@ public class GetChallengesHandler : IQueryHandler<GetChallengesQuery, GetChallen
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        var rawChallenges = await query
+        var challenges = await query
             .Skip((request.PaginationRequest.PageIndex - 1) * request.PaginationRequest.PageSize)
             .Take(request.PaginationRequest.PageSize)
             .ToListAsync(cancellationToken);
 
-        Dictionary<string, string>? translations = null;
-        if (!string.IsNullOrEmpty(request.TargetLang))
+        if (!challenges.Any())
         {
-            // Tạo string tạm cho ChallengeType và ActivityType
-            var challengesWithString = rawChallenges.Select(c => new
-            {
-                Challenge = c,
-                ChallengeTypeString = c.ChallengeType.ToString(),
-                Steps = c.ChallengeSteps.Select(s => new
-                {
-                    Step = s,
-                    ActivityTypeString = s.Activity?.ActivityType.ToString()
-                }).ToList()
-            }).ToList();
-
-            var translationDict = TranslationUtils.CreateBuilder()
-                .AddEntities(challengesWithString, nameof(Challenge), x => x.Challenge.Title)
-                .AddEntities(challengesWithString, nameof(Challenge), x => x.Challenge.Description)
-                .AddEntities(challengesWithString, nameof(Challenge), x => x.ChallengeTypeString)
-                // Translate Activities
-                .AddEntities(challengesWithString.SelectMany(c => c.Steps), nameof(Activity), x => x.Step.Activity!.Name)
-                .AddEntities(challengesWithString.SelectMany(c => c.Steps), nameof(Activity), x => x.Step.Activity!.Description)
-                .AddEntities(challengesWithString.SelectMany(c => c.Steps), nameof(Activity), x => x.ActivityTypeString)
-                .Build();
-
-            var translationResponse = await _translationClient.TranslateDataAsync(
-                new TranslateDataRequest
-                {
-                    Originals = { translationDict },
-                    TargetLanguage = request.TargetLang
-                },
-                cancellationToken: cancellationToken
+            var empty = new PaginatedResult<ChallengeDto>(
+                request.PaginationRequest.PageIndex,
+                request.PaginationRequest.PageSize,
+                totalCount,
+                new List<ChallengeDto>()
             );
-
-            translations = translationResponse.Translations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            return new GetChallengesResult(empty);
         }
 
-        var translatedChallenges = rawChallenges.Select(c =>
+        // --- Apply Translation using Extension ---
+        List<Challenge> translatedChallenges = challenges;
+
+        if (!string.IsNullOrEmpty(request.TargetLang))
         {
-            // Translate Challenge
-            var translatedChallenge = translations?.MapTranslatedProperties(
-                c,
-                nameof(Challenge),
-                id: c.Id.ToString(),
-                x => x.Title,
-                x => x.Description,
-                _ => c.ChallengeType.ToString()
-            ) ?? c;
-
-            // Convert ChallengeType back
-            if (translations != null &&
-                translations.TryGetValue($"{nameof(Challenge)}:{c.Id}:ChallengeTypeString", out var ctStr) &&
-                Enum.TryParse<ChallengeType>(ctStr, out var parsedChallengeType))
+            try
             {
-                translatedChallenge.ChallengeType = parsedChallengeType;
-            }
+                // Dịch tiêu đề + mô tả của Challenge
+                translatedChallenges = await challenges.TranslateEntitiesAsync(
+                    nameof(Challenge),
+                    _translationClient,
+                    c => c.Id.ToString(),
+                    cancellationToken,
+                    c => c.Title,
+                    c => c.Description
+                );
 
-            // Translate Activities inside Steps
-            var steps = translatedChallenge.ChallengeSteps.Select(s =>
-            {
-                if (s.Activity != null && translations != null)
+                // Dịch tên và mô tả của Activity trong từng Step
+                foreach (var challenge in translatedChallenges)
                 {
-                    var keyName = $"{nameof(Activity)}:{s.Activity.Id}:Name";
-                    var keyDesc = $"{nameof(Activity)}:{s.Activity.Id}:Description";
-                    var keyType = $"{nameof(Activity)}:{s.Activity.Id}:ActivityTypeString";
+                    var activities = challenge.ChallengeSteps
+                        .Where(s => s.Activity != null)
+                        .Select(s => s.Activity!)
+                        .ToList();
 
-                    if (translations.TryGetValue(keyName, out var name)) s.Activity.Name = name;
-                    if (translations.TryGetValue(keyDesc, out var desc)) s.Activity.Description = desc;
-                    if (translations.TryGetValue(keyType, out var atStr) &&
-                        Enum.TryParse<ActivityType>(atStr, out var parsedType))
-                        s.Activity.ActivityType = parsedType;
+                    if (activities.Any())
+                    {
+                        var translatedActivities = await activities.TranslateEntitiesAsync(
+                            nameof(Activity),
+                            _translationClient,
+                            a => a.Id.ToString(),
+                            cancellationToken,
+                            a => a.Name,
+                            a => a.Description
+                        );
+
+                        // Gán lại bản dịch vào step
+                        foreach (var step in challenge.ChallengeSteps)
+                        {
+                            var translated = translatedActivities.FirstOrDefault(a => a.Id == step.Activity?.Id);
+                            if (translated != null)
+                                step.Activity = translated;
+                        }
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[TranslationError] {ex.Message}");
+            }
+        }
 
-                return s.Adapt<ChallengeStepDto>();
-            }).ToList();
-
-            return translatedChallenge.Adapt<ChallengeDto>() with { Steps = steps };
-        }).ToList();
+        // --- Map to DTO ---
+        var challengeDtos = translatedChallenges.Adapt<List<ChallengeDto>>();
 
         var paginated = new PaginatedResult<ChallengeDto>(
             request.PaginationRequest.PageIndex,
             request.PaginationRequest.PageSize,
             totalCount,
-            translatedChallenges
+            challengeDtos
         );
 
         return new GetChallengesResult(paginated);

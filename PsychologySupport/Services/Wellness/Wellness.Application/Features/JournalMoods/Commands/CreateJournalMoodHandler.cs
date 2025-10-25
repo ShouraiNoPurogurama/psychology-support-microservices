@@ -1,4 +1,4 @@
-using BuildingBlocks.CQRS;
+﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Wellness.Application.Data;
@@ -30,19 +30,23 @@ namespace Wellness.Application.Features.JournalMoods.Commands
             _dbContext = dbContext;
         }
 
-        public async Task<CreateJournalMoodResult> Handle(CreateJournalMoodCommand request, CancellationToken cancellationToken)
+        public async Task<CreateJournalMoodResult> Handle(
+            CreateJournalMoodCommand request,
+            CancellationToken cancellationToken)
         {
-            //Check IdempotencyKey
+            // Kiểm tra trùng IdempotencyKey
 
-            var journalMood = new JournalMood
-            {
-                Id = Guid.NewGuid(),
-                SubjectRef = request.SubjectRef,
-                MoodId = request.MoodId,
-                Note = request.Note,
-                CreatedAt = DateTimeOffset.UtcNow.AddHours(7),
-                CreatedBy = request.SubjectRef.ToString()
-            };
+            var moodExists = await _dbContext.Moods
+                .AnyAsync(x => x.Id == request.MoodId, cancellationToken);
+
+            if (!moodExists)
+                throw new NotFoundException(nameof(Mood), request.MoodId);
+
+            var journalMood = JournalMood.Create(
+                subjectRef: request.SubjectRef,
+                moodId: request.MoodId,
+                note: request.Note
+            );
 
             _dbContext.JournalMoods.Add(journalMood);
             await _dbContext.SaveChangesAsync(cancellationToken);

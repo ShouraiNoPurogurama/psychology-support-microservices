@@ -1,7 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Enums;
 using BuildingBlocks.Pagination;
-using BuildingBlocks.Utils;
 using Microsoft.EntityFrameworkCore;
 using MassTransit;
 using Wellness.Application.Data;
@@ -10,19 +9,20 @@ using Wellness.Application.Features.ModuleSections.Dtos;
 using Wellness.Domain.Aggregates.ModuleSections;
 using Translation.API.Protos;
 using BuildingBlocks.Messaging.Events.Queries.Media;
+using Wellness.Application.Extensions;
 
 public record GetWellnessModulesQuery(PaginationRequest PaginationRequest, string? TargetLang = null)
     : IQuery<GetWellnessModulesResult>;
 
 public record GetWellnessModulesResult(PaginatedResult<WellnessModuleDto> Modules);
 
-public class GetWellnessModuleHandler : IQueryHandler<GetWellnessModulesQuery, GetWellnessModulesResult>
+public class GetWellnessModulesHandler : IQueryHandler<GetWellnessModulesQuery, GetWellnessModulesResult>
 {
     private readonly IWellnessDbContext _context;
     private readonly IRequestClient<GetMediaUrlRequest> _getMediaUrlClient;
     private readonly TranslationService.TranslationServiceClient _translationClient;
 
-    public GetWellnessModuleHandler(
+    public GetWellnessModulesHandler(
         IWellnessDbContext context,
         IRequestClient<GetMediaUrlRequest> getMediaUrlClient,
         TranslationService.TranslationServiceClient translationClient)
@@ -47,59 +47,61 @@ public class GetWellnessModuleHandler : IQueryHandler<GetWellnessModulesQuery, G
             .Take(request.PaginationRequest.PageSize)
             .ToListAsync(cancellationToken);
 
+        if (!rawModules.Any())
+        {
+            var empty = new PaginatedResult<WellnessModuleDto>(
+                request.PaginationRequest.PageIndex,
+                request.PaginationRequest.PageSize,
+                totalCount,
+                new List<WellnessModuleDto>()
+            );
+            return new GetWellnessModulesResult(empty);
+        }
+
         // Resolve MediaUrl
         var mediaIds = rawModules.Select(m => m.MediaId).Distinct().ToList();
         var mediaResponse = await _getMediaUrlClient
             .GetResponse<GetMediaUrlResponse>(new GetMediaUrlRequest { MediaIds = mediaIds }, cancellationToken);
         var mediaUrls = mediaResponse.Message.Urls;
 
-        // Build translation dictionary
-        var translationDict = TranslationUtils.CreateBuilder()
-            .AddEntities(rawModules, nameof(WellnessModule), m => m.Name)
-            .AddEntities(rawModules, nameof(WellnessModule), m => m.Description)
-            .Build();
-
-        Dictionary<string, string>? translations = null;
-        if (!string.IsNullOrEmpty(request.TargetLang))
+        // Translation
+        if (!string.IsNullOrEmpty(request.TargetLang) && request.TargetLang == "vi")
         {
-            var translationRequest = new TranslateDataRequest
+            try
             {
-                Originals = { translationDict },
-                TargetLanguage = request.TargetLang ?? SupportedLang.vi.ToString()
-            };
-
-            var translationResponse = await _translationClient
-                .TranslateDataAsync(translationRequest, cancellationToken: cancellationToken);
-
-            translations = translationResponse.Translations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                rawModules = await rawModules.TranslateEntitiesAsync(
+                    nameof(WellnessModule),
+                    _translationClient,
+                    m => m.Id.ToString(),
+                    cancellationToken,
+                    m => m.Name,
+                    m => m.Description
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[TranslationError] {ex.Message}");
+            }
         }
 
         // Map to DTO with translations 
-        var translatedModules = rawModules.Select(m =>
+        var moduleDtos = rawModules.Select(m =>
         {
-            var translated = translations?.MapTranslatedProperties(
-                m,
-                nameof(WellnessModule),
-                id: m.Id.ToString(),
-                x => x.Name,
-                x => x.Description
-            ) ?? m;
-
             return new WellnessModuleDto(
                 m.Id,
-                translated.Name,
+                m.Name,
                 mediaUrls.TryGetValue(m.MediaId, out var url) ? url : string.Empty,
-                translated.Description,
+                m.Description,
                 m.ModuleSections.Count
             );
         }).ToList();
 
-        
+
         var paginatedResult = new PaginatedResult<WellnessModuleDto>(
             request.PaginationRequest.PageIndex,
             request.PaginationRequest.PageSize,
             totalCount,
-            translatedModules
+            moduleDtos
         );
 
         return new GetWellnessModulesResult(paginatedResult);

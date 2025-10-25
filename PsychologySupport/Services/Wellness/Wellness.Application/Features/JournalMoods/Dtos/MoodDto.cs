@@ -9,6 +9,7 @@ namespace Wellness.Application.Features.JournalMoods.Dtos
     public record MoodDto(
          Guid Id,
          string Name,
+         string IconCode,
          string? Description
     );
 }

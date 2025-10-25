@@ -2,16 +2,14 @@
 using Carter;
 using Mapster;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Wellness.API.Common;
+using Wellness.API.Common.Authentication;
 using Wellness.Domain.Enums;
 
 namespace Wellness.API.Endpoints.ModuleSections
 {
     public record UpdateModuleProgressRequest(
         Guid ModuleSectionId,
-        Guid SubjectRef,
         Guid SectionArticleId
     );
 
@@ -27,13 +25,17 @@ namespace Wellness.API.Endpoints.ModuleSections
         {
             app.MapPut("/v1/me/module-progress", async (
                 [FromBody] UpdateModuleProgressRequest request,
-                ISender sender, HttpContext httpContext) =>
+                ICurrentActorAccessor currentActor,  
+                ISender sender
+            ) =>
             {
-                // Authorization check
-                //if (!AuthorizationHelpers.CanModify(request.SubjectRef, httpContext.User))
-                //    throw new ForbiddenException();
+                var subjectRef = currentActor.GetRequiredSubjectRef();
 
-                var command = request.Adapt<UpdateModuleProgressCommand>();
+                var command = new UpdateModuleProgressCommand(
+                    SubjectRef: subjectRef,
+                    ModuleSectionId: request.ModuleSectionId,
+                    SectionArticleId: request.SectionArticleId
+                );
 
                 var result = await sender.Send(command);
 
@@ -41,14 +43,15 @@ namespace Wellness.API.Endpoints.ModuleSections
 
                 return Results.Ok(response);
             })
+            .RequireAuthorization()
             .WithName("UpdateModuleProgress")
             .WithTags("ModuleProgress")
             .Produces<UpdateModuleProgressResponse>(200)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .WithSummary("ModuleProgress")
-            .WithDescription("ModuleProgress");
+            .WithSummary("Update module progress for the current user")
+            .WithDescription("Updates module progress (minutes read, process status) for the authenticated user.");
         }
     }
 }
