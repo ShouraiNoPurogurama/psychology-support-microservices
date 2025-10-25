@@ -1,12 +1,11 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Messaging.Events.Queries.Media;
 using BuildingBlocks.Pagination;
-using BuildingBlocks.Utils;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using Translation.API.Protos;
 using Wellness.Application.Data;
+using Wellness.Application.Extensions;
 using Wellness.Application.Exceptions;
 using Wellness.Application.Features.ModuleSections.Dtos;
 using Wellness.Domain.Aggregates.ModuleSections;
@@ -42,6 +41,14 @@ public class GetModuleSectionsHandler : IQueryHandler<GetModuleSectionsQuery, Ge
         int skip = (request.PaginationRequest.PageIndex - 1) * request.PaginationRequest.PageSize;
         int take = request.PaginationRequest.PageSize;
 
+        // 7️⃣ Tạo kết quả phân trang (di chuyển lên để kiểm tra totalCount trước khi throw)
+        var totalCount = await _context.ModuleSections
+            .AsNoTracking()
+            .CountAsync(ms => ms.ModuleId == request.WellnessModuleId, cancellationToken);
+
+        if (totalCount == 0)
+            throw new WellnessNotFoundException($"Không tìm thấy mục học phần nào cho WellnessModuleId '{request.WellnessModuleId}'.");
+
         // 1️⃣ Lấy module sections chính
         var sections = await _context.ModuleSections
             .AsNoTracking()
@@ -52,7 +59,15 @@ public class GetModuleSectionsHandler : IQueryHandler<GetModuleSectionsQuery, Ge
             .ToListAsync(cancellationToken);
 
         if (!sections.Any())
-            throw new WellnessNotFoundException($"Không tìm thấy mục học phần nào cho WellnessModuleId '{request.WellnessModuleId}'.");
+        {
+            var empty = new PaginatedResult<ModuleSectionDto>(
+                request.PaginationRequest.PageIndex,
+                request.PaginationRequest.PageSize,
+                totalCount,
+                new List<ModuleSectionDto>()
+            );
+            return new GetModuleSectionsResult(empty);
+        }
 
         var sectionIds = sections.Select(s => s.Id).ToList();
 
@@ -81,55 +96,41 @@ public class GetModuleSectionsHandler : IQueryHandler<GetModuleSectionsQuery, Ge
         var mediaUrls = mediaResponse.Message.Urls;
 
         // 5️⃣ Translation batch
-        Dictionary<string, string>? translations = null;
-        if (!string.IsNullOrEmpty(request.TargetLang))
+        if (!string.IsNullOrEmpty(request.TargetLang) && request.TargetLang == "vi")
         {
-            var translationDict = TranslationUtils.CreateBuilder()
-                .AddEntities(sections, nameof(ModuleSection), s => s.Title)
-                .AddEntities(sections, nameof(ModuleSection), s => s.Description)
-                .Build();
+            try
+            {
+                var translatedSections = await sections.TranslateEntitiesAsync(
+                    nameof(ModuleSection),
+                    _translationClient,
+                    s => s.Id.ToString(),
+                    cancellationToken,
+                    s => s.Title,
+                    s => s.Description
+                );
 
-            var translationResponse = await _translationClient.TranslateDataAsync(
-                new TranslateDataRequest
-                {
-                    Originals = { translationDict },
-                    TargetLanguage = request.TargetLang
-                },
-                cancellationToken: cancellationToken
-            );
-
-            translations = translationResponse.Translations.Any()
-                ? translationResponse.Translations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
-                : new Dictionary<string, string>();
+                sections = translatedSections;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[TranslationError] {ex.Message}");
+            }
         }
 
         // 6️⃣ Map sang DTO sử dụng object đã translate
         var sectionDtos = sections.Select(ms =>
         {
-            var translated = translations?.MapTranslatedProperties(
-                ms,
-                nameof(ModuleSection),
-                ms.Id.ToString(),
-                x => x.Title,
-                x => x.Description
-            );
-
             return new ModuleSectionDto(
                 ms.Id,
-                translated?.Title ?? ms.Title,
+                ms.Title,
                 mediaUrls.TryGetValue(ms.MediaId, out var url) ? url : string.Empty,
-                translated?.Description ?? ms.Description,
+                ms.Description,
                 ms.TotalDuration,
                 progressDict.GetValueOrDefault(ms.Id)?.MinutesRead ?? 0,
                 progressDict.GetValueOrDefault(ms.Id)?.ProcessStatus ?? ProcessStatus.NotStarted,
                 articleCountDict.GetValueOrDefault(ms.Id, 0)
             );
         }).ToList();
-
-        // 7️⃣ Tạo kết quả phân trang
-        var totalCount = await _context.ModuleSections
-            .AsNoTracking()
-            .CountAsync(ms => ms.ModuleId == request.WellnessModuleId, cancellationToken);
 
         var paginatedResult = new PaginatedResult<ModuleSectionDto>(
             request.PaginationRequest.PageIndex,

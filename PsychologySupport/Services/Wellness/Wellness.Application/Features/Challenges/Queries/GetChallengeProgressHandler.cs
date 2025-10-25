@@ -1,10 +1,10 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
-using BuildingBlocks.Utils;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Translation.API.Protos;
 using Wellness.Application.Data;
+using Wellness.Application.Extensions;
 using Wellness.Application.Features.Challenges.Dtos;
 using Wellness.Domain.Aggregates.Challenges;
 using Wellness.Domain.Aggregates.Challenges.Enums;
@@ -43,6 +43,7 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
             .AsNoTracking()
             .AsQueryable();
 
+        // Apply filters
         query = query.Where(cp => cp.SubjectRef == request.SubjectRef);
 
         if (request.ProcessStatus.HasValue)
@@ -51,6 +52,7 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
         if (request.ChallengeType.HasValue)
             query = query.Where(cp => cp.Challenge!.ChallengeType == request.ChallengeType.Value);
 
+        // Sorting
         query = query.OrderByDescending(cp => cp.StartDate)
                      .ThenBy(cp => cp.Challenge!.ChallengeType);
 
@@ -61,90 +63,80 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
             .Take(request.PaginationRequest.PageSize)
             .ToListAsync(cancellationToken);
 
-        // --- Translation ---
-        Dictionary<string, string>? translations = null;
-        if (!string.IsNullOrEmpty(request.TargetLang))
+        if (!rawProgresses.Any())
         {
-            var builder = TranslationUtils.CreateBuilder();
-
-            // Challenge fields
-            builder.AddEntities(rawProgresses, nameof(ChallengeProgress), x => x.Challenge!.Title);
-            builder.AddEntities(rawProgresses, nameof(ChallengeProgress), x => x.Challenge.Description);
-            builder.AddEntities(
-                rawProgresses.Select(cp => new { cp.Id, ChallengeType = cp.Challenge!.ChallengeType.ToString() }),
-                nameof(ChallengeProgress),
-                x => x.ChallengeType
+            var empty = new PaginatedResult<ChallengeProgressDto>(
+                request.PaginationRequest.PageIndex,
+                request.PaginationRequest.PageSize,
+                totalCount,
+                new List<ChallengeProgressDto>()
             );
-
-            // Activity fields
-            var allStepProgresses = rawProgresses.SelectMany(cp => cp.ChallengeStepProgresses).ToList();
-
-            builder.AddEntities(
-                allStepProgresses.Select(sp => new { sp.ChallengeStep!.Activity!.Id, sp.ChallengeStep.Activity.Name }),
-                "Activity",
-                x => x.Name
-            );
-            builder.AddEntities(
-                allStepProgresses.Select(sp => new { sp.ChallengeStep!.Activity!.Id, sp.ChallengeStep.Activity.Description }),
-                "Activity",
-                x => x.Description
-            );
-            builder.AddEntities(
-                allStepProgresses.Select(sp => new { sp.ChallengeStep!.Activity!.Id, ActivityType = sp.ChallengeStep.Activity.ActivityType.ToString() }),
-                "Activity",
-                x => x.ActivityType
-            );
-
-            var translationDict = builder.Build();
-
-            var translationResponse = await _translationClient.TranslateDataAsync(
-                new TranslateDataRequest
-                {
-                    Originals = { translationDict },
-                    TargetLanguage = request.TargetLang
-                },
-                cancellationToken: cancellationToken
-            );
-
-            translations = translationResponse.Translations.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            return new GetChallengeProgressResult(empty);
         }
 
-        // --- Map translated values ---
+        if (!string.IsNullOrEmpty(request.TargetLang) && request.TargetLang == "vi")
+        {
+            try
+            {
+                // Unique challenges
+                var uniqueChallenges = rawProgresses
+                    .Select(cp => cp.Challenge!)
+                    .GroupBy(c => c.Id)
+                    .Select(g => g.First())
+                    .ToList();
+
+                // Translate Challenge Title and Description
+                await uniqueChallenges.TranslateEntitiesAsync(
+                    nameof(Challenge),
+                    _translationClient,
+                    c => c.Id.ToString(),
+                    cancellationToken,
+                    c => c.Title,
+                    c => c.Description
+                );
+
+                // Unique activities
+                var uniqueActivities = rawProgresses
+                    .SelectMany(cp => cp.Challenge!.ChallengeSteps
+                        .Where(cs => cs.Activity != null)
+                        .Select(cs => cs.Activity!))
+                    .Concat(rawProgresses.SelectMany(cp => cp.ChallengeStepProgresses
+                        .Where(csp => csp.ChallengeStep != null && csp.ChallengeStep.Activity != null)
+                        .Select(csp => csp.ChallengeStep!.Activity!)))
+                    .GroupBy(a => a.Id)
+                    .Select(g => g.First())
+                    .ToList();
+
+                // Translate Activity Name and Description
+                if (uniqueActivities.Any())
+                {
+                    await uniqueActivities.TranslateEntitiesAsync(
+                        "Activity",
+                        _translationClient,
+                        a => a.Id.ToString(),
+                        cancellationToken,
+                        a => a.Name,
+                        a => a.Description
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[TranslationError] {ex.Message}");
+            }
+        }
+
+        // --- Map to DTO ---
         var items = rawProgresses.Select(cp =>
         {
             var challenge = cp.Challenge!;
+            var challengeTypeStr = challenge.ChallengeType.ToString();
 
-            if (translations != null)
-            {
-                if (translations.TryGetValue($"ChallengeProgress:{cp.Id}:Title", out var title))
-                    challenge.Title = title;
-                if (translations.TryGetValue($"ChallengeProgress:{cp.Id}:Description", out var desc))
-                    challenge.Description = desc;
-                if (translations.TryGetValue($"ChallengeProgress:{cp.Id}:ChallengeType", out var ctStr) &&
-                    Enum.TryParse<ChallengeType>(ctStr, out var parsedCT))
-                    challenge.ChallengeType = parsedCT;
-            }
-
-            var steps = cp.ChallengeStepProgresses.Select(sp =>
-            {
-                var step = sp.ChallengeStep!;
-                var activity = step.Activity;
-
-                if (activity != null && translations != null)
-                {
-                    if (translations.TryGetValue($"Activity:{activity.Id}:Name", out var name))
-                        activity.Name = name;
-                    if (translations.TryGetValue($"Activity:{activity.Id}:Description", out var adesc))
-                        activity.Description = adesc;
-                    if (translations.TryGetValue($"Activity:{activity.Id}:ActivityType", out var atStr) &&
-                        Enum.TryParse<ActivityType>(atStr, out var parsedAT))
-                        activity.ActivityType = parsedAT;
-                }
-
-                return sp.Adapt<ChallengeStepProgressDto>();
-            }).OrderBy(sp => sp.DayNumber)
-              .ThenBy(sp => sp.OrderIndex)
-              .ToList();
+            var steps = cp.ChallengeStepProgresses
+                .Select(sp => sp.Adapt<ChallengeStepProgressDto>())
+                .OrderBy(sp => sp.DayNumber)
+                .ThenBy(sp => sp.OrderIndex)
+                .ToList();
 
             return new ChallengeProgressDto
             {
@@ -153,16 +145,16 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
                 ChallengeId = cp.ChallengeId,
                 ChallengeTitle = challenge.Title,
                 ChallengeDescription = challenge.Description,
-                ChallengeType = challenge.ChallengeType.ToString(),
+                ChallengeType = challengeTypeStr,
                 ProcessStatus = cp.ProcessStatus,
                 ProgressPercent = cp.ProgressPercent,
                 StartDate = cp.StartDate,
                 EndDate = cp.EndDate,
                 Steps = steps
             };
-
         }).ToList();
 
+        // --- Pagination result ---
         var paginated = new PaginatedResult<ChallengeProgressDto>(
             request.PaginationRequest.PageIndex,
             request.PaginationRequest.PageSize,

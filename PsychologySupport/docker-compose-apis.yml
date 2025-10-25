@@ -336,6 +336,28 @@ services:
       - ./Services/RealtimeHub/RealtimeHub.API/appsettings.json:/app/appsettings.json:ro
       - ./Services/RealtimeHub/RealtimeHub.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
+  wellness.api:
+    image: ${DOCKER_REGISTRY}wellness.api:${IMAGE_TAG}
+    container_name: wellness.api
+    labels:
+      com.emoease.health_path: "/health"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - GrpcSettings__TranslationUrl=http://translation.api:8081
+      - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
+    networks: [ emoease-net ]
+    ports: [ "5023:8080", "5523:8081" ]
+    volumes:
+      - ~/.aspnet/https:/https:ro
+      - ./Services/Wellness/Wellness.API/RSAKeys:/app/RSAKeys
+      - ./Services/Wellness/Wellness.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/Wellness/Wellness.API/appsettings.Production.json:/app/appsettings.Production.json:ro
+
   yarpapigateway:
     image: ${DOCKER_REGISTRY}yarpapigateway:${IMAGE_TAG}
     container_name: emoease.yarpapigateway

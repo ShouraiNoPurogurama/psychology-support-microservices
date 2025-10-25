@@ -31,15 +31,15 @@ public sealed record GiftTarget
         if (targetId == Guid.Empty)
             throw new InvalidGiftDataException("ID mục tiêu nhận quà không hợp lệ.");
 
-        var valid = new[] { "post", "comment" };
+        var valid = new[] { "Post", "Comment" };
         if (!valid.Contains(targetType))
             throw new InvalidGiftDataException($"Loại mục tiêu nhận quà không hợp lệ. Chỉ chấp nhận: {string.Join(", ", valid)}.");
 
         return new GiftTarget(targetType, targetId);
     }
 
-    public bool IsPost => TargetType == "post";
-    public bool IsComment => TargetType == "comment";
+    public bool IsPost => TargetType == "Post";
+    public bool IsComment => TargetType == "Comment";
 }
 
 /// <summary>

@@ -1,5 +1,4 @@
 ﻿using BuildingBlocks.CQRS;
-using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Wellness.Application.Data;
 using Wellness.Application.Features.JournalMoods.Dtos;
@@ -8,12 +7,11 @@ namespace Wellness.Application.Features.JournalMoods.Queries;
 
 public record GetJournalMoodsQuery(
     Guid SubjectRef,
-    int PageIndex = 1,
-    int PageSize = 10,
-    string SortDirection = "desc" // "asc" hoặc "desc"
+    DateTimeOffset? StartDate = null,
+    DateTimeOffset? EndDate = null
 ) : IQuery<GetJournalMoodsResult>;
 
-public record GetJournalMoodsResult(PaginatedResult<JournalMoodDto> Moods);
+public record GetJournalMoodsResult(IReadOnlyList<JournalMoodDto> Moods);
 
 internal class GetJournalMoodHandler
     : IQueryHandler<GetJournalMoodsQuery, GetJournalMoodsResult>
@@ -29,35 +27,34 @@ internal class GetJournalMoodHandler
     {
         var query = _context.JournalMoods
             .AsNoTracking()
+            .Include(jm => jm.Mood) 
             .Where(jm => jm.SubjectRef == request.SubjectRef);
 
-        var sortDesc = request.SortDirection.Equals("desc", StringComparison.OrdinalIgnoreCase);
+        // Lọc theo thời gian (chuyển giờ Việt Nam -> UTC để so với DB)
+        if (request.StartDate.HasValue)
+        {
+            var startUtc = request.StartDate.Value.ToUniversalTime();
+            query = query.Where(jm => jm.CreatedAt >= startUtc);
+        }
 
-        query = sortDesc
-            ? query.OrderByDescending(jm => jm.CreatedAt)
-            : query.OrderBy(jm => jm.CreatedAt);
-
-        var totalCount = await query.CountAsync(cancellationToken);
+        if (request.EndDate.HasValue)
+        {
+            var endUtc = request.EndDate.Value.ToUniversalTime();
+            query = query.Where(jm => jm.CreatedAt <= endUtc);
+        }
 
         var items = await query
-            .Skip((request.PageIndex - 1) * request.PageSize)
-            .Take(request.PageSize)
+            .OrderByDescending(jm => jm.CreatedAt)
             .Select(jm => new JournalMoodDto(
                 jm.Id,
                 jm.SubjectRef,
-                jm.MoodId,
+                jm.Mood.Name,         
+                jm.Mood.IconCode,
                 jm.Note,
-                jm.CreatedAt
+                jm.CreatedAt.ToOffset(TimeSpan.FromHours(7))
             ))
             .ToListAsync(cancellationToken);
 
-        var paginated = new PaginatedResult<JournalMoodDto>(
-            request.PageIndex,
-            request.PageSize,
-            totalCount,
-            items
-        );
-
-        return new GetJournalMoodsResult(paginated);
+        return new GetJournalMoodsResult(items);
     }
 }

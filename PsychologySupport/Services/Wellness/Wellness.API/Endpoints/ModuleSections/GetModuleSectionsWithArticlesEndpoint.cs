@@ -1,11 +1,11 @@
 ﻿using BuildingBlocks.Pagination;
 using Carter;
 using MediatR;
+using Wellness.API.Common.Authentication;
 using Wellness.Application.Features.ModuleSections.Dtos;
 
 public record GetModuleSectionsWithArticlesRequest(
     Guid ModuleId,
-    Guid SubjectRef,
     int PageIndex = 1,
     int PageSize = 10,
     string? TargetLang = null
@@ -22,24 +22,31 @@ public class GetModuleSectionsWithArticlesEndpoint : ICarterModule
     {
         app.MapGet("/v1/me/module-sections/{ModuleId}", async (
                 [AsParameters] GetModuleSectionsWithArticlesRequest request,
-                ISender sender, HttpContext httpContext) =>
+                ICurrentActorAccessor currentActor,  
+                ISender sender
+            ) =>
         {
+            var subjectRef = currentActor.GetRequiredSubjectRef();
+
             var query = new GetModuleSectionsWithArticlesQuery(
-                request.ModuleId,
-                request.SubjectRef,
-                request.ToPaginationRequest(),
-                request.TargetLang
+                ModuleId: request.ModuleId,
+                SubjectRef: subjectRef,
+                PaginationRequest: request.ToPaginationRequest(),
+                TargetLang: request.TargetLang
             );
 
             var result = await sender.Send(query);
+
             return Results.Ok(new GetModuleSectionsWithArticlesResponse(result.Sections));
         })
+        .RequireAuthorization()
         .WithName("GetModuleSectionsWithArticles")
         .WithTags("ModuleSections")
         .Produces<GetModuleSectionsWithArticlesResponse>()
         .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status404NotFound)
-        .WithSummary("Get paginated ModuleSections with nested SectionArticles, progress, and translation")
-        .WithDescription("Returns paginated ModuleSections filtered by ModuleId. Each section includes SectionArticles with Completed status for SubjectRef, MediaUrl from Media Service, and translation if TargetLang is provided.");
+        .WithSummary("Get paginated ModuleSections with nested SectionArticles, progress, and translation for the current user")
+        .WithDescription("Returns paginated ModuleSections filtered by ModuleId for the authenticated user. Each section includes SectionArticles with progress, MediaUrl, and optional translation.");
     }
 }
