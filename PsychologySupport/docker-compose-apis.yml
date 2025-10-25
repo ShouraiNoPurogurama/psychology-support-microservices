@@ -337,7 +337,7 @@ services:
       - ./Services/RealtimeHub/RealtimeHub.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   wellness.api:
-    image: ${DOCKER_REGISTRY}digitalgoods.api:${IMAGE_TAG}
+    image: ${DOCKER_REGISTRY}wellness.api:${IMAGE_TAG}
     container_name: wellness.api
     labels:
       com.emoease.health_path: "/health"
