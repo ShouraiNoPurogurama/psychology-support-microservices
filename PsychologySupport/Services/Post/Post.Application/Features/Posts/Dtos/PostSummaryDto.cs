@@ -1,4 +1,5 @@
-﻿using Post.Application.Features.Posts.Commands.CreatePost;
+﻿using Post.Application.Features.Gifts.Dtos;
+using Post.Application.Features.Posts.Commands.CreatePost;
 using Post.Domain.Aggregates.Posts.Enums;
 
 namespace Post.Application.Features.Posts.Dtos;
@@ -15,6 +16,7 @@ public record PostSummaryDto(
     int ReactionCount,
     int CommentCount,
     int ViewCount,
+    int GiftCount,
     bool HasMedia,
     IReadOnlyList<MediaItemDto> Medias,
     IReadOnlyList<Guid> CategoryTagIds,

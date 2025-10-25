@@ -20,6 +20,7 @@ public sealed record AttachGiftResponse(
     Guid TargetId,
     Guid GiftId,
     string? Message,
+    int Quantity,
     DateTimeOffset CreatedAt
 );
 

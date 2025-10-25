@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using Post.Domain.Aggregates.Gifts.DomainEvents;
 using Post.Domain.Aggregates.Gifts.ValueObjects;
 using Post.Domain.Aggregates.Posts.ValueObjects;
 using Post.Domain.Exceptions;
@@ -22,7 +24,8 @@ public sealed class GiftAttach : AggregateRoot<Guid>, ISoftDeletable
     private GiftAttach() { }
 
     public static GiftAttach Create(
-        string targetType, Guid targetId,
+        GiftTarget target,
+        Guid targetAuthorAliasId,
         Guid giftId,
         Guid senderAliasId, Guid? senderAliasVersionId,
         long amount,
@@ -31,18 +34,31 @@ public sealed class GiftAttach : AggregateRoot<Guid>, ISoftDeletable
         if (amount <= 0)
             throw new InvalidGiftDataException("Giá trị quà tặng phải lớn hơn 0.");
 
+        var sentAt = DateTimeOffset.UtcNow;
+        
         var attach = new GiftAttach
         {
             Id      = Guid.NewGuid(),
-            Target  = GiftTarget.Create(targetType, targetId),
+            Target  = target,
             Info    = GiftInfo.Create(giftId),
             Sender  = AuthorInfo.Create(senderAliasId, senderAliasVersionId),
             Amount  = amount,
             Message = string.IsNullOrWhiteSpace(message) ? null : message.Trim(),
-            SentAt  = DateTimeOffset.UtcNow
+            SentAt  = sentAt
         };
 
-        // attach.AddDomainEvent(new GiftAttachedEvent(...)); // nếu có
+        var giftAttachedEvent = new GiftAttachedEvent(
+            target.TargetId,
+            targetAuthorAliasId,
+            senderAliasId,
+            giftId,
+            amount,
+            message,
+            sentAt
+        );
+        
+        attach.AddDomainEvent(giftAttachedEvent);
+        
         return attach;
     }
 

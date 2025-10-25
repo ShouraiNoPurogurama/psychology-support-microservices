@@ -16,6 +16,7 @@ internal sealed class AliasVersionAccessor : IAliasVersionAccessor
                 db.Set<AliasVersionReplica>()
                     .AsNoTracking()
                     .Where(a => a.AliasId == aliasId)
+                    .OrderByDescending(a => a.LastSyncedAt)
                     .Select(a => (Guid?)a.CurrentVersionId)
                     .FirstOrDefault());
 

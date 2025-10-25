@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
 using Post.Application.Data;
 using Post.Application.Features.Posts.Dtos;
+using Post.Domain.Aggregates.Gifts.Enums;
 using Post.Domain.Aggregates.Reaction.Enums;
 
 namespace Post.Application.Features.Posts.Queries.GetPostsByTag;
@@ -50,7 +51,7 @@ internal sealed class GetPostsByTagQueryHandler : IQueryHandler<GetPostsByTagQue
             .Take(request.Size)
             .Select(p => new
             {
-                PostData = new
+                Post = new
                 {
                     p.Id,
                     p.Content.Title,
@@ -75,20 +76,33 @@ internal sealed class GetPostsByTagQueryHandler : IQueryHandler<GetPostsByTagQue
                 )
             })
             .ToListAsync(cancellationToken);
-        ;
-
 
         // Get author display names from query context (no EF join)
-        var authorIds = postsData.Select(p => p.PostData.AuthorAliasId).Distinct().ToList();
+        var authorIds = postsData.Select(p => p.Post.AuthorAliasId).Distinct().ToList();
         var authorAliases = await _queryContext.AliasVersionReplica
             .AsNoTracking()
             .Where(a => authorIds.Contains(a.AliasId))
             .ToDictionaryAsync(a => a.AliasId, a => new AuthorDto(a.AliasId, a.Label, a.AvatarUrl), cancellationToken);
 
+        var giftAttachesQuery = _context.GiftAttaches
+            .AsNoTracking()
+            .Where(g => g.Target.TargetType == nameof(GiftTargetType.Post) &&
+                        postsData.Select(p => p.Post.Id).Contains(g.Target.TargetId) &&
+                        !g.IsDeleted);
+        
+        var giftAttachCountMap = await giftAttachesQuery
+            .GroupBy(g => g.Target.TargetId)
+            .Select(g => new
+            {
+                PostId = g.Key,
+                Count = g.Count()
+            })
+            .ToDictionaryAsync(g => g.PostId, g => g.Count, cancellationToken);
+        
         // Merge in memory (following manifesto rules)
         var postDtos = postsData.Select(p =>
             {
-                var post = p.PostData;
+                var post = p.Post;
                 var author = authorAliases.GetValueOrDefault(post.AuthorAliasId)
                              ?? new AuthorDto(post.AuthorAliasId, "Anonymous", null);
 
@@ -104,6 +118,7 @@ internal sealed class GetPostsByTagQueryHandler : IQueryHandler<GetPostsByTagQue
                     post.ReactionCount,
                     post.CommentCount,
                     post.ViewCount,
+                    giftAttachCountMap.TryGetValue(post.Id, out var value) ? value : 0,
                     post.HasMedia,
                     post.Media,
                     post.CategoryIds,
