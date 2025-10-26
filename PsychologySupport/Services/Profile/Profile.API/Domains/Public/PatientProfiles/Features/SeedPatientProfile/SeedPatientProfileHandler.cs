@@ -41,7 +41,7 @@ public class SeedPatientProfileHandler(ProfileDbContext dbContext, ILogger<SeedP
             {
                 logger.LogWarning($"Referral code '{referralCode}' không hợp lệ: chưa tồn tại trong AffiliateProfile");
 
-                return new SeedPatientProfileResult(false);
+                referralCode = null;
             }
         }
 

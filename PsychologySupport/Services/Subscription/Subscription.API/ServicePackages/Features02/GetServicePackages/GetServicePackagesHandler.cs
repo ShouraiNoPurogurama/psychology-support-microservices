@@ -54,7 +54,7 @@ public class GetServicePackagesHandler(
         var totalCount = await query.CountAsync(cancellationToken);
 
         var rawPackages = await query
-            .OrderByDescending(sp => sp.CreatedAt)
+            .OrderBy(sp => sp.Price)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .Select(sp => new ServicePackageDto(

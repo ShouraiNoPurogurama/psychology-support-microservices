@@ -47,6 +47,7 @@ public class GetServicePackagesV2Endpoint : ICarterModule
 
             return Results.Ok(response);
         })
+        .AllowAnonymous()
         .WithName("GetServicePackages v2")
         .WithTags("ServicePackages Version 2")
         .Produces<GetServicePackagesV2Response>()

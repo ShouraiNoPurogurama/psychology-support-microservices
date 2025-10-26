@@ -7,9 +7,7 @@
           "Path": "/subscription-service/health"
         },
         "Transforms": [
-          {
-            "PathPattern": "/health"
-          }
+          { "PathPattern": "/health" }
         ]
       },
       "subscription-swagger": {
@@ -18,25 +16,28 @@
           "Path": "/subscription-service/swagger/{**catch-all}"
         },
         "Transforms": [
-          {
-            "PathPattern": "/swagger/{**catch-all}"
-          }
+          { "PathPattern": "/swagger/{**catch-all}" }
+        ]
+      },
+      "subscription-service-packages-v2": {
+        "ClusterId": "subscription-cluster",
+        "Match": {
+          "Path": "/subscription-service/v2/service-packages"
+        },
+        "Transforms": [
+          { "PathPattern": "/v2/service-packages" }
         ]
       },
       "subscription-route": {
         "ClusterId": "subscription-cluster",
         "RateLimiterPolicy": "fixed",
+        "AuthorizationPolicy": "AuthenticatedUser",
         "Match": {
           "Path": "/subscription-service/{**catch-all}"
         },
-        "AuthorizationPolicy": "AuthenticatedUser",
         "Transforms": [
-          {
-            "PathPattern": "/{**catch-all}"
-          },
-          {
-            "TokenExchange": "enabled"
-          }
+          { "PathPattern": "/{**catch-all}" },
+          { "TokenExchange": "enabled" }
         ]
       }
     },
