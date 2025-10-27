@@ -25,7 +25,8 @@
           "Path": "/subscription-service/v2/service-packages"
         },
         "Transforms": [
-          { "PathPattern": "/v2/service-packages" }
+          { "PathPattern": "/v2/service-packages" },
+          { "TokenExchange": "enabled" } 
         ]
       },
       "subscription-route": {
