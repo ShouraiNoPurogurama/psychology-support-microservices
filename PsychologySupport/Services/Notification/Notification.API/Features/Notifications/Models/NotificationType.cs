@@ -9,5 +9,6 @@ public enum NotificationType
     Moderation = 5,
     BotReply = 6,
     System = 7,
-    Gift = 8
+    Gift = 8,
+    Reward = 9
 }

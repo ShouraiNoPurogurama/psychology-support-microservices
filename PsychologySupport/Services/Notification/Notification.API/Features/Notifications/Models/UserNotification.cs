@@ -15,6 +15,8 @@ public class UserNotification : AuditableEntity<Guid>
     public Guid? ReactionId { get; set; }
     public Guid? FollowId { get; set; }
     public Guid? GiftId { get; set; }
+    public Guid? RewardId { get; set; }
+    public Guid? SessionId { get; set; }
     public string? ModerationAction { get; set; }
     public string? Snippet { get; set; }
     
@@ -48,6 +50,8 @@ public class UserNotification : AuditableEntity<Guid>
             ReactionId = source.ReactionId,
             FollowId = source.FollowId,
             GiftId = source.GiftId,
+            RewardId = source.RewardId,
+            SessionId = source.SessionId,
             ModerationAction = source.ModerationAction,
             Snippet = source.Snippet,
             GroupingKey = groupingKey,

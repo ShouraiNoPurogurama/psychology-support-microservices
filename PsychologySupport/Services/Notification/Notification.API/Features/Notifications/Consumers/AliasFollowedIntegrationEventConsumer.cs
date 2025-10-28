@@ -97,7 +97,9 @@ public class AliasFollowedIntegrationEventConsumer : IConsumer<AliasFollowedInte
             ReactionId: notification.ReactionId,
             GiftId: notification.GiftId,
             FollowId: notification.FollowId,
-            ModerationAction: notification.ModerationAction,
+                    RewardId: notification.RewardId,
+                    SessionId: notification.SessionId,
+ ModerationAction: notification.ModerationAction,
             Snippet: notification.Snippet,
             CreatedAt: notification.CreatedAt
         );

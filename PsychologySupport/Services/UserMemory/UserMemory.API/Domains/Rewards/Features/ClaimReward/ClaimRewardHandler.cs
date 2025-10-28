@@ -104,6 +104,8 @@ public class ClaimRewardHandler(
             {
                 Id = Guid.NewGuid(),
                 AliasId = aliasId,
+                SessionId = request.ChatSessionId,
+                PointsCost = REWARD_COST,
                 Status = RewardStatus.Pending // Dùng RewardStatus.Pending
             };
             dbContext.Rewards.Add(newReward);

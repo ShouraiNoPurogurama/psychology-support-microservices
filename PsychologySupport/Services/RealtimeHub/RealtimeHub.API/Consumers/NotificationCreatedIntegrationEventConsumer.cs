@@ -45,6 +45,8 @@ public class NotificationCreatedIntegrationEventConsumer : IConsumer<Notificatio
             ReactionId = message.ReactionId,
             GiftId = message.GiftId, 
             FollowId = message.FollowId,
+            RewardId = message.RewardId,
+            SessionId = message.SessionId,
             ModerationAction = message.ModerationAction,
             Snippet = message.Snippet,
             CreatedAt = message.CreatedAt

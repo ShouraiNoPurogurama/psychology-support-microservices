@@ -17,6 +17,8 @@ public record NotificationMessage
     public Guid? ReactionId { get; init; }
     public Guid? FollowId { get; init; }
     public Guid? GiftId { get; init; }
+    public Guid? RewardId { get; init; }
+    public Guid? SessionId { get; init; }
     public string? ModerationAction { get; init; }
     public string? Snippet { get; init; }
     public DateTimeOffset CreatedAt { get; init; }

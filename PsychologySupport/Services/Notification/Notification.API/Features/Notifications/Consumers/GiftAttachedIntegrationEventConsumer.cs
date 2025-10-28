@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using MassTransit;
 using Notification.API.Features.Notifications.Models;
@@ -113,7 +113,9 @@ public class GiftAttachedIntegrationEventConsumer : IConsumer<GiftAttachedIntegr
                 ReactionId: notification.ReactionId,
                 GiftId: notification.GiftId,
                 FollowId: notification.FollowId,
-                ModerationAction: notification.ModerationAction,
+                    RewardId: notification.RewardId,
+                    SessionId: notification.SessionId,
+ ModerationAction: notification.ModerationAction,
                 Snippet: notification.Snippet,
                 CreatedAt: notification.CreatedAt
             );

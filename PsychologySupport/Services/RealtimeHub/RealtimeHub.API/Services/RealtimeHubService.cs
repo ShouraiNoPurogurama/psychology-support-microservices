@@ -9,11 +9,11 @@ namespace RealtimeHub.API.Services;
 /// </summary>
 public class RealtimeHubService : IRealtimeHubService
 {
-    private readonly IHubContext<NotificationHub> _hubContext;
+    private readonly IHubContext<NotificationHub, INotificationHubClient> _hubContext;
     private readonly ILogger<RealtimeHubService> _logger;
 
     public RealtimeHubService(
-        IHubContext<NotificationHub> hubContext,
+        IHubContext<NotificationHub, INotificationHubClient> hubContext,
         ILogger<RealtimeHubService> logger)
     {
         _hubContext = hubContext;
@@ -29,7 +29,7 @@ public class RealtimeHubService : IRealtimeHubService
         {
             await _hubContext.Clients
                 .Group($"user_{aliasId}")
-                .SendAsync("ReceiveNotification", notification, cancellationToken);
+                .ReceiveNotification(notification);
 
             _logger.LogInformation(
                 "Sent notification {NotificationId} to user {AliasId} via SignalR",
@@ -55,6 +55,30 @@ public class RealtimeHubService : IRealtimeHubService
         await Task.WhenAll(tasks);
     }
 
+    public async Task SendRewardNotificationToUserAsync(
+        Guid aliasId,
+        RewardNotificationMessage rewardNotification,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _hubContext.Clients
+                .Group($"user_{aliasId}")
+                .ReceiveRewardNotification(rewardNotification);
+
+            _logger.LogInformation(
+                "Sent reward notification {NotificationId} to user {AliasId} via SignalR",
+                rewardNotification.NotificationId, aliasId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Failed to send reward notification {NotificationId} to user {AliasId} via SignalR",
+                rewardNotification.NotificationId, aliasId);
+            throw;
+        }
+    }
+
     public async Task SendMessageToUserAsync(
         Guid aliasId,
         string method,
@@ -63,9 +87,10 @@ public class RealtimeHubService : IRealtimeHubService
     {
         try
         {
-            await _hubContext.Clients
-                .Group($"user_{aliasId}")
-                .SendAsync(method, message, cancellationToken);
+            // For non-typed methods, we need to use the Clients.Group().SendAsync pattern
+            // This is less type-safe but allows for dynamic method invocation
+            var groupClients = _hubContext.Clients.Group($"user_{aliasId}");
+            await ((IClientProxy)groupClients).SendAsync(method, message, cancellationToken);
 
             _logger.LogInformation(
                 "Sent message via method {Method} to user {AliasId}",
@@ -88,9 +113,8 @@ public class RealtimeHubService : IRealtimeHubService
     {
         try
         {
-            await _hubContext.Clients
-                .Group(groupName)
-                .SendAsync(method, message, cancellationToken);
+            var groupClients = _hubContext.Clients.Group(groupName);
+            await ((IClientProxy)groupClients).SendAsync(method, message, cancellationToken);
 
             _logger.LogInformation(
                 "Sent message via method {Method} to group {GroupName}",

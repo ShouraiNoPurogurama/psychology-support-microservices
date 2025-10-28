@@ -18,6 +18,11 @@ public interface IRealtimeHubService
     Task SendNotificationToUsersAsync(List<Guid> aliasIds, NotificationMessage notification, CancellationToken cancellationToken = default);
     
     /// <summary>
+    /// Send a reward notification to a specific user
+    /// </summary>
+    Task SendRewardNotificationToUserAsync(Guid aliasId, RewardNotificationMessage rewardNotification, CancellationToken cancellationToken = default);
+    
+    /// <summary>
     /// Send a generic message to a specific user
     /// </summary>
     Task SendMessageToUserAsync(Guid aliasId, string method, object message, CancellationToken cancellationToken = default);

@@ -124,6 +124,8 @@ public class CommentCreatedIntegrationEventConsumer : IConsumer<CommentCreatedIn
                     ReactionId: notification.ReactionId,
                     GiftId: notification.GiftId,
                     FollowId: notification.FollowId,
+                    RewardId: notification.RewardId,
+                    SessionId: notification.SessionId,
                     ModerationAction: notification.ModerationAction,
                     Snippet: notification.Snippet,
                     CreatedAt: notification.CreatedAt

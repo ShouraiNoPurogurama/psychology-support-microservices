@@ -8,6 +8,10 @@ public class Reward : AuditableEntity<Guid>
 {
     public Guid AliasId { get; set; }
 
+    public Guid SessionId { get; set; }
+
+    public int PointsCost { get; set; }
+
     public RewardStatus Status { get; set; } = RewardStatus.Pending;
 
     public string? StickerUrl { get; set; }

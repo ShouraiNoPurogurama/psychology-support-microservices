@@ -114,8 +114,14 @@ namespace UserMemory.API.Data.Processors
                         reward.Status = RewardStatus.Failed;
                         // TODO: Có thể lưu chi tiết lỗi vào reward.Meta
                     
-                        // Tạo event RewardFailed
-                        var failedEvent = new RewardFailedEvent(reward.Id, reward.AliasId, ex.Message);
+                        // Tạo event RewardFailed với thông tin rollback
+                        var failedEvent = new RewardFailedIntegrationEvent(
+                            reward.Id, 
+                            reward.AliasId, 
+                            reward.SessionId,
+                            reward.PointsCost,
+                            ex.Message
+                        );
                         await outboxWriter.WriteAsync(failedEvent, context.CancellationToken);
                     }
                 }

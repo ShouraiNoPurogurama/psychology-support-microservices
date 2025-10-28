@@ -19,7 +19,7 @@ public class SaveMemoryHandler(
     private const int SaveNeededPoints = 120;
     private const int EmotionOrPersonalPoints = 50;
 
-   public async Task<SaveMemoryResult> Handle(SaveMemoryCommand request, CancellationToken cancellationToken)
+   public async Task<SaveMemoryResult> Handle(SaveMemoryCommand request , CancellationToken cancellationToken)
     {
         await using var tx = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 

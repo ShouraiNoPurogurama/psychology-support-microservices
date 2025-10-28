@@ -5,7 +5,7 @@ namespace RealtimeHub.API.Hubs;
 /// <summary>
 /// SignalR Hub for real-time notification delivery
 /// </summary>
-public class NotificationHub : Hub
+public class NotificationHub : Hub<INotificationHubClient>
 {
     private static readonly Dictionary<string, string> _userConnections = new();
     private readonly ILogger<NotificationHub> _logger;
