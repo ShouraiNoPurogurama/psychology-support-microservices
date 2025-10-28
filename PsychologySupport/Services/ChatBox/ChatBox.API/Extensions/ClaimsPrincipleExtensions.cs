@@ -17,7 +17,7 @@ public static class ClaimsPrincipalExtensions
         var result = user.Claims.FirstOrDefault(c => c.Type == "aliasId")?.Value ??
                      throw new UnauthorizedAccessException("Token không hợp lệ: Không tìm thấy Claims Alias Id.");
         
-        return result;
+        return result; 
     }
 
     public static string GetProfileId(this ClaimsPrincipal user)
