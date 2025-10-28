@@ -17,7 +17,7 @@ public class PiiLocalService(PiiDbContext piiDbContext)
         var query = from profile in piiDbContext.PersonProfiles
             where profile.SubjectRef == subjectRefGuid 
             select new SimplePiiProfileDto(
-                profile.BirthDate.Value,
+                profile.BirthDate ?? new DateOnly(2000,01,01),
                 profile.Gender.ToString()
             );
         
