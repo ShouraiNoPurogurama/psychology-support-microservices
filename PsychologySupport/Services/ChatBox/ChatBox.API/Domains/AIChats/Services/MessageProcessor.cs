@@ -96,8 +96,12 @@ public class MessageProcessor(
             ct: CancellationToken.None
         );
 
+        // Extract tags for progress tracking
+        var messageTags = new List<string>();
+        var saveNeeded = routerDecision?.SaveNeeded == true;
+
         // 2.1) SaveMemory nếu cần
-        if (routerDecision?.SaveNeeded == true && routerDecision.MemoryToSave is not null)
+        if (saveNeeded && routerDecision.MemoryToSave is not null)
         {
             var mem = routerDecision.MemoryToSave;
             var effectiveTags = new List<string>();
@@ -105,14 +109,31 @@ public class MessageProcessor(
             if (mem.RelationshipTags is { Count: > 0 }) effectiveTags.AddRange(mem.RelationshipTags.Select(x => x.ToString()));
             if (mem.TopicTags is { Count: > 0 }) effectiveTags.AddRange(mem.TopicTags.Select(x => x.ToString()));
 
+            messageTags = effectiveTags.Distinct().ToList();
+
             await publishEndpoint.Publish(new UserMemoryCreatedIntegrationEvent(
                 AliasId: aliasId,
                 SessionId: session.Id,
                 Summary: mem.Summary,
-                Tags: effectiveTags.Distinct().ToList(),
+                Tags: messageTags,
                 SaveNeeded: true
             ));
         }
+
+        // 2.2) ALWAYS publish MessageProcessed event for progress tracking (NEW)
+        await publishEndpoint.Publish(new MessageProcessedIntegrationEvent(
+            AliasId: aliasId,
+            UserId: userId,
+            SessionId: session.Id,
+            UserMessage: request.UserMessage,
+            SaveNeeded: saveNeeded,
+            Tags: messageTags,
+            ProcessedAt: DateTimeOffset.UtcNow
+        ));
+
+        logger.LogInformation(
+            "Published MessageProcessedIntegrationEvent for AliasId={AliasId}, SessionId={SessionId}, SaveNeeded={SaveNeeded}",
+            aliasId, session.Id, saveNeeded);
 
         // 2.3) gRPC RAG personal memory (MVP)
         string memoryAugmentation = string.Empty;

@@ -17,6 +17,8 @@ public record NotificationCreatedIntegrationEvent(
     Guid? ReactionId,
     Guid? FollowId,
     Guid? GiftId,
+    Guid? RewardId,
+    Guid? SessionId,
     string? ModerationAction,
     string? Snippet,
     DateTimeOffset CreatedAt

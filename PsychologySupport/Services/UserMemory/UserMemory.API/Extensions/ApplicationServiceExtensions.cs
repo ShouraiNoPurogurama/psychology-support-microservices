@@ -53,6 +53,8 @@ public static class ApplicationServiceExtensions
         
         ConfigureCronJobs(services);
         
+        services.AddHostedService<OutboxProcessor>();
+        
         services.AddHttpContextAccessor();
 
         services.AddHttpClient();

@@ -79,6 +79,30 @@ public class RealtimeHubService : IRealtimeHubService
         }
     }
 
+    public async Task SendProgressUpdateToUserAsync(
+        Guid aliasId,
+        ProgressUpdateMessage progressUpdate,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _hubContext.Clients
+                .Group($"user_{aliasId}")
+                .ReceiveProgressUpdate(progressUpdate);
+
+            _logger.LogInformation(
+                "Sent progress update to user {AliasId}: +{Points} points, Total={TotalDaily} via SignalR",
+                aliasId, progressUpdate.PointsEarned, progressUpdate.TotalDailyPoints);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Failed to send progress update to user {AliasId} via SignalR",
+                aliasId);
+            throw;
+        }
+    }
+
     public async Task SendMessageToUserAsync(
         Guid aliasId,
         string method,

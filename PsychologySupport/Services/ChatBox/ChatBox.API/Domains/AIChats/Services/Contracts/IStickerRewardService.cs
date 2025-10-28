@@ -17,6 +17,7 @@ public interface IStickerRewardService
     /// 5. Trả về tin nhắn chat mới được tạo.
     /// </summary>
     /// <param name="userId">ID của người dùng đang claim</param>
+    /// <param name="sessionId">ID của phiên chat muốn nhận quà</param>
     /// <returns>Tin nhắn chat mới (dạng DTO) chứa sticker và câu text của Emo</returns>
-    Task<AIMessageResponseDto> ClaimStickerAsync(Guid userId);
+    Task<AIMessageResponseDto> ClaimStickerAsync(Guid userId, Guid sessionId);
 }

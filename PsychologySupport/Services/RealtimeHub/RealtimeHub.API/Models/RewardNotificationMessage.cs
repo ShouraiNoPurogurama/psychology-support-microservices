@@ -11,7 +11,6 @@ public record RewardNotificationMessage
     public Guid RewardId { get; init; }
     public Guid SessionId { get; init; }
     public string StickerUrl { get; init; } = string.Empty;
-    public string PromptFilter { get; init; } = string.Empty;
     public string Snippet { get; init; } = string.Empty;
     public DateTimeOffset CreatedAt { get; init; }
 }

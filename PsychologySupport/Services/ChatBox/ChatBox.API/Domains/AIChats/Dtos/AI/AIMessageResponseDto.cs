@@ -1,8 +1,11 @@
+using System.Text.Json.Serialization;
+using BuildingBlocks.Utils;
+
 namespace ChatBox.API.Domains.AIChats.Dtos.AI;
 
 public record AIMessageResponseDto(
     Guid SessionId,
     bool SenderIsEmo,
-    string Content,
+    [property: JsonConverter(typeof(RawJsonStringConverter))] string Content,
     DateTimeOffset CreatedDate
 );

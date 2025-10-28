@@ -86,7 +86,7 @@ services:
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
       - GrpcSettings__PiiUrl=http://profile.api:8081
     networks: [ emoease-net ]
-    ports: [ "5008:8080", "5508:8081" ]
+    ports: [ "5008:8080", "6008:8081" ]
     volumes:
       - ~/.aspnet/https:/https:ro
       - ./Services/ChatBox/ChatBox.API/RSAKeys:/app/RSAKeys
@@ -100,8 +100,8 @@ services:
     image: ${DOCKER_REGISTRY}feed.api:${IMAGE_TAG}
     depends_on: [ distributedcache ]
     container_name: feed.api
-#    labels:
-#      com.emoease.health_path: "/health"
+    #    labels:
+    #      com.emoease.health_path: "/health"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
@@ -235,7 +235,7 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - GrpcSettings__TranslationUrl=http://translation.api:8081
-      - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true 
+      - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
     networks: [ emoease-net ]
     ports: [ "5005:8080", "5505:8081" ]
     volumes:
@@ -271,7 +271,7 @@ services:
       - ./Services/Test/Test.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
   translation.api:
-    image: ${DOCKER_REGISTRY}translation.api:${IMAGE_TAG} 
+    image: ${DOCKER_REGISTRY}translation.api:${IMAGE_TAG}
     container_name: translation.api
     depends_on: [ distributedcache ]
     labels:
@@ -305,7 +305,7 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - GrpcSettings__TranslationUrl=http://translation.api:8081
-      - GrpcSettings__PiiUrl=http://profile.api:8081 
+      - GrpcSettings__PiiUrl=http://profile.api:8081
       - DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT=true
     networks: [ emoease-net ]
     ports: [ "5022:8080", "5522:8081" ]
@@ -336,6 +336,27 @@ services:
       - ./Services/RealtimeHub/RealtimeHub.API/appsettings.json:/app/appsettings.json:ro
       - ./Services/RealtimeHub/RealtimeHub.API/appsettings.Production.json:/app/appsettings.Production.json:ro
 
+  usermemory.api:
+    image: ${DOCKER_REGISTRY}usermemory.api:${IMAGE_TAG}
+    container_name: usermemory.api
+    depends_on: [ distributedcache ]
+    labels:
+      com.emoease.health_path: "/health"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000
+      - DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=true
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=12345
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    networks: [ emoease-net ]
+    ports: [ "5025:8080", "6025:8081" ]
+    volumes:
+      - ~/.aspnet/https:/https:ro
+      - ./Services/UserMemory/UserMemory.API/RSAKeys:/app/RSAKeys
+      - ./Services/UserMemory/UserMemory.API/appsettings.json:/app/appsettings.json:ro
+      - ./Services/UserMemory/UserMemory.API/appsettings.Production.json:/app/appsettings.Production.json:ro
+
+
   wellness.api:
     image: ${DOCKER_REGISTRY}wellness.api:${IMAGE_TAG}
     container_name: wellness.api
@@ -364,7 +385,7 @@ services:
     depends_on: [ distributedcache ]
     labels:
       com.emoease.health_path: "/health"
-      com.emoease.health_port: "8080"   
+      com.emoease.health_port: "8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ConnectionStrings__Redis=distributedcache-msa:6379,abortConnect=false,connectRetry=5,connectTimeout=5000,syncTimeout=5000

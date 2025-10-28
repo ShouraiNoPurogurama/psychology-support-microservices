@@ -107,7 +107,7 @@ public class AIChatController(SessionService sessionService, IStickerRewardServi
     }
     
     [HttpPost("sticker/claim")] 
-    public async Task<IActionResult> ClaimSticker()
+    public async Task<IActionResult> ClaimSticker(Guid sessionId)
     {
         var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
         if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
@@ -115,7 +115,7 @@ public class AIChatController(SessionService sessionService, IStickerRewardServi
             throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
         }
 
-        var rewardMessage = await stickerRewardService.ClaimStickerAsync(userId);
+        var rewardMessage = await stickerRewardService.ClaimStickerAsync(userId, sessionId);
         
         return Ok(rewardMessage);
     }

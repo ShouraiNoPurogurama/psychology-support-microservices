@@ -16,4 +16,9 @@ public interface INotificationHubClient
     /// Sends a reward notification to the client with additional reward-specific data
     /// </summary>
     Task ReceiveRewardNotification(RewardNotificationMessage rewardNotification);
+
+    /// <summary>
+    /// Sends a progress update to the client when they earn points
+    /// </summary>
+    Task ReceiveProgressUpdate(ProgressUpdateMessage progressUpdate);
 }

@@ -23,6 +23,11 @@ public interface IRealtimeHubService
     Task SendRewardNotificationToUserAsync(Guid aliasId, RewardNotificationMessage rewardNotification, CancellationToken cancellationToken = default);
     
     /// <summary>
+    /// Send a progress update to a specific user
+    /// </summary>
+    Task SendProgressUpdateToUserAsync(Guid aliasId, ProgressUpdateMessage progressUpdate, CancellationToken cancellationToken = default);
+    
+    /// <summary>
     /// Send a generic message to a specific user
     /// </summary>
     Task SendMessageToUserAsync(Guid aliasId, string method, object message, CancellationToken cancellationToken = default);

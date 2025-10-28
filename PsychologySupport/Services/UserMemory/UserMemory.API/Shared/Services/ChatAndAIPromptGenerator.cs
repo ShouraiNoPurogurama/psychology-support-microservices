@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using System.Text.Json.Serialization; // map tên field khi deserialize
+using System.Text.Json.Serialization;
 using BuildingBlocks.Utils;
 using Chatbox.API.Protos;
 using UserMemory.API.Shared.Dtos;
@@ -12,7 +12,7 @@ namespace UserMemory.API.Shared.Services;
 /// Tạo final prompt sinh ảnh (1 roundtrip text):
 /// - Gọi Chat Service (gRPC) lấy Persona + Summary
 /// - Gọi Gemini (text) 1 lần để sinh "Filler"
-/// - Bubble text được giao cho image agent tự tạo trong lúc render (không gọi text lần 2)
+/// - Bubble text để image agent tự tạo trong lúc render
 /// - Ghép SubjectLock + Style + Negative + Base + Filler + BubbleAutoInstruction
 /// </summary>
 public class ChatAndAiPromptGenerator(
@@ -23,100 +23,88 @@ public class ChatAndAiPromptGenerator(
 {
     // ===== (A) BASE =====
     private const string PromptBase = """
-                                      A highly detailed 3D illustration featuring the subject from the attached image as the main character, radiating a soft, warm yellowish glow (like a comforting silicone nightlight).
-                                      Center composition on this subject; surrounding elements are supportive only.
-                                      """;
+    A highly detailed 3D illustration featuring the subject from the attached image as the main character, radiating a soft, warm yellowish glow (like a comforting silicone nightlight).
+    Center composition on this subject; surrounding elements are supportive only.
+    """;
 
     // ===== (B) SUBJECT LOCK =====
     private const string SubjectLock = """
-                                       Use the attached image as the primary subject.
-                                       - Preserve the character’s identity, silhouette, proportions, face geometry, costume cues, and color palette from the image.
-                                       - The attached character is the only protagonist. Do not replace, morph, or transform them into cats or other animals.
-                                       - Keep camera framing centered on this subject.
-                                       """;
+    Use the attached image as the primary subject.
+    - Preserve the character’s identity, silhouette, proportions, face geometry, costume cues, and color palette.
+    - The attached character is the only protagonist. Do not replace, morph, or transform them into animals.
+    - Keep camera framing centered on this subject.
+    """;
 
     // ===== (C) STYLE =====
     private const string PromptStyle = """
-                                       **STYLE (transfer-only):** Masterpiece 3D animation inspired by Pixar/DreamWorks; cinematic composition; hyper-realistic soft textures (silicone/plastic glow); dramatic volumetric lighting; shallow depth of field; 8K clarity.
-                                       Do not alter the subject’s identity; apply style only.
-                                       """;
+    STYLE (transfer-only): Masterpiece 3D animation inspired by Pixar/DreamWorks; cinematic composition; hyper-realistic soft textures (silicone/plastic glow); dramatic volumetric lighting; shallow depth of field; 8K clarity.
+    Do not alter the subject’s identity; apply style only.
+    """;
 
     // ===== (D) NEGATIVE =====
     private const string NegativePrompt = """
-                                          **NEGATIVE:**
-                                          - No cats/dogs/animals or new characters unless provided.
-                                          - No species morphing, face swap, or subject replacement.
-                                          - Avoid cluttered backgrounds, heavy text overlays, watermark, or logos.
-                                          """;
+    NEGATIVE:
+    - No cats/dogs/animals or new characters unless provided.
+    - No morphing, replacement, or cluttered background.
+    - Avoid text overlays, watermark, or logos.
+    """;
 
-    // ===== (E) Filler Template (text LLM sinh ra 1 lần) =====
+    // ===== (E) FILLER Template =====
     private const string FillerGenerationPromptTemplate = """
-                                                          Generate the **FILLER** (ACTION/SETTING/DETAILS) for the same subject from the attached image. 
-                                                          Do not invent a new species/animal; keep the attached subject as-is.
+    Generate the **FILLER** (ACTION/SETTING/DETAILS) for the same single subject from the attached image.
+    - Keep the subject as-is (no species morphing or replacement).
+    - Do NOT mention chats, chatbots, or dialogues.
 
-                                                          **Data:**
-                                                          "age": {0},
-                                                          "gender": "{1}",
-                                                          "job": "{2}",
-                                                          "chat_summary_context": "Dựa trên bản tóm tắt cuộc trò chuyện này, suy ra cảm xúc chính xác: '{3}'. Dùng cảm xúc này cho [emotion]."
+    DATA:
+    {
+      "age": %AGE%,
+      "gender": "%GENDER%",
+      "job": "%JOB%",
+      "scene_cue": "%SCENE_CUE%"
+    }
 
-                                                          **FILLER Formula (about the attached subject):**
-                                                          "The subject (same as in the attached image) embodies a [age]-year-old [gender] [job], currently [emotion].
-                                                          ACTION/SETTING: The subject is [AUTO-GENERATE action personalized to 'job' and 'chat_summary_context'], using relevant props. Expression shows [AUTO-GENERATE facial expression matching 'emotion']; eyes are [AUTO-GENERATE eye description].
-                                                          SCENE: Set in [AUTO-GENERATE location tied to 'job'] with [AUTO-GENERATE light/atmosphere supporting 'emotion'].
-                                                          DETAILS: Surroundings include [AUTO-GENERATE 3–5 small signature objects specific to 'job' and 'emotion'].
-                                                          LIGHTING: [AUTO-GENERATE dramatic lighting effect], highlighting the subject’s warm glow against [AUTO-GENERATE background color/space]."
-                                                          """;
+    FILLER (about the attached subject):
+    "The subject (same as in the attached image) is a [age]-year-old [gender] [job].
+    ACTION/SETTING: Reflect 'scene_cue' with a clear action and location (no dialogue).
+    EXPRESSION: Face and posture match the mood from 'scene_cue'.
+    SCENE: Environment and atmosphere align with 'job' and 'scene_cue'.
+    DETAILS: Include 3–5 small, job-related props matching 'scene_cue' (e.g., laptop glow, coffee mug, notes).
+    LIGHTING: Soft but dramatic; highlight the subject’s warm silicone-like glow; keep background clean."
 
-    // ===== (F) Bubble Instruction (image agent tự nghĩ & vẽ) =====
+    Return only the FILLER text.
+    """;
+
+    // ===== (F) Bubble Instruction (image agent tự tạo) =====
     private const string BubbleAutoInstructionTemplate = """
-                                                         **SPEECH BUBBLE (overlay, auto-content):**
-                                                         - Add a small, **soft-edged, bubbly/elliptical** speech bubble near the subject’s head (avoid long, rigid rectangular shapes).
-                                                         - Style: semi-transparent white fill, very soft shadow, no harsh outlines.
-                                                         - Do not block the subject’s face or key props; keep it minimal.
-                                                         - **Auto-compose one *single, concise* friendly phrase (ideally 4-10 words in English)**.
-                                                         - The phrase must be **highly specific** to the user's chat context/emotion and the scene's action.
-                                                         - **AVOID generic encouragement** like "Keep up the good work" or "Hope your day is great."
-                                                         - Tone: warm, specific, and natural; no emojis or quotes.
-                                                         """;
+SPEECH BUBBLE (overlay, auto-content):
+- Add a small, soft, semi-transparent white bubble near the subject’s head.
+- Keep it very short (under 12 words) and emotionally natural.
+- The text should feel like the subject’s *inner thought* or *brief emotional reaction* that matches the scene.
+- Personalize the tone to fit the subject’s current mood and context 
+  (e.g., quiet reflection, gentle self-encouragement, subtle fatigue, or emotional sigh).
+- Avoid clichés, quotes, emojis, or long sentences.
+""";
 
+    // ===== MAIN FUNCTION =====
     public async Task<RewardGenerationDataDto> PrepareGenerationDataAsync(Guid aliasId, Guid rewardId, Guid chatSessionId,
         CancellationToken ct)
     {
-        logger.LogInformation("Generating prompt (single roundtrip) for RewardId: {RewardId}, AliasId: {AliasId}", rewardId,
-            aliasId);
+        logger.LogInformation("Generating prompt for RewardId: {RewardId}, AliasId: {AliasId}", rewardId, aliasId);
 
-        // 1) Lấy dữ liệu từ Chatbox gRPC
         var chatData = await GetChatDataAsync(aliasId, chatSessionId, ct);
 
-        // 2) ===== LOGIC SINH FILLER ĐÃ CẬP NHẬT =====
-        // Ưu tiên dùng 'ImageContext' mới để tạo ảnh
-        var promptContext = chatData.Summary.Metadata?.ImageContext?.Trim();
+        // Build scene cue from metadata
+        var sceneCue = BuildSceneCue(chatData.Summary.Metadata);
 
-        // Fallback 1: Nếu 'ImageContext' rỗng, dùng 'EmotionContext' cũ
-        if (string.IsNullOrWhiteSpace(promptContext))
-        {
-            promptContext = chatData.Summary.Metadata?.EmotionContext?.Trim();
-        }
-
-        // Fallback 2: Nếu cả hai đều rỗng, dùng "neutral"
-        if (string.IsNullOrWhiteSpace(promptContext))
-        {
-            promptContext = "neutral";
-        }
-
-        var fillerPrompt = string.Format(
-            FillerGenerationPromptTemplate,
-            TimeUtils.GetAgeFromDateTimeOffsetStr(chatData.Persona.BirthDate),
-            chatData.Persona.Gender,
-            chatData.Persona.JobTitle,
-            promptContext
-        );
+        var fillerPrompt = FillerGenerationPromptTemplate
+            .Replace("%AGE%", TimeUtils.GetAgeFromDateTimeOffsetStr(chatData.Persona.BirthDate).ToString())
+            .Replace("%GENDER%", chatData.Persona.Gender ?? "")
+            .Replace("%JOB%", chatData.Persona.JobTitle ?? "")
+            .Replace("%SCENE_CUE%", sceneCue);
 
         logger.LogDebug("Calling Gemini (text) to generate FILLER for RewardId: {RewardId}", rewardId);
         var generatedFiller = await geminiService.GenerateTextAsync(fillerPrompt, ct);
 
-        // 3) Ghép final prompt (Giữ nguyên)
         var finalPrompt =
             $@"{SubjectLock}
 {PromptStyle}
@@ -128,8 +116,7 @@ public class ChatAndAiPromptGenerator(
 
 {BubbleAutoInstructionTemplate}";
 
-        // Để trace: lưu lại filler; bubble là auto nên không có text cụ thể
-        var storedFiller = $"{generatedFiller}\n\n[BUBBLE_TEXT]\n(Auto by image agent)";
+        var storedFiller = $"{generatedFiller}\n\n[SPEECH_BUBBLE]\n(Auto by image agent)";
 
         return new RewardGenerationDataDto(
             UserId: chatData.UserId,
@@ -139,6 +126,28 @@ public class ChatAndAiPromptGenerator(
         );
     }
 
+    // ===== Helper: Combine metadata into a unified scene cue =====
+    private static string BuildSceneCue(ChatMetadata? m)
+    {
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(m?.ImageContext))
+            parts.Add(m.ImageContext.Trim());
+
+        if (!string.IsNullOrWhiteSpace(m?.EmotionContext))
+            parts.Add($"cảm xúc chủ đạo: {m.EmotionContext.Trim()}");
+
+        if (!string.IsNullOrWhiteSpace(m?.Topic))
+            parts.Add($"ngữ cảnh: {m.Topic.Trim()}");
+
+        if (parts.Count == 0)
+            return "ngồi bình thản trong không gian trung tính, ánh sáng dịu";
+
+        var cue = string.Join(" | ", parts);
+        return cue.Length > 240 ? cue[..240] : cue;
+    }
+
+    // ===== gRPC =====
     private async Task<(PersonaSnapshot Persona, ChatSummary Summary, Guid UserId)> GetChatDataAsync(Guid aliasId, Guid chatSessionId,
         CancellationToken ct)
     {
@@ -151,41 +160,23 @@ public class ChatAndAiPromptGenerator(
             }, cancellationToken: ct);
 
             if (string.IsNullOrEmpty(response.PersonaSnapshotJson) || string.IsNullOrEmpty(response.SummarizationJson))
-            {
-                logger.LogWarning("Chat data for AliasId {AliasId} is missing persona or summary.", aliasId);
                 throw new InvalidOperationException("Missing required chat data to generate prompt.");
-            }
 
-            var persona = JsonSerializer.Deserialize<PersonaSnapshot>(response.PersonaSnapshotJson)
-                          ?? new PersonaSnapshot();
-            
+            var persona = JsonSerializer.Deserialize<PersonaSnapshot>(response.PersonaSnapshotJson) ?? new PersonaSnapshot();
             var userId = Guid.Parse(response.UserId);
 
-            // Tách chuỗi JSON bằng "---" và lấy cái CUỐI CÙNG (mới nhất)
             var jsonSummaries = response.SummarizationJson.Split(new[] { "---" }, StringSplitOptions.RemoveEmptyEntries);
             var latestSummaryJson = jsonSummaries.LastOrDefault()?.Trim();
 
             ChatSummaryJson summaryJson;
-            if (!string.IsNullOrWhiteSpace(latestSummaryJson))
+            try
             {
-                try
-                {
-                    summaryJson = JsonSerializer.Deserialize<ChatSummaryJson>(latestSummaryJson)
-                                  ?? new ChatSummaryJson();
-                }
-                catch (JsonException jsonEx)
-                {
-                    logger.LogError(jsonEx, "Failed to parse LATEST summary JSON for AliasId: {AliasId}. Raw JSON: {Json}",
-                        aliasId, latestSummaryJson);
-                    throw new InvalidOperationException("Failed to parse latest summary JSON.", jsonEx);
-                }
+                summaryJson = JsonSerializer.Deserialize<ChatSummaryJson>(latestSummaryJson!) ?? new ChatSummaryJson();
             }
-            else
+            catch (JsonException ex)
             {
-                logger.LogWarning(
-                    "SummarizationJson for AliasId {AliasId} was not empty but contained no valid '---' separated blocks.",
-                    aliasId);
-                throw new InvalidOperationException("SummarizationJson format error.");
+                logger.LogError(ex, "Failed to parse summary JSON for AliasId: {AliasId}", aliasId);
+                throw;
             }
 
             var summary = new ChatSummary(
@@ -204,7 +195,7 @@ public class ChatAndAiPromptGenerator(
         }
     }
 
-    // ===== DTO nội bộ để deserialize JSON từ gRPC =====
+    // ===== DTOs =====
     private class PersonaSnapshot
     {
         public string Gender { get; set; } = "";
@@ -212,7 +203,6 @@ public class ChatAndAiPromptGenerator(
         public string JobTitle { get; set; } = "";
     }
 
-    // (DTO ChatSummaryJson giữ nguyên)
     private class ChatSummaryJson
     {
         [JsonPropertyName("current")]
@@ -228,7 +218,6 @@ public class ChatAndAiPromptGenerator(
         public DateTimeOffset? CreatedAt { get; set; }
     }
 
-    // ===== DTO NÀY ĐÃ ĐƯỢC CẬP NHẬT =====
     private class ChatMetadata
     {
         [JsonPropertyName("emotionContext")]
@@ -237,25 +226,13 @@ public class ChatAndAiPromptGenerator(
         [JsonPropertyName("topic")]
         public string? Topic { get; set; }
 
-        // ===== TRƯỜNG MỚI ĐÃ ĐƯỢC THÊM =====
         [JsonPropertyName("imageContext")]
         public string? ImageContext { get; set; }
     }
 
-    // (Record ChatSummary giữ nguyên)
     private record ChatSummary(
         string Current,
         string Persist,
         ChatMetadata? Metadata,
-        DateTimeOffset? CreatedAt)
-    {
-        public string FullSummary
-        {
-            get
-            {
-                var topic = string.IsNullOrWhiteSpace(Metadata?.Topic) ? "" : $" [Topic: {Metadata!.Topic}]";
-                return $"{Current} {Persist}{topic}".Trim();
-            }
-        }
-    }
+        DateTimeOffset? CreatedAt);
 }

@@ -38,7 +38,6 @@ public class RewardNotificationCreatedEventConsumer : IConsumer<RewardNotificati
             RewardId = message.RewardId,
             SessionId = message.SessionId,
             StickerUrl = message.StickerUrl,
-            PromptFilter = message.PromptFilter,
             Snippet = message.Snippet,
             CreatedAt = message.CreatedAt
         };

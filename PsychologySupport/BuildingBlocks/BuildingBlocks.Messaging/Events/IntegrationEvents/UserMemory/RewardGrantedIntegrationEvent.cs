@@ -6,4 +6,4 @@ public record RewardGrantedIntegrationEvent(Guid RewardId,
     Guid SessionId,
     string StickerUrl,
     string PromptFilter
-    );
+    ) : IntegrationEvent;
