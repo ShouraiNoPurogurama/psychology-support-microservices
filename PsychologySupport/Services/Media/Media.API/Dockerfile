@@ -43,10 +43,10 @@ WORKDIR /app
 # app binaries
 COPY --from=publish /app/publish .
 
-# lookup asset — copy thẳng vào /app/Assets
-# (đường nguồn là đường trong repo của cậu)
+# lookup asset
 COPY Services/Media/Media.API/Assets/emo_base.jpg /app/Assets/
 
-# Nếu từng gặp lỗi quyền, có thể thêm (cần root):
-# USER root
-# RUN chown $APP_UID:$APP_GID /app/Assets/emo_base.jpg && chm_
+HEALTHCHECK --interval=10s --timeout=3s --retries=6 \
+  CMD curl -fsS http://localhost:8080/health || exit 1
+
+ENTRYPOINT ["dotnet", "Media.API.dll"]
