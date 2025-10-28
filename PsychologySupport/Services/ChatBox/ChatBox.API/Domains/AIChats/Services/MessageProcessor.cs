@@ -168,12 +168,12 @@ public class MessageProcessor(
                     {
                         var bullets = grpcResp.Hits
                             .OrderByDescending(h => h.Score)
-                            .Select(h => $"- [Relevant Score: {h.Score:0.00}] {h.Summary}");
+                            .Select(h => $"- [Điểm liên quan: {h.Score:0.00}] {h.Summary}");
 
                         memoryAugmentation =
-                            $@"[PERSONAL MEMORY CONTEXT OF USER — USE IF RELEVANT]
+                            $@"[NGỮ CẢNH KÝ ỨC CÁ NHÂN (DÙNG KHI PHÙ HỢP)]
 {string.Join("\n", bullets)}
-[/PERSONAL MEMORY CONTEXT OF USER]";
+[/NGỮ CẢNH KÝ ỨC CÁ NHÂN]";
                     }
                 }
                 catch (RpcException ex)
@@ -216,21 +216,18 @@ public class MessageProcessor(
                 instruction = safeInstruction;
 
             routerBlock =
-                $@"[ROUTER INSTRUCTION]
+                $@"[HƯỚNG DẪN TỪ ĐỊNH TUYẾN]
 {instruction}
-[/ROUTER INSTRUCTION]";
+[/HƯỚNG DẪN TỪ ĐỊNH TUYẾN]";
         }
 
         // 3.y) RULES dùng memory – tổng quát hoá cho mọi chủ đề
         string usageRules =
-            @"[USAGE RULES FOR PERSONAL MEMORY]
-- Dùng memory để **định hướng tinh tế**, không áp đặt.
+            @"[QUY TẮC SỬ DỤNG KÝ ỨC CÁ NHÂN]
+- Dùng ký ức để **định hướng tinh tế**, không áp đặt.
 - **Không** lặp lại nguyên văn hoặc nêu đúng item đã lưu (tránh cảm giác bị theo dõi).
-- Nếu có ràng buộc/biên (dị ứng, giới hạn thời gian/ngân sách, phong cách chơi, thể loại ưa/ghét), **ưu tiên lọc theo biên** trước khi gợi ý.
-- **QUAN TRỌNG (Persona):** Bạn là Emo, một AI đồng hành.
-  - **ĐƯỢC PHÉP:** Đồng cảm, thấu hiểu, chia sẻ cảm xúc ngắn gọn.
-  - **TUYỆT ĐỐI CẤM:** Bịa đặt trải nghiệm cá nhân. KHÔNG được nói 'Tớ cũng vừa...', 'Tớ cũng mới trải qua...', 'Tuần trước tớ cũng bị...', hoặc 'Tớ cũng giống cậu...'. Bạn không có trải nghiệm cá nhân.
-[/USAGE RULES FOR PERSONAL MEMORY]";
+- Nếu có ràng buộc/giới hạn (dị ứng, thời gian, ngân sách, phong cách, sở thích), **ưu tiên lọc theo biên** khi gợi ý.
+[/QUY TẮC SỬ DỤNG KÝ ỨC CÁ NHÂN]";
 
         // 3.z) Reorder: [System/Previous] -> [ROUTER INSTRUCTION] -> [USAGE RULES] -> [MEMORY] -> [User]
         {
@@ -260,7 +257,7 @@ public class MessageProcessor(
         logger.LogInformation("============= AI Payload built: {@Payload}", payload);
         
         // 5) Call model
-        var responseText = await aiProvider.GenerateResponseAsync(payload, session.Id);
+        var responseText = await aiProvider.GenerateResponseAsync_FoundationalModel(payload, session.Id);
         if (string.IsNullOrWhiteSpace(responseText))
             throw new Exception("Lấy response từ AI thất bại.");
 
