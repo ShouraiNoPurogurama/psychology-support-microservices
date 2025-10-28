@@ -4,6 +4,6 @@ public static class ProcessRewardRequestJobConfiguration
 {
     public const string JobName = "ProcessRewardRequestJob";
     
-    // Chạy mỗi 2 giây
-    public const string CronExpression = "0/2 * * * * ?";
+    // Chạy mỗi 3 giây
+    public const string CronExpression = "0/3 * * * * ?";
 }

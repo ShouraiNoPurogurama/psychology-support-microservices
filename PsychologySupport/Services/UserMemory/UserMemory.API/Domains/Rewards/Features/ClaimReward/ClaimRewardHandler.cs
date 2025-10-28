@@ -3,6 +3,7 @@ using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.UserMemory;
 using Microsoft.EntityFrameworkCore;
 using UserMemory.API.Data;
+using UserMemory.API.Data.Options;
 using UserMemory.API.Models;
 using UserMemory.API.Shared.Authentication;
 using UserMemory.API.Shared.Outbox;
@@ -28,11 +29,11 @@ public class ClaimRewardHandler(
     ICurrentUserSubscriptionAccessor subAccessor
 ) : ICommandHandler<ClaimRewardCommand, ClaimRewardResult>
 {
-    private const int REWARD_COST = 1000;
-    private const int MAX_FREE_CLAIMS_PER_DAY = 1;
-
     public async Task<ClaimRewardResult> Handle(ClaimRewardCommand request, CancellationToken cancellationToken)
     {
+        var maxFreeClaimsPerDay = QuotaOptions.MAX_FREE_CLAIMS_PER_DAY;
+        var rewardCost = QuotaOptions.REWARD_COST;
+        
         // Bắt đầu 1 transaction bao gồm tất cả các thao tác DB
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
@@ -64,7 +65,7 @@ public class ClaimRewardHandler(
                 }
 
                 // Check giới hạn
-                if (summary.RewardClaimCount >= MAX_FREE_CLAIMS_PER_DAY)
+                if (summary.RewardClaimCount >= maxFreeClaimsPerDay)
                 {
                     // Đã hết lượt, ném lỗi -> transaction tự động rollback
                     throw new BadRequestException("Bạn đã hết lượt đổi thưởng free hôm nay.");
@@ -77,9 +78,9 @@ public class ClaimRewardHandler(
                 .Where(p => p.AliasId == aliasId &&
                             p.SessionId == request.ChatSessionId && // Check đúng session
                             p.ProgressDate == currentDate &&
-                            p.ProgressPoints >= REWARD_COST) // Check đủ điểm trong session
+                            p.ProgressPoints >= rewardCost) // Check đủ điểm trong session
                 .ExecuteUpdateAsync(setters => setters
-                        .SetProperty(p => p.ProgressPoints, p => p.ProgressPoints - REWARD_COST), // Trừ điểm của session
+                        .SetProperty(p => p.ProgressPoints, p => p.ProgressPoints - rewardCost), // Trừ điểm của session
                     cancellationToken);
 
             // Kiểm tra xem có trừ điểm được không
@@ -105,7 +106,7 @@ public class ClaimRewardHandler(
                 Id = Guid.NewGuid(),
                 AliasId = aliasId,
                 SessionId = request.ChatSessionId,
-                PointsCost = REWARD_COST,
+                PointsCost = rewardCost,
                 Status = RewardStatus.Pending // Dùng RewardStatus.Pending
             };
             dbContext.Rewards.Add(newReward);
