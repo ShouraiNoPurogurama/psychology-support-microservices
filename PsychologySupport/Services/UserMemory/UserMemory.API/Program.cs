@@ -23,7 +23,7 @@ using (var scope = app.Services.CreateScope())
 {
     var sync = scope.ServiceProvider.GetRequiredService<ITagSyncService>();
     await sync.SyncAsync();
-}
+} 
 
 app.UseExceptionHandler(options => { });
 
