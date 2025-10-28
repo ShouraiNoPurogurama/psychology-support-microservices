@@ -15,23 +15,34 @@ public class TokenExchangeRuleRegistry
     {
         return new List<AudienceMappingRule>
         {
-            new AudienceMappingRule
+            new()
             {
-                Keywords = new[] { "alias", "post", "feed", "notification" },
+                Keywords = new[] { "alias", "post", "feed", "notification", "chatbox", "user-memory" },
                 ClaimType = "aliasId",
-                LookupFunction = (subRef) => _piiLookupService.ResolveAliasIdBySubjectRefAsync(subRef)
+                LookupFunction = subRef => _piiLookupService.ResolveAliasIdBySubjectRefAsync(subRef),
+                Required = true
             },
-            new AudienceMappingRule
+            new()
             {
-                Keywords = new[] { "profile" ,"subscription"},
+                Keywords = new[] { "profile", "subscription" },
                 ClaimType = "patientId",
-                LookupFunction = (subRef) => _piiLookupService.ResolvePatientIdBySubjectRefAsync(subRef)
+                LookupFunction = subRef => _piiLookupService.ResolvePatientIdBySubjectRefAsync(subRef),
+                Required = true
             },
-             new AudienceMappingRule
+            //Chatbox: cần CẢ aliasId & userId
+            new()
             {
                 Keywords = new[] { "chatbox" },
                 ClaimType = "userId",
-                LookupFunction = (subRef) => _piiLookupService.ResolveUserIdBySubjectRefAsync(subRef)
+                LookupFunction = subRef => _piiLookupService.ResolveUserIdBySubjectRefAsync(subRef),
+                Required = true
+            },
+            new()
+            {
+                Keywords = new[] { "chatbox" },
+                ClaimType = "patientId",
+                LookupFunction = subRef => _piiLookupService.ResolvePatientIdBySubjectRefAsync(subRef),
+                Required = true
             }
         };
     }

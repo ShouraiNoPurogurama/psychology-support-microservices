@@ -12,7 +12,8 @@ public class TokenExchangeService : ITokenExchangeService
     private readonly ILogger<TokenExchangeService> _logger;
     private readonly JwtSecurityTokenHandler _tokenHandler = new();
 
-    public TokenExchangeService(TokenExchangeRuleRegistry ruleRegistry, IInternalTokenMintingService tokenMintingService, ILogger<TokenExchangeService> logger)
+    public TokenExchangeService(TokenExchangeRuleRegistry ruleRegistry, IInternalTokenMintingService tokenMintingService,
+        ILogger<TokenExchangeService> logger)
     {
         _ruleRegistry = ruleRegistry;
         _tokenMintingService = tokenMintingService;
@@ -23,42 +24,102 @@ public class TokenExchangeService : ITokenExchangeService
     {
         var jwtToken = _tokenHandler.ReadJwtToken(originalToken);
         var subjectRef = jwtToken.Subject;
-
         if (string.IsNullOrEmpty(subjectRef)) return null;
 
-        var rules = _ruleRegistry.GetRules(subjectRef);
-        foreach (var rule in rules)
+        var rules = _ruleRegistry.GetRules(subjectRef).ToList();
+
+        // Gom tất cả rule khớp audience
+        var matched = rules
+            .Where(r => r.Keywords.Any(k => destinationAudience.Contains(k, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+
+        if (matched.Count == 0)
         {
-            //Kiểm tra xem destinationAudience có chứa bất kỳ từ khóa nào trong Keywords không
-            if (rule.Keywords.Any(destinationAudience.Contains))
-            {
-                var newId = await rule.LookupFunction(subjectRef);
-                
-                _logger.LogInformation($"Found audience for {rule.Keywords.First()}");
-                
-                //Nếu ID bị empty tức là user chưa tạo alias hoặc chưa làm onboarding => trả null cho caller 
-                //viiết 403 vào response
-                if (string.IsNullOrEmpty(newId) || Guid.Parse(newId) == Guid.Empty)
-                {
-                    _logger.LogWarning("*** Claims fetching failed for: `{rule}` with result got {newId}", rule.ClaimType, newId);
-
-                    return null;
-                }
-
-                var newClaims = new List<Claim> { new Claim(rule.ClaimType, newId) };
-
-                var exchangedToken = _tokenMintingService.MintScopedToken(
-                    new ClaimsPrincipal(new ClaimsIdentity(jwtToken.Claims)),
-                    newClaims, destinationAudience
-                );
-                
-                // _logger.LogInformation("Exchanged token minted for audience {Audience}: {Token}", destinationAudience, exchangedToken);
-                return exchangedToken;
-            }
+            _logger.LogInformation("No matching rule found for audience {Audience}. Returning original token.",
+                destinationAudience);
+            return originalToken;
         }
 
-        _logger.LogInformation("No matching rule found for audience {Audience}. Returning original token.", destinationAudience);
-        //Không tìm thấy quy tắc nào khớp
-        return originalToken;
+        // (optional) timeout chung cho tất cả lookup
+        var timeout = TimeSpan.FromSeconds(10);
+
+        // Tạo tasks chạy song song, mỗi task tự bắt lỗi và trả về kết quả an toàn
+        var tasks = matched.Select(async r =>
+            {
+                try
+                {
+                    // Nếu bạn muốn timeout per-call mà LookupFunction không nhận token,
+                    // dùng helper WithTimeout (ở dưới) để wrap:
+                    var id = await WithTimeout(r.LookupFunction(subjectRef), timeout);
+                    return (rule: r, id, ok: true, ex: (Exception?)null);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Lookup failed for claim {ClaimType}", r.ClaimType);
+                    return (rule: r, id: null, ok: false, ex);
+                }
+            })
+            .ToList();
+
+        // Chờ tất cả xong
+        var results = await Task.WhenAll(tasks);
+
+        // Đánh giá kết quả
+        var newClaims = new List<Claim>();
+
+        foreach (var res in results)
+        {
+            var r = res.rule;
+            var newId = res.id;
+
+            _logger.LogInformation("Audience {Audience}: rule {ClaimType} lookup → {Value}",
+                destinationAudience, r.ClaimType, newId ?? "null");
+
+            var valid = !string.IsNullOrEmpty(newId) && Guid.TryParse(newId, out var g) && g != Guid.Empty;
+
+            if (!valid)
+            {
+                if (r.Required)
+                {
+                    _logger.LogWarning("Required claim `{ClaimType}` missing/invalid for audience {Audience}.",
+                        r.ClaimType, destinationAudience);
+                    return null; // 403 ở transform 
+                }
+
+                continue; // optional claim: bỏ qua
+            }
+
+            newClaims.Add(new Claim(r.ClaimType, newId!));
+        }
+
+        // Tránh trùng kiểu claim (nếu có nhiều rule cùng ClaimType)
+        newClaims = newClaims
+            .GroupBy(c => c.Type, StringComparer.Ordinal)
+            .Select(g => g.First())
+            .ToList();
+
+        if (newClaims.Count == 0)
+        {
+            _logger.LogWarning("No claims produced for audience {Audience}.", destinationAudience);
+            return null;
+        }
+
+        var exchangedToken = _tokenMintingService.MintScopedToken(
+            new ClaimsPrincipal(new ClaimsIdentity(jwtToken.Claims)),
+            newClaims,
+            destinationAudience
+        );
+
+        return exchangedToken;
+
+        // Helper: timeout cho Task<T> khi không truyền được CancellationToken vào LookupFunction
+        static async Task<T> WithTimeout<T>(Task<T> task, TimeSpan timeout)
+        {
+            var delay = Task.Delay(timeout);
+            var finished = await Task.WhenAny(task, delay);
+            if (finished == delay)
+                throw new TimeoutException($"Lookup timed out after {timeout.TotalMilliseconds} ms.");
+            return await task; 
+        }
     }
 }

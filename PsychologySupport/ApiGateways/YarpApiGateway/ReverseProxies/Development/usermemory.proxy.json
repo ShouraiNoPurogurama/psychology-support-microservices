@@ -1,0 +1,36 @@
+﻿{
+  "ReverseProxy": {
+    "Routes": {
+      "user-memory-health": {
+        "ClusterId": "user-memory-rest-cluster",
+        "Match": { "Path": "/user-memory-service/health" },
+        "Transforms": [ { "PathPattern": "/health" } ]
+      },
+      "user-memory-swagger": {
+        "ClusterId": "user-memory-rest-cluster",
+        "Match": { "Path": "/user-memory-service/swagger/{**catch-all}" },
+        "Transforms": [ { "PathPattern": "/swagger/{**catch-all}" } ]
+      },
+      "user-memory-route": {
+        "ClusterId": "user-memory-rest-cluster",
+        "RateLimiterPolicy": "fixed",
+        "Match": { "Path": "/user-memory-service/{**catch-all}" },
+        "AuthorizationPolicy": "AuthenticatedUser",
+        "Transforms": [
+          { "PathPattern": "/{**catch-all}" },
+          { "TokenExchange": "enabled" }
+        ]
+      }
+    },
+    "Clusters": {
+      "user-memory-rest-cluster": {
+        "Destinations": {
+          "rest-https": { "Address": "https://localhost:5525/" }
+        },
+        "HttpClient": {
+          "DangerousAcceptAnyServerCertificate": true
+        }
+      }
+    }
+  }
+}
