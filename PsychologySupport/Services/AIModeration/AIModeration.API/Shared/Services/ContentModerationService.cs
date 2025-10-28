@@ -1,7 +1,7 @@
 using AIModeration.API.Models;
-using AIModeration.API.Shared.ServiceContracts;
 using System.Text.RegularExpressions;
 using AIModeration.API.Shared.Dtos;
+using AIModeration.API.Shared.Services.Contracts;
 
 namespace AIModeration.API.Shared.Services;
 

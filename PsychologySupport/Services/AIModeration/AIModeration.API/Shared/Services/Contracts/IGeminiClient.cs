@@ -1,6 +1,6 @@
 ﻿using AIModeration.API.Shared.Dtos;
 
-namespace AIModeration.API.Shared.ServiceContracts;
+namespace AIModeration.API.Shared.Services.Contracts;
 
 public interface IGeminiClient
 {

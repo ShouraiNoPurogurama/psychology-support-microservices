@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using AIModeration.API.Data;
-using AIModeration.API.Shared.ServiceContracts;
 using AIModeration.API.Shared.Services;
+using AIModeration.API.Shared.Services.Contracts;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Data.Interceptors;
 using BuildingBlocks.Filters;

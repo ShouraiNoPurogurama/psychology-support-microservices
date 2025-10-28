@@ -1,7 +1,7 @@
 using System.Text;
 using AIModeration.API.Shared.Dtos;
 using AIModeration.API.Shared.Dtos.Gemini;
-using AIModeration.API.Shared.ServiceContracts;
+using AIModeration.API.Shared.Services.Contracts;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
