@@ -10,6 +10,7 @@
           { "PathPattern": "/health" }
         ]
       },
+
       "subscription-swagger": {
         "ClusterId": "subscription-cluster",
         "Match": {
@@ -19,6 +20,7 @@
           { "PathPattern": "/swagger/{**catch-all}" }
         ]
       },
+
       "subscription-service-packages-v2": {
         "ClusterId": "subscription-cluster",
         "Match": {
@@ -26,9 +28,24 @@
         },
         "Transforms": [
           { "PathPattern": "/v2/service-packages" },
-          { "TokenExchange": "enabled" } 
+          { "TokenExchange": "enabled" }
         ]
       },
+
+      "subscription-create-user-subscription-v2": {
+        "ClusterId": "subscription-cluster",
+        "RateLimiterPolicy": "subscription_create_limit",
+        "AuthorizationPolicy": "AuthenticatedUser",
+        "Match": {
+          "Path": "/subscription-service/v2/user-subscription"
+        },
+        "Methods": [ "POST" ],
+        "Transforms": [
+          { "PathPattern": "/v2/user-subscription" },
+          { "TokenExchange": "enabled" }
+        ]
+      },
+
       "subscription-route": {
         "ClusterId": "subscription-cluster",
         "RateLimiterPolicy": "fixed",
@@ -42,6 +59,7 @@
         ]
       }
     },
+
     "Clusters": {
       "subscription-cluster": {
         "Destinations": {

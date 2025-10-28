@@ -81,6 +81,11 @@ public static class ApplicationServiceExtensions
                     Partition(ctx),
                     _ => new FixedWindowRateLimiterOptions { PermitLimit = 2, Window = TimeSpan.FromSeconds(2) }));
 
+            options.AddPolicy("subscription_create_limit", ctx =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    Partition(ctx),
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = 2, Window = TimeSpan.FromMinutes(1) }));
+
             options.RejectionStatusCode = 429;
         });
     }
