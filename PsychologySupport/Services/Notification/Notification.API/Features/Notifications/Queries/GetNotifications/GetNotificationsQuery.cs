@@ -29,5 +29,6 @@ public record NotificationDto(
     Guid? PostId,
     Guid? CommentId,
     Guid? ReactionId,
+    Guid? GiftId,
     string? Snippet
 );

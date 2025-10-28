@@ -45,6 +45,7 @@ public class GetNotificationsQueryHandler : IQueryHandler<GetNotificationsQuery,
             n.PostId,
             n.CommentId,
             n.ReactionId,
+            n.GiftId,
             n.Snippet
         )).ToList();
 

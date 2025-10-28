@@ -56,6 +56,7 @@ public class GiftAttachedIntegrationEventConsumer : IConsumer<GiftAttachedIntegr
         // Build source/target
         var source = new NotificationSource
         {
+            PostId = msg.PostId,
             GiftId = msg.GiftId,
             Snippet = $"Đã gửi bạn một món quà với thông điệp: {msg.Message}"
         };
@@ -72,6 +73,7 @@ public class GiftAttachedIntegrationEventConsumer : IConsumer<GiftAttachedIntegr
                 n.ActorAliasId = msg.SenderAliasId;
                 n.ActorDisplayName = msg.SenderAliasLabel;
                 n.Snippet = source.Snippet;
+                n.PostId = msg.PostId;
                 n.GiftId = msg.GiftId;
                 n.LastModified = msg.SentAt;
                 n.CreatedAt = n.CreatedAt;

@@ -47,6 +47,7 @@ public class UserNotification : AuditableEntity<Guid>
             CommentId = source.CommentId,
             ReactionId = source.ReactionId,
             FollowId = source.FollowId,
+            GiftId = source.GiftId,
             ModerationAction = source.ModerationAction,
             Snippet = source.Snippet,
             GroupingKey = groupingKey,

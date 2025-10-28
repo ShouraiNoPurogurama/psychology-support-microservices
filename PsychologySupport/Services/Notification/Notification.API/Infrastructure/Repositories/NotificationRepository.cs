@@ -146,7 +146,7 @@ public class NotificationRepository : INotificationRepository
 
         await using var tx = await _context.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
 
-        UserNotification? candidate = null;
+        UserNotification? candidate;
 
         // Ưu tiên Postgres: khóa hàng để tránh race (FOR UPDATE SKIP LOCKED)
         // Nếu provider không hỗ trợ, sẽ fallback sang LINQ thường.

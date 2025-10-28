@@ -6,7 +6,6 @@ public class NotificationSource
     public Guid? CommentId { get; set; }
     public Guid? ReactionId { get; set; }
     public Guid? FollowId { get; set; }
-    
     public Guid? GiftId { get; set; }
     public string? ModerationAction { get; set; }
     public string? Snippet { get; set; }
