@@ -87,43 +87,59 @@ public class SummarizationService
 
         // --- BƯỚC A: ĐỊNH NGHĨA JSON SCHEMA (Structured Output) ---
         // Schema này khớp với `SummaryInstruction` từ các prompt trước
+        // --- BƯỚC A (mới): JSON SCHEMA với instruction nhét trong description ---
         var responseSchema = new
         {
             type = "object",
+            description = @"Trả về đúng MỘT JSON mô tả tóm tắt hội thoại để sinh ảnh cảm xúc cá nhân hoá. 
+- 'current': tóm tắt 1–2 câu điều người dùng vừa chia sẻ (nội dung + cảm xúc). 
+- 'persist': tổng hợp 5–7 ý bền vững về người dùng (sở thích, bối cảnh, thói quen, mối quan hệ, cảm xúc thường gặp) dựa trên tóm tắt cũ + đoạn mới. 
+- 'metadata': dùng trực tiếp cho pipeline sinh ảnh; phải đủ sâu về cảm xúc và khung cảnh thể hiện cảm xúc.",
             properties = new
             {
                 current = new
                 {
                     type = "string",
-                    description = "Tóm tắt ngắn gọn (1-2 câu) nội dung chính của 'Đoạn Hội Thoại Mới'."
+                    description =
+                        "1–2 câu mô tả nội dung + cảm xúc chính mà NGƯỜI DÙNG vừa bày tỏ (không nhắc chatbot)."
                 },
                 persist = new
                 {
                     type = "string",
                     description =
-                        "Cập nhật và tổng hợp các thông tin quan trọng, bền vững (như tên, sở thích, bối cảnh cá nhân) từ 'Tóm Tắt Cũ' và 'Đoạn Hội Thoại Mới'."
+                        @"5–7 ý bền vững về NGƯỜI DÙNG (sở thích, môi trường sống/học/làm, thói quen, mối quan hệ quan trọng, cảm xúc thường gặp, giá trị/động lực). 
+Ghép từ 'tóm tắt cũ' (nếu có) + 'đoạn mới'. Viết gọn, phân tách bằng dấu chấm phẩy."
                 },
                 metadata = new
                 {
                     type = "object",
+                    description = "Gói thông tin để vẽ 1 ảnh duy nhất thể hiện đúng cảm xúc và hoàn cảnh của NGƯỜI DÙNG.",
                     properties = new
                     {
                         emotionContext = new
                         {
                             type = "string",
                             description =
-                                "Mô tả trạng thái cảm xúc HOẶC động lực cốt lõi của người dùng (dùng cho trí nhớ chatbot). Ví dụ: 'buồn bã vì nhớ nhà'."
+                               @"Mô tả chi tiết trạng thái cảm xúc hiện tại của NGƯỜI DÙNG 
+(gồm: nguyên nhân/cái cớ, mức độ/sắc thái, cách biểu hiện ra ngoài như ánh mắt, cử chỉ, nhịp nói). 
+Yêu cầu 1–3 câu, không nhắc chatbot/hội thoại."
                         },
                         topic = new
                         {
                             type = "string",
-                            description = "Chủ đề chính của 'Đoạn Hội Thoại Mới' (ví dụ: 'hỏi thăm', 'kể chuyện công sở')."
+                            description =
+                                @"Chủ đề đang đề cập (ví dụ: 'hồi tưởng kỷ niệm đáng nhớ', 'nói về áp lực học tập',
+'suy ngẫm về quan hệ cá nhân', 'niềm vui sau thành tựu nhỏ')."
                         },
                         imageContext = new
                         {
                             type = "string",
                             description =
-                                "Một cụm mô tả NGẮN GỌN (tối đa 20 từ) mô tả CẢM XÚC + HÀNH ĐỘNG/BỐI CẢNH có thể HÌNH DUNG được (dùng cho tạo ảnh)."
+                                @"Miêu tả trực quan 1–3 câu cho CÙNG MỘT khung hình: tư thế nhân vật (một nhân vật duy nhất), 
+không gian, ánh sáng, vật thể gợi ý, tông màu cảm xúc. 
+Có thể nêu bối cảnh cá nhân (phòng học/ký túc/xóm trọ/quán cafe quen), thời điểm (đêm/sáng), 
+ánh sáng (vàng ấm/xanh lam màn hình), và hành vi nhỏ (ôm sách, tựa cằm, vuốt tóc…). 
+Tránh nhắc UI, chữ, brand. Mục tiêu: giúp AI sinh ảnh chân thực, đồng cảm."
                         }
                     },
                     required = new[] { "emotionContext", "topic", "imageContext" }
@@ -132,10 +148,11 @@ public class SummarizationService
             required = new[] { "current", "persist", "metadata" }
         };
 
+
         // --- BƯỚC B: TÁI TẠO LẠI LOGIC PROMPT CŨ CỦA BẠN ---
         // (Logic cũ của bạn là build 1 string từ 'contents' và nhét vào 1 content mới)
         var promptText =
-            $"Tóm tắt đoạn hội thoại sau:\n{string.Join("\n", contents.Select(c => $"{c.Role}: {c.Parts[0].Text}"))}";
+            $"Nhiệm vụ: Tổng hợp Tóm Tắt Cũ và Đoạn Hội Thoại Mới thành JSON đúng theo schema đã mô tả.\n{string.Join("\n", contents.Select(c => $"{c.Role}: {c.Parts[0].Text}"))}";
 
         // Giả định các DTO (GeminiRequestDto, v.v.) tồn tại trong namespace Dtos.Gemini
         var payload = new GeminiStructuredOutputRequestDto(
