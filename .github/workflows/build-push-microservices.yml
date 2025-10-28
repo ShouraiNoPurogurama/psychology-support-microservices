@@ -229,6 +229,10 @@ jobs:
               # Wellness
               Services/Wellness/Wellness.*/*|PsychologySupport/Services/Wellness/Wellness.*/*) echo "wellness.api" ;;
 
+              # UserMemory
+              Services/UserMemory/UserMemory.*/*|PsychologySupport/Services/UserMemory/UserMemory.*/*) echo "usermemory.api" ;;
+
+
               # YARP gateway
               ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*) echo "yarpapigateway" ;;
 
@@ -319,6 +323,7 @@ jobs:
             test.api)         CANDS=( "Services/Test/Test.API/Dockerfile" "PsychologySupport/Services/Test/Test.API/Dockerfile" ) ;;
             translation.api)  CANDS=( "Services/Translation/Translation.API/Dockerfile" "PsychologySupport/Services/Translation/Translation.API/Dockerfile" ) ;;
             wellness.api)     CANDS=( "Services/Wellness/Wellness.API/Dockerfile" "PsychologySupport/Services/Wellness/Wellness.API/Dockerfile" ) ;;
+            usermemory.api)     CANDS=( "Services/UserMemory/UserMemory.API/Dockerfile" "PsychologySupport/Services/UserMemory/UserMemory.API/Dockerfile" ) ;;
             yarpapigateway)   CANDS=( "ApiGateways/YarpApiGateway/Dockerfile" "PsychologySupport/ApiGateways/YarpApiGateway/Dockerfile" ) ;;
             *) echo "Unknown service $SVC"; exit 1 ;;
           esac

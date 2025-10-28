@@ -165,6 +165,9 @@ jobs:
                 # Wellness
                 Services/Wellness/Wellness.*/*|PsychologySupport/Services/Wellness/Wellness.*/*) echo "wellness.api" ;;
 
+                # UserMemory
+                Services/UserMemory/UserMemory.*/*|PsychologySupport/Services/UserMemory/UserMemory.*/*) echo "usermemory.api" ;;
+
 
                 # YARP gateway
                 ApiGateways/YarpApiGateway/*|PsychologySupport/ApiGateways/YarpApiGateway/*) echo "yarpapigateway" ;;

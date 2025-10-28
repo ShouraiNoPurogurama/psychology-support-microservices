@@ -46,6 +46,8 @@ on:
         required: true
       APPSETTINGS_PRODUCTION_POST:
         required: true
+      APPSETTINGS_PRODUCTION_USERMEMORY:
+        required: true
       # -----------------------------------------------------
   workflow_dispatch:
 
@@ -158,6 +160,11 @@ jobs:
             # Media
             cat <<EOF > Services/Media/Media.API/appsettings.Production.json
             ${{ secrets.APPSETTINGS_PRODUCTION_MEDIA }}
+            EOF
+
+            # UserMemory
+            cat <<EOF > Services/UserMemory/UserMemory.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_UserMemory }}
             EOF
 
             # Post
