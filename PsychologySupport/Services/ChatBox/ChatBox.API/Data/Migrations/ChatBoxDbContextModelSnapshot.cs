@@ -18,7 +18,7 @@ namespace ChatBox.API.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("public")
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -30,7 +30,7 @@ namespace ChatBox.API.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<DateTimeOffset>("CreatedDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_date");
 
@@ -38,7 +38,7 @@ namespace ChatBox.API.Data.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_active");
 
-                    b.Property<DateTime?>("LastSummarizedAt")
+                    b.Property<DateTimeOffset?>("LastSummarizedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_summarized_at");
 
@@ -85,7 +85,7 @@ namespace ChatBox.API.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("content");
 
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<DateTimeOffset>("CreatedDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_date");
 
@@ -121,7 +121,7 @@ namespace ChatBox.API.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("booking_id");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
@@ -151,7 +151,7 @@ namespace ChatBox.API.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("content");
 
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<DateTimeOffset>("CreatedDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_date");
 
@@ -171,6 +171,53 @@ namespace ChatBox.API.Data.Migrations
                         .HasName("pk_messages");
 
                     b.ToTable("messages", "public");
+                });
+
+            modelBuilder.Entity("ChatBox.API.Models.PendingStickerReward", b =>
+                {
+                    b.Property<Guid>("RewardId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("reward_id");
+
+                    b.Property<DateTimeOffset?>("ClaimedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("claimed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsClaimed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_claimed");
+
+                    b.Property<string>("PromptFilter")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("prompt_filter");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
+                    b.Property<string>("StickerUrl")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("sticker_url");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("RewardId")
+                        .HasName("pk_pending_sticker_rewards");
+
+                    b.ToTable("pending_sticker_rewards", "public");
                 });
 
             modelBuilder.Entity("ChatBox.API.Models.AIMessage", b =>

@@ -1,6 +1,6 @@
 ﻿using ChatBox.API.Models;
 
-namespace ChatBox.API.Domains.AIChats.Abstractions;
+namespace ChatBox.API.Domains.AIChats.Services.Contracts;
 
 public interface IContextBuilder
 {

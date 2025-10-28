@@ -1,4 +1,4 @@
-﻿namespace ChatBox.API.Domains.AIChats.Abstractions;
+﻿namespace ChatBox.API.Domains.AIChats.Services.Contracts;
 
 /// <summary>
 /// Service để tạo ra một chỉ dẫn/gợi ý cho AI chính về cách trả lời.

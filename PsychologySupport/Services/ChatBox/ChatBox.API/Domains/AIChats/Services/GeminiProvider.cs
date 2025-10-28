@@ -1,8 +1,8 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
-using ChatBox.API.Domains.AIChats.Abstractions;
 using ChatBox.API.Domains.AIChats.Dtos.AI;
 using ChatBox.API.Domains.AIChats.Dtos.Gemini;
+using ChatBox.API.Domains.AIChats.Services.Contracts;
 using ChatBox.API.Models;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Options;

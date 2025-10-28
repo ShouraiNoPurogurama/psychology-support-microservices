@@ -1,5 +1,4 @@
 ﻿using BuildingBlocks.DDD;
-using ChatBox.API.Data.Migrations;
 
 namespace ChatBox.API.Models;
 
@@ -15,7 +14,6 @@ public class AIChatSession : DomainEventContainer
     public string? Summarization { get; set; }  
     public DateTimeOffset? LastSummarizedAt { get; set; } 
     public int? LastSummarizedIndex { get; set; }
-
     public PersonaSnapshot? PersonaSnapshot { get; set; }
     
     public string? PersonaSnapshotJson
@@ -38,7 +36,6 @@ public static class PersonaSnapshotExtensions
                 [System]
                 Thông tin người dùng hiện tại (Persona):
                 - Nghề nghiệp: {snapshot.JobTitle}
-                - Ngành nghề: {snapshot.IndustryName}
                 
                 
                 """;

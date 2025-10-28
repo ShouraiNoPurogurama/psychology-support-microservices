@@ -1,6 +1,6 @@
 ﻿using System.Text;
-using ChatBox.API.Domains.AIChats.Abstractions;
 using ChatBox.API.Domains.AIChats.Dtos.Gemini;
+using ChatBox.API.Domains.AIChats.Services.Contracts;
 using ChatBox.API.Models;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Options;
@@ -48,7 +48,7 @@ public class GeminiInstructionGenerator : IInstructionGenerator
         var contextParts = new List<string>();
         if (!string.IsNullOrWhiteSpace(persona)) contextParts.Add($"USER PERSONA:\n{persona}");
         if (!string.IsNullOrWhiteSpace(history)) contextParts.Add($"CONVERSATION SUMMARY:\n{history}");
-        contextParts.Add($"CURRENT USER MESSAGE:\n{userMessage}");
+        contextParts.Add($"USER MESSAGE:\n{userMessage}");
 
         var fullContext = string.Join("\n\n", contextParts);
 
@@ -77,7 +77,7 @@ public class GeminiInstructionGenerator : IInstructionGenerator
         // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var apiKey = config["GeminiConfig:ApiKey"];
-        var url =  $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent?key={apiKey}";
+        var url =  $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={apiKey}";
 
         var settings = new JsonSerializerSettings { ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() } };
         var content = new StringContent(JsonConvert.SerializeObject(payload, settings), Encoding.UTF8, "application/json");

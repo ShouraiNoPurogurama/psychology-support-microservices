@@ -1,0 +1,20 @@
+﻿syntax = "proto3";
+
+package chatbox;
+
+option csharp_namespace = "Chatbox.API.Protos";
+
+service ChatboxService {
+  rpc GetDailySummary (GetDailySummaryRequest) returns (GetDailySummaryResponse);
+}
+
+message GetDailySummaryRequest {
+  string alias_id = 1;
+  string chatSessionId = 2;
+}
+
+message GetDailySummaryResponse {
+  string summarization_json = 1;
+  string persona_snapshot_json = 2;
+  string user_id = 3;
+}

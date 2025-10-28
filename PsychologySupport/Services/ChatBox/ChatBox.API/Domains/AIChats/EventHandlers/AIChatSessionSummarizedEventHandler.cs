@@ -5,7 +5,7 @@ using MediatR;
 
 namespace ChatBox.API.Domains.AIChats.EventHandlers;
 
-public class AIChatSessionSummarizedEventHandler(
+public class AiChatSessionSummarizedEventHandler(
     ILogger<AIChatSessionSummarizedEvent> logger,
     SummarizationService summarizationService
 )
@@ -21,7 +21,7 @@ public class AIChatSessionSummarizedEventHandler(
         var userId = notification.UserId;
         
         var contentDtos = newMessages.Select(m => new GeminiContentDto(
-                m.SenderIsEmo ? "model" : "user",
+                m.SenderIsEmo ? "Emo chatbot" : "user",
                 [new GeminiContentPartDto(m.Content)]
             ))
             .ToList();

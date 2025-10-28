@@ -21,7 +21,7 @@ namespace Media.Application
 
             services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly(), null, "media");
             services.AddFeatureManagement();
-
+            
             return services;
         }
     }

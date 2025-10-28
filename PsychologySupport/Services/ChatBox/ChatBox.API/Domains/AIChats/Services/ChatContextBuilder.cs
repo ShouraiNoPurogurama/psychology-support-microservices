@@ -1,5 +1,5 @@
 ﻿using ChatBox.API.Data;
-using ChatBox.API.Domains.AIChats.Abstractions;
+using ChatBox.API.Domains.AIChats.Services.Contracts;
 using ChatBox.API.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +18,8 @@ public class ChatContextBuilder(ChatBoxDbContext dbContext, ILogger<ChatContextB
         var contextBlock = await BuildContextBlock(sessionId);
         var processedUserMessage = TrimUserMessageIfExceedsLength(userMessage);
 
-        return $"{persona}{contextBlock}[User]\n{processedUserMessage}\n\n[Emo]:\n";
+        // return $"{persona}{contextBlock}[User]\n{processedUserMessage}\n\n[Emo]:\n";
+        return $"{contextBlock}[User]\n{processedUserMessage}\n\n[Emo]:\n";
     }
 
     private async Task<string> BuildContextBlock(Guid sessionId)

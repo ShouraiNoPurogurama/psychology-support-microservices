@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.Exceptions.Handler;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Profile.API.Common.Services;
 using Profile.API.Domains.Pii.Services;
 using Profile.API.Domains.Public.PatientProfiles.Services;
 using Profile.API.Extensions;
@@ -42,6 +43,7 @@ else
 //Map gRPC services
 app.MapGrpcService<PatientProfileService>();
 app.MapGrpcService<PiiService>();
+app.MapGrpcService<PersonaOrchestratorService>();
 app.MapGrpcReflectionService(); 
 
 app.UseHealthChecks("/health",

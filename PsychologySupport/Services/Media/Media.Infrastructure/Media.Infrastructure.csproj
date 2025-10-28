@@ -15,6 +15,7 @@
 	<ItemGroup>
 		<PackageReference Include="Azure.Storage.Blobs" />
 		<PackageReference Include="EFCore.NamingConventions" />
+		<PackageReference Include="Google.GenAI" />
 		<PackageReference Include="StackExchange.Redis" />
 	</ItemGroup>
 

@@ -113,7 +113,8 @@ public class AzureBlobStorageService : IStorageService
         return Task.FromResult(url);
     }
 
-    public async Task<string> UploadFileAsync(IFormFile file, string blobName, string mimeType, CancellationToken cancellationToken)
+    public async Task<string> UploadFileAsync(IFormFile file, string blobName, string mimeType,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(blobName))
             throw new BadRequestException("Tên tệp (blobName) không được để trống.");
@@ -125,7 +126,8 @@ public class AzureBlobStorageService : IStorageService
 
             using (var stream = file.OpenReadStream())
             {
-                await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = mimeType }, cancellationToken: cancellationToken);
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = mimeType },
+                    cancellationToken: cancellationToken);
             }
 
             return await GetCdnUrlAsync(blobName, cancellationToken);
@@ -134,6 +136,35 @@ public class AzureBlobStorageService : IStorageService
         {
             throw new InternalServerException(
                 "Không thể tải file lên Azure Blob Storage.",
+                ex.Message);
+        }
+    }
+
+    public async Task<string> UploadStreamAsync(Stream stream, string blobName, string mimeType,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(blobName))
+            throw new BadRequestException("Tên tệp (blobName) không được để trống.");
+
+        try
+        {
+            var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+            var blobClient = containerClient.GetBlobClient(blobName);
+
+            // Quan trọng: Reset vị trí stream về 0
+            // vì Gemini Service vừa tạo ra nó (vị trí đang ở cuối)
+            stream.Position = 0;
+
+            await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = mimeType },
+                cancellationToken: cancellationToken);
+
+            // Trả về CDN URL
+            return await GetCdnUrlAsync(blobName, cancellationToken);
+        }
+        catch (Azure.RequestFailedException ex)
+        {
+            throw new InternalServerException(
+                "Không thể tải stream lên Azure Blob Storage.",
                 ex.Message);
         }
     }

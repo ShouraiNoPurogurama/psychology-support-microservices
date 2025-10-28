@@ -10,6 +10,8 @@ public class ChatBoxDbContext : DbContext
     public DbSet<AIMessage> AIChatMessages => Set<AIMessage>();
     public DbSet<AIChatSession> AIChatSessions => Set<AIChatSession>();
     
+    public DbSet<PendingStickerReward> PendingStickerRewards => Set<PendingStickerReward>();
+    
     public ChatBoxDbContext(DbContextOptions<ChatBoxDbContext> options) : base(options)
     {
     }
@@ -28,5 +30,8 @@ public class ChatBoxDbContext : DbContext
             .Property(e => e.PersonaSnapshotJson) //Map field chứa JSON string
             .HasColumnName("PersonaSnapshot")
             .HasColumnType("jsonb"); //Nếu là PostgreSQL, còn SQL Server thì nvarchar(max)
+        
+        builder.Entity<PendingStickerReward>() 
+            .HasKey(e => e.RewardId);
     }
 }

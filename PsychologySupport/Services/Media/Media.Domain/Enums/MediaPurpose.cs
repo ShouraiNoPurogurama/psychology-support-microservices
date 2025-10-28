@@ -25,5 +25,7 @@ public enum MediaPurpose
     /// </summary>
     CommentAttachment,
     
-    NotSpecified
+    NotSpecified,
+    
+    RewardSticker
 }

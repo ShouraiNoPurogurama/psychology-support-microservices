@@ -1,0 +1,57 @@
+﻿syntax = "proto3";
+
+// Import các kiểu dữ liệu chung
+import "google/protobuf/timestamp.proto";
+
+// Tên package cho service mới này
+package persona;
+
+// CSharp namespace
+option csharp_namespace = "Profile.API.Protos";
+
+//=========================
+//=== SERVICE (FACADE) ====
+//=========================
+
+// Đây là service "Facade" (hay Orchestrator) mà Chatbox sẽ gọi.
+// Nó ẩn đi sự phức tạp của việc phải gọi PiiService và ProfileService.
+service PersonaOrchestratorService {
+
+  // Lấy thông tin tóm tắt của một persona (dùng cho AI)
+  // Input là 'alias_id' vì đây là ID mà Chatbox/RewardService có.
+  rpc GetPersonaSnapshot (GetPersonaSnapshotRequest)
+      returns (GetPersonaSnapshotResponse);
+}
+
+//=========================
+//======== MESSAGES =======
+//=========================
+
+// Định nghĩa enum Gender của riêng service này.
+// Lợi ích: Nếu PiiService hay ProfileService thay đổi enum của họ,
+// client (Chatbox) sẽ không bị ảnh hưởng.
+enum Gender {
+  GENDER_UNSPECIFIED = 0;
+  GENDER_MALE = 1;
+  GENDER_FEMALE = 2;
+  GENDER_OTHER = 3;
+}
+
+//----- GetPersonaSnapshot -----
+
+message GetPersonaSnapshotRequest {
+  string subject_ref = 1;
+}
+
+message GetPersonaSnapshotResponse {
+  // 3 trường bạn yêu cầu, "bỏ hết các field thừa khác"
+
+  // Lấy từ ProfileService
+  optional string job_title = 1;
+
+  // Lấy từ PiiService
+  optional google.protobuf.Timestamp birth_date = 2;
+
+  // Lấy từ PiiService (đã được map sang enum Gender của service này)
+  Gender gender = 3;
+}

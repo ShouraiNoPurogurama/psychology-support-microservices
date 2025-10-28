@@ -6,53 +6,42 @@ using ChatBox.API.Domains.AIChats.Dtos.AI;
 using ChatBox.API.Domains.AIChats.Dtos.Sessions;
 using ChatBox.API.Domains.AIChats.Utils;
 using ChatBox.API.Models;
+using ChatBox.API.Shared.Authentication;
 using Mapster;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Pii.API.Protos;
+using Profile.API.Protos;
 
 namespace ChatBox.API.Domains.AIChats.Services;
 
 public class SessionService(
     ChatBoxDbContext dbContext,
-    IRequestClient<AggregatePatientProfileRequest> requestClient,
-    PiiService.PiiServiceClient piiClient) 
+    ICurrentActorAccessor actorAccessor,
+    PersonaOrchestratorService.PersonaOrchestratorServiceClient client) 
 {
     public async Task<CreateSessionResponseDto> CreateSessionAsync(string sessionName, Guid userId)
     {
         // 1. Resolve SubjectRef từ UserId
-        var subjectRefResponse = await piiClient.ResolveSubjectRefByUserIdAsync(
-            new ResolveSubjectRefByUserIdRequest { UserId = userId.ToString() });
-
-        var subjectRef = subjectRefResponse.SubjectRef;
-        if (string.IsNullOrEmpty(subjectRef) || subjectRef == Guid.Empty.ToString())
-            throw new NotFoundException($"Không tìm thấy SubjectRef cho UserId {userId}");
-
-        // 2. Resolve PatientId từ SubjectRef
-        var patientResponse = await piiClient.ResolvePatientIdBySubjectRefAsync(
-            new ResolvePatientIdBySubjectRefRequest { SubjectRef = subjectRef });
-
-        var patientId = patientResponse.PatientId;
-        if (string.IsNullOrEmpty(patientId))
-            throw new NotFoundException($"Không tìm thấy PatientId cho SubjectRef {subjectRef}");
-
+        var subjectRef = actorAccessor.GetRequiredSubjectRef();
+        
         // 3. Gọi AggregatePatientProfileRequest với PatientId
-        var profileResponse = await requestClient.GetResponse<AggregatePatientProfileResponse>(
-            new AggregatePatientProfileRequest(Guid.Parse(patientId)));
-
-        var profile = profileResponse.Message;
-
+        var profile = await client.GetPersonaSnapshotAsync(new GetPersonaSnapshotRequest()
+        {
+            SubjectRef = subjectRef.ToString()
+        });
+        
         // 4. Tạo PersonaSnapshot
         var persona = new PersonaSnapshot
         {
-            FullName = profile.FullName,
-            Gender = profile.Gender,
-            BirthDate = profile.BirthDate.ToString("yyyy-MM-dd"),
+            // FullName = profile.FullName,
+            Gender = profile.Gender.ToString(),
+            BirthDate = profile.BirthDate.ToString(),
             JobTitle = profile.JobTitle,
-            EducationLevel = profile.EducationLevel,
-            IndustryName = profile.IndustryName,
-            PersonalityTraits = profile.PersonalityTraits,
-            Allergies = profile.Allergies ?? "Không rõ"
+            // EducationLevel = profile.EducationLevel,
+            // IndustryName = profile.IndustryName,
+            // PersonalityTraits = profile.PersonalityTraits,
+            // Allergies = profile.Allergies ?? "Không rõ"
         };
 
         // 5. Xử lý tên session như cũ...
@@ -102,7 +91,7 @@ public class SessionService(
     }
     private AIMessageResponseDto AddInitialGreeting(AIChatSession session)
     {
-        var greeting = EmoGreetingsUtil.GetRandomGreeting(session.PersonaSnapshot?.FullName);
+        var greeting = EmoGreetingsUtil.GetRandomGreeting(null);
 
         var initialMessage = new AIMessage
         {

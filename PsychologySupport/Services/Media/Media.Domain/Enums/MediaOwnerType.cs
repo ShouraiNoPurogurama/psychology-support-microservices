@@ -14,6 +14,7 @@ namespace Media.Domain.Enums
         Audio,
         WellnessModule,
         ModuleSection,
-        SectionArticle
+        SectionArticle,
+        Reward
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace ChatBox.API.Domains.AIChats.Abstractions;
+﻿namespace ChatBox.API.Domains.AIChats.Services.Contracts;
 
 public interface ISessionConcurrencyManager
 {

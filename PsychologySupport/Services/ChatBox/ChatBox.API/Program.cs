@@ -1,5 +1,6 @@
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Exceptions.Handler;
+using ChatBox.API.Domains.AIChats.Services.Grpc;
 using ChatBox.API.Domains.Chatboxes.Hubs;
 using ChatBox.API.Extensions;
 using HealthChecks.UI.Client;
@@ -43,6 +44,8 @@ app.UseHealthChecks("/health",
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapGrpcService<ChatboxService>();
 app.MapControllers();
 
 app.MapHub<ChatHub>("/chatHub");

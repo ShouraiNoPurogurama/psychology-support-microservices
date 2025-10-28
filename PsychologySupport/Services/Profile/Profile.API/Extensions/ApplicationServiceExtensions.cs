@@ -5,6 +5,7 @@ using Notification.API.Protos;
 using Profile.API.Data.Pii;
 using Profile.API.Domains.Pii.Services;
 using Profile.API.Domains.Public.DoctorProfiles.Validators;
+using Profile.API.Domains.Public.PatientProfiles.Services;
 using Profile.API.Domains.Public.PatientProfiles.Validators;
 
 namespace Profile.API.Extensions;
@@ -56,6 +57,9 @@ public static class ApplicationServiceExtensions
     {
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+
+        services.AddScoped<PatientProfileLocalService>();
+        services.AddScoped<PiiLocalService>();
 
         services.AddScoped<PiiService>();
     }

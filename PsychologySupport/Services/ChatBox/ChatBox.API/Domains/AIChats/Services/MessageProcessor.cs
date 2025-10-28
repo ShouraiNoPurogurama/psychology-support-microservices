@@ -1,22 +1,31 @@
 using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Chatbox;
 using BuildingBlocks.Pagination;
 using ChatBox.API.Data;
-using ChatBox.API.Domains.AIChats.Abstractions;
 using ChatBox.API.Domains.AIChats.Dtos.AI;
+using ChatBox.API.Domains.AIChats.Enums;
+using ChatBox.API.Domains.AIChats.Services.Contracts;
 using ChatBox.API.Domains.AIChats.Utils;
 using ChatBox.API.Models;
+using ChatBox.API.Shared.Authentication;
+using Grpc.Core;
 using Mapster;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using UserMemory.API.Protos;
 
 namespace ChatBox.API.Domains.AIChats.Services;
 
 public class MessageProcessor(
     IContextBuilder contextBuilder,
     IAIProvider aiProvider,
+    IRouterClient routerClient,
+    IPublishEndpoint publishEndpoint,
     ISessionConcurrencyManager concurrencyManager,
+    ICurrentActorAccessor currentActorAccessor,
+    UserMemorySearchService.UserMemorySearchServiceClient userMemorySearchClient,
     ChatBoxDbContext dbContext,
     SummarizationService summarizationService,
-    IInstructionGenerator instructionGenerator,
     ILogger<MessageProcessor> logger
 )
     : IMessageProcessor
@@ -69,90 +78,185 @@ public class MessageProcessor(
 
     private async Task<List<AIMessageResponseDto>> ProcessMessageInternal(AIMessageRequestDto request, Guid userId)
     {
+        var aliasId = currentActorAccessor.GetRequiredAliasId();
+        
         var session = await dbContext.AIChatSessions
             .AsNoTracking()
             .FirstAsync(s => s.Id == request.SessionId);
 
         var userMessageWithDateTime = DatePromptHelper.PrependDateTimePrompt(request.UserMessage, 7);
 
-        // BƯỚC 1: Xây dựng ngữ cảnh ban đầu
+        // 1) Ngữ cảnh ban đầu
         var initialContext = await contextBuilder.BuildContextAsync(request.SessionId, userMessageWithDateTime);
 
-        // BƯỚC 2 (MỚI): Gọi "Instructor" để lấy gợi ý
-        var instruction = await instructionGenerator.GenerateInstructionAsync(
+        // 2) ROUTER
+        var routerDecision = await routerClient.RouteAsync(
             userMessageWithDateTime,
             session.Summarization,
-            session.PersonaSnapshot.ToPromptText()
+            ct: CancellationToken.None
         );
 
-
-        // BƯỚC 3 (MỚI): Chèn gợi ý vào ngữ cảnh
-        // Nếu có instruction, chèn nó vào giữa phần persona/context và tin nhắn của người dùng
-        // Điều này giúp AI chính đọc được chỉ dẫn ngay trước khi "thấy" tin nhắn cần trả lời
-        var augmentedContext = initialContext;
-        string knowledgeAugmentation = "";
-
-        // 3.1: Kiểm tra Marker RAG để tạo khối Kiến thức
-        if (instruction.Contains("RAG_TEAM_KNOWLEDGE"))
+        // 2.1) SaveMemory nếu cần
+        if (routerDecision?.SaveNeeded == true && routerDecision.MemoryToSave is not null)
         {
-            var teamKnowledge = await LoadTeamKnowledgeFileAsync();
+            var mem = routerDecision.MemoryToSave;
+            var effectiveTags = new List<string>();
+            if (mem.EmotionTags is { Count: > 0 }) effectiveTags.AddRange(mem.EmotionTags.Select(x => x.ToString()));
+            if (mem.RelationshipTags is { Count: > 0 }) effectiveTags.AddRange(mem.RelationshipTags.Select(x => x.ToString()));
+            if (mem.TopicTags is { Count: > 0 }) effectiveTags.AddRange(mem.TopicTags.Select(x => x.ToString()));
 
-            // Tạo khối kiến thức để chèn vào prompt của AI Emo
-            knowledgeAugmentation = $@"
-[KIẾN THỨC BỔ SUNG VỀ DỰ ÁN EMOEASE (BẮT BUỘC SỬ DỤNG)]
-            {teamKnowledge}
-[HẾT KIẾN THỨC BỔ SUNG]
-            ";
-            instruction = instruction.Replace("[MARKER: RAG_TEAM_KNOWLEDGE]", "").Trim();
+            await publishEndpoint.Publish(new UserMemoryCreatedIntegrationEvent(
+                AliasId: aliasId,
+                SessionId: session.Id,
+                Summary: mem.Summary,
+                Tags: effectiveTags.Distinct().ToList(),
+                SaveNeeded: true
+            ));
         }
 
-        // 3.2: Chèn Instruction và Knowledge vào ngữ cảnh
-        if (!string.IsNullOrWhiteSpace(instruction) || !string.IsNullOrWhiteSpace(knowledgeAugmentation))
+        // 2.3) gRPC RAG personal memory (MVP)
+        string memoryAugmentation = string.Empty;
+        var shouldCallMemory = routerDecision?.Intent == RouterIntent.RAG_PERSONAL_MEMORY
+                               || routerDecision?.RetrievalNeeded == true;
+
+        var instruction = routerDecision?.Instruction?.Trim();
+        
+        if (shouldCallMemory)
         {
-            // Tách phần tin nhắn người dùng ra khỏi context
-            var userMessageMarker = "[User]\n";
-            var markerIndex = initialContext.IndexOf(userMessageMarker, StringComparison.Ordinal);
-
-            if (markerIndex != -1)
+            instruction = @"[Gợi ý trả lời:
+- BẮT BUỘC ground theo [PERSONAL MEMORY CONTEXT OF USER] (nằm ở trên); không mâu thuẫn hoặc bỏ qua.
+- Không lặp nguyên văn; chỉ tham chiếu tinh tế.
+]";
+            
+            var searchQuery = request.UserMessage.Trim();
+            if (!string.IsNullOrEmpty(searchQuery))
             {
-                var contextWithoutUserMessage = initialContext.Substring(0, markerIndex);
-                var userMessagePart = initialContext.Substring(markerIndex);
+                try
+                {
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                    var grpcReq = new SearchMemoriesRequest
+                    {
+                        AliasId = aliasId.ToString(),
+                        Query = searchQuery,
+                        TopK = 5,
+                        MinScore = 0.5
+                    };
 
-                // Ghép lại: [Context cũ] + [Knowledge (nếu có)] + [Instruction (nếu có)] + [User Message]
-                augmentedContext =
-                    $"{contextWithoutUserMessage}" +
-                    $"{knowledgeAugmentation}" + // Chèn kiến thức
-                    $"\n\n{instruction}\n\n" + // Chèn gợi ý
-                    $"{userMessagePart}";
+                    var grpcResp = await userMemorySearchClient.SearchMemoriesAsync(grpcReq, cancellationToken: cts.Token);
+                    if (grpcResp?.Hits?.Count > 0)
+                    {
+                        var bullets = grpcResp.Hits
+                            .OrderByDescending(h => h.Score)
+                            .Select(h => $"- [Relevant Score: {h.Score:0.00}] {h.Summary}");
+
+                        memoryAugmentation =
+                            $@"[PERSONAL MEMORY CONTEXT OF USER — USE IF RELEVANT]
+{string.Join("\n", bullets)}
+[/PERSONAL MEMORY CONTEXT OF USER]";
+                    }
+                }
+                catch (RpcException ex)
+                {
+                    logger.LogWarning(ex, "UserMemory gRPC failed (RpcException) — continue without memory");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "UserMemory gRPC failed — continue without memory");
+                }
             }
-            else
+        }
+
+        // 3) Team knowledge (nếu có)
+        var augmentedContext = initialContext;
+        if (routerDecision?.Intent == RouterIntent.RAG_TEAM_KNOWLEDGE)
+        {
+            var teamKnowledge = await LoadTeamKnowledgeFileAsync();
+            var userMarker0 = "[User]\n";
+            var idx0 = initialContext.IndexOf(userMarker0, StringComparison.Ordinal);
+
+            var block =
+                $@"[KIẾN THỨC BỔ SUNG VỀ DỰ ÁN EMOEASE (BẮT BUỘC SỬ DỤNG)]
+{teamKnowledge}
+[HẾT KIẾN THỨC BỔ SUNG]";
+
+            augmentedContext = idx0 != -1
+                ? $"{initialContext[..idx0]}{block}\n\n{initialContext[idx0..]}"
+                : $"{initialContext}\n\n{block}";
+        }
+
+        // 3.x) ROUTER INSTRUCTION – topic-agnostic, nói khéo (không “đọc thuộc” memory)
+        string routerBlock = string.Empty;
+        {
+            // fallback nếu router không trả instruction hoặc trả sai format
+            var safeInstruction =
+                "[Gợi ý trả lời: Thừa nhận nhu cầu hiện tại; đề xuất 2–3 hướng lựa chọn tương phản (ví dụ: nhanh/gọn – thoải mái – tập trung/kỹ thuật); hỏi mở sở thích/giới hạn lúc này; tinh tế tham chiếu tới ‘gu gần đây’ nếu phù hợp, tránh nhắc đúng chi tiết đã lưu. Giọng điệu ấm áp, không áp đặt.]";
+            
+            if (string.IsNullOrWhiteSpace(instruction) || !instruction.StartsWith("[") || !instruction.EndsWith("]"))
+                instruction = safeInstruction;
+
+            routerBlock =
+                $@"[ROUTER INSTRUCTION]
+{instruction}
+[/ROUTER INSTRUCTION]";
+        }
+
+        // 3.y) RULES dùng memory – tổng quát hoá cho mọi chủ đề
+        string usageRules =
+            @"[USAGE RULES FOR PERSONAL MEMORY]
+- Dùng memory để **định hướng tinh tế**, không áp đặt.
+- **Không** lặp lại nguyên văn hoặc nêu đúng item đã lưu (tránh cảm giác bị theo dõi).
+- Nếu có ràng buộc/biên (dị ứng, giới hạn thời gian/ngân sách, phong cách chơi, thể loại ưa/ghét), **ưu tiên lọc theo biên** trước khi gợi ý.
+- **QUAN TRỌNG (Persona):** Bạn là Emo, một AI đồng hành.
+  - **ĐƯỢC PHÉP:** Đồng cảm, thấu hiểu, chia sẻ cảm xúc ngắn gọn.
+  - **TUYỆT ĐỐI CẤM:** Bịa đặt trải nghiệm cá nhân. KHÔNG được nói 'Tớ cũng vừa...', 'Tớ cũng mới trải qua...', 'Tuần trước tớ cũng bị...', hoặc 'Tớ cũng giống cậu...'. Bạn không có trải nghiệm cá nhân.
+[/USAGE RULES FOR PERSONAL MEMORY]";
+
+        // 3.z) Reorder: [System/Previous] -> [ROUTER INSTRUCTION] -> [USAGE RULES] -> [MEMORY] -> [User]
+        {
+            var userMarker = "[User]\n";
+            var idx = augmentedContext.IndexOf(userMarker, StringComparison.Ordinal);
+
+            var head = idx != -1 ? augmentedContext[..idx] : augmentedContext;
+            var tail = idx != -1 ? augmentedContext[idx..] : string.Empty;
+
+            var middle = string.Join("\n\n", new[]
             {
-                // Trường hợp không tìm thấy marker tin nhắn người dùng, vẫn cố gắng chèn
-                augmentedContext =
-                    $"{initialContext}" +
-                    $"{knowledgeAugmentation}" +
-                    $"\n\n[INSTRUCTION TỪ COACH]\n{instruction}";
-            }
+                routerBlock,
+                usageRules,
+                string.IsNullOrEmpty(memoryAugmentation) ? null : memoryAugmentation
+            }.Where(s => !string.IsNullOrWhiteSpace(s)));
+
+            augmentedContext = string.IsNullOrWhiteSpace(middle)
+                ? $"{head}\n{tail}"
+                : $"{head}\n{middle}\n\n{tail}";
         }
 
         logger.LogInformation("Augmented context with instruction: {Context}", augmentedContext);
 
-        // BƯỚC 4: Xây dựng payload với ngữ cảnh đã tăng cường
+        // 4) Build payload
         var payload = await BuildAIPayload(request, session, augmentedContext);
 
+        logger.LogInformation("============= AI Payload built: {@Payload}", payload);
+        
+        // 5) Call model
         var responseText = await aiProvider.GenerateResponseAsync(payload, session.Id);
-
         if (string.IsNullOrWhiteSpace(responseText))
             throw new Exception("Lấy response từ AI thất bại.");
 
         var aiMessages = SplitAIResponse(request.SessionId, responseText);
+
+        // Persist
         await SaveMessagesAsync(request.SessionId, userId, request.UserMessage, request.SentAt, aiMessages);
+
+        // Summarize if needed
         await summarizationService.MaybeSummarizeSessionAsync(userId, request.SessionId);
 
-        return aiMessages.Select(m => new AIMessageResponseDto(
-                m.SessionId, m.SenderIsEmo, m.Content, m.CreatedDate))
+        // FE DTO
+        return aiMessages
+            .Select(m => new AIMessageResponseDto(m.SessionId, m.SenderIsEmo, m.Content, m.CreatedDate))
             .ToList();
     }
+
 
     private readonly string _knowledgeFilePath = Path.Combine(AppContext.BaseDirectory, "Lookups", "emoease_team_knowledge.md");
 

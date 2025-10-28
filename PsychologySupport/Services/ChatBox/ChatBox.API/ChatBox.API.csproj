@@ -15,6 +15,8 @@
         <NoWarn>$(NoWarn);CS9113;CS8618;CS8602;CS8629;CS8600;CS8601;CS8604;CS8625;CS8603;CS8765</NoWarn>
     </PropertyGroup>
     <ItemGroup>
+      <None Remove="Protos\chatbox.proto" />
+      <None Remove="Protos\persona_orchestrator.proto" />
       <None Remove="Protos\pii.proto" />
       <None Update="Lookups\emoease_team_knowledge.md">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -49,6 +51,8 @@
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     </ItemGroup>
 	<ItemGroup>
+		<Protobuf Include="Protos\chatbox.proto" GrpcServices="Server" />
+		<Protobuf Include="Protos\persona_orchestrator.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\pii.proto">
 			<GrpcServices>Client</GrpcServices>
 			<Access>Public</Access>
@@ -56,6 +60,14 @@
 			<CompileOutputs>True</CompileOutputs>
 			<OutputDir>obj\Debug\net9.0\</OutputDir>
 			<Generator>MSBuild:Compile</Generator>
+		</Protobuf>
+		<Protobuf Include="Protos\user_memory.proto">
+		  <GrpcServices>Client</GrpcServices>
+		  <Access>Public</Access>
+		  <ProtoCompile>True</ProtoCompile>
+		  <CompileOutputs>True</CompileOutputs>
+		  <OutputDir>obj\Debug\net9.0\</OutputDir>
+		  <Generator>MSBuild:Compile</Generator>
 		</Protobuf>
 	</ItemGroup>
 </Project>

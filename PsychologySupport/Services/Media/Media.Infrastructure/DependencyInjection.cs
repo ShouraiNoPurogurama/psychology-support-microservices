@@ -21,10 +21,15 @@ namespace Media.Infrastructure
         {
             var connectionString = config.GetConnectionString("MediaDb");
 
+            services.AddHttpClient();
+            
             // DbContext + Interceptors
             services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
             services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
             services.AddScoped<IMediaDbContext, MediaDbContext>();
+            services.AddScoped<IStickerGenerationService, GeminiImageGenerationService>();
+            services.Configure<AssetsOptions>(config.GetSection("Assets"));
+
 
             services.AddDbContext<MediaDbContext>((serviceProvider, options) =>
             {

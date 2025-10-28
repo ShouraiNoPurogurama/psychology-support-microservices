@@ -48,7 +48,9 @@
     </ItemGroup>
 	<ItemGroup>
 		<Protobuf Include="Protos\patient_profile.proto" GrpcServices="Server" />
+		<None Remove="Protos\persona_orchestrator.proto" />
 		<None Remove="Protos\pii.proto" />
+		<Protobuf Include="Protos\persona_orchestrator.proto" GrpcServices="Server" />
 		<Protobuf Include="Protos\pii.proto" GrpcServices="Server" />
 	</ItemGroup>
 	<ItemGroup>

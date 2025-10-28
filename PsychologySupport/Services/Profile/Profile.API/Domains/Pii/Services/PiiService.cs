@@ -139,6 +139,29 @@ public class PiiService(PiiDbContext piiDbContext, ISender sender, ILogger<PiiSe
 
         return userId;
     }
+    
+    public override async Task<ResolveUserIdByAliasIdResponse> ResolveUserIdByAliasId(
+        ResolveUserIdByAliasIdRequest request, ServerCallContext context)
+    {
+        if (!Guid.TryParse(request.AliasId, out var aliasId))
+            return new ResolveUserIdByAliasIdResponse 
+            { 
+                UserId = Guid.Empty.ToString() 
+            };
+
+        var query = from am in piiDbContext.AliasOwnerMaps.AsNoTracking()
+            join pp in piiDbContext.PersonProfiles.AsNoTracking()
+                on am.SubjectRef equals pp.SubjectRef
+            where am.AliasId == aliasId
+            select pp.UserId;
+        
+        var userId = await query.FirstOrDefaultAsync(context.CancellationToken);
+
+        return new ResolveUserIdByAliasIdResponse
+        {
+            UserId = userId.ToString()
+        };
+    }
 
     public override Task<ResolvePatientIdByAliasIdResponse> ResolvePatientIdByAliasId(ResolvePatientIdByAliasIdRequest request,
         ServerCallContext context)

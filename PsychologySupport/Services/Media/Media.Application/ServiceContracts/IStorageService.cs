@@ -17,8 +17,9 @@ namespace Media.Application.ServiceContracts
         Task<string> GetCdnUrlAsync(string blobName, CancellationToken cancellationToken);
 
         Task<string> UploadFileAsync(IFormFile file, string blobName, string mimeType, CancellationToken cancellationToken);
-
+        Task<string> UploadStreamAsync(Stream stream, string blobName, string mimeType, CancellationToken cancellationToken);
         Task<Stream> DownloadFileAsync(string blobKey);
+
     }
 
 }

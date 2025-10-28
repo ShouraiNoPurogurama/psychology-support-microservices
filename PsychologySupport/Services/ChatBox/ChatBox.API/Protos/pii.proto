@@ -21,7 +21,7 @@ service PiiService {
   //Tra patient_id từ subject_ref 
   rpc ResolvePatientIdBySubjectRef (ResolvePatientIdBySubjectRefRequest)
       returns (ResolvePatientIdBySubjectRefResponse);
-  
+
   //Tra subject_ref từ alias_id (UUID string)
   rpc ResolveSubjectRefByAliasId (ResolveSubjectRefByAliasIdRequest)
       returns (ResolveSubjectRefByAliasIdResponse);
@@ -34,16 +34,24 @@ service PiiService {
   rpc ResolveUserIdBySubjectRef (ResolveUserIdBySubjectRefRequest)
       returns (ResolveUserIdBySubjectRefResponse);
 
+  //Tra user_id từ alias_id
+  rpc ResolveUserIdByAliasId (ResolveUserIdByAliasIdRequest)
+      returns (ResolveUserIdByAliasIdResponse);
+
   //Tra patient_id từ alias_id
   rpc ResolvePatientIdByAliasId (ResolvePatientIdByAliasIdRequest)
       returns (ResolvePatientIdByAliasIdResponse);
-  
+
 
   rpc EnsureSubjectRef (EnsureSubjectRefRequest) returns (EnsureSubjectRefResponse);
 
   // Tra user_id từ patient_id
   rpc ResolveUserIdByPatientId (ResolveUserIdByPatientIdRequest)
-    returns (ResolveUserIdByPatientIdResponse);
+      returns (ResolveUserIdByPatientIdResponse);
+
+  // Tra thông tin cá nhân (email, subject_ref) từ patient_id
+  rpc ResolvePersonInfoByPatientId (ResolvePersonInfoByPatientIdRequest)
+      returns (ResolvePersonInfoByPatientIdResponse);
 
 }
 
@@ -90,6 +98,17 @@ message ResolveUserIdBySubjectRefRequest {
   string subject_ref = 1; //UUID string
 }
 
+//----- UserId <-> SubjectRef (internal) -----
+message ResolveUserIdByAliasIdRequest {
+  string alias_id = 1; //UUID string
+}
+
+message ResolveUserIdByAliasIdResponse {
+  string user_id = 1; //UUID string
+}
+
+
+
 message ResolveUserIdBySubjectRefResponse {
   string user_id = 1; //UUID string; empty nếu không tìm thấy
 }
@@ -115,6 +134,16 @@ message ResolveUserIdByPatientIdRequest {
 
 message ResolveUserIdByPatientIdResponse {
   string user_id = 1; // UUID string; empty nếu không tìm thấy
+}
+
+//----- PersonInfo theo PatientId -----
+message ResolvePersonInfoByPatientIdRequest {
+  string patient_id = 1; //UUID string
+}
+
+message ResolvePersonInfoByPatientIdResponse {
+  string subject_ref = 1; //UUID string
+  string email = 2; //email của person profile
 }
 
 

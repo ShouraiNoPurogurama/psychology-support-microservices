@@ -4,7 +4,6 @@ using BuildingBlocks.Filters;
 using BuildingBlocks.Messaging.MassTransit;
 using Carter;
 using ChatBox.API.Data;
-using ChatBox.API.Domains.AIChats.Abstractions;
 using ChatBox.API.Domains.AIChats.Services;
 using ChatBox.API.Models;
 using ChatBox.API.Utils;
@@ -15,6 +14,10 @@ using Microsoft.OpenApi.Models;
 using Pii.API.Protos;
 using System.Configuration;
 using System.Reflection;
+using ChatBox.API.Domains.AIChats.Services.Contracts;
+using ChatBox.API.Shared.Authentication;
+using Profile.API.Protos;
+using UserMemory.API.Protos;
 
 namespace ChatBox.API.Extensions;
 
@@ -46,6 +49,8 @@ public static class ApplicationServiceExtensions
         ConfigureMediatR(services);
 
         AddAIServices(services);
+
+        services.AddGrpc();
         
         services.AddIdentityServices(config);
         
@@ -150,6 +155,9 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
         services.AddScoped<LoggingActionFilter>();
         services.AddScoped<IInstructionGenerator, GeminiInstructionGenerator>();
+        services.AddScoped<IRouterClient, GeminiRouterClient>();
+        services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
+        services.AddScoped<IStickerRewardService, StickerRewardService>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
@@ -187,5 +195,25 @@ public static class ApplicationServiceExtensions
             {
                 EnableMultipleHttp2Connections = true
             });
+        
+        services.AddGrpcClient<UserMemorySearchService.UserMemorySearchServiceClient>(options =>
+            {
+                options.Address = new Uri(config["GrpcSettings:UserMemoryUrl"]!);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                EnableMultipleHttp2Connections = true
+            });
+        
+        services.AddGrpcClient<PersonaOrchestratorService.PersonaOrchestratorServiceClient>(options =>
+            {
+                options.Address = new Uri(config["GrpcSettings:PersonaOrchestrationUrl"]!);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                EnableMultipleHttp2Connections = true
+            });
+
+
     }
 }

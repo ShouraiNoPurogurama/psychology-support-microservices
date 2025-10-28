@@ -1,8 +1,8 @@
 ﻿using BuildingBlocks.Exceptions;
 using BuildingBlocks.Pagination;
-using ChatBox.API.Domains.AIChats.Abstractions;
 using ChatBox.API.Domains.AIChats.Dtos.AI;
 using ChatBox.API.Domains.AIChats.Services;
+using ChatBox.API.Domains.AIChats.Services.Contracts;
 using ChatBox.API.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +10,7 @@ namespace ChatBox.API.Domains.AIChats.Controllers;
 
 [Controller]
 [Route("api/[controller]")]
-public class AIChatController(SessionService sessionService, IMessageProcessor messageProcessor) : ControllerBase
+public class AIChatController(SessionService sessionService, IStickerRewardService stickerRewardService, IMessageProcessor messageProcessor) : ControllerBase
 {
     [HttpPost("messages")]
     public async Task<IActionResult> SendMessage([FromBody] AIMessageRequestDto request)
@@ -104,5 +104,19 @@ public class AIChatController(SessionService sessionService, IMessageProcessor m
 
         await messageProcessor.MarkMessagesAsReadAsync(id, userId);
         return Ok();
+    }
+    
+    [HttpPost("sticker/claim")] 
+    public async Task<IActionResult> ClaimSticker()
+    {
+        var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+        if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+        {
+            throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
+        }
+
+        var rewardMessage = await stickerRewardService.ClaimStickerAsync(userId);
+        
+        return Ok(rewardMessage);
     }
 }

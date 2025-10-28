@@ -6,7 +6,6 @@ using Media.Application.ServiceContracts;
 using Media.Domain.Enums;
 using Media.Domain.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 
 namespace Media.Application.Features.Media.Commands.UploadMedia

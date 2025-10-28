@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using ChatBox.API.Domains.AIChats.Abstractions;
+using ChatBox.API.Domains.AIChats.Services.Contracts;
 
 namespace ChatBox.API.Domains.AIChats.Services;
 
