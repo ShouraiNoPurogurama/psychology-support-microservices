@@ -1,0 +1,7 @@
+services:
+  usermemory.api:
+    image: usermemory.api
+    build:
+      context: .
+      dockerfile: Services/UserMemory/UserMemory.API/Dockerfile
+
