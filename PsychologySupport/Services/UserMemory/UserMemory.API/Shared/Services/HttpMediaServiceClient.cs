@@ -17,9 +17,6 @@ public class HttpMediaServiceClient : IMediaServiceClient
     {
         _httpClient = httpClient;
         _logger = logger;
-
-        // BaseAddress nên được cấu hình trong Program.cs (AddHttpClient)
-        _httpClient.BaseAddress = new Uri("https://localhost:5511/"); 
     }
 
     public async Task<MediaGenerationResultDto> GenerateStickerAsync(string prompt, Guid rewardId, CancellationToken ct)
