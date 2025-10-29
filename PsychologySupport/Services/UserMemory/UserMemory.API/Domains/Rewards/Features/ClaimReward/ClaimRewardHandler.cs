@@ -91,8 +91,8 @@ public class ClaimRewardHandler(
                 throw new BadRequestException("Session chat này không đủ 1000 điểm để đổi.");
             }
 
-            // --- CẬP NHẬT BỘ ĐẾM (NẾU LÀ FREE) ---
-            if (isFreeUser && summary != null)
+            // --- CẬP NHẬT BỘ ĐẾM ---
+            if (summary != null)
             {
                 summary.RewardClaimCount++; 
                 summary.LastModified = DateTimeOffset.UtcNow;

@@ -1,4 +1,4 @@
-﻿using Auth.API.Data;
+using Auth.API.Data;
 using Auth.API.Features.Authentication.ServiceContracts.Features;
 using Auth.API.Features.Authentication.ServiceContracts.Shared;
 using Auth.API.Features.Encryption.ServiceContracts;
@@ -86,6 +86,6 @@ public class UserProvisioningService(
                .ThenInclude(ur => ur.Role)
             .Include(u => u.Onboarding)
             .FirstOrDefaultAsync(u => u.Id == userId)
-            ?? throw new InvalidOperationException("User not found after creation");
+            ?? throw new InvalidOperationException("Không tìm thấy người dùng sau khi tạo.");
     }
 }

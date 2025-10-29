@@ -253,8 +253,6 @@ public class MessageProcessor(
 
         // 4) Build payload
         var payload = await BuildAIPayload(request, session, augmentedContext);
-
-        logger.LogInformation("============= AI Payload built: {@Payload}", payload);
         
         // 5) Call model
         var responseText = await aiProvider.GenerateResponseAsync_FoundationalModel(payload, session.Id);
@@ -368,6 +366,9 @@ public class MessageProcessor(
         var summarization = await GetSessionSummarizationAsync(session.Id);
         var historyMessages = await GetHistoryMessagesAsync(session.Id);
 
+        logger.LogInformation("Summarization: {Summarization}", summarization);
+        logger.LogInformation("HistoryMessages count: {Count}", historyMessages);
+        
         return new AIRequestPayload(
             Context: augmentedContext,
             Summarization: summarization,
