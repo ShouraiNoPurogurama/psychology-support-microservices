@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
@@ -40,7 +40,7 @@ public sealed class EditPostCommandHandler : ICommandHandler<EditPostCommand, Ed
         // Verify ownership
         if (post.Author.AliasId != request.AliasId)
         {
-            throw new UnauthorizedAccessException("You can only edit your own posts");
+            throw new UnauthorizedAccessException("Bạn chỉ có thể chỉnh sửa bài viết của chính mình.");
         }
 
         // Update content

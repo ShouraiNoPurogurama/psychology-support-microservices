@@ -28,7 +28,7 @@ public sealed class GetFollowersHandler(
             .FirstOrDefaultAsync(a => a.Id == request.AliasId && !a.IsDeleted, cancellationToken);
 
         if (targetAlias == null)
-            throw new InvalidAliasDataException("Alias not found or has been deleted.");
+            throw new InvalidAliasDataException("Không tìm thấy thông tin người dùng.");
 
         // Get total count of followers
         var totalCount = await dbContext.Follows

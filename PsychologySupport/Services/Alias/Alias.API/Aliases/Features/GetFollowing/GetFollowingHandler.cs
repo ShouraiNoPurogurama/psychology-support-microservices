@@ -27,7 +27,7 @@ public sealed class GetFollowingHandler(
             .FirstOrDefaultAsync(a => a.Id == request.AliasId && !a.IsDeleted, cancellationToken);
 
         if (sourceAlias == null)
-            throw new InvalidAliasDataException("Alias not found or has been deleted.");
+            throw new InvalidAliasDataException("Không tìm thấy thông tin người dùng.");
 
         // Get total count of following
         var totalCount = await dbContext.Follows

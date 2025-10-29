@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Data;
@@ -25,7 +25,7 @@ internal sealed class
             .AnyAsync(p => p.Id == request.PostId && !p.IsDeleted, cancellationToken);
 
         if (!postExists)
-            throw new NotFoundException("Post not found or has been deleted.", "POST_NOT_FOUND");
+            throw new NotFoundException("Không tìm thấy bài viết.", "POST_NOT_FOUND");
 
         // Get user's reaction for this post with AsNoTracking
         var reaction = await _context.Reactions

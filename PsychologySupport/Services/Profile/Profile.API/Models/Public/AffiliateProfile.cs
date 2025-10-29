@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Data.Common;
+using BuildingBlocks.Data.Common;
 using BuildingBlocks.DDD;
 
 namespace Profile.API.Models.Public
@@ -37,19 +37,19 @@ namespace Profile.API.Models.Public
             string referralLink)
         {
             if (userId == Guid.Empty)
-                throw new ArgumentException("User ID cannot be empty.", nameof(userId));
+                throw new ArgumentException("ID người dùng không được để trống.", nameof(userId));
 
             if (string.IsNullOrWhiteSpace(fullName))
-                throw new ArgumentException("Full name cannot be empty.", nameof(fullName));
+                throw new ArgumentException("Tên đầy đủ không được để trống.", nameof(fullName));
 
             if (contactInfo == null)
-                throw new ArgumentNullException(nameof(contactInfo), "Contact info cannot be null.");
+                throw new ArgumentNullException(nameof(contactInfo), "Thông tin liên hệ không được để trống.");
 
             if (string.IsNullOrWhiteSpace(referralCode))
-                throw new ArgumentException("Referral code cannot be empty.", nameof(referralCode));
+                throw new ArgumentException("Mã giới thiệu không được để trống.", nameof(referralCode));
 
             if (string.IsNullOrWhiteSpace(referralLink))
-                throw new ArgumentException("Referral link cannot be empty.", nameof(referralLink));
+                throw new ArgumentException("Liên kết giới thiệu không được để trống.", nameof(referralLink));
 
             return new AffiliateProfile(userId, fullName, contactInfo, referralCode, referralLink);
         }

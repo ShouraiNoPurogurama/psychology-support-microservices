@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Constants;
+using BuildingBlocks.Constants;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Notification;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Profile;
 using MassTransit;
@@ -25,7 +25,7 @@ public class DoctorProfileCreatedEventHandler : IConsumer<DoctorProfileCreatedRe
 
         if (existingUser is not null)
         {
-            throw new InvalidDataException("Email or phone number already exists in the system");
+            throw new InvalidDataException("Email hoặc số điện thoại đã tồn tại trong hệ thống.");
         }
 
         //var password = string.IsNullOrEmpty(message.Password) ? GenerateRandomPassword() : message.Password;
@@ -51,7 +51,7 @@ public class DoctorProfileCreatedEventHandler : IConsumer<DoctorProfileCreatedRe
         var roleResult = await _userManager.AddToRoleAsync(user, Roles.DoctorRole);
         if (!roleResult.Succeeded)
         {
-            throw new InvalidDataException("Role assignment failed");
+            throw new InvalidDataException("Gán vai trò thất bại.");
         }
 
         await context.RespondAsync(new DoctorProfileCreatedResponseEvent(user.Id, true));

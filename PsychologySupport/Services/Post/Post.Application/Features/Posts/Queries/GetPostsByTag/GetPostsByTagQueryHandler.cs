@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +33,7 @@ internal sealed class GetPostsByTagQueryHandler : IQueryHandler<GetPostsByTagQue
             .AnyAsync(ct => ct.Id == request.CategoryTagId, cancellationToken);
 
         if (!categoryExists)
-            throw new NotFoundException("Category tag not found.", "CATEGORY_TAG_NOT_FOUND");
+            throw new NotFoundException("Không tìm thấy danh mục.", "CATEGORY_TAG_NOT_FOUND");
 
         var baseQuery = _context.Posts
             .Include(p => p.Categories)

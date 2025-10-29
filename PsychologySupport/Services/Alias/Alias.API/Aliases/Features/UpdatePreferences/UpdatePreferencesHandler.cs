@@ -49,14 +49,14 @@ public class UpdatePreferencesHandler(
         currentActorAccessor.TryGetAliasId(out var aliasId);
 
         if (aliasId == Guid.Empty)
-            throw new AliasNotFoundException("User alias not found.", "ALIAS_NOT_FOUND");
+            throw new AliasNotFoundException("Không tìm thấy hồ sơ người dùng.", "ALIAS_NOT_FOUND");
 
         // Load alias aggregate
         var alias = await dbContext.Aliases
                         .Include(a => a.Versions)
                         .Include(a => a.AuditRecords)
                         .FirstOrDefaultAsync(a => a.Id == aliasId && !a.IsDeleted, cancellationToken)
-                    ?? throw new AliasNotFoundException("User alias not found for updating preferences.",
+                    ?? throw new AliasNotFoundException("Không tìm thấy hồ sơ người dùng để cập nhật tùy chọn.",
                         "ALIAS_NOT_FOUND");
 
         // Use domain aggregate method to update preferences

@@ -10,25 +10,25 @@ public class InvalidAliasDataException : AliasDomainException
 
 public class AliasNotFoundException : AliasDomainException
 {
-    public AliasNotFoundException(string message = "Alias not found") : base(message) { }
+    public AliasNotFoundException(string message = "Không tìm thấy bí danh.") : base(message) { }
 }
 
 public class AliasConflictException : AliasDomainException
 {
-    public AliasConflictException(string message = "Alias already exists") : base(message) { }
+    public AliasConflictException(string message = "Bí danh đã tồn tại.") : base(message) { }
 }
 
 public class AliasSuspendedException : AliasDomainException
 {
-    public AliasSuspendedException(string message = "Cannot perform action on suspended alias") : base(message) { }
+    public AliasSuspendedException(string message = "Không thể thực hiện thao tác này.") : base(message) { }
 }
 
 public class AliasVersionLimitExceededException : AliasDomainException
 {
-    public AliasVersionLimitExceededException(string message = "Maximum alias versions reached") : base(message) { }
+    public AliasVersionLimitExceededException(string message = "Đã đạt giới hạn phiên bản.") : base(message) { }
 }
 
 public class InvalidAliasAuditActionException : AliasDomainException
 {
-    public InvalidAliasAuditActionException(string message = "Alias audit action is invalid") : base(message) { }
+    public InvalidAliasAuditActionException(string message = "Thao tác không hợp lệ.") : base(message) { }
 }

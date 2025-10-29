@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
@@ -26,12 +26,12 @@ internal sealed class EditCommentCommandHandler : ICommandHandler<EditCommentCom
             .FirstOrDefaultAsync(c => c.Id == request.CommentId && !c.IsDeleted, cancellationToken);
 
         if (comment == null)
-            throw new NotFoundException("Comment not found or has been deleted.", "COMMENT_NOT_FOUND");
+            throw new NotFoundException("Không tìm thấy bình luận.", "COMMENT_NOT_FOUND");
 
         // Authorization: Must be author
         if (comment.Author.AliasId != _currentActorAccessor.GetRequiredAliasId())
         {
-            throw new ForbiddenException("Only the comment author can edit this comment.", "UNAUTHORIZED_COMMENT_EDIT");
+            throw new ForbiddenException("Bạn không có quyền chỉnh sửa bình luận này.", "UNAUTHORIZED_COMMENT_EDIT");
         }
 
         // Update comment content via domain methods

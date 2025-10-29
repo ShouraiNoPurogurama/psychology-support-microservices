@@ -79,6 +79,30 @@ public class RealtimeHubService : IRealtimeHubService
         }
     }
 
+    public async Task SendRewardFailedNotificationToUserAsync(
+        Guid aliasId,
+        RewardFailedNotificationMessage rewardFailedNotification,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _hubContext.Clients
+                .Group($"user_{aliasId}")
+                .ReceiveRewardFailedNotification(rewardFailedNotification);
+
+            _logger.LogInformation(
+                "Sent reward failure notification {NotificationId} to user {AliasId} via SignalR",
+                rewardFailedNotification.NotificationId, aliasId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Failed to send reward failure notification {NotificationId} to user {AliasId} via SignalR",
+                rewardFailedNotification.NotificationId, aliasId);
+            throw;
+        }
+    }
+
     public async Task SendProgressUpdateToUserAsync(
         Guid aliasId,
         ProgressUpdateMessage progressUpdate,

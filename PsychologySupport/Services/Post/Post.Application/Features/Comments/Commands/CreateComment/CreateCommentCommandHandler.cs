@@ -58,7 +58,7 @@ internal sealed class CreateCommentCommandHandler : ICommandHandler<CreateCommen
 
             if (parentComment.PostId != request.PostId)
             {
-                throw new BadRequestException("Parent comment must belong to the same post");
+                throw new BadRequestException("Bình luận cha phải thuộc cùng bài viết.");
             }
         }
 

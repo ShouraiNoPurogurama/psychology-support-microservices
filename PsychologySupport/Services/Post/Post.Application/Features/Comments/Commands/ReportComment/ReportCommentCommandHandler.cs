@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +33,7 @@ internal sealed class ReportCommentCommandHandler : ICommandHandler<ReportCommen
             .FirstOrDefaultAsync(c => c.Id == request.CommentId && !c.IsDeleted, cancellationToken);
 
         if (comment == null)
-            throw new NotFoundException("Comment not found or has been deleted.", "COMMENT_NOT_FOUND");
+            throw new NotFoundException("Không tìm thấy bình luận.", "COMMENT_NOT_FOUND");
 
         // Generate report ID
         var reportId = Guid.NewGuid();

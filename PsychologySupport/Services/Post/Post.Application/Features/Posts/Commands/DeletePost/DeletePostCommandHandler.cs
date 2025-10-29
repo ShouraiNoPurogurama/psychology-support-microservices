@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Post.Application.Abstractions.Authentication;
@@ -39,7 +39,7 @@ internal sealed class DeletePostCommandHandler : ICommandHandler<DeletePostComma
         // Verify ownership
         if (post.Author.AliasId != _currentActorAccessor.GetRequiredAliasId())
         {
-            throw new UnauthorizedAccessException("You can only delete your own posts");
+            throw new UnauthorizedAccessException("Bạn chỉ có thể xóa bài viết của chính mình.");
         }
 
         // Soft delete the post
