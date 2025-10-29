@@ -12,6 +12,7 @@ namespace Wellness.Application.Features.JournalMoods.Dtos
         string MoodName,
         string? MoodIconCode,
         string? Note,
+        int Value,
         DateTimeOffset CreatedAt
     );
 }

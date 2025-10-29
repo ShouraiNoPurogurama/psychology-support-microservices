@@ -39,8 +39,8 @@ internal class GetJournalMoodHandler
 
         if (request.EndDate.HasValue)
         {
-            var endUtc = request.EndDate.Value.ToUniversalTime();
-            query = query.Where(jm => jm.CreatedAt <= endUtc);
+            var end = request.EndDate.Value.Date.AddDays(1).AddTicks(-1);
+            query = query.Where(jm => jm.CreatedAt <= end);
         }
 
         var items = await query
@@ -51,6 +51,7 @@ internal class GetJournalMoodHandler
                 jm.Mood.Name,         
                 jm.Mood.IconCode,
                 jm.Note,
+                jm.Mood.Value,
                 jm.CreatedAt.ToOffset(TimeSpan.FromHours(7))
             ))
             .ToListAsync(cancellationToken);
