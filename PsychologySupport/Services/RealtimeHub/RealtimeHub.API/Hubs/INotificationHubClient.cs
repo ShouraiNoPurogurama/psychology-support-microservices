@@ -18,6 +18,11 @@ public interface INotificationHubClient
     Task ReceiveRewardNotification(RewardNotificationMessage rewardNotification);
 
     /// <summary>
+    /// Sends a reward failure notification to the client when reward processing fails
+    /// </summary>
+    Task ReceiveRewardFailedNotification(RewardFailedNotificationMessage rewardFailedNotification);
+
+    /// <summary>
     /// Sends a progress update to the client when they earn points
     /// </summary>
     Task ReceiveProgressUpdate(ProgressUpdateMessage progressUpdate);

@@ -106,7 +106,7 @@ public class GeminiRouterClient : IRouterClient
                 emo_instruction = new
                 {
                     type = "string",
-                    description = "Một dòng duy nhất trong ngoặc vuông, nêu HÀNH ĐỘNG/HƯỚNG DẪN cho Emo (nên nói gì, lưu ý gì, giọng điệu ra sao). KHÔNG viết câu trả lời mẫu. Nếu intent là RAG_TEAM_KNOWLEDGE, dùng marker: [MARKER: RAG_TEAM_KNOWLEDGE]."
+                    description = "Một dòng duy nhất trong ngoặc vuông, nêu HÀNH ĐỘNG/HƯỚNG DẪN cho Emo (nên nói gì, lưu ý gì, giọng điệu ra sao). Tránh hỏi dồn; chỉ gợi mở tối đa 1 câu hỏi ngắn nếu người dùng tỏ ý muốn kể thêm; có thể kết thúc mà không hỏi. KHÔNG viết câu trả lời mẫu. Nếu intent là RAG_TEAM_KNOWLEDGE, dùng marker: [MARKER: RAG_TEAM_KNOWLEDGE]."
                 },
                 save_needed = new
                 {
@@ -170,16 +170,16 @@ public class GeminiRouterClient : IRouterClient
 
                # Examples
                [User]: tui thích chơi Yasuo
-               {"intent":"DIRECT_ANSWER","emo_instruction":"[Gợi ý trả lời: Công nhận sở thích, hỏi thêm rank/chế độ thường chơi; giữ giọng điệu hào hứng.]","save_needed":true,"memory_to_save":{"summary":"Sở thích: Chơi tướng Yasuo trong game Liên Minh Huyền Thoại (League of Legends).","normalized_tags":["Topic_Hobby"]},"retrieval_needed":false}
+               {"intent":"DIRECT_ANSWER","emo_instruction":"[Gợi ý trả lời: Công nhận sở thích và niềm vui khi chơi Yasuo; giữ giọng điệu hào hứng, có thể mời gọi nhẹ nếu họ muốn kể thêm về cách chơi.]", "save_needed":true, "memory_to_save":{"summary":"Sở thích: Chơi tướng Yasuo trong game Liên Minh Huyền Thoại (League of Legends).","normalized_tags":["Topic_Hobby"]}, "retrieval_needed":false}
 
                [User]: giờ đánh liên minh chơi tướng nào cho vui?
-               {"intent":"RAG_PERSONAL_MEMORY","emo_instruction":"[Gợi ý trả lời: Dựa trên tướng ưa thích trước đây, gợi ý vài lựa chọn cùng phong cách; hỏi họ muốn sát thủ hay đỡ đòn.]", "save_needed":false, "retrieval_needed":true}
+               {"intent":"RAG_PERSONAL_MEMORY","emo_instruction":"[Gợi ý trả lời: Dựa trên tướng ưa thích trước đây để gợi ý vài lựa chọn cùng phong cách; ưu tiên mô tả cảm giác chơi, không cần hỏi dồn – có thể gợi ý nhẹ nếu họ muốn.]", "save_needed":false, "retrieval_needed":true}
 
                [User]: EmoEase do ai làm?
-               {"intent":"RAG_TEAM_KNOWLEDGE","emo_instruction":"[MARKER: RAG_TEAM_KNOWLEDGE]","save_needed":false, "retrieval_needed":true}
+               {"intent":"RAG_TEAM_KNOWLEDGE","emo_instruction":"[MARKER: RAG_TEAM_KNOWLEDGE]", "save_needed":false, "retrieval_needed":true}
 
                [User]: đố mày tao mới kiểm tra được mấy điểm
-               {"intent":"RAG_PERSONAL_MEMORY","emo_instruction":"[Gợi ý trả lời: Tỏ ra hào hứng, thử đoán điểm dựa trên ký ức (nếu có) về môn học/sự kiện user từng chia sẻ; hỏi user về môn kiểm tra.]", "save_needed":false, "retrieval_needed":true}
+               {"intent":"RAG_PERSONAL_MEMORY","emo_instruction":"[Gợi ý trả lời: Giữ tông vui và tôn trọng; nếu có ký ức liên quan thì phản ánh tinh tế; tránh đoán chắc; có thể mời họ chia sẻ nếu muốn khoe kết quả hoặc quá trình để đạt được kết quả.]", "save_needed":false, "retrieval_needed":true}
                """;
     }
 
