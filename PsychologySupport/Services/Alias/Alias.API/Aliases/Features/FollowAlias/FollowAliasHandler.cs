@@ -39,7 +39,7 @@ public sealed class FollowAliasHandler(
 
         // Business rule: Cannot follow yourself
         if (followerAliasId == request.FollowedAliasId)
-            throw new InvalidAliasDataException("An alias cannot follow itself.");
+            throw new InvalidAliasDataException("Không thể theo dõi chính mình.");
 
         // Check if follow relationship already exists
         var existingFollow = await dbContext.Follows
@@ -49,31 +49,31 @@ public sealed class FollowAliasHandler(
                 cancellationToken);
 
         if (existingFollow != null)
-            throw new InvalidAliasDataException("Already following this alias.");
+            throw new InvalidAliasDataException("Bạn đã theo dõi người dùng này.");
 
         // Validate that both aliases exist and can participate in follow relationships
         var followerAlias = await dbContext.Aliases
             .FirstOrDefaultAsync(a => a.Id == followerAliasId && !a.IsDeleted, cancellationToken);
 
         if (followerAlias == null)
-            throw new InvalidAliasDataException("Follower alias not found or has been deleted.");
+            throw new InvalidAliasDataException("Không tìm thấy thông tin người dùng.");
 
         var followedAlias = await dbContext.Aliases
             .FirstOrDefaultAsync(a => a.Id == request.FollowedAliasId && !a.IsDeleted, cancellationToken);
 
         if (followedAlias == null)
-            throw new InvalidAliasDataException("Target alias not found or has been deleted.");
+            throw new InvalidAliasDataException("Không tìm thấy người dùng để theo dõi.");
 
         // Business rule: Cannot follow suspended or banned aliases
         if (followedAlias.Status == AliasStatus.Suspended)
-            throw new InvalidAliasDataException("Cannot follow a suspended alias.");
+            throw new InvalidAliasDataException("Không thể theo dõi người dùng này.");
 
         if (followedAlias.Status == AliasStatus.Banned)
-            throw new InvalidAliasDataException("Cannot follow a banned alias.");
+            throw new InvalidAliasDataException("Không thể theo dõi người dùng này.");
 
         // Business rule: Cannot follow private aliases unless explicitly allowed
         if (followedAlias.Visibility == AliasVisibility.Private)
-            throw new InvalidAliasDataException("Cannot follow a private alias.");
+            throw new InvalidAliasDataException("Không thể theo dõi người dùng này.");
 
         // Create the follow relationship
         var follow = Follow.Create(followerAliasId, request.FollowedAliasId);

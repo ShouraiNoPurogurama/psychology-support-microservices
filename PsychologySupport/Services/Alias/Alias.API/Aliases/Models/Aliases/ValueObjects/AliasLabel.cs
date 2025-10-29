@@ -23,13 +23,13 @@ public sealed record AliasLabel
     public static AliasLabel Create(string label)
     {
         if (string.IsNullOrWhiteSpace(label))
-            throw new InvalidAliasDataException("Alias label cannot be empty.");
+            throw new InvalidAliasDataException("Tên hiển thị không được để trống.");
 
         if (label.Length < 2)
-            throw new InvalidAliasDataException("Alias label must be at least 2 characters long.");
+            throw new InvalidAliasDataException("Tên hiển thị phải có ít nhất 2 ký tự.");
 
         if (label.Length > 50)
-            throw new InvalidAliasDataException("Alias label cannot exceed 50 characters.");
+            throw new InvalidAliasDataException("Tên hiển thị không được vượt quá 50 ký tự.");
 
         var normalizedLabel = label.Trim();
         var searchKey = GenerateSearchKey(normalizedLabel);

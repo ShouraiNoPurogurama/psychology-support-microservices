@@ -41,16 +41,16 @@ public sealed class UnfollowAliasHandler(
                 f.FollowerAliasId == followerAliasId && 
                 f.FollowedAliasId == request.FollowedAliasId, 
                 cancellationToken)
-            ?? throw new InvalidAliasDataException("Follow relationship does not exist.");
+            ?? throw new InvalidAliasDataException("Chưa theo dõi người dùng này.");
 
         // Get both aliases to update their counts
         var followerAlias = await dbContext.Aliases
             .FirstOrDefaultAsync(a => a.Id == followerAliasId && !a.IsDeleted, cancellationToken)
-            ?? throw new InvalidAliasDataException("Follower alias not found or has been deleted.");
+            ?? throw new InvalidAliasDataException("Không tìm thấy thông tin người dùng.");
 
         var followedAlias = await dbContext.Aliases
             .FirstOrDefaultAsync(a => a.Id == request.FollowedAliasId && !a.IsDeleted, cancellationToken)
-            ?? throw new InvalidAliasDataException("Followed alias not found or has been deleted.");
+            ?? throw new InvalidAliasDataException("Không tìm thấy người dùng để bỏ theo dõi.");
 
         // Call domain method to handle removal logic and events
         follow.Remove();

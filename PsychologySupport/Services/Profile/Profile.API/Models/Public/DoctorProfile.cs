@@ -68,13 +68,13 @@ public class DoctorProfile : AggregateRoot<Guid>
         int totalReviews = 0)
     {
         if (userId == Guid.Empty)
-            throw new ArgumentException("User ID cannot be empty.", nameof(userId));
+            throw new ArgumentException("ID người dùng không được để trống.", nameof(userId));
 
         if (string.IsNullOrWhiteSpace(fullName))
-            throw new ArgumentException("Full name cannot be empty.", nameof(fullName));
+            throw new ArgumentException("Tên đầy đủ không được để trống.", nameof(fullName));
 
         if (contactInfo == null)
-            throw new ArgumentNullException(nameof(contactInfo), "Contact info cannot be null.");
+            throw new ArgumentNullException(nameof(contactInfo), "Thông tin liên hệ không được để trống.");
 
         return new DoctorProfile(
             userId,

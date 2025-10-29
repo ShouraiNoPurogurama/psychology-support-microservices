@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +32,7 @@ public sealed class AttachMediaToPostCommandHandler : ICommandHandler<AttachMedi
             .FirstOrDefaultAsync(p => p.Id == request.PostId && !p.IsDeleted, cancellationToken);
 
         if (post == null)
-            throw new NotFoundException("Post not found or has been deleted.", "POST_NOT_FOUND");
+            throw new NotFoundException("Không tìm thấy bài viết.", "POST_NOT_FOUND");
 
         post.AddMedia(request.Media.MediaId, request.Media.Url);
 

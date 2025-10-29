@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +27,7 @@ internal sealed class GetReactionsForPostQueryHandler : IQueryHandler<GetReactio
             .AnyAsync(p => p.Id == request.PostId && !p.IsDeleted, cancellationToken);
 
         if (!exists)
-            throw new NotFoundException("Post not found or deleted", "POST_NOT_FOUND");
+            throw new NotFoundException("Không tìm thấy bài viết.", "POST_NOT_FOUND");
 
         var baseQuery = _postDb.Reactions
             .AsNoTracking()

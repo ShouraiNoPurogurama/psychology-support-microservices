@@ -289,7 +289,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
         // Validate all media IDs belong to this post
         var existingMediaIds = _media.Select(m => m.MediaId).ToHashSet();
         if (!orderedMediaIds.All(id => existingMediaIds.Contains(id)))
-            throw new InvalidPostDataException("Some media IDs do not belong to this post.");
+            throw new InvalidPostDataException("Một số media không thuộc bài viết này.");
 
         // Update positions
         for (int i = 0; i < orderedMediaIds.Count; i++)
@@ -308,7 +308,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
 
         var targetMedia = _media.FirstOrDefault(m => m.MediaId == mediaId);
         if (targetMedia == null)
-            throw new InvalidPostDataException("Media not found in this post.");
+            throw new InvalidPostDataException("Không tìm thấy media trong bài viết này.");
 
         // Unset all existing covers and set new one
         foreach (var media in _media)
@@ -326,7 +326,7 @@ public sealed class Post : AggregateRoot<Guid>, ISoftDeletable
 
         var media = _media.FirstOrDefault(m => m.MediaId == mediaId);
         if (media == null)
-            throw new InvalidPostDataException("Media not found in this post.");
+            throw new InvalidPostDataException("Không tìm thấy media trong bài viết này.");
 
         media.AltText = altText;
         AddDomainEvent(new PostMediaAltTextUpdatedEvent(Id, mediaId, altText));

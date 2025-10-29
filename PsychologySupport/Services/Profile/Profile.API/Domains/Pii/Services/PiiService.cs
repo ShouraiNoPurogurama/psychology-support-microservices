@@ -1,4 +1,4 @@
-﻿using Grpc.Core;
+using Grpc.Core;
 using Pii.API.Protos;
 using Profile.API.Data.Pii;
 using Profile.API.Domains.Pii.Dtos;
@@ -95,7 +95,7 @@ public class PiiService(PiiDbContext piiDbContext, ISender sender, ILogger<PiiSe
             .FirstOrDefaultAsync();
 
         if (subjectRef == Guid.Empty)
-            throw new RpcException(new Status(StatusCode.NotFound, "Profile not found"));
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy hồ sơ."));
 
         return new ResolveSubjectRefByUserIdResponse
         {
@@ -196,7 +196,7 @@ public class PiiService(PiiDbContext piiDbContext, ISender sender, ILogger<PiiSe
 
         if (result is null)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, "No profile found for this patientId"));
+            throw new RpcException(new Status(StatusCode.NotFound, "Không tìm thấy hồ sơ cho bệnh nhân này."));
         }
 
         return new ResolvePersonInfoByPatientIdResponse

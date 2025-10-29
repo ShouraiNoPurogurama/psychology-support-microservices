@@ -43,14 +43,14 @@ public sealed class Follow : AggregateRoot<Guid>
     {
         // Business rule: An alias cannot follow itself
         if (followerAliasId == followedAliasId)
-            throw new InvalidAliasDataException("An alias cannot follow itself.");
+            throw new InvalidAliasDataException("Không thể theo dõi chính mình.");
 
         // Business rule: Both IDs must be valid
         if (followerAliasId == Guid.Empty)
-            throw new InvalidAliasDataException("Follower alias ID cannot be empty.");
+            throw new InvalidAliasDataException("Thông tin người dùng không hợp lệ.");
 
         if (followedAliasId == Guid.Empty)
-            throw new InvalidAliasDataException("Followed alias ID cannot be empty.");
+            throw new InvalidAliasDataException("Thông tin người dùng không hợp lệ.");
 
         var follow = new Follow
         {

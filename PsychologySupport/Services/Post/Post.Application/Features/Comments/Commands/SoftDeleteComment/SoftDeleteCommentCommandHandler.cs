@@ -44,14 +44,14 @@ internal sealed class SoftDeleteCommentCommandHandler : ICommandHandler<SoftDele
 
 
         if (result?.Comment == null)
-            throw new NotFoundException("Comment not found or has been deleted.", "COMMENT_NOT_FOUND");
+            throw new NotFoundException("Không tìm thấy bình luận.", "COMMENT_NOT_FOUND");
 
         var comment = result.Comment;
 
         // Authorization: Must be author
         if (comment.Author.AliasId != _currentActorAccessor.GetRequiredAliasId())
         {
-            throw new ForbiddenException("Only the comment author can delete this comment.", "UNAUTHORIZED_COMMENT_DELETE");
+            throw new ForbiddenException("Bạn không có quyền xóa bình luận này.", "UNAUTHORIZED_COMMENT_DELETE");
         }
 
         Comment? parentComment = null;

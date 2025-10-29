@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.FileProviders;
 using Profile.API.Extensions;
 
@@ -29,7 +29,7 @@ public abstract class DesignTimeDbContextFactoryBase<TContext> : IDesignTimeDbCo
         
         if (string.IsNullOrWhiteSpace(connStr))
         {
-            throw new InvalidOperationException("Could not find a connection string in the application settings.");
+            throw new InvalidOperationException("Không tìm thấy chuỗi kết nối trong cấu hình ứng dụng.");
         }
 
         var options = new DbContextOptionsBuilder<TContext>()

@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
@@ -34,7 +34,7 @@ internal sealed class GetCommentRepliesQueryHandler : IQueryHandler<GetCommentRe
             .AnyAsync(c => c.Id == request.ParentCommentId && !c.IsDeleted, cancellationToken);
 
         if (!parentCommentExists)
-            throw new NotFoundException("Parent comment not found or has been deleted.", "PARENT_COMMENT_NOT_FOUND");
+            throw new NotFoundException("Không tìm thấy bình luận cha.", "PARENT_COMMENT_NOT_FOUND");
 
         // 2) Base query for replies under the parent (not deleted)
         var baseQuery = _context.Comments

@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +32,7 @@ internal sealed class ReorderPostMediaCommandHandler : ICommandHandler<ReorderPo
             .FirstOrDefaultAsync(p => p.Id == request.PostId && !p.IsDeleted, cancellationToken);
 
         if (post == null)
-            throw new NotFoundException("Post not found or has been deleted.", "POST_NOT_FOUND");
+            throw new NotFoundException("Không tìm thấy bài viết.", "POST_NOT_FOUND");
 
         // Use domain method to reorder media
         post.ReorderMedia(request.OrderedMediaIds, _currentActorAccessor.GetRequiredAliasId());

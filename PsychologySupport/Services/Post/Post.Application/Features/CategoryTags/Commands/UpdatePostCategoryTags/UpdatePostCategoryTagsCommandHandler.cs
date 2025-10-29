@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +33,7 @@ internal sealed class UpdatePostCategoryTagsCommandHandler : ICommandHandler<Upd
             .FirstOrDefaultAsync(p => p.Id == request.PostId && !p.IsDeleted, cancellationToken);
 
         if (post == null)
-            throw new NotFoundException("Post not found or has been deleted.", "POST_NOT_FOUND");
+            throw new NotFoundException("Không tìm thấy bài viết.", "POST_NOT_FOUND");
 
         // Verify new category tags exist
         var existingCategoryTagIds = await _context.CategoryTags
@@ -66,7 +66,7 @@ internal sealed class UpdatePostCategoryTagsCommandHandler : ICommandHandler<Upd
             }
             catch (Domain.Exceptions.PostAuthorMismatchException)
             {
-                throw new ForbiddenException("Only the post author can modify category tags.", "UNAUTHORIZED_CATEGORY_TAG_OPERATION");
+                throw new ForbiddenException("Bạn không có quyền chỉnh sửa danh mục của bài viết này.", "UNAUTHORIZED_CATEGORY_TAG_OPERATION");
             }
         }
 

@@ -35,7 +35,7 @@ public sealed class IdempotencyService : IIdempotencyService
             .FirstOrDefaultAsync(k => k.Key == requestKey, ct);
 
         if (existing is not null && !string.Equals(existing.RequestHash, requestHash, StringComparison.Ordinal))
-            throw new InvalidOperationException("Idempotency-Key reused with different request payload.");
+            throw new InvalidOperationException("Khóa đã được sử dụng với yêu cầu khác.");
 
         if (existing is not null) return existing.Id;
 

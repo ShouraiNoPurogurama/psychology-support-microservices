@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.CQRS;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Posts;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +31,7 @@ public sealed class PublishPostCommandHandler : ICommandHandler<PublishPostComma
             .FirstOrDefaultAsync(p => p.Id == request.PostId && !p.IsDeleted, cancellationToken);
 
         if (post == null)
-            throw new NotFoundException("Post not found or has been deleted.", "POST_NOT_FOUND");
+            throw new NotFoundException("Không tìm thấy bài viết.", "POST_NOT_FOUND");
 
         // Change visibility to Public (publishes the post)
         post.ChangeVisibility(PostVisibility.Public, _currentActorAccessor.GetRequiredAliasId());

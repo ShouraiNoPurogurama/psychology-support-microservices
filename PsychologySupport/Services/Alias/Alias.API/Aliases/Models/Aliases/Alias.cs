@@ -171,7 +171,7 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
         if (Visibility == newVisibility) return;
 
         if (Status == AliasStatus.Suspended && newVisibility == AliasVisibility.Public)
-            throw new AliasSuspendedException("Cannot make suspended alias public.");
+            throw new AliasSuspendedException("Không thể thực hiện thao tác này.");
 
         var oldVisibility = Visibility;
         Visibility = newVisibility;
@@ -314,7 +314,7 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
         ValidateCanBeModified();
 
         if (string.IsNullOrWhiteSpace(reason))
-            throw new InvalidAliasDataException("Suspension reason is required.");
+            throw new InvalidAliasDataException("Vui lòng cung cấp lý do.");
 
         Status = AliasStatus.Suspended;
         Visibility = AliasVisibility.Suspended;
@@ -348,7 +348,7 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
     public void Restore(Guid restoredBy)
     {
         if (Status != AliasStatus.Suspended)
-            throw new InvalidAliasDataException("Only suspended aliases can be restored.");
+            throw new InvalidAliasDataException("Không thể thực hiện thao tác này.");
 
         Status = AliasStatus.Active;
         Visibility = AliasVisibility.Public;
@@ -459,10 +459,10 @@ public sealed class Alias : AggregateRoot<Guid>, ISoftDeletable
     private void ValidateCanBeModified()
     {
         if (IsDeleted)
-            throw new InvalidAliasDataException("Cannot modify deleted alias.");
+            throw new InvalidAliasDataException("Không thể thực hiện thao tác này.");
 
         if (Status == AliasStatus.Banned)
-            throw new AliasSuspendedException("Cannot modify banned alias.");
+            throw new AliasSuspendedException("Không thể thực hiện thao tác này.");
     }
 
     //Computed properties

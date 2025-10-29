@@ -75,7 +75,7 @@ public class SuggestAliasesHandler(
 
     private static void EnsureNotEmpty<T>(ICollection<T> collection)
     {
-        if (collection.Count == 0) throw new InvalidOperationException("gacha_exhausted");
+        if (collection.Count == 0) throw new InvalidOperationException("Không còn gợi ý nào khả dụng.");
     }
 
     private async Task<Task<bool>[]> ReserveAllAsync(
@@ -99,7 +99,7 @@ public class SuggestAliasesHandler(
                 successes.Add(i);
 
         if (successes.Count == 0)
-            throw new InvalidOperationException("gacha_exhausted");
+            throw new InvalidOperationException("Không còn gợi ý nào khả dụng.");
 
         var take = Math.Min(need, successes.Count);
         return successes.Take(take).ToArray();

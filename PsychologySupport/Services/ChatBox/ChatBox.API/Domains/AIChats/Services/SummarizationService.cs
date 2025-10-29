@@ -192,7 +192,7 @@ Tránh nhắc UI, chữ, brand. Mục tiêu: giúp AI sinh ảnh chân thực, �
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Gemini API call failed: {StatusCode}\n{Result}", response.StatusCode, result);
-            throw new Exception($"Gemini API call failed: {response.StatusCode}\n{result}");
+            throw new Exception($"Gọi API Gemini thất bại: {response.StatusCode}\n{result}");
         }
 
         // --- BƯỚC D: PARSE RESPONSE (Giống code cũ) VÀ THÊM TRƯỜNG `created_at` ---
@@ -202,7 +202,7 @@ Tránh nhắc UI, chữ, brand. Mục tiêu: giúp AI sinh ảnh chân thực, �
         if (string.IsNullOrWhiteSpace(responseText))
         {
             _logger.LogWarning("Gemini API trả về nội dung rỗng. Full response: {Result}", result);
-            throw new Exception("Failed to summarize history: Gemini returned empty content.");
+            throw new Exception("Không thể tạo tóm tắt: Gemini trả về nội dung trống.");
         }
 
         try
@@ -223,7 +223,7 @@ Tránh nhắc UI, chữ, brand. Mục tiêu: giúp AI sinh ảnh chân thực, �
         {
             _logger.LogError(ex, "Gemini trả về JSON không hợp lệ dù đã dùng structured output. Response: {ResponseText}",
                 responseText);
-            throw new InvalidOperationException("Gemini returned invalid JSON structure.", ex);
+            throw new InvalidOperationException("Gemini trả về cấu trúc JSON không hợp lệ.", ex);
         }
     }
 
