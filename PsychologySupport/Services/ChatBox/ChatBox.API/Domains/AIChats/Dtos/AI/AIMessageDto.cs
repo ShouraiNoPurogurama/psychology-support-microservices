@@ -1,3 +1,10 @@
-﻿namespace ChatBox.API.Domains.AIChats.Dtos.AI;
+﻿using System.Text.Json.Serialization;
+using BuildingBlocks.Utils;
 
-public record AIMessageDto(bool SenderIsEmo, string Content, DateTimeOffset CreatedDate);
+namespace ChatBox.API.Domains.AIChats.Dtos.AI;
+
+public record AIMessageDto(
+    bool SenderIsEmo,
+    [property: JsonConverter(typeof(RawJsonStringConverter))]
+    string Content,
+    DateTimeOffset CreatedDate);
