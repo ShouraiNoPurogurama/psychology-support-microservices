@@ -64,12 +64,17 @@ public class GetCurrentSessionRewardProgressHandler(
         // 2b) Fallback: nếu chưa có dòng tổng hợp hôm nay thì đếm từ rewards
         if (claimedToday == 0)
         {
-            var claimedStatuses = Enum.GetNames<RewardStatus>();
+            var claimedStatuses = Enum.GetValues<RewardStatus>();
+            
+            var todayUtc = DateTime.UtcNow.Date;         
+            var tomorrowUtc = todayUtc.AddDays(1);        
+
             claimedToday = await dbContext.Rewards
                 .AsNoTracking()
                 .Where(r => r.AliasId == aliasId
-                            && claimedStatuses.Contains(r.Status.ToString())
-                            && r.CreatedAt.Date == DateTime.UtcNow.Date)
+                            && claimedStatuses.Contains(r.Status)  
+                            && r.CreatedAt >= todayUtc               
+                            && r.CreatedAt <  tomorrowUtc)
                 .CountAsync(cancellationToken);
         }
 

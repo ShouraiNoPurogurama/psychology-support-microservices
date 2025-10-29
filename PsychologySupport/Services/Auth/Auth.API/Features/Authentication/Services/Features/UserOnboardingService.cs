@@ -54,7 +54,7 @@ public class UserOnboardingService(
 
         if (IsOnboardingComplete(user))
             user.OnboardingStatus = UserOnboardingStatus.Completed;
-
+        
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return true;
@@ -75,8 +75,8 @@ public class UserOnboardingService(
 
         user.Onboarding!.AliasIssued = true;
 
-        if (IsOnboardingComplete(user))
-            user.OnboardingStatus = UserOnboardingStatus.Completed;
+        if (IsAliasOnboardingComplete(user))
+            user.AliasIssueStatus = AliasIssueStatus.Completed;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
