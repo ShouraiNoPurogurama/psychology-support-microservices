@@ -9,8 +9,6 @@ public record GeminiGenerationConfigDto(
     // double TopP = 0.95,
     // [JsonProperty("maxOutputTokens")]
     // int MaxOutputTokens = 8192,
-    [JsonProperty("response_schema")]
     object ResponseSchema,
-    [JsonProperty("response_mime_type")]
     string ResponseMimeType = "application/json"
 );

@@ -5,7 +5,7 @@ namespace Translation.API.Domains.Translations.Dtos.Gemini;
 public record GeminiRequestDto(
     [JsonProperty("contents")]
     List<GeminiContentDto> Contents,
-    [JsonProperty("system_instruction")]
+    [JsonProperty("systemInstruction")]
     GeminiSystemInstructionDto SystemInstruction,
     [JsonProperty("generationConfig")]
     GeminiGenerationConfigDto GenerationConfig
