@@ -20,7 +20,7 @@ public class ChatContextBuilder(ChatBoxDbContext dbContext, ILogger<ChatContextB
 
         // return $"{persona}{contextBlock}[User]\n{processedUserMessage}\n\n[Emo]:\n";
         // return $"{contextBlock}[User]\n{processedUserMessage}\n\n[Emo]:\n";
-        return $"[User đang nhắn]:\n {processedUserMessage} \n\n[Emo trả lời]:\n";
+        return $"[User đang nhắn]:\n {processedUserMessage}";
     }
 
     // private async Task<string> BuildContextBlock(Guid sessionId)

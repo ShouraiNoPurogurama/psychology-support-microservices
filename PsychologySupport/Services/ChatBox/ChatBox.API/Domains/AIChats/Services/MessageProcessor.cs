@@ -155,7 +155,6 @@ public class MessageProcessor(
 
                            - BẮT BUỘC ground theo [NGỮ CẢNH KÝ ỨC CÁ NHÂN (DÙNG KHI PHÙ HỢP)] (nằm ở dưới); không mâu thuẫn hoặc bỏ qua.
                            - Không lặp nguyên văn; chỉ tham chiếu tinh tế.
-                           ]
                            """;
 
             var searchQuery = request.UserMessage.Trim();
@@ -248,9 +247,9 @@ public class MessageProcessor(
                 instruction = safeInstruction;
 
             routerBlock =
-                $@"[HƯỚNG DẪN TỪ ĐỊNH TUYẾN]
+                $@"[HƯỚNG DẪN TRẢ LỜI]
 {instruction}
-[/HƯỚNG DẪN TỪ ĐỊNH TUYẾN]";
+[/HƯỚNG DẪN TỪ TRẢ LỜI]";
         }
 
         // 3.z) Reorder: [System/Previous] -> [ROUTER INSTRUCTION] -> [USAGE RULES] -> [MEMORY] -> [User]

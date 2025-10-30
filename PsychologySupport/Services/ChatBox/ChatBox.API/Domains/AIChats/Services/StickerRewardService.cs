@@ -73,9 +73,15 @@ public class StickerRewardService(
             // (Có thể cân nhắc đưa ra ngoài transaction để rút ngắn thời gian giữ transaction.
             // Ở đây giữ nguyên theo luồng hiện tại.)
             string llmContext =
-                $"[Bối cảnh hệ thống]: Emo, hãy tạo một tin nhắn để tặng người dùng sticker. Sticker này được tạo từ bối cảnh: '{rewardToClaim.PromptFilter}'. " +
-                "Hãy giải thích ngắn gọn (1-2 câu) ý nghĩa của sticker này và gửi tặng họ. " +
-                "Hãy tỏ ra vui vẻ và thấu hiểu. KHÔNG dùng markdown.";
+                $"[NOW]: {DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm}\n" +
+                "[EMO_GUIDE]\n" +
+                "Tạo 1–2 câu lời nhắn tặng sticker.\n" +
+                "Sticker là khung hình vẽ lại câu chuyện của chính cậu, dựa trên cảm xúc và điều cậu vừa chia sẻ.\n" +
+                "Giọng cậu–tớ, ấm, tự nhiên, không markdown, không triết lý.\n" +
+                "[/EMO_GUIDE]\n" +
+                "[STICKER_BRIEF]\n" +
+                $"- Chủ đề tạo hình: {rewardToClaim.PromptFilter}\n" +
+                "[/STICKER_BRIEF]";
 
             var aiPayload = new AIRequestPayload(
                 Context: llmContext,
