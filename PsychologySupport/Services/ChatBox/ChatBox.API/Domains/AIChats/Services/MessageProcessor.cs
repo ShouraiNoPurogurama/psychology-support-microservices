@@ -1,8 +1,10 @@
+using System.Text.Json;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Chatbox;
 using BuildingBlocks.Pagination;
 using ChatBox.API.Data;
 using ChatBox.API.Domains.AIChats.Dtos.AI;
+using ChatBox.API.Domains.AIChats.Dtos.Sessions;
 using ChatBox.API.Domains.AIChats.Enums;
 using ChatBox.API.Domains.AIChats.Services.Contracts;
 using ChatBox.API.Domains.AIChats.Utils;
@@ -12,6 +14,7 @@ using Grpc.Core;
 using Mapster;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using UserMemory.API.Protos;
 
 namespace ChatBox.API.Domains.AIChats.Services;
@@ -79,7 +82,7 @@ public class MessageProcessor(
     private async Task<List<AIMessageResponseDto>> ProcessMessageInternal(AIMessageRequestDto request, Guid userId)
     {
         var aliasId = currentActorAccessor.GetRequiredAliasId();
-        
+
         var session = await dbContext.AIChatSessions
             .AsNoTracking()
             .FirstAsync(s => s.Id == request.SessionId);
@@ -137,18 +140,19 @@ public class MessageProcessor(
 
         // 2.3) gRPC RAG personal memory (MVP)
         string memoryAugmentation = string.Empty;
+        string usageRules = string.Empty;
         var shouldCallMemory = routerDecision?.Intent == RouterIntent.RAG_PERSONAL_MEMORY
                                || routerDecision?.RetrievalNeeded == true;
 
         var instruction = routerDecision?.Instruction?.Trim();
-        
+
         if (shouldCallMemory)
         {
             instruction = @"[Gợi ý trả lời:
-- BẮT BUỘC ground theo [PERSONAL MEMORY CONTEXT OF USER] (nằm ở trên); không mâu thuẫn hoặc bỏ qua.
+- BẮT BUỘC ground theo [NGỮ CẢNH KÝ ỨC CÁ NHÂN (DÙNG KHI PHÙ HỢP)] (nằm ở dưới); không mâu thuẫn hoặc bỏ qua.
 - Không lặp nguyên văn; chỉ tham chiếu tinh tế.
 ]";
-            
+
             var searchQuery = request.UserMessage.Trim();
             if (!string.IsNullOrEmpty(searchQuery))
             {
@@ -174,6 +178,14 @@ public class MessageProcessor(
                             $@"[NGỮ CẢNH KÝ ỨC CÁ NHÂN (DÙNG KHI PHÙ HỢP)]
 {string.Join("\n", bullets)}
 [/NGỮ CẢNH KÝ ỨC CÁ NHÂN]";
+
+                        // 3.y) RULES dùng memory – tổng quát hoá cho mọi chủ đề
+                        usageRules =
+                            @"[QUY TẮC SỬ DỤNG KÝ ỨC CÁ NHÂN]
+- Dùng ký ức để **định hướng tinh tế**, không áp đặt.
+- **Không** lặp lại nguyên văn hoặc nêu đúng item đã lưu (tránh cảm giác bị theo dõi).
+- Nếu có ràng buộc/giới hạn (dị ứng, thời gian, ngân sách, phong cách, sở thích), **ưu tiên lọc theo biên** khi gợi ý.
+[/QUY TẮC SỬ DỤNG KÝ ỨC CÁ NHÂN]";
                     }
                 }
                 catch (RpcException ex)
@@ -211,7 +223,7 @@ public class MessageProcessor(
             // fallback nếu router không trả instruction hoặc trả sai format
             var safeInstruction =
                 "[Gợi ý trả lời: Thừa nhận nhu cầu hiện tại; đề xuất 2–3 hướng lựa chọn tương phản (ví dụ: nhanh/gọn – thoải mái – tập trung/kỹ thuật); hỏi mở sở thích/giới hạn lúc này; tinh tế tham chiếu tới ‘gu gần đây’ nếu phù hợp, tránh nhắc đúng chi tiết đã lưu. Giọng điệu ấm áp, không áp đặt.]";
-            
+
             if (string.IsNullOrWhiteSpace(instruction) || !instruction.StartsWith("[") || !instruction.EndsWith("]"))
                 instruction = safeInstruction;
 
@@ -220,14 +232,6 @@ public class MessageProcessor(
 {instruction}
 [/HƯỚNG DẪN TỪ ĐỊNH TUYẾN]";
         }
-
-        // 3.y) RULES dùng memory – tổng quát hoá cho mọi chủ đề
-        string usageRules =
-            @"[QUY TẮC SỬ DỤNG KÝ ỨC CÁ NHÂN]
-- Dùng ký ức để **định hướng tinh tế**, không áp đặt.
-- **Không** lặp lại nguyên văn hoặc nêu đúng item đã lưu (tránh cảm giác bị theo dõi).
-- Nếu có ràng buộc/giới hạn (dị ứng, thời gian, ngân sách, phong cách, sở thích), **ưu tiên lọc theo biên** khi gợi ý.
-[/QUY TẮC SỬ DỤNG KÝ ỨC CÁ NHÂN]";
 
         // 3.z) Reorder: [System/Previous] -> [ROUTER INSTRUCTION] -> [USAGE RULES] -> [MEMORY] -> [User]
         {
@@ -240,7 +244,7 @@ public class MessageProcessor(
             var middle = string.Join("\n\n", new[]
             {
                 routerBlock,
-                usageRules,
+                string.IsNullOrEmpty(usageRules) ? null : usageRules,
                 string.IsNullOrEmpty(memoryAugmentation) ? null : memoryAugmentation
             }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
@@ -253,7 +257,7 @@ public class MessageProcessor(
 
         // 4) Build payload
         var payload = await BuildAIPayload(request, session, augmentedContext);
-        
+
         // 5) Call model
         var responseText = await aiProvider.GenerateResponseAsync_FoundationalModel(payload, session.Id);
         if (string.IsNullOrWhiteSpace(responseText))
@@ -368,7 +372,7 @@ public class MessageProcessor(
 
         logger.LogInformation("Summarization: {Summarization}", summarization);
         logger.LogInformation("HistoryMessages count: {Count}", historyMessages);
-        
+
         return new AIRequestPayload(
             Context: augmentedContext,
             Summarization: summarization,
@@ -378,35 +382,105 @@ public class MessageProcessor(
 
     private async Task<string?> GetSessionSummarizationAsync(Guid sessionId)
     {
-        var session = await dbContext.AIChatSessions
+        var rawSummarization = await dbContext.AIChatSessions
             .AsNoTracking()
             .Where(s => s.Id == sessionId)
             .Select(s => s.Summarization)
             .FirstOrDefaultAsync();
+        
+        var summaryBlock = BuildChatSummaryBlock(rawSummarization);
 
-        return session;
+        return summaryBlock;
+    }
+    
+    private static string BuildChatSummaryBlock(string? rawSummarization)
+    {
+        if (string.IsNullOrWhiteSpace(rawSummarization))
+            return "";
+        
+        var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)); 
+        var timeTag = $"[Thời gian hiện tại: {now:yyyy-MM-dd HH:mm}]";
+
+        var parts = rawSummarization
+                .Split(new[] { "---" }, StringSplitOptions.RemoveEmptyEntries)
+            ;
+        
+        var parsedParts = parts.Select(p =>
+            {
+                try
+                {
+                    var dto = JsonConvert.DeserializeObject<SummaryDto>(p.Trim().Replace("\n", ""));
+                    if (dto == null) return null;
+                    return new
+                    {
+                        current = dto.Current?.Trim(),
+                        persist = dto.Persist?.Trim(),
+                        capturedAt = dto.CreatedAt?.ToString()
+                    };
+                }
+                catch { return null; }
+            })
+            .Where(x => x is not null)
+            .ToList();
+
+        if (parsedParts.Count == 0) return "";
+
+        // Chỉ lấy 2–3 đoạn gần nhất cho gọn
+        var recent = parsedParts.TakeLast(3).ToList();
+
+        var lines = new List<string>();
+        foreach (var s in recent)
+        {
+            if (!string.IsNullOrWhiteSpace(s!.current))
+                lines.Add($"- Context: {s.current}");
+            if (!string.IsNullOrWhiteSpace(s.persist))
+                lines.Add($"- Context bền vững: {s.persist}");
+            if(!string.IsNullOrWhiteSpace(s.capturedAt)) 
+                lines.Add($"- Lưu vào lúc: {s.capturedAt:dd/MM/yyyy}");
+        }
+
+        return $"{timeTag}.\n" + "Tóm tắt trước đó:\n" + string.Join("\n", lines);
     }
 
     private async Task<List<HistoryMessage>> GetHistoryMessagesAsync(Guid sessionId)
     {
         const int maxHistoryMessages = 10;
-
-        var session = await dbContext.AIChatSessions
-            .AsNoTracking()
-            .FirstAsync(s => s.Id == sessionId);
-
-        var lastSummarizedIndex = session.LastSummarizedIndex ?? 0;
-
+        
+        // Lấy các message có BlockNumber > lastSummarizedBlock
+        // rồi cắt window theo thời gian gần nhất
         var messages = await dbContext.AIChatMessages
-            .Where(m => m.SessionId == sessionId)
-            .OrderBy(m => m.CreatedDate)
-            .Skip(lastSummarizedIndex + 1)
+            .Where(m => m.SessionId == sessionId &&
+                        m.BlockNumber >
+                        dbContext.AIChatSessions
+                            .Where(s => s.Id == sessionId)
+                            .Select(s => s.LastSummarizedIndex ?? 0)
+                            .FirstOrDefault())
+            .OrderByDescending(m => m.CreatedDate)
             .Take(maxHistoryMessages)
-            .Select(m => new HistoryMessage(m.Content, m.SenderIsEmo))
+            .OrderBy(m => m.CreatedDate)
+            .Select(m => new HistoryMessage(
+                m.Content,
+                m.SenderIsEmo
+            ))
             .ToListAsync();
+        
+        if (messages.Count == 0)
+        {
+            messages = await dbContext.AIChatMessages
+                .Where(m => m.SessionId == sessionId)
+                .OrderByDescending(m => m.CreatedDate)
+                .Take(maxHistoryMessages)
+                .OrderBy(m => m.CreatedDate)
+                .Select(m => new HistoryMessage(
+                    m.Content,
+                    m.SenderIsEmo
+                ))
+                .ToListAsync();
+        }
 
         return messages;
     }
+
 
     private static List<AIMessage> SplitAIResponse(Guid sessionId, string responseText)
     {

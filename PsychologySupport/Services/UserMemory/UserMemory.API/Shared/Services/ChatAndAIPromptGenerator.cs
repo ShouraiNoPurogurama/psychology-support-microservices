@@ -25,65 +25,72 @@ public class ChatAndAiPromptGenerator(
     private const string PromptBase = """
     A highly detailed 3D illustration featuring the subject from the attached image as the main character, radiating a soft, warm yellowish glow (like a comforting silicone nightlight).
     Center composition on this subject; surrounding elements are supportive only.
+    
+    VIETNAMESE AMBIENCE:
+    - Set the scene in contemporary Vietnam (everyday urban or campus/workspace vibe).
+    - Environmental cues: modest sidewalks, narrow shop fronts, dense power lines, scooters (xe máy), soft tropical foliage, humid air feel.
+    - Signage and text (if any) should be in Vietnamese with proper diacritics; use subtle, natural street typography.
+    - Props palette: cà phê phin, ly nhựa với ống hút, sổ tay kẹp giấy, bút bi Thiên Long, laptop dán sticker nhỏ, ổ điện chuẩn VN, tiền VND (50K/100K/200K/500K), balo đơn giản, áo mưa mỏng, mũ bảo hiểm treo ở góc khung hình.
+    - Color tone: warm-natural, slight filmic softness; avoid overly glossy Western commercial look.
     """;
 
     // ===== (B) SUBJECT LOCK =====
     private const string SubjectLock = """
-    Use the attached image as the primary subject.
-    - Preserve the character’s identity, silhouette, proportions, face geometry, costume cues, and color palette.
-    - The attached character is the only protagonist. Do not replace, morph, or transform them into animals.
-    - Keep camera framing centered on this subject.
-    """;
+                                       Use the attached image as the primary subject.
+                                       - Preserve the character’s identity, silhouette, proportions, face geometry, hair, costume cues, and color palette.
+                                       - DO NOT change the person’s ethnicity/identity; adapt only environment, props, and ambience.
+                                       - Keep camera framing centered on this subject.
+                                       """;
 
     // ===== (C) STYLE =====
     private const string PromptStyle = """
-    STYLE (transfer-only): Masterpiece 3D animation inspired by Pixar/DreamWorks; cinematic composition; hyper-realistic soft textures (silicone/plastic glow); dramatic volumetric lighting; shallow depth of field; 8K clarity.
-    Do not alter the subject’s identity; apply style only.
-    """;
+                                       STYLE (transfer-only): Masterpiece 3D animation inspired by Pixar/DreamWorks; cinematic composition; soft, tactile textures (silicone/plastic glow); gentle tropical humidity; shallow depth of field; 8K clarity.
+                                       Apply style without altering the subject’s identity; let the Vietnamese ambience define context and prop design language.
+                                       """;
 
     // ===== (D) NEGATIVE =====
     private const string NegativePrompt = """
-    NEGATIVE:
-    - No cats/dogs/animals or new characters unless provided.
-    - No morphing, replacement, or cluttered background.
-    - Avoid text overlays, watermark, or logos.
-    """;
+                                          NEGATIVE:
+                                          - No new characters, animals, Western city skylines, or snowy weather.
+                                          - No American/European street furniture (yellow cabs, fire hydrants, brownstone houses, iconic Western landmarks).
+                                          - No cluttered background, no heavy neon cyberpunk aesthetic, no billboard-level English text.
+                                          - Avoid watermark, logos, large English slogans; if text appears, prefer subtle Vietnamese.
+                                          """;
 
     // ===== (E) FILLER Template =====
     private const string FillerGenerationPromptTemplate = """
-    Generate the **FILLER** (ACTION/SETTING/DETAILS) for the same single subject from the attached image.
-    - Keep the subject as-is (no species morphing or replacement).
-    - Do NOT mention chats, chatbots, or dialogues.
+                                                          Generate the **FILLER** (ACTION/SETTING/DETAILS) for the same single subject from the attached image.
+                                                          - Keep the subject as-is (no species morphing or replacement).
+                                                          - Do NOT mention chats, chatbots, or dialogues.
+                                                          - Set the scene SPECIFICALLY in contemporary Vietnam (urban/campus/workspace/street) with authentic local cues.
 
-    DATA:
-    {
-      "age": %AGE%,
-      "gender": "%GENDER%",
-      "job": "%JOB%",
-      "scene_cue": "%SCENE_CUE%"
-    }
+                                                          DATA:
+                                                          {
+                                                            "age": %AGE%,
+                                                            "gender": "%GENDER%",
+                                                            "job": "%JOB%",
+                                                            "scene_cue": "%SCENE_CUE%"
+                                                          }
 
-    FILLER (about the attached subject):
-    "The subject (same as in the attached image) is a [age]-year-old [gender] [job].
-    ACTION/SETTING: Reflect 'scene_cue' with a clear action and location (no dialogue).
-    EXPRESSION: Face and posture match the mood from 'scene_cue'.
-    SCENE: Environment and atmosphere align with 'job' and 'scene_cue'.
-    DETAILS: Include 3–5 small, job-related props matching 'scene_cue' (e.g., laptop glow, coffee mug, notes).
-    LIGHTING: Soft but dramatic; highlight the subject’s warm silicone-like glow; keep background clean."
+                                                          FILLER (about the attached subject):
+                                                          "The subject (same as in the attached image) is a [age]-year-old [gender] [job].
+                                                          ACTION/SETTING: Reflect 'scene_cue' in a realistic Vietnamese environment (e.g., small cafe with cà phê phin, shared desk with multi-plugs, scooter-lined sidewalk, campus corridor).
+                                                          EXPRESSION: Face and posture match the mood from 'scene_cue'.
+                                                          SCENE: Use Vietnamese signage with diacritics when needed; keep it subtle and natural.
+                                                          DETAILS: Include 3–5 small, Vietnam-typical props matching 'job' and 'scene_cue' (e.g., laptop with small stickers, notebook + bút bi Thiên Long, ly nhựa với ống hút, ổ điện chuẩn VN, mũ bảo hiểm hoặc áo mưa gấp gọn ở góc khung).
+                                                          LIGHTING: Warm, soft, tropical; slight humidity glow; highlight the subject’s silicone-like warm rim light; background clean and uncluttered."
 
-    Return only the FILLER text.
-    """;
+                                                          Return only the FILLER text.
+                                                          """;
 
     // ===== (F) Bubble Instruction (image agent tự tạo) =====
     private const string BubbleAutoInstructionTemplate = """
-SPEECH BUBBLE (overlay, auto-content):
-- Add a small, soft, semi-transparent white bubble near the subject’s head.
-- Keep it very short (under 12 words) and emotionally natural.
-- The text should feel like the subject’s *inner thought* or *brief emotional reaction* that matches the scene.
-- Personalize the tone to fit the subject’s current mood and context 
-  (e.g., quiet reflection, gentle self-encouragement, subtle fatigue, or emotional sigh).
-- Avoid clichés, quotes, emojis, or long sentences.
-""";
+                                                         SPEECH BUBBLE (overlay, auto-content):
+                                                         - Add a small, soft, semi-transparent white bubble near the subject’s head.
+                                                         - Keep it very short (<= 12 words), in Vietnamese, and emotionally natural.
+                                                         - The text should feel like a brief inner thought that matches the scene (e.g., “ráng thêm chút nữa thôi”, “cố lên, gần xong rồi”, “hít sâu nào”, “được đó, tiến triển tốt”).
+                                                         - Avoid clichés, quotes, emojis, or long sentences.
+                                                         """;
 
     // ===== MAIN FUNCTION =====
     public async Task<RewardGenerationDataDto> PrepareGenerationDataAsync(Guid aliasId, Guid rewardId, Guid chatSessionId,

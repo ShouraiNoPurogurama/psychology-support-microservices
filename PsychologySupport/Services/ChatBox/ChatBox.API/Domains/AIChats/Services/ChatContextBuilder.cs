@@ -14,27 +14,28 @@ public class ChatContextBuilder(ChatBoxDbContext dbContext, ILogger<ChatContextB
             .AsNoTracking()
             .FirstAsync(s => s.Id == sessionId);
 
-        var persona = session.PersonaSnapshot.ToPromptText();
-        var contextBlock = await BuildContextBlock(sessionId);
+        // var persona = session.PersonaSnapshot.ToPromptText();
+        // var contextBlock = await BuildContextBlock(sessionId);
         var processedUserMessage = TrimUserMessageIfExceedsLength(userMessage);
 
         // return $"{persona}{contextBlock}[User]\n{processedUserMessage}\n\n[Emo]:\n";
-        return $"{contextBlock}[User]\n{processedUserMessage}\n\n[Emo]:\n";
+        // return $"{contextBlock}[User]\n{processedUserMessage}\n\n[Emo]:\n";
+        return $"[User]\n{processedUserMessage}\n\n[Emo]:\n";
     }
 
-    private async Task<string> BuildContextBlock(Guid sessionId)
-    {
-        var lastMessageBlock = await GetLastEmoMessageBlock(sessionId);
-        
-        if (lastMessageBlock.Count == 0)
-            return "";
-
-        var contextContent = string.Join("\n", lastMessageBlock
-            .OrderBy(m => m.CreatedDate)
-            .Select(m => m.Content));
-
-        return $"[Previous Context Messages By Emo]\n{contextContent}\n\n";
-    }
+    // private async Task<string> BuildContextBlock(Guid sessionId)
+    // {
+    //     var lastMessageBlock = await GetLastEmoMessageBlock(sessionId);
+    //     
+    //     if (lastMessageBlock.Count == 0)
+    //         return "";
+    //
+    //     var contextContent = string.Join("\n", lastMessageBlock
+    //         .OrderBy(m => m.CreatedDate)
+    //         .Select(m => m.Content));
+    //
+    //     return $"[Previous Context Messages By Emo]\n{contextContent}\n\n";
+    // }
 
     private string TrimUserMessageIfExceedsLength(string userMessage)
     {

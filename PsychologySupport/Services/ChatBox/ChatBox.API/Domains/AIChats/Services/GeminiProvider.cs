@@ -43,7 +43,7 @@ public class GeminiProvider(
         if (!string.IsNullOrWhiteSpace(payload.Summarization))
         {
             contents.Add(new GeminiContentDto("user",
-                [new GeminiContentPartDto($"Tóm tắt trước đó:\n{payload.Summarization}")] ));
+                [new GeminiContentPartDto($"{payload.Summarization}")] ));
         }
 
         // Add history messages
@@ -115,7 +115,11 @@ public class GeminiProvider(
             ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() }
         };
 
-        var content = new StringContent(JsonConvert.SerializeObject(payload, settings), Encoding.UTF8, "application/json");
+        var serializedPayload = JsonConvert.SerializeObject(payload, settings);
+        
+        logger.LogInformation("Gemini Flash Lite Payload: {Payload}", serializedPayload);
+
+        var content = new StringContent(serializedPayload, Encoding.UTF8, "application/json");
         var resp = await http.PostAsync(url, content, ct);
         var body = await resp.Content.ReadAsStringAsync(ct);
 
