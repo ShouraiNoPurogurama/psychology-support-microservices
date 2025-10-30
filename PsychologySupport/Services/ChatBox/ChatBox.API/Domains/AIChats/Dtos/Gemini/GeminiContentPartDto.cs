@@ -2,4 +2,4 @@
 
 namespace ChatBox.API.Domains.AIChats.Dtos.Gemini;
 
-public record GeminiContentPartDto([JsonProperty("text")] string Text);
+public record GeminiContentPartDto([property: JsonProperty("text")] string Text);

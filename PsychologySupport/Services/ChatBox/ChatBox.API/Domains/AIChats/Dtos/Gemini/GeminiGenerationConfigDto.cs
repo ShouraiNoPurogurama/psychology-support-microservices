@@ -3,10 +3,10 @@
 namespace ChatBox.API.Domains.AIChats.Dtos.Gemini;
 
 public record GeminiGenerationConfigDto(
-    [JsonProperty("temperature")]
+    [property: JsonProperty("temperature")]
     double Temperature = 1.0,
-    [JsonProperty("topP")]
+    [property: JsonProperty("topP")]
     double TopP = 0.95,
-    [JsonProperty("maxOutputTokens")]
+    [property: JsonProperty("maxOutputTokens")]
     int MaxOutputTokens = 8192
 );

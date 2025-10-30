@@ -1,6 +1,9 @@
 ﻿syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 option csharp_namespace = "UserMemory.API.Protos";
+
 package usermemory;
 
 // === Request/Response ===
@@ -22,6 +25,7 @@ message MemoryHit {
   string id = 1;                  // uuid
   string summary = 2;             // tóm tắt ngắn
   double score = 3;               // [0..1]
+  google.protobuf.Timestamp captured_at = 4;
 }
 
 message SearchMemoriesResponse {

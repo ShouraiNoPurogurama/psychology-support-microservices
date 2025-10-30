@@ -8,11 +8,11 @@ namespace ChatBox.API.Domains.AIChats.Services;
 public class ChatContextBuilder(ChatBoxDbContext dbContext, ILogger<ChatContextBuilder> logger) 
     : IContextBuilder
 {
-    public async Task<string> BuildContextAsync(Guid sessionId, string userMessage)
+    public string BuildContextAsync(Guid sessionId, string userMessage)
     {
-        var session = await dbContext.AIChatSessions
-            .AsNoTracking()
-            .FirstAsync(s => s.Id == sessionId);
+        // var session = await dbContext.AIChatSessions
+        //     .AsNoTracking()
+        //     .FirstAsync(s => s.Id == sessionId);
 
         // var persona = session.PersonaSnapshot.ToPromptText();
         // var contextBlock = await BuildContextBlock(sessionId);
@@ -20,7 +20,7 @@ public class ChatContextBuilder(ChatBoxDbContext dbContext, ILogger<ChatContextB
 
         // return $"{persona}{contextBlock}[User]\n{processedUserMessage}\n\n[Emo]:\n";
         // return $"{contextBlock}[User]\n{processedUserMessage}\n\n[Emo]:\n";
-        return $"[User]\n{processedUserMessage}\n\n[Emo]:\n";
+        return $"[User đang nhắn]:\n {processedUserMessage} \n\n[Emo trả lời]:\n";
     }
 
     // private async Task<string> BuildContextBlock(Guid sessionId)

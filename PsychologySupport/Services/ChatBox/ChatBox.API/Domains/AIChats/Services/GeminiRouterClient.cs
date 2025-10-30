@@ -27,12 +27,12 @@ public class GeminiRouterClient : IRouterClient
         _config = config.Value;
     }
 
-    public async Task<RouterDecisionDto?> RouteAsync(string userMessage, string? history,
+    public async Task<RouterDecisionDto?> RouteAsync(string userMessage, List<HistoryMessage> historyMessages, 
         CancellationToken ct = default)
     {
         try
         {
-            var payload = BuildPayload(userMessage, history);
+            var payload = BuildPayload(userMessage, historyMessages);
 
             _logger.LogInformation("Router Gemini payload: {Payload}", JsonConvert.SerializeObject(payload));
 
@@ -51,7 +51,7 @@ public class GeminiRouterClient : IRouterClient
         }
     }
 
-    private GeminiStructuredOutputRequestDto BuildPayload(string userMessage, string? history)
+    private GeminiStructuredOutputRequestDto BuildPayload(string userMessage, List<HistoryMessage> historyMessages)
     {
         // === System prompt dành cho ROUTER (chuẩn) ===
         // * BẮT BUỘC * trả về 1 JSON object DUY NHẤT theo schema — không thêm text.
@@ -60,7 +60,20 @@ public class GeminiRouterClient : IRouterClient
         // context đầu vào cho model
         var contextParts = new List<string>();
         // if (!string.IsNullOrWhiteSpace(history))  contextParts.Add($"[CONVERSATION SUMMARY]\n{history}");
-        contextParts.Add($"[USER MESSAGE]: \n {userMessage}");
+        
+        if(historyMessages.Count > 0) 
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("[CONVERSATION HISTORY]:");
+            foreach (var msg in historyMessages.TakeLast(3))
+            {
+                var speaker = msg.IsFromAI ? "Emo" : "User";
+                sb.AppendLine($"{speaker}: {msg.Content}");
+            }
+            contextParts.Add(sb.ToString().Trim());
+        }
+        
+        contextParts.Add($"\n\n[USER MESSAGE]: \n {userMessage}");
 
         var fullContext = string.Join("\n\n", contextParts);
 
@@ -116,7 +129,10 @@ public class GeminiRouterClient : IRouterClient
                 retrieval_needed = new
                 {
                     type = "boolean",
-                    description = "Đặt 'true' khi câu trả lời CẦN được cá nhân hoá hoặc cần knowledge nội bộ. Nhận diện nhanh: \n• Câu hỏi gợi ý/đề xuất/khuyến nghị (ăn/xem/chơi/đi/học/mua/đầu tư, v.v.) → true. \n• Câu hỏi 'đố', 'đoán', hoặc câu hỏi yêu cầu bot NHỚ LẠI thông tin/sự kiện/sở thích của user. → true. \n• Có ràng buộc cá nhân (allergy, budget, thời gian, stack, phong cách…) → true. \n• Hỏi nội bộ dự án/đội nhóm → true. \n• Small talk / fact hiển nhiên → false."
+                    description = "Đặt 'true' khi câu trả lời CẦN cá nhân hoá hoặc kiến thức nội bộ. " +
+        "Router nhận 3–4 tin nhắn liền kề nên phải xét **ngữ nghĩa chuỗi** (follow-up, đại từ, phủ định, đính chính, tham chiếu ngầm) trước khi quyết định.\n" +
+        "TRUE nếu: câu hỏi gợi ý/đề xuất (ăn, học, xem...), có thể có ràng buộc cá nhân (sở thích, thời gian, ngân sách...), cần nhớ lại hoặc hỏi kiến thức nội bộ.\n" +
+        "FALSE nếu: small talk, đùa ngắn, fact hiển nhiên không cần truy xuất lại kí ức về người dùng."
                 },
                 memory_to_save = new
                 {
@@ -165,22 +181,28 @@ public class GeminiRouterClient : IRouterClient
 
     private string BuildRouterSystemInstruction()
     {
+//         return """
+//                Bạn là ROUTER-RESPONDER cho Emo. Xuất **một JSON object duy nhất** đúng ResponseSchema. Không thêm chữ, không markdown.
+//
+//                # Examples
+//                [User]: tui thích chơi Yasuo
+//                {"intent":"DIRECT_ANSWER","emo_instruction":"[Gợi ý trả lời: Công nhận sở thích và niềm vui khi chơi Yasuo; giữ giọng điệu hào hứng, có thể mời gọi nhẹ nếu họ muốn kể thêm về cách chơi.]", "save_needed":true, "memory_to_save":{"summary":"Sở thích: Chơi tướng Yasuo trong game Liên Minh Huyền Thoại (League of Legends).","normalized_tags":["Topic_Hobby"]}, "retrieval_needed":false}
+//
+//                [User]: giờ đánh liên minh chơi tướng nào cho vui?
+//                {"intent":"RAG_PERSONAL_MEMORY","emo_instruction":"[Gợi ý trả lời: Dựa trên tướng ưa thích trước đây để gợi ý vài lựa chọn cùng phong cách; ưu tiên mô tả cảm giác chơi, không cần hỏi dồn – có thể gợi ý nhẹ nếu họ muốn.]", "save_needed":false, "retrieval_needed":true}
+//
+//                [User]: EmoEase do ai làm?
+//                {"intent":"RAG_TEAM_KNOWLEDGE","emo_instruction":"[MARKER: RAG_TEAM_KNOWLEDGE]", "save_needed":false, "retrieval_needed":true}
+//
+//                [User]: đố mày tao mới kiểm tra được mấy điểm
+//                {"intent":"RAG_PERSONAL_MEMORY","emo_instruction":"[Gợi ý trả lời: Giữ tông vui và tôn trọng; nếu có ký ức liên quan thì phản ánh tinh tế; tránh đoán chắc; có thể mời họ chia sẻ nếu muốn khoe kết quả hoặc quá trình để đạt được kết quả.]", "save_needed":false, "retrieval_needed":true}
+//                """;
+        
         return """
                Bạn là ROUTER-RESPONDER cho Emo. Xuất **một JSON object duy nhất** đúng ResponseSchema. Không thêm chữ, không markdown.
-
-               # Examples
-               [User]: tui thích chơi Yasuo
-               {"intent":"DIRECT_ANSWER","emo_instruction":"[Gợi ý trả lời: Công nhận sở thích và niềm vui khi chơi Yasuo; giữ giọng điệu hào hứng, có thể mời gọi nhẹ nếu họ muốn kể thêm về cách chơi.]", "save_needed":true, "memory_to_save":{"summary":"Sở thích: Chơi tướng Yasuo trong game Liên Minh Huyền Thoại (League of Legends).","normalized_tags":["Topic_Hobby"]}, "retrieval_needed":false}
-
-               [User]: giờ đánh liên minh chơi tướng nào cho vui?
-               {"intent":"RAG_PERSONAL_MEMORY","emo_instruction":"[Gợi ý trả lời: Dựa trên tướng ưa thích trước đây để gợi ý vài lựa chọn cùng phong cách; ưu tiên mô tả cảm giác chơi, không cần hỏi dồn – có thể gợi ý nhẹ nếu họ muốn.]", "save_needed":false, "retrieval_needed":true}
-
-               [User]: EmoEase do ai làm?
-               {"intent":"RAG_TEAM_KNOWLEDGE","emo_instruction":"[MARKER: RAG_TEAM_KNOWLEDGE]", "save_needed":false, "retrieval_needed":true}
-
-               [User]: đố mày tao mới kiểm tra được mấy điểm
-               {"intent":"RAG_PERSONAL_MEMORY","emo_instruction":"[Gợi ý trả lời: Giữ tông vui và tôn trọng; nếu có ký ức liên quan thì phản ánh tinh tế; tránh đoán chắc; có thể mời họ chia sẻ nếu muốn khoe kết quả hoặc quá trình để đạt được kết quả.]", "save_needed":false, "retrieval_needed":true}
                """;
+
+
     }
 
     private async Task<string> CallGeminiAPIAsync(GeminiRequestDto payload, CancellationToken ct)
@@ -216,13 +238,9 @@ public class GeminiRouterClient : IRouterClient
 
         var apiKey = _cfg["GeminiConfig:ApiKey"];
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={apiKey}";
-
-        var settings = new JsonSerializerSettings
-        {
-            ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() }
-        };
-
-        var content = new StringContent(JsonConvert.SerializeObject(payload, settings), Encoding.UTF8, "application/json");
+        
+        var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+        
         var resp = await http.PostAsync(url, content, ct);
         var body = await resp.Content.ReadAsStringAsync(ct);
 

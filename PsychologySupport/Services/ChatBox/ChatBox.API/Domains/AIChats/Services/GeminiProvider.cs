@@ -27,7 +27,8 @@ public class GeminiProvider(
     }
 
     // ===== Overload: gọi Gemini 2.5 Flash Lite bằng API key (non-structured) =====
-    public async Task<string> GenerateResponseAsync_FoundationalModel(AIRequestPayload payload, Guid sessionId, CancellationToken ct = default)
+    public async Task<string> GenerateResponseAsync_FoundationalModel(AIRequestPayload payload, Guid sessionId,
+        CancellationToken ct = default)
     {
         var geminiPayload = await BuildGeminiPayload(payload, sessionId);
         return await CallGeminiFlashLiteAPIAsync(geminiPayload, ct);
@@ -37,20 +38,18 @@ public class GeminiProvider(
     private async Task<GeminiRequestDto> BuildGeminiPayload(AIRequestPayload payload, Guid sessionId)
     {
         var contents = new List<GeminiContentDto>();
-        var lastMessageBlock = await contextBuilder.GetLastEmoMessageBlock(sessionId);
+        // var lastMessageBlock = await contextBuilder.GetLastEmoMessageBlock(sessionId);
 
         // Add summarization if exists
         if (!string.IsNullOrWhiteSpace(payload.Summarization))
         {
             contents.Add(new GeminiContentDto("user",
-                [new GeminiContentPartDto($"{payload.Summarization}")] ));
+                [new GeminiContentPartDto($"{payload.Summarization}")]));
         }
 
-        // Add history messages
-        contents.AddRange(from message in payload.HistoryMessages
-                          where lastMessageBlock.All(mb => mb.Content != message.Content)
-                          select new GeminiContentDto(message.IsFromAI ? "model" : "user",
-                              [new GeminiContentPartDto(message.Content)]));
+        contents.AddRange(payload.HistoryMessages.Select(h =>
+            new GeminiContentDto(h.IsFromAI ? "model" : "user",
+                [new GeminiContentPartDto(h.Content)])));
 
         // Add current context
         contents.Add(new GeminiContentDto("user",
@@ -82,7 +81,8 @@ public class GeminiProvider(
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var configValue = config.Value;
-        var url = $"https://{configValue.Location}-aiplatform.googleapis.com/v1/projects/{configValue.ProjectId}/locations/{configValue.Location}/endpoints/{configValue.EndpointId}:streamGenerateContent";
+        var url =
+            $"https://{configValue.Location}-aiplatform.googleapis.com/v1/projects/{configValue.ProjectId}/locations/{configValue.Location}/endpoints/{configValue.EndpointId}:streamGenerateContent";
 
         var settings = new JsonSerializerSettings
         {
@@ -110,13 +110,13 @@ public class GeminiProvider(
         var apiKey = cfg["GeminiConfig:ApiKey"];
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={apiKey}";
 
-        var settings = new JsonSerializerSettings
-        {
-            ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() }
-        };
+        // var settings = new JsonSerializerSettings
+        // {
+        //     ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() }
+        // };
 
-        var serializedPayload = JsonConvert.SerializeObject(payload, settings);
-        
+        var serializedPayload = JsonConvert.SerializeObject(payload);
+
         logger.LogInformation("Gemini Flash Lite Payload: {Payload}", serializedPayload);
 
         var content = new StringContent(serializedPayload, Encoding.UTF8, "application/json");

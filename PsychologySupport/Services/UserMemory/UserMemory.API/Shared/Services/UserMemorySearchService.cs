@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using UserMemory.API.Protos;
 using UserMemory.API.Shared.Services.Contracts;
 
@@ -58,7 +59,8 @@ public class UserMemorySearchService(
             {
                 Id = row.Id.ToString(),
                 Summary = row.Summary,
-                Score = score
+                Score = score,
+                CapturedAt = row.CreatedAt.ToTimestamp(),
             });
             
             logger.LogInformation("SearchMemories: AliasId={AliasId} Query='{Query}' HitId={HitId} Score={Score}",

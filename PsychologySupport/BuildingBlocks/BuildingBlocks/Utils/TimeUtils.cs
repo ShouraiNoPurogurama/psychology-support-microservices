@@ -35,4 +35,16 @@ public class TimeUtils
         if (now < birth.AddYears(age)) age--; // chưa tới sinh nhật năm nay
         return age;
     }
+    
+    public static string Relative(DateTimeOffset when, DateTimeOffset now)
+    {
+        var d = now - when;
+        if (d.TotalMinutes < 1) return "vừa xong";
+        if (d.TotalHours   < 1) return $"{(int)d.TotalMinutes} phút trước";
+        if (d.TotalDays    < 1) return $"{(int)d.TotalHours} giờ trước";
+        if (d.TotalDays    < 7) return $"{(int)d.TotalDays} ngày trước";
+        if (d.TotalDays   < 30) return $"{(int)(d.TotalDays / 7)} tuần trước";
+        if (d.TotalDays  < 365) return $"{(int)(d.TotalDays / 30)} tháng trước";
+        return $"{(int)(d.TotalDays / 365)} năm trước";
+    }
 }

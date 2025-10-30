@@ -3,12 +3,12 @@
 namespace ChatBox.API.Domains.AIChats.Dtos.Gemini;
 
 public record GeminiRequestDto(
-    [JsonProperty("contents")]
+    [property: JsonProperty("contents")]
     List<GeminiContentDto> Contents,
-    [JsonProperty("systemInstruction")]
+    [property: JsonProperty("system_instruction")]
     GeminiSystemInstructionDto SystemInstruction,
-    [JsonProperty("generationConfig")]
+    [property: JsonProperty("generationConfig")]
     GeminiGenerationConfigDto GenerationConfig,
-    [JsonProperty("safetySettings")]
+    [property: JsonProperty("safetySettings")]
     List<GeminiSafetySettingDto> SafetySettings
 );

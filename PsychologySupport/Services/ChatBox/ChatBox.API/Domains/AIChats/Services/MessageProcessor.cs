@@ -2,6 +2,7 @@ using System.Text.Json;
 using BuildingBlocks.Exceptions;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Chatbox;
 using BuildingBlocks.Pagination;
+using BuildingBlocks.Utils;
 using ChatBox.API.Data;
 using ChatBox.API.Domains.AIChats.Dtos.AI;
 using ChatBox.API.Domains.AIChats.Dtos.Sessions;
@@ -88,14 +89,16 @@ public class MessageProcessor(
             .FirstAsync(s => s.Id == request.SessionId);
 
         var userMessageWithDateTime = DatePromptHelper.PrependDateTimePrompt(request.UserMessage, 7);
+        
+        var historyMessages = await GetHistoryMessagesAsync(request.SessionId);
 
         // 1) Ngữ cảnh ban đầu
-        var initialContext = await contextBuilder.BuildContextAsync(request.SessionId, userMessageWithDateTime);
+        var initialContext =  contextBuilder.BuildContextAsync(request.SessionId, userMessageWithDateTime);
 
         // 2) ROUTER
         var routerDecision = await routerClient.RouteAsync(
             userMessageWithDateTime,
-            session.Summarization,
+            historyMessages,
             ct: CancellationToken.None
         );
 
@@ -148,10 +151,12 @@ public class MessageProcessor(
 
         if (shouldCallMemory)
         {
-            instruction = @"[Gợi ý trả lời:
-- BẮT BUỘC ground theo [NGỮ CẢNH KÝ ỨC CÁ NHÂN (DÙNG KHI PHÙ HỢP)] (nằm ở dưới); không mâu thuẫn hoặc bỏ qua.
-- Không lặp nguyên văn; chỉ tham chiếu tinh tế.
-]";
+            instruction += """
+
+                           - BẮT BUỘC ground theo [NGỮ CẢNH KÝ ỨC CÁ NHÂN (DÙNG KHI PHÙ HỢP)] (nằm ở dưới); không mâu thuẫn hoặc bỏ qua.
+                           - Không lặp nguyên văn; chỉ tham chiếu tinh tế.
+                           ]
+                           """;
 
             var searchQuery = request.UserMessage.Trim();
             if (!string.IsNullOrEmpty(searchQuery))
@@ -170,13 +175,28 @@ public class MessageProcessor(
                     var grpcResp = await userMemorySearchClient.SearchMemoriesAsync(grpcReq, cancellationToken: cts.Token);
                     if (grpcResp?.Hits?.Count > 0)
                     {
+                        var tz = TimeSpan.FromHours(7);
+                        var nowLocal = DateTimeOffset.UtcNow.ToOffset(tz);
+                        
                         var bullets = grpcResp.Hits
                             .OrderByDescending(h => h.Score)
-                            .Select(h => $"- [Điểm liên quan: {h.Score:0.00}] {h.Summary}");
+                            .Select(h =>
+                            {
+                                var ts = h.CapturedAt;
+                                if (ts is null)
+                                    return $"- [Điểm liên quan: {h.Score:0.00}] Ghi nhận: (không rõ ngày) {h.Summary}";
 
+                                var whenLocal = ts.ToDateTimeOffset().ToOffset(tz);
+                                var rel = TimeUtils.Relative(whenLocal, nowLocal);        // “2 tuần trước”
+                                var dateStr = whenLocal.ToString("yyyy-MM-dd");         // 2025-10-30
+                                return $"- [Điểm liên quan: {h.Score:0.00}] ({rel}) Ghi nhận {dateStr}: {h.Summary}";
+                            });
+                        
+                        
                         memoryAugmentation =
                             $@"[NGỮ CẢNH KÝ ỨC CÁ NHÂN (DÙNG KHI PHÙ HỢP)]
 {string.Join("\n", bullets)}
+- Hôm nay là: {DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)):yyyy-MM-dd}.
 [/NGỮ CẢNH KÝ ỨC CÁ NHÂN]";
 
                         // 3.y) RULES dùng memory – tổng quát hoá cho mọi chủ đề
@@ -204,7 +224,7 @@ public class MessageProcessor(
         if (routerDecision?.Intent == RouterIntent.RAG_TEAM_KNOWLEDGE)
         {
             var teamKnowledge = await LoadTeamKnowledgeFileAsync();
-            var userMarker0 = "[User]\n";
+            var userMarker0 = "[User đang nhắn]:\n";
             var idx0 = initialContext.IndexOf(userMarker0, StringComparison.Ordinal);
 
             var block =
@@ -224,7 +244,7 @@ public class MessageProcessor(
             var safeInstruction =
                 "[Gợi ý trả lời: Thừa nhận nhu cầu hiện tại; đề xuất 2–3 hướng lựa chọn tương phản (ví dụ: nhanh/gọn – thoải mái – tập trung/kỹ thuật); hỏi mở sở thích/giới hạn lúc này; tinh tế tham chiếu tới ‘gu gần đây’ nếu phù hợp, tránh nhắc đúng chi tiết đã lưu. Giọng điệu ấm áp, không áp đặt.]";
 
-            if (string.IsNullOrWhiteSpace(instruction) || !instruction.StartsWith("[") || !instruction.EndsWith("]"))
+            if (string.IsNullOrWhiteSpace(instruction))
                 instruction = safeInstruction;
 
             routerBlock =
@@ -235,7 +255,7 @@ public class MessageProcessor(
 
         // 3.z) Reorder: [System/Previous] -> [ROUTER INSTRUCTION] -> [USAGE RULES] -> [MEMORY] -> [User]
         {
-            var userMarker = "[User]\n";
+            var userMarker = "[User đang nhắn]:\n";
             var idx = augmentedContext.IndexOf(userMarker, StringComparison.Ordinal);
 
             var head = idx != -1 ? augmentedContext[..idx] : augmentedContext;
@@ -256,7 +276,7 @@ public class MessageProcessor(
         logger.LogInformation("Augmented context with instruction: {Context}", augmentedContext);
 
         // 4) Build payload
-        var payload = await BuildAIPayload(request, session, augmentedContext);
+        var payload = await BuildAIPayload(historyMessages, session, augmentedContext);
 
         // 5) Call model
         var responseText = await aiProvider.GenerateResponseAsync_FoundationalModel(payload, session.Id);
@@ -364,11 +384,10 @@ public class MessageProcessor(
         await dbContext.SaveChangesAsync();
     }
 
-    private async Task<AIRequestPayload> BuildAIPayload(AIMessageRequestDto request, AIChatSession session,
+    private async Task<AIRequestPayload> BuildAIPayload(List<HistoryMessage> historyMessages, AIChatSession session,
         string augmentedContext)
     {
         var summarization = await GetSessionSummarizationAsync(session.Id);
-        var historyMessages = await GetHistoryMessagesAsync(session.Id);
 
         logger.LogInformation("Summarization: {Summarization}", summarization);
         logger.LogInformation("HistoryMessages count: {Count}", historyMessages);
@@ -387,24 +406,24 @@ public class MessageProcessor(
             .Where(s => s.Id == sessionId)
             .Select(s => s.Summarization)
             .FirstOrDefaultAsync();
-        
+
         var summaryBlock = BuildChatSummaryBlock(rawSummarization);
 
         return summaryBlock;
     }
-    
+
     private static string BuildChatSummaryBlock(string? rawSummarization)
     {
         if (string.IsNullOrWhiteSpace(rawSummarization))
             return "";
-        
-        var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7)); 
+
+        var now = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7));
         var timeTag = $"[Thời gian hiện tại: {now:yyyy-MM-dd HH:mm}]";
 
         var parts = rawSummarization
                 .Split(new[] { "---" }, StringSplitOptions.RemoveEmptyEntries)
             ;
-        
+
         var parsedParts = parts.Select(p =>
             {
                 try
@@ -418,7 +437,10 @@ public class MessageProcessor(
                         capturedAt = dto.CreatedAt?.ToString()
                     };
                 }
-                catch { return null; }
+                catch
+                {
+                    return null;
+                }
             })
             .Where(x => x is not null)
             .ToList();
@@ -435,7 +457,7 @@ public class MessageProcessor(
                 lines.Add($"- Context: {s.current}");
             if (!string.IsNullOrWhiteSpace(s.persist))
                 lines.Add($"- Context bền vững: {s.persist}");
-            if(!string.IsNullOrWhiteSpace(s.capturedAt)) 
+            if (!string.IsNullOrWhiteSpace(s.capturedAt))
                 lines.Add($"- Lưu vào lúc: {s.capturedAt:dd/MM/yyyy}");
         }
 
@@ -445,39 +467,20 @@ public class MessageProcessor(
     private async Task<List<HistoryMessage>> GetHistoryMessagesAsync(Guid sessionId)
     {
         const int maxHistoryMessages = 10;
+        const int reservedMessages = 4;
         
-        // Lấy các message có BlockNumber > lastSummarizedBlock
-        // rồi cắt window theo thời gian gần nhất
-        var messages = await dbContext.AIChatMessages
-            .Where(m => m.SessionId == sessionId &&
-                        m.BlockNumber >
-                        dbContext.AIChatSessions
-                            .Where(s => s.Id == sessionId)
-                            .Select(s => s.LastSummarizedIndex ?? 0)
-                            .FirstOrDefault())
-            .OrderByDescending(m => m.CreatedDate)
-            .Take(maxHistoryMessages)
+        var session = await dbContext.AIChatSessions.AsNoTracking().FirstAsync(s => s.Id == sessionId);
+        
+        var lastSummarizedIndex = session.LastSummarizedIndex ?? 0;
+        
+        var skipIndex = lastSummarizedIndex + 1 - reservedMessages >= 0 ? lastSummarizedIndex + 1 - reservedMessages : 0 ; 
+        
+        var messages = await dbContext.AIChatMessages.Where(m => m.SessionId == sessionId)
             .OrderBy(m => m.CreatedDate)
-            .Select(m => new HistoryMessage(
-                m.Content,
-                m.SenderIsEmo
-            ))
+            .Skip(skipIndex)
+            .Take(maxHistoryMessages)
+            .Select(m => new HistoryMessage(m.Content, m.SenderIsEmo))
             .ToListAsync();
-        
-        if (messages.Count == 0)
-        {
-            messages = await dbContext.AIChatMessages
-                .Where(m => m.SessionId == sessionId)
-                .OrderByDescending(m => m.CreatedDate)
-                .Take(maxHistoryMessages)
-                .OrderBy(m => m.CreatedDate)
-                .Select(m => new HistoryMessage(
-                    m.Content,
-                    m.SenderIsEmo
-                ))
-                .ToListAsync();
-        }
-
         return messages;
     }
 

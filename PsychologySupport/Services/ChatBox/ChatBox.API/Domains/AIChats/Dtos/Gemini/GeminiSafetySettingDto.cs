@@ -3,8 +3,8 @@
 namespace ChatBox.API.Domains.AIChats.Dtos.Gemini;
 
 public record GeminiSafetySettingDto(
-    [JsonProperty("category")]
+    [property: JsonProperty("category")]
     string Category,
-    [JsonProperty("threshold")]
+    [property: JsonProperty("threshold")]
     string Threshold = "OFF"
 );

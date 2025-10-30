@@ -3,6 +3,6 @@
 namespace ChatBox.API.Domains.AIChats.Dtos.Gemini;
 
 public record GeminiSystemInstructionDto(
-    [JsonProperty("parts")]
+    [property: JsonProperty("parts")]
     GeminiContentPartDto Parts
 );
