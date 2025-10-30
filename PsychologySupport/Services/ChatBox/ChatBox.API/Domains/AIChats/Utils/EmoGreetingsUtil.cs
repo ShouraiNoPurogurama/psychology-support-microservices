@@ -10,25 +10,26 @@ public static class EmoGreetingsUtil
         "Chào {0} nèee ~",
         "Tớ là Emo đâyy, {0} ơi.",
         "Hi {0}, Emo tới rồi nè.",
-        "He luu, {0} khỏe không? Emo đây!",
+        "He luu {0} ơi, Emo đây.", 
         "{0} ơi, Emo đây nè.",
         "Emo chào {0} nhaaa.",
-        "Tớ đây, Emo đang nghe {0} nè.",
+        "Tớ đây rồi, Emo đây {0} ơi.", 
         "Alo alo, Emo tới rồi nè {0}!",
-        "Này {0} ơi, Emo xuất hiện rồi nè."
+        "Này {0} ơi, Emo xuất hiện rồi nè.",
+        "Tớ quay lại rồi đây, {0} ơi!" 
     ];
 
     private static readonly string[] EmoGreetingQuestions = [
-        "Ngày hôm nay của cậu thế nào á?",
+        "Ngày hôm nay của cậu thế nào?", 
         "Có tâm sự gì muốn kể tớ nghe không? 🥰",
         "Dạo này cậu ổn không nhỉ? 😄",
         "Trò chuyện cùng tớ tí không nào? 😊",
-        "Có chuyện gì vui kể tớ với nha 😄",
-        "Nếu có điều gì muốn chia sẻ, tớ sẵn sàng nghe luôn 📞",
-        "Dạo này có gì mới không nè? 😊",
-        "Cậu đang cảm thấy sao rồi? 😊",
-        "Ngày hôm nay của cậu có gì đặc biệt không? 😄",
-        "Tâm trạng hôm nay ra sao rồi cậu? 😄"
+        "Hôm nay của cậu sao rồi? 🌤️", 
+        "Muốn chia sẻ điều gì với tớ hôm nay không?",
+        "Dạo này có gì mới không nè? 😊", 
+        "Cậu đang cảm thấy sao rồi? 😌", 
+        "Hôm nay có điều gì cậu đang nghĩ nhiều không?",
+        "Tâm trạng hôm nay ra sao rồi cậu? 🧐" 
     ];
 
     
