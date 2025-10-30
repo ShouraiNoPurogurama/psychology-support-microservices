@@ -77,7 +77,6 @@ public class ClaimRewardHandler(
             var rowsAffected = await dbContext.SessionDailyProgresses
                 .Where(p => p.AliasId == aliasId &&
                             p.SessionId == request.ChatSessionId && // Check đúng session
-                            p.ProgressDate == currentDate &&
                             p.ProgressPoints >= rewardCost) // Check đủ điểm trong session
                 .ExecuteUpdateAsync(setters => setters
                         .SetProperty(p => p.ProgressPoints, p => p.ProgressPoints - rewardCost), // Trừ điểm của session
