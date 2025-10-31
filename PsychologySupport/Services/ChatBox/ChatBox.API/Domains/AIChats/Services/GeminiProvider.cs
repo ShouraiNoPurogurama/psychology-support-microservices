@@ -33,7 +33,7 @@ public class GeminiProvider(
     {
         GeminiRequestDto geminiPayload;
 
-        if (purpose == "image_sticker_followup")
+        if (purpose == "sticker_reward_followup")
         {
             geminiPayload = BuildGeminiPayloadForImageFollowup(payload, sessionId);
         }
