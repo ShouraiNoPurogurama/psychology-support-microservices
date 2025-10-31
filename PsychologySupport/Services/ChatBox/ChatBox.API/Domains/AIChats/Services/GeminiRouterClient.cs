@@ -202,8 +202,7 @@ public class GeminiRouterClient : IRouterClient
                Bạn là ROUTER-RESPONDER cho Emo để phản hồi cho [USER MESSAGE] một cách đúng trọng tâm, chân thành. Xuất **một JSON object duy nhất** đúng ResponseSchema. Không thêm chữ, không markdown.
 
                #Ví dụ:
-               [USER MESSAGE]: đố mày tao mới kiểm tra được mấy điểm
-               {"intent":"RAG_PERSONAL_MEMORY","emo_instruction":"[Gợi ý trả lời: Giữ tông vui và tôn trọng; nếu có ký ức liên quan thì phản ánh tinh tế; tránh đoán chắc; có thể mời họ chia sẻ nếu muốn khoe kết quả hoặc quá trình để đạt được kết quả.]", "save_needed":false, "retrieval_needed":true}
+               [USER MESSAGE]: đố mày tao mới kiểm tra được mấy điểm => các flag sẽ là "intent":"RAG_PERSONAL_MEMORY", "save_needed":false, "retrieval_needed":true
                """;
 
 
