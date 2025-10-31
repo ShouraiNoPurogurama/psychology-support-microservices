@@ -89,7 +89,7 @@ public class StickerRewardService(
                 HistoryMessages: []  // IAIProvider sẽ tự điền
             );
 
-            var emoFollowUpText = await aiProvider.GenerateResponseAsync_FoundationalModel(aiPayload, sessionId);
+            var emoFollowUpText = await aiProvider.GenerateResponseAsync_FoundationalModel(aiPayload, sessionId, "sticker_reward_followup");
 
             if (string.IsNullOrWhiteSpace(emoFollowUpText))
             {

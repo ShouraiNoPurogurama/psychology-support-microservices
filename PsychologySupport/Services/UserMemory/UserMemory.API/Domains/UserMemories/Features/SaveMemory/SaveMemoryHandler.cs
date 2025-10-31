@@ -16,8 +16,8 @@ public class SaveMemoryHandler(
 ) : ICommandHandler<SaveMemoryCommand, SaveMemoryResult>
 {
     private const int AnyMessagePoints = 100;
-    private const int SaveNeededPoints = 160;
-    private const int EmotionOrPersonalPoints = 60;
+    private const int SaveNeededPoints = 80;
+    private const int EmotionOrPersonalPoints = 120;
 
    public async Task<SaveMemoryResult> Handle(SaveMemoryCommand request , CancellationToken cancellationToken)
     {

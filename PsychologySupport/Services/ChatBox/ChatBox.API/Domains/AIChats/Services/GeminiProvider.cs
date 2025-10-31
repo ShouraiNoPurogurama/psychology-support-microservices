@@ -28,9 +28,20 @@ public class GeminiProvider(
 
     // ===== Overload: gọi Gemini 2.5 Flash Lite bằng API key (non-structured) =====
     public async Task<string> GenerateResponseAsync_FoundationalModel(AIRequestPayload payload, Guid sessionId,
+        string? purpose = null,
         CancellationToken ct = default)
     {
-        var geminiPayload = await BuildGeminiPayload(payload, sessionId);
+        GeminiRequestDto geminiPayload;
+
+        if (purpose == "image_sticker_followup")
+        {
+            geminiPayload = BuildGeminiPayloadForImageFollowup(payload, sessionId);
+        }
+        else
+        {
+            geminiPayload = await BuildGeminiPayload(payload, sessionId);
+        }
+
         return await CallGeminiFlashLiteAPIAsync(geminiPayload, ct);
     }
 
@@ -58,6 +69,43 @@ public class GeminiProvider(
         return new GeminiRequestDto(
             Contents: contents,
             SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(config.Value.SystemInstruction)),
+            GenerationConfig: new GeminiGenerationConfigDto(
+                Temperature: 1.0,
+                TopP: 0.95,
+                MaxOutputTokens: 8192
+            ),
+            SafetySettings:
+            [
+                new("HARM_CATEGORY_HATE_SPEECH"),
+                new("HARM_CATEGORY_DANGEROUS_CONTENT"),
+                new("HARM_CATEGORY_SEXUALLY_EXPLICIT"),
+                new("HARM_CATEGORY_HARASSMENT")
+            ]
+        );
+    }
+
+
+    // ===== Build chung payload =====
+    private GeminiRequestDto BuildGeminiPayloadForImageFollowup(AIRequestPayload payload, Guid sessionId)
+    {
+        var contents = new List<GeminiContentDto>();
+        // var lastMessageBlock = await contextBuilder.GetLastEmoMessageBlock(sessionId);
+
+        // Add summarization if exists
+        if (!string.IsNullOrWhiteSpace(payload.Summarization))
+        {
+            contents.Add(new GeminiContentDto("user",
+                [new GeminiContentPartDto($"{payload.Summarization}")]));
+        }
+
+        // Add current context
+        contents.Add(new GeminiContentDto("user",
+            [new GeminiContentPartDto(payload.Context)]));
+
+        return new GeminiRequestDto(
+            Contents: contents,
+            SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(
+                "Bạn là Emo – bạn đồng hành thân thiện.\n    Nhiệm vụ: viết 1–2 câu ngắn (≤40 từ, tiếng Việt) để tặng sticker dựa trên STICKER_BRIEF và ngữ cảnh gần nhất.\n    Giọng cậu–tớ, ấm, tự nhiên, chân thành. Chỉ trả về thuần văn bản: không markdown, không liệt kê, không emoji, không dạy đời, không hứa hẹn “chữa lành”.\n    Không bịa chi tiết ngoài brief. Ưu tiên gợi tả hình ảnh hoặc ý nghĩa ngắn gọn liên quan chủ đề sticker và cảm xúc vừa chia sẻ.\n    Kết thúc có thể gợi mở 1 câu hỏi rất nhẹ để cậu phản hồi (ví dụ: “cậu thấy chi tiết này có đúng tâm trạng không?”).\n    Nếu gặp nội dung nhạy cảm (tự hại/bạo lực/lạm dụng), chỉ bày tỏ quan tâm ngắn gọn và khuyến khích tìm hỗ trợ tin cậy; tuyệt đối không hướng dẫn hay chẩn đoán.")),
             GenerationConfig: new GeminiGenerationConfigDto(
                 Temperature: 1.0,
                 TopP: 0.95,
