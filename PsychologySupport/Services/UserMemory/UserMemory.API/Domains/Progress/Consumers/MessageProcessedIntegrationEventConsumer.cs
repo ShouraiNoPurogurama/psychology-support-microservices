@@ -20,9 +20,9 @@ public class MessageProcessedIntegrationEventConsumer : IConsumer<MessageProcess
     private readonly ILogger<MessageProcessedIntegrationEventConsumer> _logger;
 
     // Point calculation constants
-    private const int AnyMessagePoints = 60;
-    private const int SaveNeededPoints = 120;
-    private const int EmotionOrPersonalPoints = 50;
+    private const int AnyMessagePoints = 120;
+    private const int SaveNeededPoints = 60;
+    private const int EmotionOrPersonalPoints = 80;
 
     public MessageProcessedIntegrationEventConsumer(
         UserMemoryDbContext dbContext,
