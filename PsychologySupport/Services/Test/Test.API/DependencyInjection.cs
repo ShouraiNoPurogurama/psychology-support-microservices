@@ -53,7 +53,7 @@ public static class DependencyInjection
             });
 
             var url = env.IsProduction()
-                ? "/test-service/swagger/v1/swagger.json"
+                ? "/test-service"
                 : "https://localhost:5510/test-service";
 
             options.AddServer(new OpenApiServer
