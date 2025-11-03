@@ -3,14 +3,13 @@ using BuildingBlocks.Pagination;
 using Carter;
 using Mapster;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Test.API.Common;
 using Test.Application.Dtos;
-using Test.Application.TestOutput.Queries;
+using Test.Application.Tests.Queries;
 using Test.Domain.Enums;
 
-namespace Test.API.Endpoints;
+namespace Test.API.Endpoints.v1;
 
 public record GetAllTestResultsRequest(
     int PageIndex = 1,

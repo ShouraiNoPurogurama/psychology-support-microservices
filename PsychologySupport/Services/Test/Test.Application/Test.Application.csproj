@@ -8,6 +8,10 @@
         <NoWarn>$(NoWarn);CS9113;CS8618;CS8602;CS8629;CS8600;CS8601;CS8604;CS8625;CS8603</NoWarn>
     </PropertyGroup>
     <ItemGroup>
+      <None Remove="Protos\pii.proto" />
+      <None Remove="Protos\translation.proto" />
+    </ItemGroup>
+    <ItemGroup>
         <PackageReference Include="Microsoft.EntityFrameworkCore" />
         <PackageReference Include="QuestPDF" />
 		<PackageReference Include="Grpc.AspNetCore" />
@@ -15,11 +19,13 @@
     <ItemGroup>
         <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks.Messaging\BuildingBlocks.Messaging.csproj" />
         <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
-        <ProjectReference Include="..\..\Translation\Translation.API\Translation.API.csproj" />
         <ProjectReference Include="..\Test.Domain\Test.Domain.csproj" />
     </ItemGroup>
 	<ItemGroup>
-		<Protobuf Include="..\..\Translation\Translation.API\Protos\pii.proto">
+		<Protobuf Include="Protos\persona_orchestrator.proto" GrpcServices="Client">
+		  <Generator>MSBuild:Compile</Generator>
+		</Protobuf>
+		<Protobuf Include="Protos\pii.proto">
 		  <GrpcServices>Client</GrpcServices>
 		  <Access>Public</Access>
 		  <ProtoCompile>True</ProtoCompile>
@@ -28,8 +34,14 @@
 		  <Generator>MSBuild:Compile</Generator>
 		  <Link>Protos\pii.proto</Link>
 		</Protobuf>
-		<Protobuf Include="..\..\Translation\Translation.API\Protos\translation.proto" GrpcServices="Client">
-			<Link>Protos\translation.proto</Link>
+		<Protobuf Include="Protos\translation.proto">
+		  <GrpcServices>Client</GrpcServices>
+		  <Access>Public</Access>
+		  <ProtoCompile>True</ProtoCompile>
+		  <CompileOutputs>True</CompileOutputs>
+		  <OutputDir>obj\Debug\net9.0\</OutputDir>
+		  <Generator>MSBuild:Compile</Generator>
+		  <Link>Protos\translation.proto</Link>
 		</Protobuf>
 	</ItemGroup>
 </Project>

@@ -4,19 +4,19 @@ using Mapster;
 using MediatR;
 using Test.API.Common;
 using Test.Application.Dtos;
-using Test.Application.TestOutput.Queries;
+using Test.Application.Tests.Queries;
 
-namespace Test.API.Endpoints02
+namespace Test.API.Endpoints.v1
 {
     public record GetTestResultRequest(Guid TestResultId);
 
-    public record GetTestResultV2Response(TestResultDto TestResult);
+    public record GetTestResultResponse(TestResultDto TestResult);
 
-    public class GetTestResultsV2Endpoint : ICarterModule
+    public class GetTestResultsEndpoint : ICarterModule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapGet("/v2/me/test/result/{testResultId:guid}", async (Guid testResultId, ISender sender, HttpContext httpContext) =>
+            app.MapGet("/test-result/{testResultId:guid}", async (Guid testResultId, ISender sender, HttpContext httpContext) =>
             {
                 // Authorization check
                 if (!AuthorizationHelpers.HasViewAccessToPatientProfile(httpContext.User))
@@ -24,14 +24,14 @@ namespace Test.API.Endpoints02
 
                 var query = new GetTestResultQuery(testResultId);
                 var result = await sender.Send(query);
-                var response = result.Adapt<GetTestResultV2Response>();
+                var response = result.Adapt<GetTestResultResponse>();
 
                 return Results.Ok(response);
             })
                 .RequireAuthorization(policy => policy.RequireRole("User", "Admin","Manager"))
-                .WithName("GetTestResult v2")
-                .WithTags("Test Results Version 2")
-                .Produces<GetTestResultV2Response>()
+                .WithName("GetTestResult")
+                .WithTags("Test Results")
+                .Produces<GetTestResultResponse>()
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .WithDescription("Get Test Result")
                 .WithSummary("Get Test Result");

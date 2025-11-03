@@ -25,14 +25,10 @@ public class AggregatePatientProfileRequestHandler(ISender sender, ILogger<Aggre
         var dto = result.PatientProfileDto;
 
         var response = new AggregatePatientProfileResponse(
-            Id: dto.Id,
             FullName: dto.FullName,
             Gender: dto.Gender.ToString(),
             Allergies: dto.Allergies,
             PersonalityTraits: dto.PersonalityTraits.ToString(),
-            Address: "None",
-            PhoneNumber: "None",
-            Email: "None",
             BirthDate: dto.BirthDate,
             JobTitle: dto.Job?.JobTitle ?? string.Empty,
             EducationLevel: dto.Job?.EducationLevel.ToString() ?? string.Empty,

@@ -1,14 +1,10 @@
 ﻿namespace BuildingBlocks.Messaging.Events.Queries.Profile;
 
 public record AggregatePatientProfileResponse(
-    Guid Id,
     string FullName,
     string Gender,
     string? Allergies,
     string PersonalityTraits,
-    string Address,
-    string PhoneNumber,
-    string Email,
     DateOnly BirthDate,
     
     //Job

@@ -465,15 +465,15 @@ public class Dass21PdfDocument(
                             var vietnameseSeverityLevel = severityLevel.ToVietnamese();
 
                             AddResultRow(
-                                "Cảm xúc trầm lắng", depressionScore, depressionDescriptor,
+                                "Trầm Cảm", depressionScore, depressionDescriptor,
                                 depressionPercentile.ToString(), depressionTextColor
                             );
                             AddResultRow(
-                                "Cảm xúc lo lắng", anxietyScore, anxietyDescriptor,
+                                "Lo lắng", anxietyScore, anxietyDescriptor,
                                 anxietyPercentile.ToString(), anxietyTextColor
                             );
                             AddResultRow(
-                                "Cảm xúc căng thẳng", stressScore, stressDescriptor,
+                                "Căng thẳng", stressScore, stressDescriptor,
                                 stressPercentile.ToString(), stressTextColor
                             );
                             AddResultRow(

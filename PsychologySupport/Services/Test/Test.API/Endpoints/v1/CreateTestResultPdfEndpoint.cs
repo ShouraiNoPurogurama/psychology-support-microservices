@@ -2,12 +2,11 @@ using BuildingBlocks.Exceptions;
 using Carter;
 using Mapster;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Test.API.Common;
-using Test.Application.TestOutput.Commands;
+using Test.Application.Tests.Commands;
 
-namespace Test.API.Endpoints;
+namespace Test.API.Endpoints.v1;
 
 public record CreateTestResultPdfRequest(
     Guid PatientId,

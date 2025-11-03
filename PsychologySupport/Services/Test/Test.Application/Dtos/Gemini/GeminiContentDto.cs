@@ -4,8 +4,8 @@ namespace Test.Application.Dtos.Gemini;
 
 
 public record GeminiContentDto(
-    [JsonProperty("role")]
+    [property: JsonProperty("role")]
     string Role,
-    [JsonProperty("parts")]
+    [property: JsonProperty("parts")]
     List<GeminiContentPartDto> Parts
 );

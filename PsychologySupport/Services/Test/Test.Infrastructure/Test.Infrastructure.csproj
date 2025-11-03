@@ -9,6 +9,7 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="AutoGen.Gemini"/>
+        <PackageReference Include="Grpc.AspNetCore"/>
         <PackageReference Include="CsvHelper"/>
         <PackageReference Include="EFCore.NamingConventions" />
         <PackageReference Include="Google.Cloud.Language.V1"/>

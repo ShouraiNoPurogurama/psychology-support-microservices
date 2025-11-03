@@ -12,6 +12,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="Protos\translation.proto" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Content Include="..\..\..\.dockerignore">
             <Link>.dockerignore</Link>
         </Content>
@@ -39,9 +43,9 @@
 		<PackageReference Include="Grpc.AspNetCore.Server.Reflection" />
     </ItemGroup>
 	<ItemGroup>
-		<Protobuf Include="Protos\translation.proto" GrpcServices="Server" />
+	  <Folder Include="Domains\" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="Domains\" />
+	  <Protobuf Include="Protos\translation.proto" GrpcServices="Server" />
 	</ItemGroup>
 </Project>

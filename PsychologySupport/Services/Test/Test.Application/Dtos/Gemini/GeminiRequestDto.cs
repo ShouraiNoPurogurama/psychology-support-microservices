@@ -3,10 +3,10 @@
 namespace Test.Application.Dtos.Gemini;
 
 public record GeminiRequestDto(
-    [JsonProperty("contents")]
+    [property: JsonProperty("contents")]
     List<GeminiContentDto> Contents,
-    [JsonProperty("system_instruction")]
+    [property: JsonProperty("system_instruction")]
     GeminiSystemInstructionDto SystemInstruction,
-    [JsonProperty("generationConfig")]
+    [property: JsonProperty("generationConfig")]
     GeminiGenerationConfigDto GenerationConfig
 );

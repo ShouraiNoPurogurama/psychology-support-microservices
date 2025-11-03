@@ -3,6 +3,6 @@
 namespace Test.Application.Dtos.Gemini;
 
 public record GeminiSystemInstructionDto(
-    [JsonProperty("parts")]
+    [property: JsonProperty("parts")]
     GeminiContentPartDto Parts
 );

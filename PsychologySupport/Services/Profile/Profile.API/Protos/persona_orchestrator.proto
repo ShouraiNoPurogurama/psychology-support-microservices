@@ -54,4 +54,6 @@ message GetPersonaSnapshotResponse {
 
   // Lấy từ PiiService (đã được map sang enum Gender của service này)
   Gender gender = 3;
+  
+  optional string full_name = 4;
 }

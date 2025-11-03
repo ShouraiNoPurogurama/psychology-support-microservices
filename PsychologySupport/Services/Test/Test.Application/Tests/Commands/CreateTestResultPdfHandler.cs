@@ -3,7 +3,7 @@ using MediatR;
 using Test.Application.Extensions.Utils;
 using Test.Application.ServiceContracts;
 
-namespace Test.Application.TestOutput.Commands;
+namespace Test.Application.Tests.Commands;
 
 public record CreateTestResultPdfCommand : ICommand<CreateTestResultPdfResult>
 {
@@ -16,7 +16,8 @@ public record CreateTestResultPdfCommand : ICommand<CreateTestResultPdfResult>
 
 public record CreateTestResultPdfResult(byte[] PdfBytes, string FileName);
 
-public class CreateTestResultPdfHandler(ISender sender, ITestResultPdfService pdfService) : ICommandHandler<CreateTestResultPdfCommand, CreateTestResultPdfResult>
+public class CreateTestResultPdfHandler(ISender sender, ITestResultPdfService pdfService)
+    : ICommandHandler<CreateTestResultPdfCommand, CreateTestResultPdfResult>
 {
     public async Task<CreateTestResultPdfResult> Handle(CreateTestResultPdfCommand request, CancellationToken cancellationToken)
     {
@@ -30,7 +31,7 @@ public class CreateTestResultPdfHandler(ISender sender, ITestResultPdfService pd
         var testResult = (await sender.Send(createResultCommand, cancellationToken)).TestResult;
 
         var completeTime = request.CompletedAt - request.TakenAt;
-        
+
         string formattedCompleteTime = DateTimeUtils.FormatCompletionTime(completeTime);
 
         var pdfBytes = pdfService.GeneratePdf(
@@ -49,7 +50,7 @@ public class CreateTestResultPdfHandler(ISender sender, ITestResultPdfService pd
         );
 
         var fileName = $"DASS21_{testResult.PatientName}_{request.TakenAt:yyyyMMdd_HHmmss}.pdf";
-        
+
         return new CreateTestResultPdfResult(pdfBytes, fileName);
     }
 }

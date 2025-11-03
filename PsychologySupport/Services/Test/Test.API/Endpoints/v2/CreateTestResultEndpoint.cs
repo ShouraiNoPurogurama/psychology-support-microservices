@@ -5,9 +5,9 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Test.API.Common;
 using Test.Application.Dtos;
-using Test.Application.TestOutput.Commands;
+using Test.Application.Tests.Commands;
 
-namespace Test.API.Endpoints02;
+namespace Test.API.Endpoints.v2;
 
 public record CreateTestResultV2Request(
     Guid PatientId,

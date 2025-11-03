@@ -24,7 +24,7 @@ public class TokenExchangeRuleRegistry
             },
             new()
             {
-                Keywords = new[] { "profile", "subscription" },
+                Keywords = new[] { "profile", "subscription", "test" },
                 ClaimType = "patientId",
                 LookupFunction = subRef => _piiLookupService.ResolvePatientIdBySubjectRefAsync(subRef),
                 Required = true

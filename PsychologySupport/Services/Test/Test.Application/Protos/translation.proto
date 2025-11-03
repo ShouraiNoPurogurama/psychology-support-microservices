@@ -1,0 +1,18 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/struct.proto";
+
+option csharp_namespace = "Translation.API.Protos";
+
+service TranslationService {
+  rpc TranslateData (TranslateDataRequest) returns (TranslateDataResponse);
+}
+
+message TranslateDataRequest {
+  map<string, string> originals = 1;
+  string target_language = 2;
+}
+
+message TranslateDataResponse {
+  map<string, string> translations = 1;
+}

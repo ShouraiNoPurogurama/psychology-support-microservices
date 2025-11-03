@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
-using Microsoft.OpenApi.Models;
 using Translation.API.Protos;
 
 namespace Test.Application;
@@ -25,9 +24,7 @@ public static class DependencyInjection
         
         services.AddMessageBroker(configuration, Assembly.GetExecutingAssembly(), null, "test");
         services.AddFeatureManagement();
-
-        AddGrpcServiceDependencies(services, configuration);
-
+        
         return services;
     }
     
@@ -39,15 +36,4 @@ public static class DependencyInjection
             .AddEnvironmentVariables();
     }
 
-    private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
-    {
-        services.AddGrpcClient<TranslationService.TranslationServiceClient>(options =>
-        {
-            options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);
-        })
-        .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
-        {
-            EnableMultipleHttp2Connections = true
-        });
-    }
 }

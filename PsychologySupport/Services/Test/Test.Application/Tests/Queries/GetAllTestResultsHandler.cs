@@ -1,14 +1,12 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Pagination;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Test.Application.Data;
 using Test.Application.Dtos;
 using Test.Domain.Enums;
-using Test.Domain.Models;
 using Test.Domain.ValueObjects;
 
-namespace Test.Application.TestOutput.Queries;
+namespace Test.Application.Tests.Queries;
 
 public record GetAllTestResultsQuery(
     Guid PatientId,

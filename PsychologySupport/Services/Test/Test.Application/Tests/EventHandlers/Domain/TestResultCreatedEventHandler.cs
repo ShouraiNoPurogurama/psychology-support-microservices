@@ -1,11 +1,8 @@
-﻿using BuildingBlocks.Exceptions;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
 using Test.Application.Data;
 using Test.Domain.Events;
-using Test.Domain.Models;
 
-namespace Test.Application.TestOutput.EventHandlers.Domain;
+namespace Test.Application.Tests.EventHandlers.Domain;
 
 public class TestResultCreatedEventHandler : INotificationHandler<TestResultCreatedEvent>
 {

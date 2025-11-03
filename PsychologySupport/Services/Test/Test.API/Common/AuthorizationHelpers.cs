@@ -7,7 +7,7 @@ namespace Test.API.Common
         public static bool CanViewPatientProfile(Guid patientProfileId, ClaimsPrincipal user)
         {
             var role = user.FindFirstValue(ClaimTypes.Role);
-            var profileIdStr = user.FindFirstValue("profileId");
+            var profileIdStr = user.FindFirstValue("patientId");
 
             if (!Guid.TryParse(profileIdStr, out var profileId))
                 return false;
@@ -21,7 +21,7 @@ namespace Test.API.Common
         public static bool CanModifyPatientProfile(Guid patientProfileId, ClaimsPrincipal user)
         {
             var role = user.FindFirstValue(ClaimTypes.Role);
-            var profileIdStr = user.FindFirstValue("profileId");
+            var profileIdStr = user.FindFirstValue("patientId");
 
             if (!Guid.TryParse(profileIdStr, out var profileId))
                 return false;

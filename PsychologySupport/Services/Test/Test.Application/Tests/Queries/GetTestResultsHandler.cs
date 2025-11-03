@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Test.Application.Data;
 using Test.Application.Dtos;
 
-namespace Test.Application.TestOutput.Queries
+namespace Test.Application.Tests.Queries
 {
     public record GetTestResultQuery(Guid TestResultId)
     : IQuery<GetTestResultResult>;

@@ -30,9 +30,8 @@
           "Path": "/test-service/{**catch-all}"
         },
         "Transforms": [
-          {
-            "PathPattern": "/{**catch-all}"
-          }
+          {"PathPattern": "/{**catch-all}"},
+          {"TokenExchange": "true"}
         ]
       }
     },

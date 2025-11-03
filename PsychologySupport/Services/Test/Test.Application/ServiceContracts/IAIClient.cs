@@ -7,7 +7,7 @@ namespace Test.Application.ServiceContracts;
 public interface IAIClient
 {
     Task<CreateRecommendationResponseDto> GetDASS21RecommendationsAsync(
-        string patientProfileId,
+        Guid subjectRef,
         Score depressionScore,
         Score anxietyScore,
         Score stressScore

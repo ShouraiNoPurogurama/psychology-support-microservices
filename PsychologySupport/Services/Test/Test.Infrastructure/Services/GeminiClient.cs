@@ -1,12 +1,13 @@
-using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Text;
 using BuildingBlocks.Messaging.Events.Queries.LifeStyle;
 using BuildingBlocks.Messaging.Events.Queries.Profile;
+using BuildingBlocks.Utils;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using Profile.API.Protos;
 using Test.Application.Dtos.DASS21Recommendations;
 using Test.Application.Dtos.Gemini;
 using Test.Application.Extensions.Utils;
@@ -19,32 +20,36 @@ public class GeminiClient(
     ILogger<GeminiClient> logger,
     IHttpClientFactory httpClientFactory,
     IConfiguration config,
-    IRequestClient<AggregatePatientProfileRequest> profileClient,
-    IRequestClient<AggregatePatientLifestyleRequest> lifestyleClient)
+    PersonaOrchestratorService.PersonaOrchestratorServiceClient personaOrchestratorServiceClient
+    )
     : IAIClient
 {
 
     public async Task<CreateRecommendationResponseDto> GetDASS21RecommendationsAsync(
-        string patientProfileId,
+        Guid subjectRef,
         Score depressionScore,
         Score anxietyScore,
         Score stressScore
     )
     {
-        var profileResponse = await profileClient.GetResponse<AggregatePatientProfileResponse>(
-            new AggregatePatientProfileRequest(Guid.Parse(patientProfileId)));
+        // var profileResponse = await profileClient.GetResponse<AggregatePatientProfileResponse>(
+        //     new AggregatePatientProfileRequest(Guid.Parse(patientProfileId)));
 
-        var lifestyleResponse = await lifestyleClient.GetResponse<AggregatePatientLifestyleResponse>(
-            new AggregatePatientLifestyleRequest(Guid.Parse(patientProfileId), DateTimeOffset.UtcNow));
+        // var lifestyleResponse = await lifestyleClient.GetResponse<AggregatePatientLifestyleResponse>(
+        //     new AggregatePatientLifestyleRequest(Guid.Parse(patientProfileId), DateTimeOffset.UtcNow));
 
-        var profile = profileResponse.Message;
-        var lifestyle = lifestyleResponse.Message;
+        var profileResponse = await personaOrchestratorServiceClient.GetPersonaSnapshotAsync(new GetPersonaSnapshotRequest()
+        {
+            SubjectRef = subjectRef.ToString()
+        });
+
+        var profile = profileResponse;
 
         var contentParts = new List<GeminiContentDto>();
 
         var profileNickname = ProfileClassifier.GetNickname(depressionScore, anxietyScore, stressScore);
 
-        var prompt = BuildGeminiDASS21Prompt(profileNickname, depressionScore, anxietyScore, stressScore, profile, lifestyle);
+        var prompt = BuildGeminiDASS21Prompt(profileNickname, depressionScore, anxietyScore, stressScore, profile);
 
         contentParts.Add(new GeminiContentDto(
             "user", [new GeminiContentPartDto(prompt)]
@@ -59,8 +64,8 @@ public class GeminiClient(
         var recommendations = JsonConvert.DeserializeObject<RecommendationsDto>(responseText)!;
 
         logger.LogInformation("\n\n[Parsed recommendations]: {@Recommendations}", recommendations);
-        
-        var age = DateOnlyUtils.CalculateAge(profile.BirthDate);
+
+        var age = TimeUtils.GetAgeFromDate(profile.BirthDate.ToDateTimeOffset().ToOffset(TimeSpan.FromHours(7)));
 
         var response = new CreateRecommendationResponseDto(Recommendation: recommendations,
             ProfileDescription: recommendations.ProfileDescription, ProfileNickname: profileNickname,
@@ -109,22 +114,8 @@ public class GeminiClient(
     private static string BuildGeminiDASS21Prompt(
         string profileNickname,
         Score depressionScore, Score anxietyScore, Score stressScore,
-        AggregatePatientProfileResponse profile, AggregatePatientLifestyleResponse lifestyle)
+        GetPersonaSnapshotResponse profile)
     {
-        var improvementGoalsSection = lifestyle.ImprovementGoals.Any()
-            ? $"""
-               - **Mục tiêu hiện tại**:  
-                 {string.Join(", ", lifestyle.ImprovementGoals.Select(g => g.GoalName))}
-               """
-            : string.Empty;
-
-        var recentEmotionsSection = lifestyle.EmotionSelections.Any()
-            ? $"""
-               - **Cảm xúc gần đây**:  
-                 {string.Join(", ", lifestyle.EmotionSelections.Select(e => e.EmotionName))}
-               """
-            : string.Empty;
-
         var prompt = $"""
                         ## 🌿 Gợi ý cải thiện tâm lý cho {profile.FullName}
 
@@ -132,11 +123,7 @@ public class GeminiClient(
                         - **Họ tên**: {profile.FullName}  
                         - **Giới tính**: {profile.Gender}  
                         - **Ngày sinh**: {profile.BirthDate:yyyy-MM-dd}  
-                        - **Nghề nghiệp**: {profile.JobTitle}  
-                        - **Trình độ học vấn**: {profile.EducationLevel}  
-                        - **Ngành nghề**: {profile.IndustryName}  
-                        - **Tính cách nổi bật**: {profile.PersonalityTraits}  
-                        - **Tiền sử dị ứng**: {(string.IsNullOrEmpty(profile.Allergies) ? "Không rõ" : profile.Allergies)}
+                        - **Nghề nghiệp**: {profile.JobTitle}  (Nhớ dịch sang tiếng Việt)
 
                         ### 📊 Kết quả DASS-21 (raw values, chưa nhân 2)
                         - **Trầm cảm**: {depressionScore.Value}  
@@ -169,10 +156,6 @@ public class GeminiClient(
                         Không nhắc thẳng tên người dùng, nhưng có thể gọi họ là "bạn" để tăng cảm giác cá nhân hóa.
                         Kết thúc bằng một câu gợi mở về cách để xoa dịu hoặc cải thiện cảm xúc hiện tại để gợi mở cho phần gợi ý tiếp theo.
                         Độ dài tầm 110 từ.
-                        
-                        {improvementGoalsSection}
-                        {recentEmotionsSection}
-
 
                         ---
 

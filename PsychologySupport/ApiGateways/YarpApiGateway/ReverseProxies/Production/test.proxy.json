@@ -22,7 +22,10 @@
           "Path": "/test-service/{**catch-all}"
         },
         "AuthorizationPolicy": "AuthenticatedUser",
-        "Transforms": [ { "PathPattern": "/{**catch-all}" } ]
+        "Transforms": [ 
+          { "PathPattern": "/{**catch-all}" },
+          {"TokenExchange": "true"} 
+        ]
       }
     },
     "Clusters": {

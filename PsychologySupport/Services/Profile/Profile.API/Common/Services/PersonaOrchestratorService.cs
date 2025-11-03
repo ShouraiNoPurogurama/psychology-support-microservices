@@ -32,21 +32,15 @@ public class PersonaOrchestratorService(
 
         try
         {
-            // 1. Gọi cả hai service CÙNG LÚC (song song) để tiết kiệm thời gian
             var profile = await profileLocalService.GetPublicProfileBySubjectRefAsync(subjectRef, context.CancellationToken);
             var pii = await piiLocalService.GetPiiProfileBySubjectRefAsync(subjectRef, context.CancellationToken);
 
-
-            // 2. Tạo response
-            var response = new GetPersonaSnapshotResponse();
-
-            // 3. Map dữ liệu từ Public Profile (Job)
-            if (profile.JobTitle != null)
+            var response = new GetPersonaSnapshotResponse
             {
-                response.JobTitle = profile.JobTitle;
-            }
+                FullName = pii.FullName,
+                JobTitle = profile.JobTitle
+            };
 
-            // 4. Map dữ liệu từ PII (BirthDate, Gender)
             // Phải chuyển sang UTC để Timestamp hoạt động chính xác
             var utcBirthDate = DateTime.SpecifyKind(
                 pii.BirthDate.ToDateTime(TimeOnly.MinValue),
@@ -54,7 +48,6 @@ public class PersonaOrchestratorService(
             );
             response.BirthDate = Timestamp.FromDateTime(utcBirthDate);
 
-            // Map Gender (string -> enum Gender của proto)
             response.Gender = MapGender(pii.Gender);
 
             logger.LogInformation("Lấy Persona Snapshot thành công cho AliasId: {AliasId}", subjectRef);

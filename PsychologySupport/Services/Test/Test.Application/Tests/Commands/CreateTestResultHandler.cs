@@ -1,5 +1,4 @@
 using BuildingBlocks.CQRS;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Test.Application.Data;
 using Test.Application.Dtos;
@@ -8,7 +7,7 @@ using Test.Domain.Enums;
 using Test.Domain.Models;
 using Test.Domain.ValueObjects;
 
-namespace Test.Application.TestOutput.Commands;
+namespace Test.Application.Tests.Commands;
 
 public class CreateTestResultCommand : ICommand<CreateTestResultResult>
 {
@@ -21,13 +20,15 @@ public record CreateTestResultResult(TestResultDto TestResult);
 
 public class CreateTestResultHandler(
     ITestDbContext dbContext,
-    IPublisher publisher,
+    ICurrentActorAccessor currentActorAccessor,
     IAIClient aiClient
 )
     : ICommandHandler<CreateTestResultCommand, CreateTestResultResult>
 {
     public async Task<CreateTestResultResult> Handle(CreateTestResultCommand request, CancellationToken cancellationToken)
     {
+        var subjectRef = currentActorAccessor.GetRequiredSubjectRef();
+        
         var isExceedQuotas = await dbContext.TestResults
             .Where(tr => tr.PatientId == request.PatientId && tr.TestId == request.TestId && tr.TakenAt > DateTimeOffset.UtcNow.AddDays(-1))
             .CountAsync(cancellationToken) >= 5;
@@ -66,7 +67,7 @@ public class CreateTestResultHandler(
         var severityLevel = DetermineSeverity(depressionScore, anxietyScore, stressScore);
 
         var DASS21Response = await aiClient.GetDASS21RecommendationsAsync(
-            request.PatientId.ToString(),
+            subjectRef,
             depressionScore,
             anxietyScore,
             stressScore

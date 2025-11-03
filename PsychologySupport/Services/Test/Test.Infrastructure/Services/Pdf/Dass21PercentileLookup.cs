@@ -29,7 +29,7 @@ namespace Test.Infrastructure.Services.Pdf
 
         public int? GetPercentile(string scale, int rawScore)
         {
-            return _percentileTable.TryGetValue((scale.ToLower(), rawScore), out var pct) ? pct : null;
+            return _percentileTable.TryGetValue((scale.ToLower(), rawScore), out var pct) ? pct : 99;
         }
 
         private class Dass21PercentileRecord

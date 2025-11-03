@@ -5,17 +5,16 @@ using MediatR;
 using Test.API.Common;
 using Test.Application.Dtos;
 using Test.Application.Tests.Queries;
-using Test.Domain.Models;
 
-namespace Test.API.Endpoints02;
+namespace Test.API.Endpoints.v1;
 
-public record GetAllTestQuestionsV2Response(PaginatedResult<TestQuestionDto> TestQuestions);
+public record GetAllTestQuestionsResponse(PaginatedResult<TestQuestionDto> TestQuestions);
 
-public class GetAllTestQuestionsV2Endpoint : ICarterModule
+public class GetAllTestQuestionsEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("v2/test/questions/{testId:guid}",
+        app.MapGet("/test-questions/{testId:guid}",
                 async (Guid testId, [AsParameters] PaginationRequest request, ISender sender, HttpContext httpContext) =>
                 {
                     // Authorization check
@@ -26,14 +25,14 @@ public class GetAllTestQuestionsV2Endpoint : ICarterModule
                     
                     var result = await sender.Send(query);
 
-                    var response = new GetAllTestQuestionsV2Response(result.TestQuestions);
+                    var response = new GetAllTestQuestionsResponse(result.TestQuestions);
 
                     return Results.Ok(response);
                 })
             .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
-            .WithName("GetAllTestQuestions v2")
-            .WithTags("Tests Version 2")
-            .Produces<GetAllTestQuestionsV2Response>()
+            .WithName("GetAllTestQuestions")
+            .WithTags("Tests")
+            .Produces<GetAllTestQuestionsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get Test Questions")
             .WithSummary("Get Test Questions");

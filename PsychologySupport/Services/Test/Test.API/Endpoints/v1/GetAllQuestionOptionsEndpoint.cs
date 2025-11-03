@@ -2,20 +2,19 @@
 using BuildingBlocks.Pagination;
 using Carter;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Test.API.Common;
 using Test.Application.Tests.Queries;
 using Test.Domain.Models;
 
-namespace Test.API.Endpoints02;
+namespace Test.API.Endpoints.v1;
 
-public record GetAllQuestionOptionsV2Response(PaginatedResult<QuestionOption> QuestionOptions);
+public record GetAllQuestionOptionsResponse(PaginatedResult<QuestionOption> QuestionOptions);
 
-public class GetAllQuestionOptionsV2Endpoint : ICarterModule
+public class GetAllQuestionOptionsEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("v2/test/question-options/{questionId:guid}", async (
+        app.MapGet("/question-options/{questionId:guid}", async (
                 Guid questionId,
                 [AsParameters] PaginationRequest request,
                 ISender sender, HttpContext httpContext) =>
@@ -26,14 +25,14 @@ public class GetAllQuestionOptionsV2Endpoint : ICarterModule
 
                 var query = new GetAllQuestionOptionsQuery(questionId, request);
                 var result = await sender.Send(query);
-                var response = new GetAllQuestionOptionsV2Response(result.QuestionOptions);
+                var response = new GetAllQuestionOptionsResponse(result.QuestionOptions);
 
                 return Results.Ok(response);
             })
             .RequireAuthorization(policy => policy.RequireRole("User", "Admin"))
-            .WithName("GetAllQuestionOptions v2")
-            .WithTags("Tests Version 2")
-            .Produces<GetAllQuestionOptionsV2Response>()
+            .WithName("GetAllQuestionOptions")
+            .WithTags("Tests")
+            .Produces<GetAllQuestionOptionsResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .WithDescription("Get paginated Question Options")
             .WithSummary("Get paginated Question Options");

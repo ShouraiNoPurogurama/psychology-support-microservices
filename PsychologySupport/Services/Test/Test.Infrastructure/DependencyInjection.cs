@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Profile.API.Protos;
 using QuestPDF.Infrastructure;
 using Test.Application.Data;
 using Test.Application.ServiceContracts;
@@ -14,6 +15,7 @@ using Test.Infrastructure.Data.Extensions;
 using Test.Infrastructure.Options;
 using Test.Infrastructure.Services;
 using Test.Infrastructure.Services.Pdf;
+using Translation.API.Protos;
 
 namespace Test.Infrastructure;
 
@@ -25,7 +27,6 @@ public static class DependencyInjection
 
         QuestPDF.Settings.License = LicenseType.Community;
         QuestPDF.Settings.EnableDebugging = true;
-
         
         services.AddDbContext<TestDbContext>((serviceProvider, options) =>
         {
@@ -38,6 +39,7 @@ public static class DependencyInjection
 
         services.AddScoped<ITestDbContext, TestDbContext>();
         services.AddScoped<IAIClient, GeminiClient>();
+        services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
         services.AddTransient<ITestResultPdfService, TestResultPdfService>();
         
         services.Configure<Dass21PercentileOptions>(
@@ -57,7 +59,32 @@ public static class DependencyInjection
         // Đăng ký Interceptors
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        
+        services.AddGrpc();
+
+        AddGrpcServiceDependencies(services, config);
 
         return services;
+    }
+    
+    private static void AddGrpcServiceDependencies(IServiceCollection services, IConfiguration config)
+    {
+        services.AddGrpcClient<PersonaOrchestratorService.PersonaOrchestratorServiceClient>(options =>
+            {
+                options.Address = new Uri(config["GrpcSettings:PersonaOrchestrationUrl"]!);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                EnableMultipleHttp2Connections = true
+            });
+        
+        services.AddGrpcClient<TranslationService.TranslationServiceClient>(options =>
+            {
+                options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                EnableMultipleHttp2Connections = true
+            });
     }
 }

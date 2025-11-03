@@ -3,14 +3,14 @@
 namespace Test.Application.Dtos.Gemini;
 
 public record GeminiGenerationConfigDto(
-    // [JsonProperty("temperature")]
+    // [property: JsonProperty("temperature")]
     // double Temperature = 1.0,
-    // [JsonProperty("topP")]
+    // [property: JsonProperty("topP")]
     // double TopP = 0.95,
-    // [JsonProperty("maxOutputTokens")]
+    // [property: JsonProperty("maxOutputTokens")]
     // int MaxOutputTokens = 8192,
-    [JsonProperty("response_schema")]
+    [property: JsonProperty("response_schema")]
     object ResponseSchema,
-    [JsonProperty("response_mime_type")]
+    [property: JsonProperty("response_mime_type")]
     string ResponseMimeType = "application/json"
 );
