@@ -5,7 +5,7 @@ using Wellness.API.Common.Authentication;
 using Wellness.Application.Features.ModuleSections.Dtos;
 
 public record GetModuleSectionsWithArticlesRequest(
-    Guid ModuleId,
+    Guid ModuleSectionId,
     int PageIndex = 1,
     int PageSize = 10,
     string? TargetLang = null
@@ -20,7 +20,7 @@ public class GetModuleSectionsWithArticlesEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/v1/me/module-sections/{ModuleId}", async (
+        app.MapGet("/v1/me/module-sections/{ModuleSectionId}", async (
                 [AsParameters] GetModuleSectionsWithArticlesRequest request,
                 ICurrentActorAccessor currentActor,  
                 ISender sender
@@ -29,7 +29,7 @@ public class GetModuleSectionsWithArticlesEndpoint : ICarterModule
             var subjectRef = currentActor.GetRequiredSubjectRef();
 
             var query = new GetModuleSectionsWithArticlesQuery(
-                ModuleId: request.ModuleId,
+                ModuleSectionId: request.ModuleSectionId,
                 SubjectRef: subjectRef,
                 PaginationRequest: request.ToPaginationRequest(),
                 TargetLang: request.TargetLang

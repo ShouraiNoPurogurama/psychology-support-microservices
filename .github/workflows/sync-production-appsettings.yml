@@ -172,6 +172,11 @@ jobs:
             ${{ secrets.APPSETTINGS_PRODUCTION_POST }}
             EOF
 
+            # Wellness
+            cat <<EOF > Services/Wellness/Wellness.API/appsettings.Production.json
+            ${{ secrets.APPSETTINGS_PRODUCTION_WELLNESS }}
+            EOF
+
             # # YARP ApiGateway
             # cat <<EOF > ApiGateways/YarpApiGateway/appsettings.Production.json
             # ${{ secrets.APPSETTINGS_PRODUCTION_YARP_API_GATEWAY }}
