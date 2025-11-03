@@ -12,7 +12,7 @@ using Wellness.Domain.Aggregates.ModuleSections;
 using Wellness.Domain.Enums;
 
 public record GetModuleSectionsWithArticlesQuery(
-    Guid ModuleId,
+    Guid ModuleSectionId,
     Guid SubjectRef,
     PaginationRequest PaginationRequest,
     string? TargetLang = null
@@ -48,13 +48,13 @@ public class GetModuleSectionsWithArticlesHandler
                 .ThenInclude(a => a.ArticleProgresses)
                     .ThenInclude(ap => ap.ModuleProgress)
             .Include(ms => ms.ModuleProgresses)
-            .Where(ms => ms.ModuleId == request.ModuleId)
+            .Where(ms => ms.Id == request.ModuleSectionId)
             .OrderBy(ms => ms.Title);
 
         var totalSectionsCount = await sectionsQuery.CountAsync(cancellationToken);
 
         if (totalSectionsCount == 0)
-            throw new WellnessNotFoundException($"Không tìm thấy module sections cho ModuleId '{request.ModuleId}'.");
+            throw new WellnessNotFoundException($"Không tìm thấy module sections cho ModuleId '{request.ModuleSectionId}'.");
 
         var sections = await sectionsQuery.ToListAsync(cancellationToken);
 
