@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -13,9 +14,11 @@ using UserMemory.API.Data;
 namespace UserMemory.API.Data.Migrations
 {
     [DbContext(typeof(UserMemoryDbContext))]
-    partial class UserMemoryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251104005656_UpdateCompositeDb")]
+    partial class UpdateCompositeDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

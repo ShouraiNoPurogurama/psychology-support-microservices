@@ -63,14 +63,12 @@ namespace UserMemory.API.Data.Processors
                         throw new InvalidOperationException($"Failed to deserialize message content for ID: {message.Id}");
                     }
 
-                    // Lấy Reward entity từ DB
                     reward = await dbContext.Rewards.FindAsync(new object[] { evt.RewardId }, context.CancellationToken);
                     if (reward == null)
                     {
                         throw new InvalidOperationException($"Reward not found: {evt.RewardId}");
                     }
 
-                    // Kiểm tra trạng thái: Nếu job đã chạy rồi nhưng bị crash, không chạy lại
                     if (reward.Status != RewardStatus.Pending)
                     {
                         logger.LogWarning("Reward {RewardId} is not in Pending state (Actual: {Status}). Skipping.", reward.Id, reward.Status);
@@ -79,12 +77,11 @@ namespace UserMemory.API.Data.Processors
                     {
                         // Đánh dấu đang xử lý
                         reward.Status = RewardStatus.Processing;
-                        await dbContext.SaveChangesAsync(context.CancellationToken); // Lưu trạng thái "Processing"
+                        await dbContext.SaveChangesAsync(context.CancellationToken); 
                 
                         // 4. Gọi LLM#3 (Prompt Gen)
                         RewardGenerationDataDto generationData = await promptGenerator.PrepareGenerationDataAsync(evt.AliasId, evt.RewardId, evt.ChatSessionId, context.CancellationToken);
                     
-                        // Lưu lại prompt đã dùng
                         reward.PromptBase = generationData.PromptBase;
                         reward.PromptFiller = generationData.PromptFiller;
 
@@ -99,7 +96,6 @@ namespace UserMemory.API.Data.Processors
                     
                         logger.LogInformation("Successfully processed reward {RewardId}.", reward.Id);
 
-                        // 8. Tạo event mới (RewardGranted)
                         var grantedEvent = new RewardGrantedIntegrationEvent(reward.Id, reward.AliasId, generationData.UserId, evt.ChatSessionId ,reward.StickerUrl, reward.PromptFiller);
                         await outboxWriter.WriteAsync(grantedEvent, context.CancellationToken);
                     }

@@ -15,20 +15,17 @@ public class UserMemoryDbContext : DbContext
     public virtual DbSet<UserMemory> UserMemories => Set<UserMemory>();
     public virtual DbSet<Reward> Rewards => Set<Reward>();
     public virtual DbSet<SessionDailyProgress> SessionDailyProgresses => Set<SessionDailyProgress>();
-    
+
     public virtual DbSet<AliasDailySummary> AliasDailySummaries => Set<AliasDailySummary>();
     public virtual DbSet<MemoryTag> MemoryTags => Set<MemoryTag>();
     public virtual DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
-    
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.HasPostgresExtension("vector");
-        
-        builder.Entity<SessionDailyProgress>(entity =>
-        {
-            entity.HasKey(e => e.SessionId);
-        });
-        
+
+        builder.Entity<SessionDailyProgress>(entity => { entity.HasKey(e => new { e.AliasId, e.ProgressDate, e.SessionId }); });
+
         builder.Entity<Reward>(entity =>
         {
             entity.Property(e => e.Status)
@@ -68,9 +65,9 @@ public class UserMemoryDbContext : DbContext
                         join.HasIndex("memory_tag_id")
                             .HasDatabaseName("ix_user_memory_tags_memory_tag_id");
                     });
-            
+
             entity.HasIndex(e => e.AliasId);
-            
+
             entity.Property(e => e.Embedding)
                 .HasColumnType("vector(3072)");
         });
@@ -81,9 +78,6 @@ public class UserMemoryDbContext : DbContext
                 .IsUnique();
         });
 
-        builder.Entity<AliasDailySummary>(entity =>
-        {
-            entity.HasKey(e => new { e.AliasId, e.Date });
-        });
+        builder.Entity<AliasDailySummary>(entity => { entity.HasKey(e => new { e.AliasId, e.Date }); });
     }
 }
