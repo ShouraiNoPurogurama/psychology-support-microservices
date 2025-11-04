@@ -9,14 +9,14 @@ public class Recommendation
     {
         Overview = overview;
         EmotionAnalysis = emotionAnalysis;
-        PersonalizedPersonalizedSuggestions = personalizedSuggestions;
+        PersonalizedSuggestions = personalizedSuggestions;
         Closing = closing;
     }
 
     public string Overview { get; }
     public string EmotionAnalysis { get; }
     
-    public List<PersonalizedSuggestion> PersonalizedPersonalizedSuggestions { get; }
+    public List<PersonalizedSuggestion> PersonalizedSuggestions { get; }
     public string Closing { get; }
 
     public static Recommendation Create(string overview, string emotionAnalysis, List<PersonalizedSuggestion> suggestions, string closing)
