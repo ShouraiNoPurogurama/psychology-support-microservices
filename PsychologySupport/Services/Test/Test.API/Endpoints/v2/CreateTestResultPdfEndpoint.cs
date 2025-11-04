@@ -1,15 +1,12 @@
-using BuildingBlocks.Exceptions;
 using Carter;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Test.API.Common;
 using Test.Application.Tests.Commands;
 
 namespace Test.API.Endpoints.v2;
 
 public record CreateTestResultPdfV2Request(
-    Guid PatientId,
     Guid TestId,
     List<Guid> SelectedOptionIds,
     DateTimeOffset TakenAt,
@@ -25,8 +22,8 @@ public class CreateTestResultPdfV2Endpoint : ICarterModule
                 ISender sender, HttpContext httpContext) =>
             {
                 // Authorization check
-                if (!AuthorizationHelpers.CanModifyPatientProfile(request.PatientId, httpContext.User))
-                    throw new ForbiddenException();
+                // if (!AuthorizationHelpers.CanModifyPatientProfile(request.PatientId, httpContext.User))
+                //     throw new ForbiddenException();
 
                 var command = request.Adapt<CreateTestResultPdfCommand>();
                 

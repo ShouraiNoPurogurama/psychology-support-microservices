@@ -7,7 +7,6 @@ namespace Test.Application.Tests.Commands;
 
 public record CreateTestResultPdfCommand : ICommand<CreateTestResultPdfResult>
 {
-    public Guid PatientId { get; set; }
     public Guid TestId { get; set; }
     public List<Guid> SelectedOptionIds { get; set; } = [];
     public DateTimeOffset TakenAt { get; set; }
@@ -23,7 +22,6 @@ public class CreateTestResultPdfHandler(ISender sender, ITestResultPdfService pd
     {
         var createResultCommand = new CreateTestResultCommand
         {
-            PatientId = request.PatientId,
             TestId = request.TestId,
             SelectedOptionIds = request.SelectedOptionIds
         };

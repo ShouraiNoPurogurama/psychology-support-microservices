@@ -11,7 +11,6 @@ namespace Test.Application.Tests.Commands;
 
 public class CreateTestResultCommand : ICommand<CreateTestResultResult>
 {
-    public Guid PatientId { get; set; }
     public Guid TestId { get; set; }
     public List<Guid> SelectedOptionIds { get; set; } = new();
 }
@@ -29,9 +28,11 @@ public class CreateTestResultHandler(
     {
         var subjectRef = currentActorAccessor.GetRequiredSubjectRef();
         
+        var patientId = currentActorAccessor.GetRequiredPatientId();
+        
         var isExceedQuotas = await dbContext.TestResults
-            .Where(tr => tr.PatientId == request.PatientId && tr.TestId == request.TestId && tr.TakenAt > DateTimeOffset.UtcNow.AddDays(-1))
-            .CountAsync(cancellationToken) >= 5;
+            .Where(tr => tr.PatientId == patientId && tr.TestId == request.TestId && tr.TakenAt > DateTimeOffset.UtcNow.AddDays(-1))
+            .CountAsync(cancellationToken) >= 10;
         
         if (isExceedQuotas)
         {
@@ -84,7 +85,7 @@ public class CreateTestResultHandler(
 
         
         var testResult = TestResult.Create(
-            request.PatientId,
+            patientId,
             request.TestId,
             depressionScore,
             anxietyScore,
