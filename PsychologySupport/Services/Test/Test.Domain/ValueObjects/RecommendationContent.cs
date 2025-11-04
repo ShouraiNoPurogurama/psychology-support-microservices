@@ -5,17 +5,18 @@ namespace Test.Domain.ValueObjects;
 public class Recommendation
 {
     [JsonConstructor]
-    public Recommendation(string overview, string emotionAnalysis, List<PersonalizedSuggestion> suggestions, string closing)
+    public Recommendation(string overview, string emotionAnalysis, List<PersonalizedSuggestion> personalizedSuggestions, string closing)
     {
         Overview = overview;
         EmotionAnalysis = emotionAnalysis;
-        PersonalizedSuggestions = suggestions;
+        PersonalizedPersonalizedSuggestions = personalizedSuggestions;
         Closing = closing;
     }
 
     public string Overview { get; }
     public string EmotionAnalysis { get; }
-    public List<PersonalizedSuggestion> PersonalizedSuggestions { get; }
+    
+    public List<PersonalizedSuggestion> PersonalizedPersonalizedSuggestions { get; }
     public string Closing { get; }
 
     public static Recommendation Create(string overview, string emotionAnalysis, List<PersonalizedSuggestion> suggestions, string closing)
