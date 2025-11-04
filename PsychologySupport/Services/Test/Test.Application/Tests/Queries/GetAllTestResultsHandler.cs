@@ -63,7 +63,7 @@ public class GetAllTestResultsHandler
 
 
         var dtoList = await query
-            .Skip(request.PageIndex * request.PageSize)
+            .Skip((request.PageIndex - 1) * request.PageSize)
             .Take(request.PageSize)
             .Select(tr => new GetAllTestResultDto(
                 tr.Id,
