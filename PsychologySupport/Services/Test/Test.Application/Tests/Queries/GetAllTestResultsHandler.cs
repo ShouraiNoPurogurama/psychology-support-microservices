@@ -3,13 +3,13 @@ using BuildingBlocks.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Test.Application.Data;
 using Test.Application.Dtos;
+using Test.Application.ServiceContracts;
 using Test.Domain.Enums;
 using Test.Domain.ValueObjects;
 
 namespace Test.Application.Tests.Queries;
 
 public record GetAllTestResultsQuery(
-    Guid PatientId,
     int PageIndex,
     int PageSize,
     string? Search = "", // TestId
@@ -24,18 +24,22 @@ public class GetAllTestResultsHandler
     : IQueryHandler<GetAllTestResultsQuery, GetAllTestResultsResult>
 {
     private readonly ITestDbContext _context;
+    private readonly ICurrentActorAccessor _currentActorAccessor;
 
-    public GetAllTestResultsHandler(ITestDbContext context)
+    public GetAllTestResultsHandler(ITestDbContext context, ICurrentActorAccessor currentActorAccessor)
     {
         _context = context;
+        _currentActorAccessor = currentActorAccessor;
     }
 
     public async Task<GetAllTestResultsResult> Handle(
         GetAllTestResultsQuery request, CancellationToken cancellationToken)
     {
+        var patientId = _currentActorAccessor.GetRequiredPatientId();
+        
         var query = _context.TestResults
             .AsNoTracking()
-            .Where(tr => tr.PatientId == request.PatientId);
+            .Where(tr => tr.PatientId == patientId);
 
         // Apply Search by TestId
         if (!string.IsNullOrEmpty(request.Search))

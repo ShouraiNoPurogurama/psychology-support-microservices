@@ -25,15 +25,15 @@ public class GetAllTestResultsV2Endpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("v2/me/test/results/{patientId:guid}", async (
-                [AsParameters] GetAllTestResultsV2Request request, [FromRoute] Guid patientId,
+        app.MapGet("v2/me/test/results", async (
+                [AsParameters] GetAllTestResultsV2Request request,
                 ISender sender, HttpContext httpContext) =>
             {
                 // Authorization check
-                if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User))
-                    throw new ForbiddenException();
+                // if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User))
+                //     throw new ForbiddenException();
 
-                var query = request.Adapt<GetAllTestResultsQuery>() with { PatientId = patientId };
+                var query = request.Adapt<GetAllTestResultsQuery>();
 
                 var result = await sender.Send(query);
 

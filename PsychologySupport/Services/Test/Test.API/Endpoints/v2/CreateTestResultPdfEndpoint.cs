@@ -1,7 +1,9 @@
+using BuildingBlocks.Exceptions;
 using Carter;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Test.API.Common;
 using Test.Application.Tests.Commands;
 
 namespace Test.API.Endpoints.v2;
@@ -21,10 +23,6 @@ public class CreateTestResultPdfV2Endpoint : ICarterModule
                 [FromBody] CreateTestResultPdfV2Request request,
                 ISender sender, HttpContext httpContext) =>
             {
-                // Authorization check
-                // if (!AuthorizationHelpers.CanModifyPatientProfile(request.PatientId, httpContext.User))
-                //     throw new ForbiddenException();
-
                 var command = request.Adapt<CreateTestResultPdfCommand>();
                 
                 var result = await sender.Send(command);
