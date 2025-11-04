@@ -33,7 +33,7 @@ public class GetAllTestResultsEndpoint : ICarterModule
                 if (!AuthorizationHelpers.CanViewPatientProfile(patientId, httpContext.User))
                     throw new ForbiddenException();
 
-                var query = request.Adapt<GetAllTestResultsQuery>() with { PatientId = patientId };
+                var query = request.Adapt<GetAllTestResultsQuery>();
 
                 var result = await sender.Send(query);
 
