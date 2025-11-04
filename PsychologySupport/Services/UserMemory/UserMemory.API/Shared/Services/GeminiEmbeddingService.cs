@@ -34,7 +34,7 @@ public class GeminiEmbeddingService(
         var textHash = Sha256(normText);
 
         // 1) Embed
-        var vec = await geminiClient.EmbedTextAsync(summary, _opt.OutputDimensionality, _opt.TaskType, ct);
+        var vec = await geminiClient.EmbedTextAsync(summary, _opt.OutputDimensionality, "RETRIEVAL_DOCUMENT", ct);
         var final = _opt.Normalize ? Normalize(vec) : vec;
 
         // 2) Nếu bật dedup → kiểm tra trùng

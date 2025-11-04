@@ -55,7 +55,11 @@ public class ChatAndAiPromptGenerator(
 
     // ===== (E) FILLER Template =====
     private const string FillerGenerationPromptTemplate = """
-                                                          Generate the FILLER (scene and emotion details) for the same subject from the attached image.
+                                                          You are a visual art direction assistant helping to build a scene prompt for image generation.
+
+                                                          TASK:
+                                                          Write a short, concrete, cinematic visual description for the SAME SUBJECT shown in the attached image.
+                                                          Use the subject’s personal data below to build context.
 
                                                           DATA:
                                                           {
@@ -65,12 +69,28 @@ public class ChatAndAiPromptGenerator(
                                                             "scene_cue": "%SCENE_CUE%"
                                                           }
 
-                                                          FILLER:
-                                                          Describe a short, emotionally coherent scene that visually captures what the subject has been going through,
-                                                          based on their recent story ('scene_cue'). 
-                                                          Reflect the subject’s inner mood through posture, expression, and surrounding tone.
-                                                          Avoid giving explicit examples or locations — just convey atmosphere and emotion clearly.
-                                                          Return only the FILLER text.
+                                                          OUTPUT RULES:
+                                                          - Return in English.
+                                                          - Use the EXACT structure below with clear headings.
+                                                          - Write in an objective, descriptive tone (like film direction notes).
+                                                          - Avoid metaphors, emotions, or storytelling words.
+                                                          - Each section 1–2 sentences only.
+                                                          - Do NOT invent new people or animals.
+
+                                                          OUTPUT FORMAT (strictly follow):
+
+                                                          The subject is a {age}-year-old {gender}{optional_job_if_not_empty}.
+                                                          ACTION/SETTING: [Describe the subject’s action and physical setting concisely.]
+                                                          EXPRESSION: [Describe visible emotion on the face or posture.]
+                                                          SCENE: [Describe the surrounding environment and its tone.]
+                                                          DETAILS: [List 2–4 small props or contextual objects relevant to their job or setting.]
+                                                          LIGHTING: [Describe the type, source, and mood of lighting.]
+
+                                                          End with:
+                                                          [SPEECH_BUBBLE]
+                                                          (Auto by image agent)
+
+                                                          NOW WRITE THE COMPLETE OUTPUT.
                                                           """;
 
     // ===== (F) Bubble Instruction (image agent tự tạo) =====
@@ -115,6 +135,7 @@ public class ChatAndAiPromptGenerator(
 ";
 
         var storedFiller = $"{generatedFiller}\n\n[SPEECH_BUBBLE]\n(Auto by image agent)";
+        // var storedFiller = $"{generatedFiller}";
 
         return new RewardGenerationDataDto(
             UserId: chatData.UserId,
@@ -142,7 +163,7 @@ public class ChatAndAiPromptGenerator(
             return "ngồi bình thản trong không gian trung tính, ánh sáng dịu";
 
         var cue = string.Join(" | ", parts);
-        return cue.Length > 240 ? cue[..240] : cue;
+        return cue;
     }
 
     // ===== gRPC =====
