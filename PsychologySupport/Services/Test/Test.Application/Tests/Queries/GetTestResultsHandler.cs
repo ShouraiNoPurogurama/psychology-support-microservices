@@ -31,7 +31,7 @@ namespace Test.Application.Tests.Queries
             if (testResult == null)
             {
                 throw new NotFoundException($"Không tìm thấy kết quả bài Test với ID là {request.TestResultId}.");
-            }
+            } 
 
             var testResultDto = testResult.Adapt<TestResultDto>();
 

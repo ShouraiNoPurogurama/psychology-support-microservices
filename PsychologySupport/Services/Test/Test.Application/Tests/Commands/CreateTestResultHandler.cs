@@ -30,14 +30,14 @@ public class CreateTestResultHandler(
         
         var patientId = currentActorAccessor.GetRequiredPatientId();
         
-        var isExceedQuotas = await dbContext.TestResults
-            .Where(tr => tr.PatientId == patientId && tr.TestId == request.TestId && tr.TakenAt > DateTimeOffset.UtcNow.AddDays(-1))
-            .CountAsync(cancellationToken) >= 10;
-        
-        if (isExceedQuotas)
-        {
-            throw new InvalidOperationException("Bạn đã vượt quá số lần làm bài kiểm tra trong ngày (tối đa 5 lần). Vui lòng thử lại vào hôm sau.");
-        }
+        // var isExceedQuotas = await dbContext.TestResults
+        //     .Where(tr => tr.PatientId == patientId && tr.TestId == request.TestId && tr.TakenAt > DateTimeOffset.UtcNow.AddDays(-1))
+        //     .CountAsync(cancellationToken) >= 10;
+        //
+        // if (isExceedQuotas)
+        // {
+        //     throw new InvalidOperationException("Bạn đã vượt quá số lần làm bài kiểm tra trong ngày (tối đa 5 lần). Vui lòng thử lại vào hôm sau.");
+        // }
         
         var selectedOptions = await dbContext.QuestionOptions
             .Where(o => request.SelectedOptionIds.Contains(o.Id))
