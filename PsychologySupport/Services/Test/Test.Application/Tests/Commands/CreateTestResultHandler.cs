@@ -1,4 +1,5 @@
 using BuildingBlocks.CQRS;
+using BuildingBlocks.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Test.Application.Data;
 using Test.Application.Dtos;
@@ -30,14 +31,14 @@ public class CreateTestResultHandler(
         
         var patientId = currentActorAccessor.GetRequiredPatientId();
         
-        // var isExceedQuotas = await dbContext.TestResults
-        //     .Where(tr => tr.PatientId == patientId && tr.TestId == request.TestId && tr.TakenAt > DateTimeOffset.UtcNow.AddDays(-1))
-        //     .CountAsync(cancellationToken) >= 10;
-        //
-        // if (isExceedQuotas)
-        // {
-        //     throw new InvalidOperationException("Bạn đã vượt quá số lần làm bài kiểm tra trong ngày (tối đa 5 lần). Vui lòng thử lại vào hôm sau.");
-        // }
+        var isExceedQuotas = await dbContext.TestResults
+            .Where(tr => tr.PatientId == patientId && tr.TestId == request.TestId && tr.TakenAt > DateTimeOffset.UtcNow.AddDays(-1))
+            .CountAsync(cancellationToken) >= 5;
+        
+        if (isExceedQuotas)
+        {
+            throw new ForbiddenException("Bạn đã vượt quá số lần làm bài kiểm tra trong ngày. Vui lòng thử lại vào hôm sau.", "TEST_QUOTA_EXCEEDED");
+        }
         
         var selectedOptions = await dbContext.QuestionOptions
             .Where(o => request.SelectedOptionIds.Contains(o.Id))

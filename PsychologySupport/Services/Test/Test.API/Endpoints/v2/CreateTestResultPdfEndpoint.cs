@@ -34,6 +34,7 @@ public class CreateTestResultPdfV2Endpoint : ICarterModule
             .WithTags("Test Results Version 2")
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf")
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .WithDescription("Create a test result and return a PDF file")
             .WithSummary("Create Test Result and Export PDF");
     }
