@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Wellness.Domain.Abstractions;
+using Wellness.Domain.Aggregates.ModuleSections.Enums;
 
 namespace Wellness.Domain.Aggregates.ModuleSections;
 
@@ -15,6 +16,8 @@ public partial class ModuleSection : AuditableEntity<Guid>
     public string Description { get; set; }
 
     public int TotalDuration { get; set; } // Tổng thời gian ước tính để hoàn thành section (tính bằng phút)
+
+    public ModuleCategory Category { get; set; }
 
     public virtual WellnessModule? Module { get; set; }
 

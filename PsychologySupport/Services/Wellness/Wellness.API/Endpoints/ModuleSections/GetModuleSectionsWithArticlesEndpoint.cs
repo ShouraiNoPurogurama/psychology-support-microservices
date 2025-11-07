@@ -3,12 +3,14 @@ using Carter;
 using MediatR;
 using Wellness.API.Common.Authentication;
 using Wellness.Application.Features.ModuleSections.Dtos;
+using Wellness.Domain.Aggregates.ModuleSections.Enums;
 
 public record GetModuleSectionsWithArticlesRequest(
-    Guid ModuleSectionId,
+    Guid? ModuleSectionId,
     int PageIndex = 1,
     int PageSize = 10,
-    string? TargetLang = null
+    string? TargetLang = null,
+    ModuleCategory? Category = null
 )
 {
     public PaginationRequest ToPaginationRequest() => new(PageIndex, PageSize);
@@ -32,7 +34,8 @@ public class GetModuleSectionsWithArticlesEndpoint : ICarterModule
                 ModuleSectionId: request.ModuleSectionId,
                 SubjectRef: subjectRef,
                 PaginationRequest: request.ToPaginationRequest(),
-                TargetLang: request.TargetLang
+                TargetLang: request.TargetLang,
+                Category: request.Category
             );
 
             var result = await sender.Send(query);
@@ -48,5 +51,32 @@ public class GetModuleSectionsWithArticlesEndpoint : ICarterModule
         .ProducesProblem(StatusCodes.Status404NotFound)
         .WithSummary("Get paginated ModuleSections with nested SectionArticles, progress, and translation for the current user")
         .WithDescription("Returns paginated ModuleSections filtered by ModuleId for the authenticated user. Each section includes SectionArticles with progress, MediaUrl, and optional translation.");
+
+        app.MapGet("/v1/me/module-sections", async (
+              [AsParameters] GetModuleSectionsWithArticlesRequest request,
+              ICurrentActorAccessor currentActor,
+              ISender sender
+          ) =>
+        {
+            var subjectRef = currentActor.GetRequiredSubjectRef();
+
+            var query = new GetModuleSectionsWithArticlesQuery(
+                ModuleSectionId: null,
+                SubjectRef: subjectRef,
+                PaginationRequest: request.ToPaginationRequest(),
+                TargetLang: request.TargetLang,
+                Category: request.Category
+            );
+
+            var result = await sender.Send(query);
+
+            return Results.Ok(new GetModuleSectionsWithArticlesResponse(result.Sections));
+        })
+      .RequireAuthorization()
+      .WithName("GetModuleSectionsList")
+      .WithTags("ModuleSections")
+      .Produces<GetModuleSectionsWithArticlesResponse>()
+      .WithSummary("Get paginated list of ModuleSections")
+      .WithDescription("Returns paginated ModuleSections with nested SectionArticles, progress, and translation for the authenticated user.");
     }
 }

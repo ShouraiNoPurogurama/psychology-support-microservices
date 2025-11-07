@@ -6,6 +6,7 @@ using Wellness.Domain.Aggregates.Challenges.Enums;
 using Wellness.Domain.Aggregates.IdempotencyKey;
 using Wellness.Domain.Aggregates.JournalMoods;
 using Wellness.Domain.Aggregates.ModuleSections;
+using Wellness.Domain.Aggregates.ModuleSections.Enums;
 using Wellness.Domain.Aggregates.OutboxMessage;
 using Wellness.Domain.Aggregates.ProcessHistories;
 using Wellness.Domain.Enums;
@@ -123,6 +124,14 @@ public partial class WellnessDbContext : DbContext, IWellnessDbContext
                 sa.Property(p => p.Url).HasColumnName("source_url");
                 sa.Property(p => p.Description).HasColumnName("source_description");
             });
+        });
+
+        modelBuilder.Entity<ModuleSection>(entity =>
+        {
+            entity.Property(e => e.Category)
+                .HasConversion(new EnumToStringConverter<ModuleCategory>())
+                .HasColumnType("VARCHAR(30)")
+                .HasColumnName("category");
         });
     }
 }
