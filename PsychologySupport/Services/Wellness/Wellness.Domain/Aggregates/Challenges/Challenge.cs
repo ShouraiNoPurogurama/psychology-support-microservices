@@ -17,6 +17,8 @@ public partial class Challenge : AuditableEntity<Guid>
 
     public int DurationDate { get; set; } // Số ngày của thử thách
 
+    public ImprovementTag ImprovementTag { get; set; }
+
     //public Guid? ModuleId { get; set; }
 
     public virtual ICollection<ChallengeProgress> ChallengeProgresses { get; set; } = new List<ChallengeProgress>();

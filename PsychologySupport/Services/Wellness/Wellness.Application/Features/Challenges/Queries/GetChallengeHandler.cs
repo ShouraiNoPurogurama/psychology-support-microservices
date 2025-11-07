@@ -13,6 +13,7 @@ namespace Wellness.Application.Features.Challenges.Queries;
 
 public record GetChallengesQuery(
     ChallengeType? ChallengeType,
+    ImprovementTag? ImprovementTag,
     PaginationRequest PaginationRequest,
     string? TargetLang = null
 ) : IQuery<GetChallengesResult>;
@@ -42,6 +43,9 @@ public class GetChallengesHandler : IQueryHandler<GetChallengesQuery, GetChallen
 
         if (request.ChallengeType.HasValue)
             query = query.Where(c => c.ChallengeType == request.ChallengeType.Value);
+
+        if (request.ImprovementTag.HasValue)
+            query = query.Where(c => c.ImprovementTag == request.ImprovementTag.Value);
 
         query = query.OrderByDescending(c => c.CreatedAt);
 

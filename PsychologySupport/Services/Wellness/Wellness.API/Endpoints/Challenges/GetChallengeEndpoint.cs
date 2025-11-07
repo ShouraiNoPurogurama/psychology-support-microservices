@@ -10,6 +10,7 @@ namespace Wellness.API.Endpoints.Challenges;
 
 public record GetChallengesRequest(
     ChallengeType? ChallengeType,
+    ImprovementTag? ImprovementTag,
     int PageIndex = 1,
     int PageSize = 10,
     string? TargetLang = null
@@ -27,6 +28,7 @@ public class GetChallengesEndpoint : ICarterModule
         {
             var query = new GetChallengesQuery(
                 request.ChallengeType,
+                request.ImprovementTag,
                 new PaginationRequest(request.PageIndex, request.PageSize),
                 request.TargetLang
             );
