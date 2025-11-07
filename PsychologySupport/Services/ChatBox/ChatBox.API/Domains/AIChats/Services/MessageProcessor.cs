@@ -170,7 +170,6 @@ public class MessageProcessor(
         
         RouterToolType? toolType = null;
 
-
         return new RouterSnapshot(
             intent,
             retrievalNeeded,

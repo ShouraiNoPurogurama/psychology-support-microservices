@@ -45,9 +45,7 @@ public static class ApplicationServiceExtensions
         ConfigureGemini(services, config);
 
         ConfigureMediatR(services);
-
-        AddAIServices(services);
-
+        
         services.AddGrpc();
         
         services.AddIdentityServices(config);
@@ -73,16 +71,6 @@ public static class ApplicationServiceExtensions
         });
     }
     
-    private static IServiceCollection AddAIServices(this IServiceCollection services)
-    {
-        services.AddScoped<IMessagPreprocessor, ChatMessagePreprocessor>();
-        services.AddScoped<IAIProvider, GeminiProvider>();
-        services.AddSingleton<ISessionConcurrencyManager, SessionConcurrencyManager>();
-        services.AddScoped<IMessageProcessor, MessageProcessor>();
-        
-        return services;
-    }
-
     private static void ConfigureSwagger(IServiceCollection services, IWebHostEnvironment env)
     {
         services.AddEndpointsApiExplorer();
@@ -139,7 +127,7 @@ public static class ApplicationServiceExtensions
                 builder
                     .AllowAnyMethod()
                     .AllowAnyHeader()
-                    .AllowCredentials(); // Enable credentials support
+                    .AllowCredentials(); 
             });
         });
     }
@@ -159,6 +147,10 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAIRequestFactory, AIRequestFactory>();
         services.AddScoped<IInstructionComposer, InstructionComposer>();
         services.AddScoped<IToolSelectorClient, GeminiToolSelectorClient>();
+        services.AddScoped<IMessagPreprocessor, ChatMessagePreprocessor>();
+        services.AddScoped<IAIProvider, GeminiProvider>();
+        services.AddSingleton<ISessionConcurrencyManager, SessionConcurrencyManager>();
+        services.AddScoped<IMessageProcessor, MessageProcessor>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)

@@ -115,18 +115,20 @@ public class GeminiRouterClient : IRouterClient
                     type = "object",
                     description =
                         "Quyết định định tuyến cấp 1.\n" +
-                        "- CONVERSATION: trò chuyện/đáp ngắn mang tính kết nối.\n" +
+                        "- CONVERSATION: trò chuyện/đáp ngắn mang tính kết nối, KHÔNG liên quan đến 'bài test' hay 'công cụ'.\n" +
                         "- SAFETY_REFUSAL: từ chối an toàn.\n" +
-                        "- RAG_PERSONAL_MEMORY: cần ký ức cá nhân để cá nhân hoá.\n" +
-                        "- RAG_TEAM_KNOWLEDGE: hỏi về chi tiết nội bộ (Emo/EmoEase/Soltech/FPTU/chính sách...).\n" +
-                        "- TOOL_CALLING: cần gọi công cụ (VD: test DASS-21).",
+                        "- RAG_PERSONAL_MEMORY: cần ký ức cá nhân.\n" +
+                        "- RAG_TEAM_KNOWLEDGE: hỏi về chi tiết nội bộ.\n" +
+                        "- TOOL_CALLING: BẤT KỲ khi nào user hỏi, yêu cầu, hoặc đồng ý làm 'bài test', 'kiểm tra', 'nghe nhạc', hoặc 'công cụ'.",
                     properties = new
                     {
                         intent = new
                         {
                             type = "string",
                             description =
-                                "Chọn 1 intent định tuyến: CONVERSATION | SAFETY_REFUSAL | RAG_PERSONAL_MEMORY | RAG_TEAM_KNOWLEDGE | TOOL_CALLING.",
+                                "Nhiệm vụ: Chọn 1 intent định tuyến. " +
+                                "QUAN TRỌNG: Nếu user hỏi, yêu cầu, hoặc đồng ý làm 'bài test', 'kiểm tra', 'trắc nghiệm', hoặc 'nghe nhạc', BẮT BUỘC chọn TOOL_CALLING (kể cả khi Emo vừa gợi ý). " +
+                                "Chỉ chọn CONVERSATION nếu user trò chuyện phiếm.",
                             @enum = intentEnums
                         }
                     },
