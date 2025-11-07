@@ -39,9 +39,9 @@ public class ChatboxService(PiiService.PiiServiceClient piiClient, ILogger<Chatb
             .Where(s => s.IsActive == true
                         && s.UserId == userId
                         && s.Id == sessionId
-                        && s.CreatedDate >= startUtc
-                        && s.CreatedDate <  endUtc
-                        )
+                        //&& s.CreatedDate >= startUtc
+                        //&& s.CreatedDate <  endUtc
+            )
             .OrderByDescending(s => s.CreatedDate)
             .FirstOrDefaultAsync(context.CancellationToken);
 

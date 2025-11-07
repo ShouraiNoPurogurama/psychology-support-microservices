@@ -11,12 +11,16 @@ using Wellness.Application.Features.ModuleSections.Dtos;
 using Wellness.Domain.Aggregates.ModuleSections;
 using Wellness.Domain.Enums;
 
+using Wellness.Domain.Aggregates.ModuleSections.Enums;
+
 public record GetModuleSectionsWithArticlesQuery(
-    Guid ModuleSectionId,
+    Guid? ModuleSectionId,
     Guid SubjectRef,
     PaginationRequest PaginationRequest,
-    string? TargetLang = null
+    string? TargetLang = null,
+    ModuleCategory? Category = null
 ) : IQuery<GetModuleSectionsWithArticlesResult>;
+
 
 public record GetModuleSectionsWithArticlesResult(PaginatedResult<ModuleSectionDetailsDto> Sections);
 
@@ -43,13 +47,17 @@ public class GetModuleSectionsWithArticlesHandler
         int take = request.PaginationRequest.PageSize;
 
         var sectionsQuery = _context.ModuleSections
-            .AsNoTracking()
-            .Include(ms => ms.SectionArticles)
-                .ThenInclude(a => a.ArticleProgresses)
-                    .ThenInclude(ap => ap.ModuleProgress)
-            .Include(ms => ms.ModuleProgresses)
-            .Where(ms => ms.Id == request.ModuleSectionId)
-            .OrderBy(ms => ms.Title);
+             .AsNoTracking()
+             .Include(ms => ms.SectionArticles)
+                 .ThenInclude(a => a.ArticleProgresses)
+                     .ThenInclude(ap => ap.ModuleProgress)
+             .Include(ms => ms.ModuleProgresses)
+             .Where(ms =>
+                 (!request.ModuleSectionId.HasValue || ms.Id == request.ModuleSectionId) &&
+                 (!request.Category.HasValue || ms.Category == request.Category.Value)
+             )
+             .OrderBy(ms => ms.Title);
+
 
         var totalSectionsCount = await sectionsQuery.CountAsync(cancellationToken);
 
