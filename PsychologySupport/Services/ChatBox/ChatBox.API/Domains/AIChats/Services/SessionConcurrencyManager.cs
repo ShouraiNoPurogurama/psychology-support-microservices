@@ -68,7 +68,8 @@ public class SessionConcurrencyManager : ISessionConcurrencyManager
 
     public void CompletePendingMessage(Guid sessionId, string message)
     {
-        var pendingQueue = PendingMessagesBySession.GetOrAdd(sessionId, _ => new Queue<string>());
+        if (!PendingMessagesBySession.TryGetValue(sessionId, out var pendingQueue))
+            return;
 
         lock (pendingQueue)
         {
@@ -79,4 +80,5 @@ public class SessionConcurrencyManager : ISessionConcurrencyManager
                 PendingMessagesBySession.TryRemove(sessionId, out _);
         }
     }
+
 }

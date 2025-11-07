@@ -34,8 +34,6 @@ public static class ApplicationServiceExtensions
             options.Filters.Add<LoggingActionFilter>();
         });
         
-        // services.AddCarter();
-
         ConfigureSwagger(services, env); 
 
         ConfigureCors(services);
@@ -77,7 +75,7 @@ public static class ApplicationServiceExtensions
     
     private static IServiceCollection AddAIServices(this IServiceCollection services)
     {
-        services.AddScoped<IContextBuilder, ChatContextBuilder>();
+        services.AddScoped<IMessagPreprocessor, ChatMessagePreprocessor>();
         services.AddScoped<IAIProvider, GeminiProvider>();
         services.AddSingleton<ISessionConcurrencyManager, SessionConcurrencyManager>();
         services.AddScoped<IMessageProcessor, MessageProcessor>();
@@ -158,6 +156,8 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IRouterClient, GeminiRouterClient>();
         services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
         services.AddScoped<IStickerRewardService, StickerRewardService>();
+        services.AddScoped<IAIRequestFactory, AIRequestFactory>();
+        services.AddScoped<IInstructionComposer, InstructionComposer>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
