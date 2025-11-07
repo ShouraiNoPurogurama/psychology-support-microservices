@@ -19,22 +19,31 @@ public class GeminiProvider(
     : IAIProvider
 {
     // Trained model (Vertex AI)
-    public async Task<string> GenerateResponseAsync(AIRequestPayload payload, Guid sessionId)
+    public async Task<string> GenerateFineTunedChatResponseAsync(AIRequestPayload payload)
     {
         var geminiPayload = ToGeminiRequest(payload, systemInstruction: config.Value.SystemInstruction);
-        
-        return await CallGeminiAPIAsync(geminiPayload);
+
+        return await CallFineTunedGeminiAPIAsync(geminiPayload);
     }
 
     // Foundational model (API key)
-    public async Task<string> GenerateResponseAsync_FoundationalModel(AIRequestPayload payload, 
-        Guid sessionId,
+    public async Task<string> GenerateChatResponseAsync(AIRequestPayload payload,
         string systemInstruction,
         CancellationToken ct = default)
     {
         var request = ToGeminiRequest(payload, systemInstruction: systemInstruction);
 
-        return await CallGeminiFlashLiteAPIAsync(request, ct);
+        return await CallGeminiFlashLiteInternalAsync(request, "Gemini Flash Lite", ct);
+    }
+
+    public async Task<string> CallGeminiStructuredOutputAPIAsync(GeminiStructuredOutputRequestDto payload, CancellationToken ct = default)
+    {
+        return await CallGeminiFlashLiteInternalAsync(payload, "Gemini Structured", ct);
+    }
+
+    public async Task<string> CallGeminiOutputAPIAsync(GeminiRequestDto payload, CancellationToken ct = default)
+    {
+        return await CallGeminiFlashLiteInternalAsync(payload, "Gemini Text", ct);
     }
 
     // === Mapping duy nhất: AIRequestPayload -> GeminiRequestDto
@@ -72,8 +81,39 @@ public class GeminiProvider(
         );
     }
 
+    private async Task<string> CallGeminiFlashLiteInternalAsync<TRequest>(
+        TRequest payload,
+        string logContext,
+        CancellationToken ct)
+    {
+        using var http = new HttpClient();
+
+        var apiKey = cfg["GeminiConfig:ApiKey"];
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={apiKey}";
+
+        var serializedPayload = JsonConvert.SerializeObject(payload);
+        logger.LogInformation("{Context} Payload: {Payload}", logContext, serializedPayload);
+
+        var content = new StringContent(serializedPayload, Encoding.UTF8, "application/json");
+        var resp = await http.PostAsync(url, content, ct);
+        var body = await resp.Content.ReadAsStringAsync(ct);
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            logger.LogError("{Context} call failed: {StatusCode} - {Body}", logContext, resp.StatusCode, body);
+            return string.Empty;
+        }
+
+        // Log thêm response cho đồng bộ
+        logger.LogInformation("{Context} Response: {Body}", logContext, body);
+
+        var jo = JObject.Parse(body);
+        var text = jo["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString() ?? "";
+        return text.Trim();
+    }
+
     // ===== Gọi model qua Vertex AI (service account token) =====
-    private async Task<string> CallGeminiAPIAsync(GeminiRequestDto payload)
+    private async Task<string> CallFineTunedGeminiAPIAsync(GeminiRequestDto payload)
     {
         var token = await GetAccessTokenAsync();
         using var client = new HttpClient();
@@ -101,33 +141,6 @@ public class GeminiProvider(
         return string.Join("", texts);
     }
 
-    // ===== Gọi model Gemini 2.5 Flash Lite qua API Key (generateContent) =====
-    private async Task<string> CallGeminiFlashLiteAPIAsync(GeminiRequestDto payload, CancellationToken ct)
-    {
-        using var http = new HttpClient();
-
-        var apiKey = cfg["GeminiConfig:ApiKey"];
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={apiKey}";
-        
-
-        var serializedPayload = JsonConvert.SerializeObject(payload);
-
-        logger.LogInformation("Gemini Flash Lite Payload: {Payload}", serializedPayload);
-
-        var content = new StringContent(serializedPayload, Encoding.UTF8, "application/json");
-        var resp = await http.PostAsync(url, content, ct);
-        var body = await resp.Content.ReadAsStringAsync(ct);
-
-        if (!resp.IsSuccessStatusCode)
-        {
-            logger.LogError("Gemini Flash Lite call failed: {StatusCode} - {Body}", resp.StatusCode, body);
-            return string.Empty;
-        }
-
-        var jo = JObject.Parse(body);
-        var text = jo["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString() ?? "";
-        return text.Trim();
-    }
 
     private async Task<string> GetAccessTokenAsync()
     {

@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using ChatBox.API.Domains.AIChats.Dtos.AI;
+using ChatBox.API.Domains.AIChats.Dtos.AI.Router;
 using ChatBox.API.Domains.AIChats.Dtos.Gemini;
 using ChatBox.API.Domains.AIChats.Enums;
 using ChatBox.API.Domains.AIChats.Services.Contracts;
@@ -98,8 +99,8 @@ public class GeminiRouterClient : IRouterClient
         var emotionEnums = Enum.GetNames(typeof(EmotionTag));
         var relationshipEnums = Enum.GetNames(typeof(RelationshipTag));
         var topicEnums = Enum.GetNames(typeof(TopicTag));
-        var intentEnums = Enum.GetNames(typeof(RouterIntent)); 
-        var toolTypeEnums = Enum.GetNames(typeof(RouterToolType)); // ví dụ: DASS21_TEST
+        var intentEnums = Enum.GetNames(typeof(RouterIntent));
+
         var combinedEnums = topicEnums.Concat(emotionEnums).Concat(relationshipEnums).ToArray();
 
         return new
@@ -268,83 +269,8 @@ public class GeminiRouterClient : IRouterClient
                             required = new[] { "needed" }
                         }
                     }
-                },
-
-                // 5) Tool calling (optional; chứa CTA bên trong; có required nội bộ)
-                tool_call = new
-                {
-                    type = "object",
-                    description =
-                        "Chỉ xuất khi route.intent = TOOL_CALLING.\n" +
-                        "- Backend sẽ resolve resourceKey → URL/metadata thật.\n" +
-                        "- Ví dụ: type = DASS21_TEST, resourceKey = 'DASS21_FE_LINK'.\n" +
-                        "- CTA được NHÚNG BÊN TRONG tool_call (chỉ hiện khi cần hành động rõ ràng cho người dùng).",
-                    properties = new
-                    {
-                        needed = new { type = "boolean", description = "TRUE khi cần gọi tool." },
-                        type = new
-                        {
-                            type = "string",
-                            description = "Loại tool cần gọi (enum RouterToolType).",
-                            @enum = toolTypeEnums
-                        },
-                        resourceKey = new
-                        {
-                            type = "string",
-                            description = "Khoá tài nguyên chuẩn trong BE (VD: 'DASS21_FE_LINK')."
-                        },
-                        hints = new
-                        {
-                            type = "object",
-                            description = "Gợi ý mờ cho BE (optional).",
-                            additionalProperties = true
-                        },
-
-                        // 👉 CTA nested tại đây
-                        cta = new
-                        {
-                            type = "object",
-                            description =
-                                "Khối CTA để FE render nút khi tool cần tương tác người dùng.\n" +
-                                "Ví dụ DASS-21: title='Bạn muốn làm bài DASS-21 chứ?' với 2 nút 'Có'/'Không'.",
-                            properties = new
-                            {
-                                needed = new { type = "boolean", description = "TRUE nếu cần hiển thị CTA." },
-                                title = new { type = "string", description = "Tiêu đề CTA ngắn gọn." },
-                                resourceKey = new
-                                {
-                                    type = "string",
-                                    description = "Nếu CTA gắn với tài nguyên chuẩn (VD: 'DASS21_FE_LINK')."
-                                },
-                                buttons = new
-                                {
-                                    type = "array",
-                                    description = "Danh sách nút để FE render.",
-                                    items = new
-                                    {
-                                        type = "object",
-                                        properties = new
-                                        {
-                                            label = new { type = "string", description = "Văn bản nút (VD: 'Có', 'Không')." },
-                                            action = new { type = "string", description = "NAVIGATE | DISMISS" },
-                                            url = new
-                                            {
-                                                type = "string",
-                                                nullable = true,
-                                                description = "BE điền khi action=NAVIGATE (VD: link test DASS-21)."
-                                            }
-                                        },
-                                        required = new[] { "label", "action" }
-                                    }
-                                }
-                            }
-                            // cta không bắt buộc; nhưng nếu đã có, FE/BE có thể kiểm tra 'needed'
-                        }
-                    },
-                    required = new[] { "needed", "type" } // khi đã xuất block tool_call, 2 field này phải có
                 }
             },
-
             // Top-level: chỉ bắt buộc 2 khối lõi
             required = new[] { "route", "guidance" }
         };

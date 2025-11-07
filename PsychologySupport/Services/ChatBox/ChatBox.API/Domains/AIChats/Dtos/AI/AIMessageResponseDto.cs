@@ -7,5 +7,6 @@ public record AIMessageResponseDto(
     Guid SessionId,
     bool SenderIsEmo,
     [property: JsonConverter(typeof(RawJsonStringConverter))] string Content,
-    DateTimeOffset CreatedDate
+    DateTimeOffset CreatedDate,
+    CtaBlock? Cta = null
 );

@@ -111,8 +111,8 @@ public class StickerRewardService(
             "Kết thúc có thể gợi mở 1 câu hỏi rất nhẹ để cậu phản hồi (ví dụ: “cậu thấy chi tiết này có đúng tâm trạng không?”).\n    " +
             "Nếu gặp nội dung nhạy cảm (tự hại/bạo lực/lạm dụng), chỉ bày tỏ quan tâm ngắn gọn và khuyến khích tìm hỗ trợ tin cậy; tuyệt đối không hướng dẫn hay chẩn đoán.";
         
-        return await aiProvider.GenerateResponseAsync_FoundationalModel(
-            payload, sessionId, systemInstruction);
+        return await aiProvider.GenerateChatResponseAsync(
+            payload, systemInstruction);
     }
 
     private async Task<AIMessage> PersistClaimAsync(Guid sessionId, Guid rewardId, string followupText)

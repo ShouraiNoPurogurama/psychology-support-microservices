@@ -12,15 +12,17 @@ namespace ChatBox.API.Domains.AIChats.Services;
 
 public class GeminiInstructionGenerator : IInstructionGenerator
 {
-    private IConfiguration config;
+    private IConfiguration configuration;
+    private readonly IAIProvider _aiProvider;
     private readonly GeminiConfig _config;
     private readonly ILogger<GeminiInstructionGenerator> _logger;
     
-    public GeminiInstructionGenerator(IOptions<GeminiConfig> config, ILogger<GeminiInstructionGenerator> logger, IConfiguration configuration)
+    public GeminiInstructionGenerator(IOptions<GeminiConfig> config, ILogger<GeminiInstructionGenerator> logger, IConfiguration configuration, IAIProvider aiProvider)
     {
         _config = config.Value;
         _logger = logger;
-        this.config = configuration;
+        this.configuration = configuration;
+        _aiProvider = aiProvider;
     }
 
     public async Task<string> GenerateInstructionAsync(string userMessage, string? history = null, string? persona = null)
@@ -28,7 +30,7 @@ public class GeminiInstructionGenerator : IInstructionGenerator
         try
         {
             var payload = BuildPayload(userMessage, history, persona);
-            var instruction = await CallGeminiAPIAsync(payload);
+            var instruction = await _aiProvider.CallGeminiOutputAPIAsync(payload);
             
             _logger.LogInformation("Generated instruction: {Instruction}", instruction);
             
@@ -43,7 +45,7 @@ public class GeminiInstructionGenerator : IInstructionGenerator
 
     private GeminiRequestDto BuildPayload(string userMessage, string? history, string? persona)
     {
-        string systemInstruction = config["GeminiConfig:InstructorInstruction"];
+        string systemInstruction = configuration["GeminiConfig:InstructorInstruction"];
         
         var contextParts = new List<string>();
         if (!string.IsNullOrWhiteSpace(persona)) contextParts.Add($"USER PERSONA:\n{persona}");
@@ -69,33 +71,6 @@ public class GeminiInstructionGenerator : IInstructionGenerator
         );
     }
     
-    // NOTE: This is duplicated from GeminiProvider. In a real scenario, you might refactor this into a shared HttpClient service.
-    private async Task<string> CallGeminiAPIAsync(GeminiRequestDto payload)
-    {
-        var token = await GetAccessTokenAsync();
-        using var client = new HttpClient();
-        // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var apiKey = config["GeminiConfig:ApiKey"];
-        var url =  $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={apiKey}";
-
-        var settings = new JsonSerializerSettings { ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() } };
-        var content = new StringContent(JsonConvert.SerializeObject(payload, settings), Encoding.UTF8, "application/json");
-        
-        var response = await client.PostAsync(url, content);
-        var result = await response.Content.ReadAsStringAsync();
-
-        if (!response.IsSuccessStatusCode)
-        {
-            _logger.LogError("Gemini API call for instruction failed. Status: {StatusCode}, Response: {Response}", response.StatusCode, result);
-            return string.Empty;
-        }
-
-        var jObject = JObject.Parse(result);
-        var text = jObject["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString();
-
-        return text ?? string.Empty;
-    }
 
     private async Task<string> GetAccessTokenAsync()
     {

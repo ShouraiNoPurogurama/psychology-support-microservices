@@ -158,6 +158,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IStickerRewardService, StickerRewardService>();
         services.AddScoped<IAIRequestFactory, AIRequestFactory>();
         services.AddScoped<IInstructionComposer, InstructionComposer>();
+        services.AddScoped<IToolSelectorClient, GeminiToolSelectorClient>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)

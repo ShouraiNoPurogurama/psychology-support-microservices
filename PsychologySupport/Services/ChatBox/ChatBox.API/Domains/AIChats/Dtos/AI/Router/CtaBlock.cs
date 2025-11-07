@@ -29,15 +29,3 @@ public sealed class ToolCallBlock
     public string? ResourceKey { get; set; }         // ví dụ: "DASS21_FE_LINK"
     public JObject? Hints { get; set; }              // optional gợi ý mờ
 }
-
-// Dtos/AI/Router/RouterDecisionDto.cs
-public sealed class RouterDecisionDto
-{
-    public RouteBlock Route { get; set; } = new();
-    public GuidanceBlock Guidance { get; set; } = new();
-    public RetrievalBlock Retrieval { get; set; } = new();
-    public MemoryBlock Memory { get; set; } = new();
-
-    public ToolCallBlock? ToolCall { get; set; }     // optional (chỉ khi TOOL_CALLING)
-    public CtaBlock? Cta { get; set; }               // optional (ví dụ DASS21 hiển thị 2 nút)
-}

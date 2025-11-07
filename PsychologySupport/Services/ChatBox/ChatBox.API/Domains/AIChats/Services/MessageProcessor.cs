@@ -26,6 +26,7 @@ public class MessageProcessor(
     IAIRequestFactory aiRequestFactory,
     IInstructionComposer instructionComposer,
     IRouterClient routerClient,
+    IToolSelectorClient toolSelectorClient,
     IPublishEndpoint publishEndpoint,
     ISessionConcurrencyManager concurrencyManager,
     ICurrentActorAccessor currentActorAccessor,
@@ -89,6 +90,22 @@ public class MessageProcessor(
 
         // 2) gọi router + extract snapshot
         var router = await RouteAndExtractIntentsAsync(userMessageWithDateTime, history);
+        
+        RouterToolType? selectedToolType = null;
+        CtaBlock? ctaResult = null;
+        
+        if (router.Intent == RouterIntent.TOOL_CALLING)
+        {
+            logger.LogInformation("Router intent is TOOL_CALLING, invoking ToolSelector...");
+            var toolDecision = await toolSelectorClient.SelectToolAsync(userMessageWithDateTime, history);
+            
+            if (toolDecision != null && toolDecision.ToolCall.Needed)
+            {
+                selectedToolType = toolDecision.ToolCall.Type;
+                ctaResult = toolDecision.Cta; // Lấy CTA từ specialist
+                logger.LogInformation("ToolSelector decided: {ToolType}", selectedToolType);
+            }
+        }
 
         // 3) save memory nếu cần + publish MessageProcessed
         var tags = await SaveMemoryIfNeededAsync(router, aliasId, session.Id);
@@ -104,7 +121,7 @@ public class MessageProcessor(
 
         var finalSystemInstruction = instructionComposer.Compose(
             intent: router.Intent,
-            toolType: router.ToolCallType,
+            toolType: selectedToolType,
             basePersona: configuration["GeminiConfig:SystemInstruction"]!,
             routerGuidance: instructionForAnswer,
             extraGuards: null
@@ -121,6 +138,15 @@ public class MessageProcessor(
             augmentedContext: augmentedContext,
             systemInstruction: finalSystemInstruction
         );
+        
+        if (ctaResult != null && result.Count > 0)
+        {
+            var firstMessage = result[0]; 
+    
+            var messageWithCta = firstMessage with { Cta = ctaResult };
+
+            result[0] = messageWithCta; 
+        }
 
         return result;
     }
@@ -143,8 +169,7 @@ public class MessageProcessor(
         var payload = decision?.Memory.Save.Payload;
         
         RouterToolType? toolType = null;
-        if (intent == RouterIntent.TOOL_CALLING && decision?.ToolCall?.Needed == true)
-            toolType = decision.ToolCall.Type;
+
 
         return new RouterSnapshot(
             intent,
@@ -385,9 +410,8 @@ public class MessageProcessor(
     {
         var envelope = await aiRequestFactory.CreateAsync(history, session, augmentedContext);
         
-        var responseText = await aiProvider.GenerateResponseAsync_FoundationalModel(
+        var responseText = await aiProvider.GenerateChatResponseAsync(
             envelope,
-            session.Id,
             systemInstruction,
             CancellationToken.None
         );
