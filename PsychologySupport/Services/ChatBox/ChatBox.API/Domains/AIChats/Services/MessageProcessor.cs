@@ -264,9 +264,11 @@ public class MessageProcessor(
         }
 
         // 3) fallback instruction
-        var finalInstruction = string.IsNullOrWhiteSpace(instruction)
-            ? "[Gợi ý trả lời: Thừa nhận cảm xúc; đưa 2–3 hướng gợi ý; hỏi mở nhẹ 1 câu; giọng ấm áp.]"
-            : instruction;
+        // var finalInstruction = string.IsNullOrWhiteSpace(instruction)
+        //     ? "[Gợi ý trả lời: Thừa nhận cảm xúc; đưa 2–3 hướng gợi ý; hỏi mở nhẹ 1 câu; giọng ấm áp.]"
+        //     : instruction;        
+
+        var finalInstruction = instruction;
 
         // 4) reorder: [head] -> [INSTRUCTION] -> [USAGE RULES] -> [MEMORY] -> [tail]
         var augmented = ReorderContextWithRouterBlocks(contextAfterTeam, finalInstruction, usageRules, memoryBlock);
