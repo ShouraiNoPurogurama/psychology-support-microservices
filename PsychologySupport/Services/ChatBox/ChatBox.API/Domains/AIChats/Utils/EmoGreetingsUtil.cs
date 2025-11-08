@@ -40,7 +40,7 @@ public static class EmoGreetingsUtil
 
         return words.Length switch
         {
-            0 => "bạn",
+            0 => "cậu",
             1 => Capitalize(words[0]),
             _ => Capitalize(words[^1])
         };
