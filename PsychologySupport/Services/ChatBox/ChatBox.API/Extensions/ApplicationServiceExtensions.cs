@@ -16,6 +16,7 @@ using System.Configuration;
 using System.Reflection;
 using ChatBox.API.Domains.AIChats.Services.Contracts;
 using ChatBox.API.Shared.Authentication;
+using ChatBox.API.Shared.Subscription;
 using Profile.API.Protos;
 using UserMemory.API.Protos;
 
@@ -151,6 +152,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAIProvider, GeminiProvider>();
         services.AddSingleton<ISessionConcurrencyManager, SessionConcurrencyManager>();
         services.AddScoped<IMessageProcessor, MessageProcessor>();
+        services.AddScoped<ICurrentUserSubscriptionAccessor, CurrentCurrentUserSubscriptionAccessor>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)
