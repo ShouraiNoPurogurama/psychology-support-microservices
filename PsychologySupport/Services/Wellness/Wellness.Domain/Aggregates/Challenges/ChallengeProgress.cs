@@ -40,11 +40,15 @@ public partial class ChallengeProgress : AggregateRoot<Guid>
         var progress = new ChallengeProgress(subjectRef, challenge.Id);
 
         progress.AddDomainEvent(new ChallengeProgressCreatedEvent(
-            ChallengeProgressId: progress.Id,
-            SubjectRef: subjectRef,
-            ChallengeId: challenge.Id,
-            StepIds: challenge.ChallengeSteps.Select(s => s.Id).ToList()
-        ));
+         ChallengeProgressId: progress.Id,
+         SubjectRef: subjectRef,
+         ChallengeId: challenge.Id,
+         StepIds: challenge.ChallengeSteps
+             .OrderBy(s => s.OrderIndex)
+             .Select(s => s.Id)
+             .ToList()
+     ));
+
 
         return progress;
     }
@@ -79,7 +83,7 @@ public partial class ChallengeProgress : AggregateRoot<Guid>
         var completedSteps = ChallengeStepProgresses.Count(x => x.ProcessStatus == ProcessStatus.Completed);
 
         ProgressPercent = totalSteps > 0
-            ? (int)Math.Round((completedSteps * 100.0) / totalSteps)
+            ? Math.Clamp((int)Math.Round((completedSteps * 100.0) / totalSteps), 0, 100)
             : 0;
 
         if (ProgressPercent >= 100)

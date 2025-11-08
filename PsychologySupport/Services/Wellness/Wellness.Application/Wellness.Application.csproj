@@ -16,11 +16,6 @@
 		<PackageReference Include="SixLabors.ImageSharp" />
 		<PackageReference Include="Grpc.AspNetCore" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Features\ProcessHistories\Dtos\" />
-	  <Folder Include="Features\ProcessHistories\Queries\" />
-	</ItemGroup>
 	<ItemGroup>
 		<Protobuf Include="..\..\Translation\Translation.API\Protos\translation.proto" GrpcServices="Client">
 			<Link>Protos\translation.proto</Link>

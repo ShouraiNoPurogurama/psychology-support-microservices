@@ -42,21 +42,21 @@ public partial class ChallengeStepProgress : AuditableEntity<Guid>
         if (ProcessStatus == ProcessStatus.NotStarted)
         {
             ProcessStatus = ProcessStatus.Progressing;
-            StartedAt = DateTimeOffset.UtcNow.AddHours(7);
+            StartedAt = DateTimeOffset.UtcNow;
         }
     }
 
     public void Complete(Guid? postMoodId = null)
     {
         ProcessStatus = ProcessStatus.Completed;
-        CompletedAt = DateTimeOffset.UtcNow.AddHours(7);
+        CompletedAt = DateTimeOffset.UtcNow;
         PostMoodId = postMoodId;
     }
 
     public void Skip(Guid? postMoodId = null)
     {
         ProcessStatus = ProcessStatus.Skipped;
-        CompletedAt = DateTimeOffset.UtcNow.AddHours(7);
+        CompletedAt = DateTimeOffset.UtcNow;
         PostMoodId = postMoodId;
     }
 }
