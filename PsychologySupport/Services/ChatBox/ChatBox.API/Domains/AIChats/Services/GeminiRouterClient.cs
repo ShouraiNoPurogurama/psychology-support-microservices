@@ -149,8 +149,8 @@ public class GeminiRouterClient : IRouterClient
                         {
                             type = "string",
                             description =
-                                "PHẢI bắt đầu bằng [STATE: ONBOARDING] hoặc [STATE: FRIEND_MODE]. " +
-                                "KHÔNG viết câu trả lời mẫu. Ví dụ: [STATE: FRIEND_MODE]"
+                                "Chỉ chứa các marker là [STATE: ONBOARDING] (nếu cuộc trò chuyện ngắn hơn 6 tin nhắn và user với Emo chưa biết nhiều về nhau) hoặc [STATE: FRIEND_MODE]. " +
+                                "KHÔNG viết câu trả lời mẫu."
                         }
                     },
                     required = new[] { "emo_instruction" }
