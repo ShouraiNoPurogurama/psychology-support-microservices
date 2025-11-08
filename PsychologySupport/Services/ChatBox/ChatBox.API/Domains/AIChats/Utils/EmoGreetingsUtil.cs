@@ -32,7 +32,7 @@ public static class EmoGreetingsUtil
     private static string GetDisplayName(string? fullName)
     {
         if (string.IsNullOrWhiteSpace(fullName))
-            return "bạn";
+            return "cậu";
 
         var cleaned = Regex.Replace(fullName, @"[\(\[].*?[\)\]]", "");
         var normalized = Regex.Replace(cleaned.Trim(), @"\s+", " ");
