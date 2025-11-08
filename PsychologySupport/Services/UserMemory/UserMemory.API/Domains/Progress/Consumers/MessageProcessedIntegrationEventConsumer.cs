@@ -3,6 +3,7 @@ using BuildingBlocks.Messaging.Events.IntegrationEvents.UserMemory;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using UserMemory.API.Data;
+using UserMemory.API.Data.Options;
 using UserMemory.API.Models;
 using UserMemory.API.Shared.Enums;
 
@@ -20,9 +21,9 @@ public class MessageProcessedIntegrationEventConsumer : IConsumer<MessageProcess
     private readonly ILogger<MessageProcessedIntegrationEventConsumer> _logger;
 
     // Point calculation constants
-    private const int AnyMessagePoints = 120;
-    private const int SaveNeededPoints = 60;
-    private const int EmotionOrPersonalPoints = 80;
+    private static int AnyMessagePoints = MessagePointOptions.AnyMessagePoints;
+    private static int SaveNeededPoints = MessagePointOptions.SaveNeededPoints;
+    private static int EmotionOrPersonalPoints = MessagePointOptions.EmotionOrPersonalPoints;
 
     public MessageProcessedIntegrationEventConsumer(
         UserMemoryDbContext dbContext,
@@ -59,9 +60,9 @@ public class MessageProcessedIntegrationEventConsumer : IConsumer<MessageProcess
             // --- UPDATE SESSION DAILY PROGRESS ---
             var sessionProgress = await _dbContext.SessionDailyProgresses
                 .FirstOrDefaultAsync(p =>
-                    p.AliasId == msg.AliasId &&
-                    p.SessionId == msg.SessionId &&
-                    p.ProgressDate == today,
+                        p.AliasId == msg.AliasId &&
+                        p.ProgressDate == today &&
+                        p.SessionId == msg.SessionId,
                     context.CancellationToken);
 
             int totalSessionPoints;
@@ -101,8 +102,8 @@ public class MessageProcessedIntegrationEventConsumer : IConsumer<MessageProcess
             // This aggregates all sessions' points for the day
             var dailySummary = await _dbContext.AliasDailySummaries
                 .FirstOrDefaultAsync(s =>
-                    s.AliasId == msg.AliasId &&
-                    s.Date == today,
+                        s.AliasId == msg.AliasId &&
+                        s.Date == today,
                     context.CancellationToken);
 
             int totalDailyPoints;
@@ -227,6 +228,7 @@ public class MessageProcessedIntegrationEventConsumer : IConsumer<MessageProcess
                     return true;
             }
         }
+
         return false;
     }
 
@@ -268,6 +270,7 @@ public class MessageProcessedIntegrationEventConsumer : IConsumer<MessageProcess
             var p = parts[i].ToLowerInvariant();
             parts[i] = char.ToUpperInvariant(p[0]) + p[1..];
         }
+
         return string.Join('_', parts);
     }
 }
