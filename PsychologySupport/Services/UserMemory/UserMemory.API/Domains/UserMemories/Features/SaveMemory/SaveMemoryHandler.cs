@@ -1,6 +1,7 @@
 ﻿using BuildingBlocks.CQRS;
 using Microsoft.EntityFrameworkCore;
 using UserMemory.API.Data;
+using UserMemory.API.Data.Options;
 using UserMemory.API.Models;
 using UserMemory.API.Shared.Enums;
 using UserMemory.API.Shared.Services.Contracts;
@@ -15,9 +16,9 @@ public class SaveMemoryHandler(
     IEmbeddingService embeddingService
 ) : ICommandHandler<SaveMemoryCommand, SaveMemoryResult>
 {
-    private const int AnyMessagePoints = 100;
-    private const int SaveNeededPoints = 80;
-    private const int EmotionOrPersonalPoints = 120;
+    private static int AnyMessagePoints = MessagePointOptions.AnyMessagePoints;
+    private static int SaveNeededPoints = MessagePointOptions.SaveNeededPoints;
+    private static int EmotionOrPersonalPoints = MessagePointOptions.EmotionOrPersonalPoints;
 
    public async Task<SaveMemoryResult> Handle(SaveMemoryCommand request , CancellationToken cancellationToken)
     {
