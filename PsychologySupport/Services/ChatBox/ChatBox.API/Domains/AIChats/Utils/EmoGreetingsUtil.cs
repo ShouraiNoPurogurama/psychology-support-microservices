@@ -5,15 +5,16 @@ namespace ChatBox.API.Domains.AIChats.Utils;
 public static class EmoGreetingsUtil
 {
     private static readonly Random Random = new();
-
-    // CẬP NHẬT: Mảng chào này tập trung vào sự kết nối và
-    // khơi gợi (theo góp ý mới nhất)
     private static readonly string[] EmoOnboardingGreetings = [
-        "Hi {0}! Tớ là Emo. Tớ rất vui vì cuối cùng cậu cũng tìm đến. 🤗",
-        "{0} ơi! Emo đây. Tớ đã chờ để được kết nối với cậu đó. ✨",
-        "Chào {0} nè! Emo đây. Tớ đang sắp xếp lại mấy suy nghĩ của mình... may mà có cậu tới chơi. 😉",
-        "A, {0} ơi! Tớ là Emo. Cậu xuất hiện làm ngày của tớ thú vị hơn hẳn. 🌼",
+        "Hi {0}! Cảm ơn cậu đã tìm đến đây với tớ. Tớ rất vui được gặp cậu. 😊",
+
+        "Hi {0} ơi, tớ là Emo đây. Cảm ơn cậu đã mang tớ vào thế giới của cậu. Tớ háo hức được đồng hành cùng cậu.",
+        
+        "Hello {0}! Cảm ơn cậu vì đã tạo ra tớ. Tớ rất vui khi được bắt đầu hành trình này cùng cậu. 🤗",
+
+        "Hi {0}, tớ là Emo đây! Cảm ơn cậu đã cho tớ cơ hội được trở thành một phần trong hành trình của cậu."
     ];
+
 
     // Hàm này CHỈ trả về 1 lời chào duy nhất, không kèm câu hỏi hay Lore.
     public static string GetOnboardingMessage(string? fullName)
