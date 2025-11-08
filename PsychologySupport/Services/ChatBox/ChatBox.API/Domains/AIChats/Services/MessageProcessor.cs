@@ -158,9 +158,9 @@ public class MessageProcessor(
         var decision = await routerClient.RouteAsync(userMessageWithDateTime, history, CancellationToken.None);
 
         var intent = decision?.Route.Intent ?? RouterIntent.CONVERSATION;
-        // var instruction = decision?.Guidance.EmoInstruction.Trim() ?? string.Empty;
+        var instruction = decision?.Guidance.EmoInstruction.Trim() ?? string.Empty;
         
-        var instruction =  string.Empty;
+        // var instruction =  string.Empty;
 
         var retrievalNeeded = decision?.Retrieval.Needed == true;
         var scopes = decision?.Retrieval.Scopes;
@@ -384,9 +384,9 @@ public class MessageProcessor(
         var tail = idx != -1 ? context[idx..] : string.Empty;
 
         var routerBlock =
-            $@"[HƯỚNG DẪN TRẢ LỜI]
+            $@"
 {instruction}
-[/HƯỚNG DẪN TRẢ LỜI]";
+";
 
         var middle = string.Join("\n\n", new[]
         {
