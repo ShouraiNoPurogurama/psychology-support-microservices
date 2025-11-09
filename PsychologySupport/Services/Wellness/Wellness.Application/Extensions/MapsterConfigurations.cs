@@ -25,6 +25,10 @@ namespace Wellness.Application.Extensions
                 .NewConfig()
                 .Map(dest => dest.ChallengeType, src => src.ChallengeType.ToString())
                 .Map(dest => dest.Steps, src => src.ChallengeSteps);
+
+            TypeAdapterConfig<ChallengeStepProgress, ChallengeStepProgressDto>
+                .NewConfig()
+                .Map(dest => dest.Activity, src => src.ChallengeStep.Activity);
         }
     }
 }
