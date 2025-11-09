@@ -74,6 +74,9 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
             return new GetChallengeProgressResult(empty);
         }
 
+        // Khởi tạo danh sách uniqueActivities trước
+        List<Activity> uniqueActivities = new();
+
         if (!string.IsNullOrEmpty(request.TargetLang) && request.TargetLang == "vi")
         {
             try
@@ -85,7 +88,7 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
                     .Select(g => g.First())
                     .ToList();
 
-                // Translate Challenge Title and Description
+                // Dịch Challenge Title & Description
                 await uniqueChallenges.TranslateEntitiesAsync(
                     nameof(Challenge),
                     _translationClient,
@@ -96,18 +99,18 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
                 );
 
                 // Unique activities
-                var uniqueActivities = rawProgresses
+                uniqueActivities = rawProgresses
                     .SelectMany(cp => cp.Challenge!.ChallengeSteps
                         .Where(cs => cs.Activity != null)
                         .Select(cs => cs.Activity!))
                     .Concat(rawProgresses.SelectMany(cp => cp.ChallengeStepProgresses
-                        .Where(csp => csp.ChallengeStep != null && csp.ChallengeStep.Activity != null)
+                        .Where(csp => csp.ChallengeStep?.Activity != null)
                         .Select(csp => csp.ChallengeStep!.Activity!)))
                     .GroupBy(a => a.Id)
                     .Select(g => g.First())
                     .ToList();
 
-                // Translate Activity Name and Description
+                // Dịch Activity Name & Description
                 if (uniqueActivities.Any())
                 {
                     await uniqueActivities.TranslateEntitiesAsync(
@@ -118,6 +121,24 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
                         a => a.Name,
                         a => a.Description
                     );
+
+                    // Gán bản dịch vào entity gốc
+                    var activityDict = uniqueActivities.ToDictionary(a => a.Id, a => a);
+                    foreach (var cp in rawProgresses)
+                    {
+                        foreach (var step in cp.Challenge!.ChallengeSteps)
+                        {
+                            if (step.Activity != null && activityDict.TryGetValue(step.Activity.Id, out var translated))
+                                step.Activity = translated;
+                        }
+
+                        foreach (var stepProgress in cp.ChallengeStepProgresses)
+                        {
+                            if (stepProgress.ChallengeStep?.Activity != null &&
+                                activityDict.TryGetValue(stepProgress.ChallengeStep.Activity.Id, out var translated))
+                                stepProgress.ChallengeStep.Activity = translated;
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -133,7 +154,15 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
             var challengeTypeStr = challenge.ChallengeType.ToString();
 
             var steps = cp.ChallengeStepProgresses
-                .Select(sp => sp.Adapt<ChallengeStepProgressDto>())
+                .Select(sp =>
+                {
+                    var dto = sp.Adapt<ChallengeStepProgressDto>();
+                    if (sp.ChallengeStep?.Activity != null)
+                    {
+                        dto = dto with { Activity = sp.ChallengeStep.Activity.Adapt<ActivityDto>() };
+                    }
+                    return dto;
+                })
                 .OrderBy(sp => sp.DayNumber)
                 .ThenBy(sp => sp.OrderIndex)
                 .ToList();
