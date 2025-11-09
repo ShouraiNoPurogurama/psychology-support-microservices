@@ -1,16 +1,16 @@
 using BuildingBlocks.Exceptions;
-using BuildingBlocks.Messaging.Events.Queries.Profile;
 using BuildingBlocks.Pagination;
+using BuildingBlocks.Utils;
 using ChatBox.API.Data;
+using ChatBox.API.Data.Options;
 using ChatBox.API.Domains.AIChats.Dtos.AI;
 using ChatBox.API.Domains.AIChats.Dtos.Sessions;
 using ChatBox.API.Domains.AIChats.Utils;
 using ChatBox.API.Models;
 using ChatBox.API.Shared.Authentication;
+using ChatBox.API.Shared.Subscription;
 using Mapster;
-using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Pii.API.Protos;
 using Profile.API.Protos;
 
 namespace ChatBox.API.Domains.AIChats.Services;
@@ -18,12 +18,41 @@ namespace ChatBox.API.Domains.AIChats.Services;
 public class SessionService(
     ChatBoxDbContext dbContext,
     ICurrentActorAccessor actorAccessor,
+    ICurrentUserSubscriptionAccessor subscriptionAccessor,
     PersonaOrchestratorService.PersonaOrchestratorServiceClient client) 
 {
     public async Task<CreateSessionResponseDto> CreateSessionAsync(string sessionName, Guid userId)
     {
         // 1. Resolve SubjectRef từ UserId
         var subjectRef = actorAccessor.GetRequiredSubjectRef();
+
+        // if (subscriptionAccessor.IsFreeTier())
+        // {
+        //     var vnTz = TimeUtils.Instance;
+        //     var nowVn = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, vnTz);
+        //
+        //     // [00:00, 24:00) theo giờ VN
+        //     var startOfDayVn = new DateTimeOffset(nowVn.Year, nowVn.Month, nowVn.Day, 0, 0, 0, nowVn.Offset);
+        //     var endOfDayVn   = startOfDayVn.AddDays(1);
+        //
+        //     var startUtc = startOfDayVn.ToUniversalTime();
+        //     var endUtc   = endOfDayVn.ToUniversalTime();
+        //
+        //     var createdTodayCount = await dbContext.AIChatSessions
+        //         .Where(s => s.UserId == userId
+        //                     && s.IsActive == true
+        //                     && s.CreatedDate >= startUtc
+        //                     && s.CreatedDate < endUtc)
+        //         .CountAsync();
+        //
+        //     if (createdTodayCount >= QuotaOptions.DailySessionCreationFreeTier)
+        //     {
+        //         throw new ForbiddenException(
+        //             $"Gói miễn phí đã đạt giới hạn tạo phiên trong ngày {nowVn:yyyy-MM-dd} (GMT+7). " +
+        //             "Nâng cấp gói hoặc quay lại vào ngày mai nhé."
+        //         );
+        //     }
+        // }
         
         // 3. Gọi AggregatePatientProfileRequest với PatientId
         var profile = await client.GetPersonaSnapshotAsync(new GetPersonaSnapshotRequest()
@@ -91,7 +120,7 @@ public class SessionService(
     }
     private AIMessageResponseDto AddInitialGreeting(AIChatSession session)
     {
-        var greeting = EmoGreetingsUtil.GetRandomGreeting(null);
+        var greeting = EmoGreetingsUtil.GetOnboardingMessage(null);
 
         var initialMessage = new AIMessage
         {

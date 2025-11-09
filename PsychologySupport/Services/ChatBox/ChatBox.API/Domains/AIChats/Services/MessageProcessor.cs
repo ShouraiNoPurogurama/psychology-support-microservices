@@ -159,6 +159,8 @@ public class MessageProcessor(
 
         var intent = decision?.Route.Intent ?? RouterIntent.CONVERSATION;
         var instruction = decision?.Guidance.EmoInstruction.Trim() ?? string.Empty;
+        
+        // var instruction =  string.Empty;
 
         var retrievalNeeded = decision?.Retrieval.Needed == true;
         var scopes = decision?.Retrieval.Scopes;
@@ -262,9 +264,11 @@ public class MessageProcessor(
         }
 
         // 3) fallback instruction
-        var finalInstruction = string.IsNullOrWhiteSpace(instruction)
-            ? "[Gợi ý trả lời: Thừa nhận cảm xúc; đưa 2–3 hướng gợi ý; hỏi mở nhẹ 1 câu; giọng ấm áp.]"
-            : instruction;
+        // var finalInstruction = string.IsNullOrWhiteSpace(instruction)
+        //     ? "[Gợi ý trả lời: Thừa nhận cảm xúc; đưa 2–3 hướng gợi ý; hỏi mở nhẹ 1 câu; giọng ấm áp.]"
+        //     : instruction;        
+
+        var finalInstruction = instruction;
 
         // 4) reorder: [head] -> [INSTRUCTION] -> [USAGE RULES] -> [MEMORY] -> [tail]
         var augmented = ReorderContextWithRouterBlocks(contextAfterTeam, finalInstruction, usageRules, memoryBlock);
@@ -380,9 +384,9 @@ public class MessageProcessor(
         var tail = idx != -1 ? context[idx..] : string.Empty;
 
         var routerBlock =
-            $@"[HƯỚNG DẪN TRẢ LỜI]
+            $@"
 {instruction}
-[/HƯỚNG DẪN TRẢ LỜI]";
+";
 
         var middle = string.Join("\n\n", new[]
         {

@@ -149,8 +149,8 @@ public class GeminiRouterClient : IRouterClient
                         {
                             type = "string",
                             description =
-                                "Một dòng duy nhất trong ngoặc vuông, nêu HÀNH ĐỘNG/HƯỚNG DẪN cho Emo (nên nói gì, lưu ý gì, giọng điệu ra sao). " +
-                                "KHÔNG viết câu trả lời mẫu. Ví dụ: [Gợi ý trả lời: Xác nhận cảm xúc mệt mỏi và mời họ kể thêm một chút nếu sẵn sàng.]"
+                                "Chỉ chứa các marker là [STATE: ONBOARDING] (nếu cuộc trò chuyện ngắn hơn 6 tin nhắn và user với Emo chưa biết nhiều về nhau) hoặc [STATE: FRIEND_MODE]. " +
+                                "KHÔNG viết câu trả lời mẫu."
                         }
                     },
                     required = new[] { "emo_instruction" }

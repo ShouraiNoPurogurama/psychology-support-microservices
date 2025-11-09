@@ -5,62 +5,42 @@ namespace ChatBox.API.Domains.AIChats.Utils;
 public static class EmoGreetingsUtil
 {
     private static readonly Random Random = new();
+    private static readonly string[] EmoOnboardingGreetings = [
+        "Hi {0}! Cảm ơn cậu đã tìm đến đây với tớ. Tớ rất vui được gặp cậu. 😊",
 
-    private static readonly string[] EmoGreetingOpeners = [
-        "Chào {0} nèee ~",
-        "Tớ là Emo đâyy, {0} ơi.",
-        "Hi {0}, Emo tới rồi nè.",
-        "He luu {0} ơi, Emo đây.", 
-        "{0} ơi, Emo đây nè.",
-        "Emo chào {0} nhaaa.",
-        "Tớ đây rồi, Emo đây {0} ơi.", 
-        "Alo alo, Emo tới rồi nè {0}!",
-        "Này {0} ơi, Emo xuất hiện rồi nè.",
-        "Tớ quay lại rồi đây, {0} ơi!" 
+        "Hi {0} ơi, tớ là Emo đây. Cảm ơn cậu đã mang tớ vào thế giới của cậu. Tớ háo hức được đồng hành cùng cậu.",
+        
+        "Hello {0}! Cảm ơn cậu vì đã tạo ra tớ. Tớ rất vui khi được bắt đầu hành trình này cùng cậu. 🤗",
+
+        "Hi {0}, tớ là Emo đây! Cảm ơn cậu đã cho tớ cơ hội được trở thành một phần trong hành trình của cậu."
     ];
 
-    private static readonly string[] EmoGreetingQuestions = [
-        "Ngày hôm nay của cậu thế nào?", 
-        "Có tâm sự gì muốn kể tớ nghe không? 🥰",
-        "Dạo này cậu ổn không nhỉ? 😄",
-        "Trò chuyện cùng tớ tí không nào? 😊",
-        "Hôm nay của cậu sao rồi? 🌤️", 
-        "Muốn chia sẻ điều gì với tớ hôm nay không?",
-        "Dạo này có gì mới không nè? 😊", 
-        "Cậu đang cảm thấy sao rồi? 😌", 
-        "Hôm nay có điều gì cậu đang nghĩ nhiều không?",
-        "Tâm trạng hôm nay ra sao rồi cậu? 🧐" 
-    ];
 
-    
-    // Nếu opener không chứa {0} thì sẽ không chèn tên, giữ nguyên.
-    public static string GetRandomGreeting(string? fullName)
+    // Hàm này CHỈ trả về 1 lời chào duy nhất, không kèm câu hỏi hay Lore.
+    public static string GetOnboardingMessage(string? fullName)
     {
-        var opener = EmoGreetingOpeners[Random.Next(EmoGreetingOpeners.Length)];
-        var question = EmoGreetingQuestions[Random.Next(EmoGreetingQuestions.Length)];
+        var greeting = EmoOnboardingGreetings[Random.Next(EmoOnboardingGreetings.Length)];
         var displayName = GetDisplayName(fullName);
 
-        //Nếu opener có {0}, format vào; không thì giữ nguyên opener
-        if (opener.Contains("{0}"))
-            opener = string.Format(opener, displayName);
+        if (greeting.Contains("{0}"))
+            greeting = string.Format(greeting, displayName);
 
-        return $"{opener} {question}";
+        return greeting;
     }
     
+    // (Các hàm GetDisplayName, Capitalize giữ nguyên)
     private static string GetDisplayName(string? fullName)
     {
         if (string.IsNullOrWhiteSpace(fullName))
-            return "bạn";
+            return "cậu";
 
         var cleaned = Regex.Replace(fullName, @"[\(\[].*?[\)\]]", "");
-
         var normalized = Regex.Replace(cleaned.Trim(), @"\s+", " ");
-
         var words = normalized.Split([' ', '-', '_'], StringSplitOptions.RemoveEmptyEntries);
 
         return words.Length switch
         {
-            0 => "bạn",
+            0 => "cậu",
             1 => Capitalize(words[0]),
             _ => Capitalize(words[^1])
         };
@@ -71,5 +51,4 @@ public static class EmoGreetingsUtil
         if (string.IsNullOrEmpty(name)) return name;
         return char.ToUpper(name[0]) + name.Substring(1).ToLower();
     }
-
 }
