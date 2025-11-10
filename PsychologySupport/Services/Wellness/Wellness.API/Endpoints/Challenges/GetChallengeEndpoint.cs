@@ -2,6 +2,7 @@
 using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Wellness.API.Common.Subscription;
 using Wellness.Application.Features.Challenges.Dtos;
 using Wellness.Application.Features.Challenges.Queries;
 using Wellness.Domain.Aggregates.Challenges.Enums;
@@ -24,12 +25,17 @@ public class GetChallengesEndpoint : ICarterModule
     {
         app.MapGet("/v1/challenges", async (
             [AsParameters] GetChallengesRequest request,
-            ISender sender) =>
+            ISender sender,
+            ICurrentUserSubscriptionAccessor subscription
+        ) =>
         {
+            bool isFreeTier = subscription.IsFreeTier();
+
             var query = new GetChallengesQuery(
                 request.ChallengeType,
                 request.ImprovementTag,
                 new PaginationRequest(request.PageIndex, request.PageSize),
+                isFreeTier,      
                 request.TargetLang
             );
 
@@ -42,7 +48,7 @@ public class GetChallengesEndpoint : ICarterModule
         .Produces<GetChallengesResponse>(200)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status404NotFound)
-        .WithSummary("Get paginated Challenges with translation")
-        .WithDescription("Returns paginated list of challenges filtered by ChallengeType. Title, Description, ChallengeType and Activities are translated if TargetLang is provided.");
+        .WithSummary("Get paginated Challenges with translation and access info")
+        .WithDescription("HasAccess is determined from user's subscription tier using ICurrentUserSubscriptionAccessor.");
     }
 }

@@ -15,6 +15,7 @@ namespace Wellness.Application.Features.ModuleSections.Dtos
         int OrderIndex,
         int Duration,
         bool Completed,
-        ArticleSource ArticleSource
+        ArticleSource ArticleSource,
+        bool HasAccess
     );
 }

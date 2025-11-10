@@ -74,6 +74,11 @@ public partial class WellnessDbContext : DbContext, IWellnessDbContext
               .HasConversion(new EnumToStringConverter<ImprovementTag>())
               .HasColumnType("VARCHAR(30)")
               .HasColumnName("improvement_tag");
+
+            entity.Property(e => e.Scope)
+              .HasConversion(new EnumToStringConverter<TagScope>())
+              .HasColumnType("VARCHAR(20)")
+              .HasColumnName("scope");
         });
 
         modelBuilder.Entity<ChallengeProgress>(entity =>
@@ -129,6 +134,11 @@ public partial class WellnessDbContext : DbContext, IWellnessDbContext
                 sa.Property(p => p.Url).HasColumnName("source_url");
                 sa.Property(p => p.Description).HasColumnName("source_description");
             });
+
+            builder.Property(e => e.Scope)
+              .HasConversion(new EnumToStringConverter<TagScope>())
+              .HasColumnType("VARCHAR(20)")
+              .HasColumnName("scope");
         });
 
         modelBuilder.Entity<ModuleSection>(entity =>

@@ -4,6 +4,7 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using Wellness.API.Common.Authentication;
+using Wellness.API.Common.Subscription;
 using Wellness.API.Extensions;
 
 namespace Wellness.API
@@ -25,6 +26,7 @@ namespace Wellness.API
 
             services.AddIdentityServices(config);
             services.AddScoped<ICurrentActorAccessor, CurrentActorAccessor>();
+            services.AddScoped<ICurrentUserSubscriptionAccessor, CurrentCurrentUserSubscriptionAccessor>();
 
             ConfigureCORS(services);
             ConfigureSwagger(services, env);

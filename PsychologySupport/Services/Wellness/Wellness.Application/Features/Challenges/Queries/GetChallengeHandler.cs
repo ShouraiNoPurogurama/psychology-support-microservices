@@ -8,6 +8,7 @@ using Wellness.Application.Extensions;
 using Wellness.Application.Features.Challenges.Dtos;
 using Wellness.Domain.Aggregates.Challenges;
 using Wellness.Domain.Aggregates.Challenges.Enums;
+using Wellness.Domain.Enums;
 
 namespace Wellness.Application.Features.Challenges.Queries;
 
@@ -15,6 +16,7 @@ public record GetChallengesQuery(
     ChallengeType? ChallengeType,
     ImprovementTag? ImprovementTag,
     PaginationRequest PaginationRequest,
+    bool isFreeTier,
     string? TargetLang = null
 ) : IQuery<GetChallengesResult>;
 
@@ -120,7 +122,17 @@ public class GetChallengesHandler : IQueryHandler<GetChallengesQuery, GetChallen
         }
 
         // --- Map to DTO ---
-        var challengeDtos = translatedChallenges.Adapt<List<ChallengeDto>>();
+        var challengeDtos = challenges.Select(c => new ChallengeDto(
+             Id: c.Id,
+             Title: c.Title,
+             Description: c.Description,
+             ChallengeType: c.ChallengeType,
+             DurationActivity: c.ChallengeSteps.Sum(s => s.Activity?.Duration ?? 0),
+             DurationDate: c.ChallengeSteps.Count,
+             Steps: c.ChallengeSteps.Adapt<List<ChallengeStepDto>>(),
+             HasAccess: !request.isFreeTier || c.Scope == TagScope.Free
+        )).ToList();
+
 
         var paginated = new PaginatedResult<ChallengeDto>(
             request.PaginationRequest.PageIndex,

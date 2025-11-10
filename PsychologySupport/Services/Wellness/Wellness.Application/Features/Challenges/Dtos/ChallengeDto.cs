@@ -14,6 +14,7 @@ namespace Wellness.Application.Features.Challenges.Dtos
        ChallengeType ChallengeType,
        int DurationActivity,
        int DurationDate,
-       List<ChallengeStepDto> Steps
+       List<ChallengeStepDto> Steps,
+       bool HasAccess
    );
 }

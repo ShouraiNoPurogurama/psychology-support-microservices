@@ -1,5 +1,6 @@
 ﻿using Wellness.Domain.Abstractions;
 using Wellness.Domain.Aggregates.ModuleSections.ValueObjects;
+using Wellness.Domain.Enums;
 
 namespace Wellness.Domain.Aggregates.ModuleSections;
 
@@ -17,7 +18,9 @@ public partial class SectionArticle : AuditableEntity<Guid>
 
     public int Duration { get; set; } // Thời gian ước tính để đọc bài viết (tính bằng phút)
 
-    public ArticleSource Source { get; set; } 
+    public ArticleSource Source { get; set; }
+
+    public TagScope Scope { get; set; }
 
     public virtual ICollection<ArticleProgress> ArticleProgresses { get; set; } = new List<ArticleProgress>();
 

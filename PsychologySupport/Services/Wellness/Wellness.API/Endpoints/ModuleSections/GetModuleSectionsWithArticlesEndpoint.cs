@@ -2,7 +2,9 @@
 using Carter;
 using MediatR;
 using Wellness.API.Common.Authentication;
+using Wellness.API.Common.Subscription;
 using Wellness.Application.Features.ModuleSections.Dtos;
+using Wellness.Application.Features.ModuleSections.Queries;
 using Wellness.Domain.Aggregates.ModuleSections.Enums;
 
 public record GetModuleSectionsWithArticlesRequest(
@@ -24,18 +26,21 @@ public class GetModuleSectionsWithArticlesEndpoint : ICarterModule
     {
         app.MapGet("/v1/me/module-sections/{ModuleSectionId}", async (
                 [AsParameters] GetModuleSectionsWithArticlesRequest request,
-                ICurrentActorAccessor currentActor,  
+                ICurrentActorAccessor currentActor,
+                ICurrentUserSubscriptionAccessor subscriptionAccessor, 
                 ISender sender
             ) =>
         {
             var subjectRef = currentActor.GetRequiredSubjectRef();
+            bool isFreeTier = subscriptionAccessor.IsFreeTier();
 
             var query = new GetModuleSectionsWithArticlesQuery(
                 ModuleSectionId: request.ModuleSectionId,
                 SubjectRef: subjectRef,
                 PaginationRequest: request.ToPaginationRequest(),
                 TargetLang: request.TargetLang,
-                Category: request.Category
+                Category: request.Category,
+                IsFreeTier: isFreeTier 
             );
 
             var result = await sender.Send(query);
@@ -46,37 +51,35 @@ public class GetModuleSectionsWithArticlesEndpoint : ICarterModule
         .WithName("GetModuleSectionsWithArticles")
         .WithTags("ModuleSections")
         .Produces<GetModuleSectionsWithArticlesResponse>()
-        .ProducesProblem(StatusCodes.Status400BadRequest)
-        .ProducesProblem(StatusCodes.Status401Unauthorized)
-        .ProducesProblem(StatusCodes.Status404NotFound)
-        .WithSummary("Get paginated ModuleSections with nested SectionArticles, progress, and translation for the current user")
-        .WithDescription("Returns paginated ModuleSections filtered by ModuleId for the authenticated user. Each section includes SectionArticles with progress, MediaUrl, and optional translation.");
+        .ProducesProblem(StatusCodes.Status404NotFound);
+
 
         app.MapGet("/v1/me/module-sections", async (
               [AsParameters] GetModuleSectionsWithArticlesRequest request,
               ICurrentActorAccessor currentActor,
+              ICurrentUserSubscriptionAccessor subscriptionAccessor,
               ISender sender
           ) =>
         {
             var subjectRef = currentActor.GetRequiredSubjectRef();
+            bool isFreeTier = subscriptionAccessor.IsFreeTier();
 
             var query = new GetModuleSectionsWithArticlesQuery(
                 ModuleSectionId: null,
                 SubjectRef: subjectRef,
                 PaginationRequest: request.ToPaginationRequest(),
                 TargetLang: request.TargetLang,
-                Category: request.Category
+                Category: request.Category,
+                IsFreeTier: isFreeTier
             );
 
             var result = await sender.Send(query);
 
             return Results.Ok(new GetModuleSectionsWithArticlesResponse(result.Sections));
         })
-      .RequireAuthorization()
-      .WithName("GetModuleSectionsList")
-      .WithTags("ModuleSections")
-      .Produces<GetModuleSectionsWithArticlesResponse>()
-      .WithSummary("Get paginated list of ModuleSections")
-      .WithDescription("Returns paginated ModuleSections with nested SectionArticles, progress, and translation for the authenticated user.");
+        .RequireAuthorization()
+        .WithName("GetModuleSectionsList")
+        .WithTags("ModuleSections")
+        .Produces<GetModuleSectionsWithArticlesResponse>();
     }
 }

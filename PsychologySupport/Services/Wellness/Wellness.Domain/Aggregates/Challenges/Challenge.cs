@@ -1,6 +1,7 @@
 ﻿using Wellness.Domain.Abstractions;
 using Wellness.Domain.Aggregates.Challenges.Enums;
 using Wellness.Domain.Aggregates.ProcessHistories;
+using Wellness.Domain.Enums;
 
 namespace Wellness.Domain.Aggregates.Challenges;
 
@@ -18,6 +19,8 @@ public partial class Challenge : AuditableEntity<Guid>
     public int DurationDate { get; set; } // Số ngày của thử thách
 
     public ImprovementTag ImprovementTag { get; set; }
+
+    public TagScope Scope { get; set; }
 
     //public Guid? ModuleId { get; set; }
 
