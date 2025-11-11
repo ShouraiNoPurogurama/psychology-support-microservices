@@ -9,7 +9,8 @@ namespace Auth.API.Features.Authentication.EventHandlers
     {
         public async Task Consume(ConsumeContext<UserSubscriptionActivatedIntegrationEvent> context)
         {
-            await service.UpdateSubscriptionPlanNameAsync(context.Message.SubjectRef,context.Message.PlanName);
+            await service.UpdateSubscriptionPlanNameAsync(context.Message.SubjectRef,context.Message.PlanName,
+                context.Message.ValidFrom,context.Message.ValidTo);
         }
     }
 }

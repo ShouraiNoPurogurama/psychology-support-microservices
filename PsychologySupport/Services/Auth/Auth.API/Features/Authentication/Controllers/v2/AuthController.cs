@@ -6,6 +6,7 @@ using Auth.API.Features.Authentication.ServiceContracts.Shared;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Auth.API.Features.Authentication.Controllers.v2;
 
@@ -15,6 +16,7 @@ public class AuthController(
     // IAuthService authService,
     IAuthFacade authService,
     IUserOnboardingService userOnboardingService,
+    IUserSubscriptionService subscriptionService,
     IFirebaseAuthService firebaseAuthService) : ControllerBase
 {
     [HttpPost("v2/login")]
@@ -106,5 +108,24 @@ public class AuthController(
         );
 
         return Ok(response);
+    }
+
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [HttpPost("v2/me/activate-free-trial")]
+    public async Task<IActionResult> ActivateFreeTrial()
+    {
+        var subjectRefClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+
+        if (string.IsNullOrEmpty(subjectRefClaim) || !Guid.TryParse(subjectRefClaim, out var subjectRef))
+        {
+            return BadRequest(new { success = false, message = "JWT không chứa subjectRef hợp lệ." });
+        }
+
+        var result = await subscriptionService.ActivateFreeTrialAsync(subjectRef);
+
+        if (!result)
+            return BadRequest(new { success = false, message = "User đã sử dụng Free Trial trước đó hoặc không tồn tại." });
+
+        return Ok(new { success = true, message = "Kích hoạt Free Trial thành công trong 3 ngày." });
     }
 }

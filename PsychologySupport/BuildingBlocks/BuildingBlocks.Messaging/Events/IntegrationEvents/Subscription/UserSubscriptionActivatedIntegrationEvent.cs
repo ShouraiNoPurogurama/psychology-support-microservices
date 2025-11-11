@@ -6,5 +6,10 @@ using System.Threading.Tasks;
 
 namespace BuildingBlocks.Messaging.Events.IntegrationEvents.Subscription
 {
-    public record UserSubscriptionActivatedIntegrationEvent(Guid SubjectRef, string PlanName) : IntegrationEvent;
+    public record UserSubscriptionActivatedIntegrationEvent(
+        Guid SubjectRef,                
+        string PlanName,                
+        DateTimeOffset ValidFrom,       
+        DateTimeOffset ValidTo         
+    ) : IntegrationEvent;
 }

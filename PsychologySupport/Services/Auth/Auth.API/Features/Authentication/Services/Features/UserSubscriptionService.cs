@@ -11,7 +11,7 @@ public class UserSubscriptionService(
     PiiService.PiiServiceClient piiClient,
     ILogger<UserSubscriptionService> logger) : IUserSubscriptionService
 {
-    public async Task<bool> UpdateSubscriptionPlanNameAsync(Guid subjectRef, string subscriptionPlanName)
+    public async Task<bool> UpdateSubscriptionPlanNameAsync(Guid subjectRef, string subscriptionPlanName, DateTimeOffset validFrom, DateTimeOffset validTo)
     {
         // Resolve userId từ subjectRef qua PiiService
         var resolveResponse = await piiClient.ResolveUserIdBySubjectRefAsync(
@@ -32,6 +32,8 @@ public class UserSubscriptionService(
         }
 
         user.SubscriptionPlanName = subscriptionPlanName;
+        user.ValidFrom = validFrom;
+        user.ValidTo = validTo;
 
         await dbContext.SaveChangesAsync();
 
@@ -68,7 +70,9 @@ public class UserSubscriptionService(
             return false;
         }
 
-        user.SubscriptionPlanName = null;
+        user.SubscriptionPlanName = "Free Plan";
+        user.ValidFrom = DateTimeOffset.UtcNow;
+        user.ValidTo = null;
 
         await dbContext.SaveChangesAsync();
 
@@ -77,4 +81,45 @@ public class UserSubscriptionService(
 
         return true;
     }
+
+    public async Task<bool> ActivateFreeTrialAsync(Guid subjectRef)
+    {
+        // Resolve userId từ subjectRef qua PiiService
+        var resolveResponse = await piiClient.ResolveUserIdBySubjectRefAsync(
+            new ResolveUserIdBySubjectRefRequest { SubjectRef = subjectRef.ToString() });
+
+        if (string.IsNullOrEmpty(resolveResponse.UserId) || !Guid.TryParse(resolveResponse.UserId, out var userId))
+        {
+            logger.LogError("Failed to resolve userId from subjectRef {SubjectRef}", subjectRef);
+            throw new UserNotFoundException();
+        }
+
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+        {
+            logger.LogError("User {UserId} was not found when activating Free Trial", userId);
+            throw new UserNotFoundException();
+        }
+
+        if (user.IsFreeTrialUsed)
+        {
+            logger.LogWarning("User {UserId} has already used Free Trial", userId);
+            return false; // Không thể kích hoạt lại
+        }
+
+        // Kích hoạt Free Trial trong 3 ngày
+        user.SubscriptionPlanName = "Free Trial";
+        user.ValidFrom = DateTimeOffset.UtcNow;
+        user.ValidTo = DateTimeOffset.UtcNow.AddDays(3);
+        user.IsFreeTrialUsed = true;
+
+        await dbContext.SaveChangesAsync();
+
+        logger.LogInformation("Activated Free Trial for user {UserId} from {ValidFrom} to {ValidTo}",
+            userId, user.ValidFrom, user.ValidTo);
+
+        return true;
+    }
+
 }

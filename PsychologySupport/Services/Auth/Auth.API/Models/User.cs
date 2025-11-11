@@ -14,4 +14,12 @@ public class User : IdentityUser<Guid>
     public virtual ICollection<UserRole> UserRoles { get; set; }
 
     public string SubscriptionPlanName { get; set; }
+
+    // Đánh dấu người dùng đã từng sử dụng Free Trial
+    public bool IsFreeTrialUsed { get; set; }
+
+    // Hiệu lực của gói
+    public DateTimeOffset ValidFrom { get; set; }
+    public DateTimeOffset? ValidTo { get; set; }
+
 }

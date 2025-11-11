@@ -61,7 +61,9 @@ public class UpdateUserSubscriptionStatusHandler : ICommandHandler<UpdateUserSub
         {
             var userSubscriptionActivatedIntegrationEvent = new UserSubscriptionActivatedIntegrationEvent(
                 request.SubjectRef,
-                existingSubscription.ServicePackage.Name
+                existingSubscription.ServicePackage.Name,
+                existingSubscription.StartDate,
+                existingSubscription.EndDate
             );
 
             var inventoryCreatedIntegrationEvent = new InventoryCreatedIntegrationEvent(

@@ -49,6 +49,15 @@ public class AuthDbContext : IdentityDbContext<User, Role, Guid, IdentityUserCla
                 .WithOne(e => e.User)
                 .HasForeignKey(ur => ur.UserId)
                 .IsRequired();
+
+            entity.Property(u => u.IsFreeTrialUsed)
+                .HasDefaultValue(false);
+
+            entity.Property(u => u.ValidFrom)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(u => u.ValidTo)
+                .IsRequired(false);
         });
 
         builder.Entity<Role>(entity =>
