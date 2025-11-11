@@ -9,7 +9,8 @@ public record OnboardingPersonProfileCommand(
     Guid SubjectRef,
     UserGender Gender,
     DateOnly BirthDate,
-    string Address
+    string Address,
+    string PhoneNumber
 ) : ICommand<OnboardingPersonProfileResult>;
 
 public record OnboardingPersonProfileResult(bool IsSuccess);
@@ -28,6 +29,10 @@ public class OnboardingPersonProfileValidator : AbstractValidator<OnboardingPers
             .WithMessage("Địa chỉ không được để trống.")
             .MaximumLength(255)
             .WithMessage("Địa chỉ không được vượt quá 255 ký tự.");
+        RuleFor(p => p.PhoneNumber)
+            .Matches(@"^(0|\+84)(3|5|7|8|9)\d{8}$")
+            .When(p => !string.IsNullOrWhiteSpace(p.PhoneNumber))
+            .WithMessage("Số điện thoại không hợp lệ, phải là số điện thoại Việt Nam.");
     }
 }
 
@@ -51,7 +56,12 @@ public class OnboardingPersonProfileHandler(PiiDbContext dbContext, ILogger<Onbo
                 "PERSON_PROFILE_ALREADY_ACTIVE");
         }
 
-        var currentContactInfo = ContactInfo.UpdateWithFallback(existingProfile.ContactInfo, request.Address);
+        // Cập nhật Address + PhoneNumber
+        var currentContactInfo = ContactInfo.UpdateWithFallback(
+            existingProfile.ContactInfo,
+            address: request.Address,
+            phoneNumber: request.PhoneNumber
+        );
 
         existingProfile.CompleteOnboarding(
             gender: request.Gender,
@@ -60,7 +70,6 @@ public class OnboardingPersonProfileHandler(PiiDbContext dbContext, ILogger<Onbo
         );
 
         var result = await dbContext.SaveChangesAsync(cancellationToken) > 0;
-
 
         return new OnboardingPersonProfileResult(result);
     }

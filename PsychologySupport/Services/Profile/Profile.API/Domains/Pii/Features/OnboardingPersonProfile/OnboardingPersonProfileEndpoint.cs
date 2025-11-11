@@ -7,7 +7,8 @@ namespace Profile.API.Domains.Pii.Features.OnboardingPersonProfile;
 public record OnboardingPersonProfileRequest(
     UserGender Gender,
     DateOnly BirthDate,
-    string Address
+    string Address,
+    string PhoneNumber
 );
 
 public record OnboardingPersonProfileResponse(bool IsSuccess);
