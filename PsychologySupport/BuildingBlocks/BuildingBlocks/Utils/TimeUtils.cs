@@ -1,4 +1,6 @@
-﻿namespace BuildingBlocks.Utils;
+﻿using System.Runtime.InteropServices;
+
+namespace BuildingBlocks.Utils;
 
 public class TimeUtils
 {
@@ -46,5 +48,20 @@ public class TimeUtils
         if (d.TotalDays   < 30) return $"{(int)(d.TotalDays / 7)} tuần trước";
         if (d.TotalDays  < 365) return $"{(int)(d.TotalDays / 30)} tháng trước";
         return $"{(int)(d.TotalDays / 365)} năm trước";
+    }
+    
+    public static TimeZoneInfo Instance =>
+        TimeZoneInfo.FindSystemTimeZoneById(
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? "SE Asia Standard Time"       // Windows
+                : "Asia/Ho_Chi_Minh"            // Linux/macOS
+        );
+    
+    
+    public static DateOnly StartOfIsoWeek(DateOnly d)
+    {
+        var dow = (int)d.DayOfWeek; // Sun=0..Sat=6
+        var iso = dow == 0 ? 7 : dow; // Sun -> 7
+        return d.AddDays(-(iso - 1));
     }
 }

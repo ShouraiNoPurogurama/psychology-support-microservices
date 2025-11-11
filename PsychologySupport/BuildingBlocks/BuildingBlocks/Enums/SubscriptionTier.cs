@@ -1,0 +1,12 @@
+﻿using System.Text.Json.Serialization;
+
+namespace BuildingBlocks.Enums;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum SubscriptionTier
+{
+    Free,
+    FreeTrial,
+    Premium,
+    Unknown
+}
