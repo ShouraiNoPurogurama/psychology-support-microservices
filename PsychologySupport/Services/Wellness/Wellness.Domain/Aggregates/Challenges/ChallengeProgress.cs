@@ -1,5 +1,6 @@
 ﻿using Wellness.Domain.Abstractions;
 using Wellness.Domain.Enums;
+using Wellness.Domain.Exceptions;
 using static Wellness.Domain.Events.ChallengeDomainEvents;
 
 namespace Wellness.Domain.Aggregates.Challenges;
@@ -56,6 +57,17 @@ public partial class ChallengeProgress : AggregateRoot<Guid>
 
     public void UpdateStep(Guid stepId, ProcessStatus stepStatus, Guid? postMoodId = null)
     {
+        // Lấy step
+        var step = Challenge?.ChallengeSteps.FirstOrDefault(s => s.Id == stepId)
+            ?? throw new WellnessDomainException("Step không tồn tại trong Challenge này.");
+
+        // ✅ Kiểm tra ngày hợp lệ
+        var expectedDate = StartDate.Date.AddDays(step.DayNumber - 1);
+        var today = DateTimeOffset.UtcNow.Date;
+
+        if (today != expectedDate)
+            throw new WellnessDomainException($"Chỉ được phép cập nhật Step của ngày {step.DayNumber} vào đúng ngày {expectedDate:yyyy-MM-dd}.");
+
         // Tìm hoặc tạo mới StepProgress
         var stepProgress = ChallengeStepProgresses.FirstOrDefault(x => x.ChallengeStepId == stepId);
         if (stepProgress is null)
@@ -78,7 +90,12 @@ public partial class ChallengeProgress : AggregateRoot<Guid>
                 break;
         }
 
-        // Tính lại tiến độ dựa trên trạng thái đã cập nhật
+        // ✅ Kiểm tra nếu là step cuối cùng → auto complete Challenge
+        var isLastStep = Challenge?.ChallengeSteps
+            .OrderBy(s => s.DayNumber)
+            .ThenBy(s => s.OrderIndex)
+            .LastOrDefault()?.Id == stepId;
+
         var totalSteps = Challenge?.ChallengeSteps.Count ?? ChallengeStepProgresses.Count;
         var completedSteps = ChallengeStepProgresses.Count(x => x.ProcessStatus == ProcessStatus.Completed);
 
@@ -86,9 +103,10 @@ public partial class ChallengeProgress : AggregateRoot<Guid>
             ? Math.Clamp((int)Math.Round((completedSteps * 100.0) / totalSteps), 0, 100)
             : 0;
 
-        if (ProgressPercent >= 100)
+        if (isLastStep && stepStatus == ProcessStatus.Completed)
         {
             ProcessStatus = ProcessStatus.Completed;
+            ProgressPercent = 100;
             EndDate = DateTimeOffset.UtcNow;
         }
         else if (completedSteps > 0)
@@ -101,12 +119,11 @@ public partial class ChallengeProgress : AggregateRoot<Guid>
             ChallengeProgressId: this.Id,
             SubjectRef: this.SubjectRef,
             ChallengeStepId: stepId,
-            ActivityId: this.Challenge.ChallengeSteps
-                .First(s => s.Id == stepId)
-                .ActivityId,
+            ActivityId: step.ActivityId,
             PostMoodId: postMoodId,
             Status: stepStatus
         ));
     }
+
 
 }
