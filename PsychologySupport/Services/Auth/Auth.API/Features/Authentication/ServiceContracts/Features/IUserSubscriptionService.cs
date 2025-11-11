@@ -9,6 +9,6 @@
             DateTimeOffset validTo
         );
         Task<bool> RemoveExpiredSubscriptionAsync(Guid patientId);
-        Task<bool> ActivateFreeTrialAsync(Guid subjectRef);
+        Task<bool> ActivateFreeTrialAsync(CancellationToken cancellationToken = default);
     }
 }

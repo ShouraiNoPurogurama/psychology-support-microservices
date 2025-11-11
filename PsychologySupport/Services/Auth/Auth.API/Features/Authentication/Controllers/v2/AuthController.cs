@@ -114,14 +114,7 @@ public class AuthController(
     [HttpPost("v2/me/activate-free-trial")]
     public async Task<IActionResult> ActivateFreeTrial()
     {
-        var subjectRefClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
-
-        if (string.IsNullOrEmpty(subjectRefClaim) || !Guid.TryParse(subjectRefClaim, out var subjectRef))
-        {
-            return BadRequest(new { success = false, message = "JWT không chứa subjectRef hợp lệ." });
-        }
-
-        var result = await subscriptionService.ActivateFreeTrialAsync(subjectRef);
+        var result = await subscriptionService.ActivateFreeTrialAsync();
 
         if (!result)
             return BadRequest(new { success = false, message = "User đã sử dụng Free Trial trước đó hoặc không tồn tại." });

@@ -1,4 +1,5 @@
-﻿using Auth.API.Data;
+﻿using Auth.API.Common.Authentication;
+using Auth.API.Data;
 using Auth.API.Features.Authentication.Exceptions;
 using Auth.API.Features.Authentication.ServiceContracts.Features;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ namespace Auth.API.Features.Authentication.Services.Features;
 public class UserSubscriptionService(
     AuthDbContext dbContext,
     PiiService.PiiServiceClient piiClient,
+    ICurrentActorAccessor actorAccessor,
     ILogger<UserSubscriptionService> logger) : IUserSubscriptionService
 {
     public async Task<bool> UpdateSubscriptionPlanNameAsync(Guid subjectRef, string subscriptionPlanName, DateTimeOffset validFrom, DateTimeOffset validTo)
@@ -82,11 +84,14 @@ public class UserSubscriptionService(
         return true;
     }
 
-    public async Task<bool> ActivateFreeTrialAsync(Guid subjectRef)
+    public async Task<bool> ActivateFreeTrialAsync(CancellationToken cancellationToken = default)
     {
+        var subjectRef = actorAccessor.GetRequiredSubjectRef();
+
         // Resolve userId từ subjectRef qua PiiService
         var resolveResponse = await piiClient.ResolveUserIdBySubjectRefAsync(
-            new ResolveUserIdBySubjectRefRequest { SubjectRef = subjectRef.ToString() });
+            new ResolveUserIdBySubjectRefRequest { SubjectRef = subjectRef.ToString() },
+            cancellationToken: cancellationToken);
 
         if (string.IsNullOrEmpty(resolveResponse.UserId) || !Guid.TryParse(resolveResponse.UserId, out var userId))
         {
@@ -94,7 +99,7 @@ public class UserSubscriptionService(
             throw new UserNotFoundException();
         }
 
-        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken: cancellationToken);
 
         if (user == null)
         {
@@ -108,18 +113,16 @@ public class UserSubscriptionService(
             return false; // Không thể kích hoạt lại
         }
 
-        // Kích hoạt Free Trial trong 3 ngày
         user.SubscriptionPlanName = "Free Trial";
         user.ValidFrom = DateTimeOffset.UtcNow;
         user.ValidTo = DateTimeOffset.UtcNow.AddDays(3);
         user.IsFreeTrialUsed = true;
 
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Activated Free Trial for user {UserId} from {ValidFrom} to {ValidTo}",
             userId, user.ValidFrom, user.ValidTo);
 
         return true;
     }
-
 }
