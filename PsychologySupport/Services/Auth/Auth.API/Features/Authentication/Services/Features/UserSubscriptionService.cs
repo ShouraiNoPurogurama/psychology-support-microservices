@@ -125,4 +125,31 @@ public class UserSubscriptionService(
 
         return true;
     }
+
+    public async Task<bool> HasUsedFreeTrialAsync(CancellationToken cancellationToken = default)
+    {
+        var subjectRef = actorAccessor.GetRequiredSubjectRef();
+
+        // Resolve userId từ subjectRef qua PiiService
+        var resolveResponse = await piiClient.ResolveUserIdBySubjectRefAsync(
+            new ResolveUserIdBySubjectRefRequest { SubjectRef = subjectRef.ToString() },
+            cancellationToken: cancellationToken);
+
+        if (string.IsNullOrEmpty(resolveResponse.UserId) || !Guid.TryParse(resolveResponse.UserId, out var userId))
+        {
+            logger.LogError("Failed to resolve userId from subjectRef {SubjectRef}", subjectRef);
+            throw new UserNotFoundException();
+        }
+
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken: cancellationToken);
+
+        if (user == null)
+        {
+            logger.LogError("User {UserId} was not found when checking Free Trial status", userId);
+            throw new UserNotFoundException();
+        }
+
+        return user.IsFreeTrialUsed;
+    }
+
 }

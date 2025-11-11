@@ -10,5 +10,6 @@
         );
         Task<bool> RemoveExpiredSubscriptionAsync(Guid patientId);
         Task<bool> ActivateFreeTrialAsync(CancellationToken cancellationToken = default);
+        Task<bool> HasUsedFreeTrialAsync(CancellationToken cancellationToken = default);
     }
 }

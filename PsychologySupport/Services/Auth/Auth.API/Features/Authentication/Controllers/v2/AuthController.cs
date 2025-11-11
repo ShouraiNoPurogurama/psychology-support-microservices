@@ -121,4 +121,15 @@ public class AuthController(
 
         return Ok(new { success = true, message = "Kích hoạt Free Trial thành công trong 3 ngày." });
     }
+
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [HttpGet("v2/me/free-trial-status")]
+    public async Task<IActionResult> GetFreeTrialStatus()
+    {
+        var hasUsed = await subscriptionService.HasUsedFreeTrialAsync();
+        return Ok(new
+        {
+            isFreeTrialUsed = hasUsed
+        });
+    }
 }
