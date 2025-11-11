@@ -12,7 +12,7 @@ public record GetMyDailyRewardQuotasQuery : IQuery<GetMyDailyRewardQuotasResult>
 
 public record GetMyDailyRewardQuotasResult(
     SubscriptionTier Tier,
-    bool CanClaimNow,
+    bool CanClaimToday,
     string? Reason,
     DateTimeOffset Now,
     string Timezone,
@@ -43,7 +43,7 @@ public class GetMyQuotaNowHandler(
         var reason = canClaim ? null : "DAILY_LIMIT_REACHED";
         return new GetMyDailyRewardQuotasResult(
             Tier: userTier,
-            CanClaimNow: canClaim,
+            CanClaimToday: canClaim,
             Reason: reason,
             Now: now,
             Timezone: "Asia/Ho_Chi_Minh",

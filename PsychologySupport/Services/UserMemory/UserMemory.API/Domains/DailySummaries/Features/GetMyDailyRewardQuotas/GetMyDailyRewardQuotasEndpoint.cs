@@ -2,14 +2,12 @@
 using Carter;
 using Mapster;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
-using UserMemory.API.Domains.DailySummaries.Dtos;
 
 namespace UserMemory.API.Domains.DailySummaries.Features.GetMyDailyRewardQuotas;
 
 public record GetMyDailyRewardQuotasResponse(
     SubscriptionTier Tier,
-    bool CanClaimNow,
+    bool CanClaimToday,
     string? Reason,
     DateTimeOffset Now,
     string Timezone,
