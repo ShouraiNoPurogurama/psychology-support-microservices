@@ -1,5 +1,6 @@
 ﻿using BuildingBlocks.CQRS;
 using BuildingBlocks.Messaging.Events.Queries.Media;
+using DigitalGoods.API.Common.Subscription;
 using DigitalGoods.API.Data;
 using DigitalGoods.API.Dtos;
 using DigitalGoods.API.Enums;
@@ -20,15 +21,18 @@ public class GetDigitalGoodHandler : IQueryHandler<GetDigitalGoodsQuery, GetDigi
     private readonly DigitalGoodsDbContext _dbContext;
     private readonly TranslationService.TranslationServiceClient _translationClient;
     private readonly IRequestClient<GetMediaUrlRequest> _getMediaUrlClient;
+    private readonly ICurrentUserSubscriptionAccessor _currentUserSubscription;
 
     public GetDigitalGoodHandler(
         DigitalGoodsDbContext dbContext,
         TranslationService.TranslationServiceClient translationClient,
-        IRequestClient<GetMediaUrlRequest> getMediaUrlClient)
+        IRequestClient<GetMediaUrlRequest> getMediaUrlClient,
+        ICurrentUserSubscriptionAccessor currentUserSubscription)
     {
         _dbContext = dbContext;
         _translationClient = translationClient;
         _getMediaUrlClient = getMediaUrlClient;
+        _currentUserSubscription = currentUserSubscription;
     }
 
     public async Task<GetDigitalGoodsResult> Handle(GetDigitalGoodsQuery request, CancellationToken cancellationToken)
@@ -70,7 +74,9 @@ public class GetDigitalGoodHandler : IQueryHandler<GetDigitalGoodsQuery, GetDigi
         // Map to DTOs
         var dtos = goods.Select(g =>
         {
-            bool isOwned = ownedDigitalGoodIds.Contains(g.Id);
+            // Nếu user không phải Free Plan -> isOwned = true
+            bool isOwned = !_currentUserSubscription.IsFreeTier() || ownedDigitalGoodIds.Contains(g.Id);
+
             string? mediaUrl = null;
             if (g.MediaId.HasValue && mediaUrls.TryGetValue(g.MediaId.Value, out var url))
                 mediaUrl = url;
