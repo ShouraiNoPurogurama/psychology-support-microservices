@@ -103,10 +103,9 @@ public partial class ChallengeProgress : AggregateRoot<Guid>
             ? Math.Clamp((int)Math.Round((completedSteps * 100.0) / totalSteps), 0, 100)
             : 0;
 
-        if (isLastStep && stepStatus == ProcessStatus.Completed)
+        if (isLastStep)
         {
             ProcessStatus = ProcessStatus.Completed;
-            ProgressPercent = 100;
             EndDate = DateTimeOffset.UtcNow;
         }
         else if (completedSteps > 0)
