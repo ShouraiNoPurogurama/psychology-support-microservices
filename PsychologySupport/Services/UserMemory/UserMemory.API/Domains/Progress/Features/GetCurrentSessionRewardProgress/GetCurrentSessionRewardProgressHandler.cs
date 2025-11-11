@@ -26,8 +26,8 @@ public class GetCurrentSessionRewardProgressHandler(
     ICurrentActorAccessor currentActorAccessor)
     : IQueryHandler<GetCurrentSessionRewardProgressQuery, GetCurrentSessionRewardProgressResult>
 {
-    private  int DAILY_LIMIT = QuotaOptions.MAX_FREE_CLAIMS_PER_DAY;
-    private  int PROGRESS_THRESHOLD = QuotaOptions.REWARD_COST; 
+    private  int DAILY_LIMIT = StickerGenerationQuotaOptions.MAX_FREE_CLAIMS_PER_DAY;
+    private  int PROGRESS_THRESHOLD = StickerGenerationQuotaOptions.REWARD_COST; 
 
     public async Task<GetCurrentSessionRewardProgressResult> Handle(
         GetCurrentSessionRewardProgressQuery request,

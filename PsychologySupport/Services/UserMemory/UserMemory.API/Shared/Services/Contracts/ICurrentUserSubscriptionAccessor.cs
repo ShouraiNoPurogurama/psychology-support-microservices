@@ -1,6 +1,8 @@
-﻿namespace UserMemory.API.Shared.Services.Contracts;
+﻿using BuildingBlocks.Enums;
+
+namespace UserMemory.API.Shared.Services.Contracts;
 
 public interface ICurrentUserSubscriptionAccessor
 {
-    public bool IsFreeTier();
+    SubscriptionTier GetCurrentTier();
 }

@@ -22,113 +22,89 @@ public record ClaimRewardResult(Guid RewardId, string StickerGenerationJobStatus
 /// 1. (Cô lập Session): Phải dùng 1000 điểm kiếm được TỪ CHÍNH session đang chat.
 /// 2. (Giới hạn Free): User free chỉ được đổi 1 lần/ngày (tổng cộng, bất kể session nào).
 /// </summary>
-public class ClaimRewardHandler(
+    public class ClaimRewardHandler(
     UserMemoryDbContext dbContext,
     ICurrentActorAccessor currentActorAccessor,
     IOutboxWriter outboxWriter,
-    ICurrentUserSubscriptionAccessor subAccessor
+    ICurrentUserSubscriptionAccessor subAccessor 
 ) : ICommandHandler<ClaimRewardCommand, ClaimRewardResult>
 {
     public async Task<ClaimRewardResult> Handle(ClaimRewardCommand request, CancellationToken cancellationToken)
     {
-        var maxFreeClaimsPerDay = QuotaOptions.MAX_FREE_CLAIMS_PER_DAY;
-        var rewardCost = QuotaOptions.REWARD_COST;
+        var rewardCost = StickerGenerationQuotaOptions.REWARD_COST;
         
-        // Bắt đầu 1 transaction bao gồm tất cả các thao tác DB
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
             var aliasId = currentActorAccessor.GetRequiredAliasId();
             var currentDate = DateOnly.FromDateTime(DateTime.UtcNow);
-            var isFreeUser = subAccessor.IsFreeTier();
+
+            var userTier = subAccessor.GetCurrentTier(); 
+            var maxClaimsForThisUser = StickerGenerationQuotaOptions.GetMaxClaimsForTier(userTier);
 
             AliasDailySummary? summary = null; 
 
-            // --- KIỂM TRA ĐIỀU KIỆN 2: GIỚI HẠN FREE USER ---
-            if (isFreeUser)
+            
+            summary = await dbContext.AliasDailySummaries
+                .FirstOrDefaultAsync(s => s.AliasId == aliasId && s.Date == currentDate, cancellationToken);
+
+            if (summary is null)
             {
-                // Tìm record tóm tắt của ngày
-                summary = await dbContext.AliasDailySummaries
-                    .FirstOrDefaultAsync(s => s.AliasId == aliasId && s.Date == currentDate, cancellationToken);
-
-                if (summary is null)
+                // "Seed" (Tạo) record tóm tắt nếu là lần đầu trong ngày
+                summary = new AliasDailySummary
                 {
-                    // "Seed" (Tạo) record tóm tắt nếu là lần đầu trong ngày
-                    summary = new AliasDailySummary
-                    {
-                        AliasId = aliasId,
-                        Date = currentDate,
-                        RewardClaimCount = 0 
-                    };
-                    dbContext.AliasDailySummaries.Add(summary);
-                }
-
-                // Check giới hạn
-                if (summary.RewardClaimCount >= maxFreeClaimsPerDay)
-                {
-                    // Đã hết lượt, ném lỗi -> transaction tự động rollback
-                    throw new BadRequestException("Bạn đã hết lượt đổi thưởng free hôm nay.");
-                }
+                    AliasId = aliasId,
+                    Date = currentDate,
+                    RewardClaimCount = 0 
+                };
+                dbContext.AliasDailySummaries.Add(summary);
             }
 
-            // --- KIỂM TRA ĐIỀU KIỆN 1: ĐIỂM CỦA SESSION ---
-            // Dùng Atomic Update (ExecuteUpdateAsync) để trừ điểm
+            // Check giới hạn DỰA TRÊN GIỚI HẠN ĐỘNG (dynamic)
+            if (summary.RewardClaimCount >= maxClaimsForThisUser)
+            {
+                throw new BadRequestException("Bạn đã hết lượt đổi thưởng hôm nay cho gói đăng ký của mình.");
+            }
+
             var rowsAffected = await dbContext.SessionDailyProgresses
                 .Where(p => p.AliasId == aliasId &&
-                            p.SessionId == request.ChatSessionId && // Check đúng session
-                            p.ProgressPoints >= rewardCost) // Check đủ điểm trong session
+                            p.SessionId == request.ChatSessionId && 
+                            p.ProgressPoints >= rewardCost) 
                 .ExecuteUpdateAsync(setters => setters
-                        .SetProperty(p => p.ProgressPoints, p => p.ProgressPoints - rewardCost), // Trừ điểm của session
+                        .SetProperty(p => p.ProgressPoints, p => p.ProgressPoints - rewardCost),
                     cancellationToken);
 
-            // Kiểm tra xem có trừ điểm được không
             if (rowsAffected == 0)
             {
-                // Lý do: Session này không đủ 1000 điểm
-                // Không cần RollbackAsync vì chưa commit, `await using` sẽ lo
                 throw new BadRequestException("Session chat này không đủ 1000 điểm để đổi.");
             }
 
-            // --- CẬP NHẬT BỘ ĐẾM ---
-            if (summary != null)
-            {
-                summary.RewardClaimCount++; 
-                summary.LastModified = DateTimeOffset.UtcNow;
-            }
+            summary.RewardClaimCount++; 
+            summary.LastModified = DateTimeOffset.UtcNow;
+            
 
-            // --- TẠO RECORD PHẦN THƯỞNG VÀ EVENT ---
-
-            // 1. Tạo Reward entity
             var newReward = new Reward
             {
                 Id = Guid.NewGuid(),
                 AliasId = aliasId,
                 SessionId = request.ChatSessionId,
                 PointsCost = rewardCost,
-                Status = RewardStatus.Pending // Dùng RewardStatus.Pending
+                Status = RewardStatus.Pending 
             };
             dbContext.Rewards.Add(newReward);
 
-            // 2. Tạo Integration Event để ghi vào Outbox
             var rewardEvent = new RewardRequestedIntegrationEvent(newReward.Id, aliasId, request.ChatSessionId);
             await outboxWriter.WriteAsync(rewardEvent, cancellationToken);
             
-            // 3. Lưu tất cả thay đổi vào DbContext
-            // (Bao gồm: Thêm Reward + Thêm OutboxMessage + Cập nhật/Thêm AliasDailySummary)
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            // 4. COMMIT TRANSACTION
-            // Nếu tất cả thành công, commit các thay đổi
             await transaction.CommitAsync(cancellationToken);
 
-            // 5. Trả về kết quả
             return new ClaimRewardResult(newReward.Id, "Queued");
         }
         catch (Exception)
         {
-            // Nếu có bất kỳ lỗi nào ở trên, `await using` sẽ tự động
-            // rollback transaction. Ném lại lỗi để middleware xử lý.
             throw; 
         }
     }

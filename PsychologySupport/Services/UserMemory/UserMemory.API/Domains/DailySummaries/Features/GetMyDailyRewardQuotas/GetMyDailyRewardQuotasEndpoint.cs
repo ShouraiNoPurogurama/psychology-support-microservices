@@ -1,4 +1,5 @@
-﻿using Carter;
+﻿using BuildingBlocks.Enums;
+using Carter;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -7,12 +8,14 @@ using UserMemory.API.Domains.DailySummaries.Dtos;
 namespace UserMemory.API.Domains.DailySummaries.Features.GetMyDailyRewardQuotas;
 
 public record GetMyDailyRewardQuotasResponse(
-    int DailyLimit,
-    DateOnly StartDate,
-    DateOnly EndDate,
-    QuotaDayDto Today,
-    IReadOnlyList<QuotaDayDto> Days,
-    GetMyDailyRewardQuotasSummary Summary
+    SubscriptionTier Tier,
+    bool CanClaimNow,
+    string? Reason,
+    DateTimeOffset Now,
+    string Timezone,
+    int TodayTotal,
+    int TodayUsed,
+    int TodayRemaining
 );
 
 public class GetMyDailyRewardQuotasEndpoint : ICarterModule
@@ -20,11 +23,9 @@ public class GetMyDailyRewardQuotasEndpoint : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         app.MapGet("v1/me/quotas", async (
-                [FromQuery] DateOnly? startDate,
-                [FromQuery] DateOnly? endDate,
                 ISender sender) =>
             {
-                var query = new GetMyDailyRewardQuotasQuery(startDate, endDate);
+                var query = new GetMyDailyRewardQuotasQuery();
                 
                 var result = await sender.Send(query);
 
