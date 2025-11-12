@@ -89,7 +89,8 @@ public class MessageProcessedIntegrationEventConsumer : IConsumer<MessageProcess
             {
                 _logger.LogInformation(
                     $"Session received reward today. Skipping {GetType().Name} for session id {sessionProgress.SessionId}");
-                return;
+                pointsEarned = 0;
+                totalSessionPoints = 0;
             }
 
             else
