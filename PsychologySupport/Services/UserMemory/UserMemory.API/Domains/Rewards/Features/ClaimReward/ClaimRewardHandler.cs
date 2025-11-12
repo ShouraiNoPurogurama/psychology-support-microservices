@@ -44,10 +44,10 @@ public record ClaimRewardResult(Guid RewardId, string StickerGenerationJobStatus
             var maxClaimsForThisUser = StickerGenerationQuotaOptions.GetMaxClaimsForTier(userTier);
 
             AliasDailySummary? summary = null; 
-
             
             summary = await dbContext.AliasDailySummaries
-                .FirstOrDefaultAsync(s => s.AliasId == aliasId && s.Date == currentDate, cancellationToken);
+                .FirstOrDefaultAsync(s => s.AliasId == aliasId && 
+                                          s.Date == currentDate, cancellationToken);
 
             if (summary is null)
             {
@@ -82,7 +82,6 @@ public record ClaimRewardResult(Guid RewardId, string StickerGenerationJobStatus
 
             summary.RewardClaimCount++; 
             summary.LastModified = DateTimeOffset.UtcNow;
-            
 
             var newReward = new Reward
             {
@@ -95,6 +94,7 @@ public record ClaimRewardResult(Guid RewardId, string StickerGenerationJobStatus
             dbContext.Rewards.Add(newReward);
 
             var rewardEvent = new RewardRequestedIntegrationEvent(newReward.Id, aliasId, request.ChatSessionId);
+            
             await outboxWriter.WriteAsync(rewardEvent, cancellationToken);
             
             await dbContext.SaveChangesAsync(cancellationToken);

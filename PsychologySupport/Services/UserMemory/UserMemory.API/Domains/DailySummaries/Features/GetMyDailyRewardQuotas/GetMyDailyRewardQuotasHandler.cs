@@ -29,9 +29,7 @@ public class GetMyQuotaNowHandler(
 {
     public async Task<GetMyDailyRewardQuotasResult> Handle(GetMyDailyRewardQuotasQuery request, CancellationToken ct)
     {
-        var tz = TimeSpan.FromHours(7);
-        
-        var now = DateTimeOffset.UtcNow.ToOffset(tz);
+        var now = DateTimeOffset.UtcNow;
         
         var today = DateOnly.FromDateTime(now.Date);
         
