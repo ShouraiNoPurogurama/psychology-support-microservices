@@ -3,7 +3,6 @@ using BuildingBlocks.Pagination;
 using ChatBox.API.Domains.AIChats.Dtos.AI;
 using ChatBox.API.Domains.AIChats.Services;
 using ChatBox.API.Domains.AIChats.Services.Contracts;
-using ChatBox.API.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChatBox.API.Domains.AIChats.Controllers;

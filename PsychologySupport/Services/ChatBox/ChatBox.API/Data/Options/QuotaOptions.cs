@@ -2,5 +2,5 @@
 
 public static class QuotaOptions
 {
-    public const int DailySessionCreationFreeTier = 1;
+    public const int SessionCreationFreeTier = 1;
 }

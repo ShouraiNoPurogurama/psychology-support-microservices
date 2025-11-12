@@ -40,7 +40,7 @@ public class MessageProcessor(
 {
     public async Task<List<AIMessageResponseDto>> ProcessMessageAsync(AIMessageRequestDto request, Guid userId)
     {
-        await ValidateSessionOwnershipAsync(request.SessionId, userId);
+        await ValidateSessionAsync(request.SessionId, userId);
 
         if (concurrencyManager.ShouldThrottleMessage(request.SessionId, request.UserMessage))
             return
@@ -445,7 +445,7 @@ public class MessageProcessor(
 
     public async Task MarkMessagesAsReadAsync(Guid sessionId, Guid userId)
     {
-        await ValidateSessionOwnershipAsync(sessionId, userId);
+        await ValidateSessionAsync(sessionId, userId);
 
         var unread = await dbContext.AIChatMessages
             .Where(m => m.SessionId == sessionId && !m.IsRead && !m.SenderIsEmo)
@@ -458,7 +458,7 @@ public class MessageProcessor(
     public async Task<PaginatedResult<AIMessageDto>> GetMessagesAsync(Guid sessionId, Guid userId,
         PaginationRequest paginationRequest)
     {
-        await ValidateSessionOwnershipAsync(sessionId, userId);
+        await ValidateSessionAsync(sessionId, userId);
 
         var query = dbContext.AIChatMessages
             .Where(m => m.SessionId == sessionId)
@@ -599,14 +599,18 @@ public class MessageProcessor(
             .ToList();
     }
 
-    private async Task ValidateSessionOwnershipAsync(Guid sessionId, Guid userId)
+    private async Task ValidateSessionAsync(Guid sessionId, Guid userId)
     {
         var session = await dbContext.AIChatSessions
             .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.IsActive == true);
-
+        
         if (session == null)
             throw new ForbiddenException("Phiên trò chuyện không thuộc về bạn hoặc đã bị vô hiệu.");
+
+        if (session.IsLegacy)
+            throw new ForbiddenException("Phiên trò chuyện này đã cũ. Để sử dụng các tính năng mới nhất, vui lòng tạo một phiên trò chuyện mới.");
     }
+    
 
     private async Task<int> GetLastMessageBlockIndex(Guid sessionId)
     {
