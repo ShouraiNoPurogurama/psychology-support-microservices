@@ -8,6 +8,8 @@ public class AIChatSession : DomainEventContainer
     public Guid UserId { get; set; }
     public DateTimeOffset CreatedDate { get; set; }
     public string Name { get; set; } = "Đoạn chat mới";
+    public int OnboardingStep { get; set; } = 0;
+    public bool IsOnboardingCompleted { get; set; } 
     public bool? IsActive { get; set; } = true;
     public bool IsLegacy { get; set; } = false;
 
