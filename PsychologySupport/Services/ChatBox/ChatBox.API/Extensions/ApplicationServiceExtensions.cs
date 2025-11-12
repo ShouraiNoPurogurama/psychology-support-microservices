@@ -153,6 +153,7 @@ public static class ApplicationServiceExtensions
         services.AddSingleton<ISessionConcurrencyManager, SessionConcurrencyManager>();
         services.AddScoped<IMessageProcessor, MessageProcessor>();
         services.AddScoped<ICurrentUserSubscriptionAccessor, CurrentCurrentUserSubscriptionAccessor>();
+        services.AddScoped<IDashboardService, DashboardService>();
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration config)

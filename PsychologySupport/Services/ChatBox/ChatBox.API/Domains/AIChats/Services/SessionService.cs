@@ -31,35 +31,35 @@ public class SessionService(
                                                          && s.IsActive == true
             )
            )
-            throw new ForbiddenException("Bạn đã có phiên trò chuyện chính. Không thể tạo phiên trò chuyện mới.");
+            throw new ForbiddenException("Bạn đã có phiên trò chuyện chính. Không thể tạo phiên trò chuyện mới.", "SESSION_LIMIT_REACHED");
 
-        if (subscriptionAccessor.IsFreeTier())
-        {
-            var vnTz = TimeUtils.Instance;
-            var nowVn = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, vnTz);
-
-            // [00:00, 24:00) theo giờ VN
-            var startOfDayVn = new DateTimeOffset(nowVn.Year, nowVn.Month, nowVn.Day, 0, 0, 0, nowVn.Offset);
-            var endOfDayVn = startOfDayVn.AddDays(1);
-
-            var startUtc = startOfDayVn.ToUniversalTime();
-            var endUtc = endOfDayVn.ToUniversalTime();
-
-            var createdTodayCount = await dbContext.AIChatSessions
-                .Where(s => s.UserId == userId
-                            && s.IsActive == true
-                            && s.CreatedDate >= startUtc
-                            && s.CreatedDate < endUtc)
-                .CountAsync();
-
-            if (createdTodayCount >= QuotaOptions.SessionCreationFreeTier)
-            {
-                throw new ForbiddenException(
-                    $"Gói miễn phí đã đạt giới hạn tạo phiên trong ngày {nowVn:yyyy-MM-dd} (GMT+7). " +
-                    "Nâng cấp gói hoặc quay lại vào ngày mai nhé."
-                );
-            }
-        }
+        // if (subscriptionAccessor.IsFreeTier())
+        // {
+        //     var vnTz = TimeUtils.Instance;
+        //     var nowVn = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, vnTz);
+        //
+        //     // [00:00, 24:00) theo giờ VN
+        //     var startOfDayVn = new DateTimeOffset(nowVn.Year, nowVn.Month, nowVn.Day, 0, 0, 0, nowVn.Offset);
+        //     var endOfDayVn = startOfDayVn.AddDays(1);
+        //
+        //     var startUtc = startOfDayVn.ToUniversalTime();
+        //     var endUtc = endOfDayVn.ToUniversalTime();
+        //
+        //     var createdTodayCount = await dbContext.AIChatSessions
+        //         .Where(s => s.UserId == userId
+        //                     && s.IsActive == true
+        //                     && s.CreatedDate >= startUtc
+        //                     && s.CreatedDate < endUtc)
+        //         .CountAsync();
+        //
+        //     if (createdTodayCount >= QuotaOptions.SessionCreationFreeTier)
+        //     {
+        //         throw new ForbiddenException(
+        //             $"Gói miễn phí đã đạt giới hạn tạo phiên trong ngày {nowVn:yyyy-MM-dd} (GMT+7). " +
+        //             "Nâng cấp gói hoặc quay lại vào ngày mai nhé."
+        //         );
+        //     }
+        // }
 
         // 3. Gọi AggregatePatientProfileRequest với PatientId
         var profile = await client.GetPersonaSnapshotAsync(new GetPersonaSnapshotRequest()

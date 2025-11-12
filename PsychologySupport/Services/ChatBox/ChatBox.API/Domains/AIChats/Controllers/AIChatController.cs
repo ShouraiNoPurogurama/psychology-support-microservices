@@ -9,7 +9,11 @@ namespace ChatBox.API.Domains.AIChats.Controllers;
 
 [Controller]
 [Route("api/[controller]")]
-public class AIChatController(SessionService sessionService, IStickerRewardService stickerRewardService, IMessageProcessor messageProcessor) : ControllerBase
+public class AIChatController(
+    SessionService sessionService,
+    IStickerRewardService stickerRewardService,
+    IDashboardService dashboardService,
+    IMessageProcessor messageProcessor) : ControllerBase
 {
     [HttpPost("messages")]
     public async Task<IActionResult> SendMessage([FromBody] AIMessageRequestDto request)
@@ -30,7 +34,7 @@ public class AIChatController(SessionService sessionService, IStickerRewardServi
     public async Task<IActionResult> CreateSession(string sessionName = "Đoạn chat mới")
     {
         var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-        
+
         if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
         {
             throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
@@ -104,8 +108,8 @@ public class AIChatController(SessionService sessionService, IStickerRewardServi
         await messageProcessor.MarkMessagesAsReadAsync(id, userId);
         return Ok();
     }
-    
-    [HttpPost("sticker/claim")] 
+
+    [HttpPost("sticker/claim")]
     public async Task<IActionResult> ClaimSticker(Guid sessionId)
     {
         var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
@@ -115,7 +119,23 @@ public class AIChatController(SessionService sessionService, IStickerRewardServi
         }
 
         var rewardMessage = await stickerRewardService.ClaimStickerAsync(userId, sessionId);
-        
+
         return Ok(rewardMessage);
+    }
+
+    [HttpGet("dashboard/cohorts")]
+    public async Task<IActionResult> GetChatCohorts([FromQuery] DateOnly? startDate, [FromQuery] int maxWeeks = 7,
+        CancellationToken ct = default)
+    {
+        var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+        if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out _))
+        {
+            throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
+        }
+
+        var start = startDate ?? DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-56)); // mặc định 8 tuần gần đây
+        var result = await dashboardService.GetChatCohortsAsync(start, maxWeeks, ct);
+
+        return Ok(result);
     }
 }

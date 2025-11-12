@@ -21,4 +21,8 @@
       <Compile Remove="Aggregates\CategoryTags\Commands\AttachTagsToPost\AttachCategoryTagsToPostCommandHandler.cs" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Features\Dashboard\" />
+    </ItemGroup>
+
 </Project>

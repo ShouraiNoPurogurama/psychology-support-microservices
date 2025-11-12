@@ -28,7 +28,6 @@
         </Content>
     </ItemGroup>
     <ItemGroup>
-        <Folder Include="Domains\AIChats\Dtos\" />
         <Folder Include="wwwroot\" />
     </ItemGroup>
     <ItemGroup>

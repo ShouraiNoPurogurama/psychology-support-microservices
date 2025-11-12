@@ -30,17 +30,27 @@ public class GetMyQuotaNowHandler(
     public async Task<GetMyDailyRewardQuotasResult> Handle(GetMyDailyRewardQuotasQuery request, CancellationToken ct)
     {
         var tz = TimeSpan.FromHours(7);
+        
         var now = DateTimeOffset.UtcNow.ToOffset(tz);
+        
         var today = DateOnly.FromDateTime(now.Date);
+        
         var aliasId = actor.GetRequiredAliasId();
+        
         var userTier = subscriptionAccessor.GetCurrentTier();
+        
         var dailyLimit = StickerGenerationQuotaOptions.GetMaxClaimsForTier(userTier);
+        
         var todayUsed = await db.AliasDailySummaries
             .Where(x => x.AliasId == aliasId && x.Date == today)
             .SumAsync(x => (int?)x.RewardClaimCount, ct) ?? 0;
+        
         var todayRemaining = Math.Max(0, dailyLimit - todayUsed);
+        
         var canClaim = todayRemaining > 0;
+        
         var reason = canClaim ? null : "DAILY_LIMIT_REACHED";
+        
         return new GetMyDailyRewardQuotasResult(
             Tier: userTier,
             CanClaimToday: canClaim,
