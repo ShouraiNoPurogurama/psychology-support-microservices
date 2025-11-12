@@ -9,6 +9,7 @@ public class SessionDailyProgress: IHasCreationAudit, IHasModificationAudit
     public DateOnly ProgressDate { get; set; }
     public int ProgressPoints { get; set; }
     public int LastIncrement { get; set; }
+    public bool ReceivedRewardToday { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public string? CreatedBy { get; set; }
     public DateTimeOffset? LastModified { get; set; }

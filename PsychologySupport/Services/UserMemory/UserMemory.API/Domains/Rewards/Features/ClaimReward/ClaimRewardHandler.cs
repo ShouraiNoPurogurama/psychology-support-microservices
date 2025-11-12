@@ -72,7 +72,7 @@ public record ClaimRewardResult(Guid RewardId, string StickerGenerationJobStatus
                             p.SessionId == request.ChatSessionId && 
                             p.ProgressPoints >= rewardCost) 
                 .ExecuteUpdateAsync(setters => setters
-                        .SetProperty(p => p.ProgressPoints, p => p.ProgressPoints - rewardCost),
+                        .SetProperty(p => p.ProgressPoints, p => 0),
                     cancellationToken);
 
             if (rowsAffected == 0)

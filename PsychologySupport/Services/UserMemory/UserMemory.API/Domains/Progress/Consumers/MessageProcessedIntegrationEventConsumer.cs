@@ -50,13 +50,6 @@ public class MessageProcessedIntegrationEventConsumer : IConsumer<MessageProcess
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-            // Calculate points for this message
-            var pointsEarned = CalculateProgressPoints(msg.SaveNeeded, msg.Tags);
-
-            _logger.LogInformation(
-                "Points calculated: {Points} (SaveNeeded={SaveNeeded}, TagCount={TagCount})",
-                pointsEarned, msg.SaveNeeded, msg.Tags?.Count ?? 0);
-
             // --- UPDATE SESSION DAILY PROGRESS ---
             var sessionProgress = await _dbContext.SessionDailyProgresses
                 .FirstOrDefaultAsync(p =>
@@ -64,6 +57,13 @@ public class MessageProcessedIntegrationEventConsumer : IConsumer<MessageProcess
                         p.ProgressDate == today &&
                         p.SessionId == msg.SessionId,
                     context.CancellationToken);
+
+            // Calculate points for this message
+            var pointsEarned = CalculateProgressPoints(msg.SaveNeeded, msg.Tags);
+
+            _logger.LogInformation(
+                "Points calculated: {Points} (SaveNeeded={SaveNeeded}, TagCount={TagCount})",
+                pointsEarned, msg.SaveNeeded, msg.Tags?.Count ?? 0);
 
             int totalSessionPoints;
             if (sessionProgress == null)
@@ -85,6 +85,13 @@ public class MessageProcessedIntegrationEventConsumer : IConsumer<MessageProcess
                     "Created new SessionDailyProgress for Session={SessionId}, Points={Points}",
                     msg.SessionId, pointsEarned);
             }
+            else if (sessionProgress.ReceivedRewardToday)
+            {
+                _logger.LogInformation(
+                    $"Session received reward today. Skipping {GetType().Name} for session id {sessionProgress.SessionId}");
+                return;
+            }
+
             else
             {
                 // Update existing session progress
