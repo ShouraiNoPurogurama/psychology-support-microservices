@@ -155,11 +155,11 @@ public class CreateUserSubscriptionHandler(
 
         if (promotion is not null)
         {
-            finalPrice *= 0.01m * promotion.Value;
-            await promotionService.ConsumePromoCodeAsync(new ConsumePromoCodeRequest()
-            {
-                PromoCodeId = promotion.Id,
-            });
+            finalPrice -= promotion.Value;
+            //await promotionService.ConsumePromoCodeAsync(new ConsumePromoCodeRequest()
+            //{
+            //    PromoCodeId = promotion.Id,
+            //});
         }
 
         //Apply Gift
