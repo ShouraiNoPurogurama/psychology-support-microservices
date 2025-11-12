@@ -27,8 +27,10 @@ public class SessionService(
         var subjectRef = actorAccessor.GetRequiredSubjectRef();
 
         if (await dbContext.AIChatSessions.AnyAsync(s => s.UserId == userId
+                                                         && s.IsLegacy == false
                                                          && s.IsActive == true
-                                                         && s.IsLegacy))
+                                                         )
+            )
             throw new ForbiddenException("Bạn đã có phiên trò chuyện chính. Không thể tạo phiên trò chuyện mới.");
 
         if (subscriptionAccessor.IsFreeTier())
