@@ -70,7 +70,7 @@ public class GeminiProvider(
         return new GeminiRequestDto(
             Contents: contents,
             SystemInstruction: new GeminiSystemInstructionDto(new GeminiContentPartDto(systemInstruction)),
-            GenerationConfig: new GeminiGenerationConfigDto(Temperature: 1.0, TopP: 0.95, MaxOutputTokens: 8192),
+            GenerationConfig: new GeminiGenerationConfigDto(Temperature: 1, TopP: 0.95, MaxOutputTokens: 8192),
             SafetySettings:
             [
                 new("HARM_CATEGORY_HATE_SPEECH"),

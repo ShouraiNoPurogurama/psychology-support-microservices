@@ -19,61 +19,63 @@ public class SessionService(
     ChatBoxDbContext dbContext,
     ICurrentActorAccessor actorAccessor,
     ICurrentUserSubscriptionAccessor subscriptionAccessor,
-    PersonaOrchestratorService.PersonaOrchestratorServiceClient client) 
+    PersonaOrchestratorService.PersonaOrchestratorServiceClient client)
 {
     public async Task<CreateSessionResponseDto> CreateSessionAsync(string sessionName, Guid userId)
     {
         // 1. Resolve SubjectRef từ UserId
         var subjectRef = actorAccessor.GetRequiredSubjectRef();
 
-        // if (subscriptionAccessor.IsFreeTier())
-        // {
-        //     var vnTz = TimeUtils.Instance;
-        //     var nowVn = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, vnTz);
-        //
-        //     // [00:00, 24:00) theo giờ VN
-        //     var startOfDayVn = new DateTimeOffset(nowVn.Year, nowVn.Month, nowVn.Day, 0, 0, 0, nowVn.Offset);
-        //     var endOfDayVn   = startOfDayVn.AddDays(1);
-        //
-        //     var startUtc = startOfDayVn.ToUniversalTime();
-        //     var endUtc   = endOfDayVn.ToUniversalTime();
-        //
-        //     var createdTodayCount = await dbContext.AIChatSessions
-        //         .Where(s => s.UserId == userId
-        //                     && s.IsActive == true
-        //                     && s.CreatedDate >= startUtc
-        //                     && s.CreatedDate < endUtc)
-        //         .CountAsync();
-        //
-        //     if (createdTodayCount >= QuotaOptions.DailySessionCreationFreeTier)
-        //     {
-        //         throw new ForbiddenException(
-        //             $"Gói miễn phí đã đạt giới hạn tạo phiên trong ngày {nowVn:yyyy-MM-dd} (GMT+7). " +
-        //             "Nâng cấp gói hoặc quay lại vào ngày mai nhé."
-        //         );
-        //     }
-        // }
-        
+        if (await dbContext.AIChatSessions.AnyAsync(s => s.UserId == userId
+                                                         && s.IsLegacy == false
+                                                         && s.IsActive == true
+            )
+           )
+            throw new ForbiddenException("Bạn đã có phiên trò chuyện chính. Không thể tạo phiên trò chuyện mới.");
+
+        if (subscriptionAccessor.IsFreeTier())
+        {
+            var vnTz = TimeUtils.Instance;
+            var nowVn = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, vnTz);
+
+            // [00:00, 24:00) theo giờ VN
+            var startOfDayVn = new DateTimeOffset(nowVn.Year, nowVn.Month, nowVn.Day, 0, 0, 0, nowVn.Offset);
+            var endOfDayVn = startOfDayVn.AddDays(1);
+
+            var startUtc = startOfDayVn.ToUniversalTime();
+            var endUtc = endOfDayVn.ToUniversalTime();
+
+            var createdTodayCount = await dbContext.AIChatSessions
+                .Where(s => s.UserId == userId
+                            && s.IsActive == true
+                            && s.CreatedDate >= startUtc
+                            && s.CreatedDate < endUtc)
+                .CountAsync();
+
+            if (createdTodayCount >= QuotaOptions.SessionCreationFreeTier)
+            {
+                throw new ForbiddenException(
+                    $"Gói miễn phí đã đạt giới hạn tạo phiên trong ngày {nowVn:yyyy-MM-dd} (GMT+7). " +
+                    "Nâng cấp gói hoặc quay lại vào ngày mai nhé."
+                );
+            }
+        }
+
         // 3. Gọi AggregatePatientProfileRequest với PatientId
         var profile = await client.GetPersonaSnapshotAsync(new GetPersonaSnapshotRequest()
         {
             SubjectRef = subjectRef.ToString()
         });
-        
+
         // 4. Tạo PersonaSnapshot
         var persona = new PersonaSnapshot
         {
-            // FullName = profile.FullName,
             Gender = profile.Gender.ToString(),
             BirthDate = profile.BirthDate.ToString(),
             JobTitle = profile.JobTitle,
-            // EducationLevel = profile.EducationLevel,
-            // IndustryName = profile.IndustryName,
-            // PersonalityTraits = profile.PersonalityTraits,
-            // Allergies = profile.Allergies ?? "Không rõ"
         };
 
-        // 5. Xử lý tên session như cũ...
+        // 5. Xử lý tên session
         sessionName = sessionName.Trim();
         var sessions = await dbContext.AIChatSessions
             .Where(s => s.UserId == userId && s.IsActive == true &&
@@ -104,7 +106,8 @@ public class SessionService(
             UserId = userId,
             CreatedDate = DateTimeOffset.UtcNow,
             IsActive = true,
-            PersonaSnapshot = persona
+            PersonaSnapshot = persona,
+            IsLegacy = false
         };
 
         dbContext.AIChatSessions.Add(session);
@@ -118,6 +121,7 @@ public class SessionService(
             initialGreeting
         );
     }
+
     private AIMessageResponseDto AddInitialGreeting(AIChatSession session)
     {
         var greeting = EmoGreetingsUtil.GetOnboardingMessage(null);

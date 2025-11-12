@@ -30,6 +30,12 @@ public class ChatBoxDbContext : DbContext
             .Property(e => e.PersonaSnapshotJson) //Map field chứa JSON string
             .HasColumnName("PersonaSnapshot")
             .HasColumnType("jsonb"); //Nếu là PostgreSQL, còn SQL Server thì nvarchar(max)
+
+        builder.Entity<AIChatSession>(entity =>
+        {
+            entity.Property(e => e.IsLegacy)
+                .HasDefaultValue(true);
+        });
         
         builder.Entity<PendingStickerReward>() 
             .HasKey(e => e.RewardId);

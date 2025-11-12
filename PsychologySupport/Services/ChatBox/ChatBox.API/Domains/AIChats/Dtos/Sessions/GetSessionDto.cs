@@ -1,3 +1,3 @@
 ﻿namespace ChatBox.API.Domains.AIChats.Dtos.Sessions;
 
-public record GetSessionDto(Guid Id, string Name, DateTimeOffset CreatedDate);
+public record GetSessionDto(Guid Id, string Name, bool IsLegacy, DateTimeOffset CreatedDate);
