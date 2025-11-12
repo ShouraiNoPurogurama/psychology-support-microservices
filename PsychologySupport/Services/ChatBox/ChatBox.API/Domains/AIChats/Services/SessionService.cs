@@ -29,8 +29,8 @@ public class SessionService(
         if (await dbContext.AIChatSessions.AnyAsync(s => s.UserId == userId
                                                          && s.IsLegacy == false
                                                          && s.IsActive == true
-                                                         )
             )
+           )
             throw new ForbiddenException("Bạn đã có phiên trò chuyện chính. Không thể tạo phiên trò chuyện mới.");
 
         if (subscriptionAccessor.IsFreeTier())
@@ -106,7 +106,8 @@ public class SessionService(
             UserId = userId,
             CreatedDate = DateTimeOffset.UtcNow,
             IsActive = true,
-            PersonaSnapshot = persona
+            PersonaSnapshot = persona,
+            IsLegacy = false
         };
 
         dbContext.AIChatSessions.Add(session);

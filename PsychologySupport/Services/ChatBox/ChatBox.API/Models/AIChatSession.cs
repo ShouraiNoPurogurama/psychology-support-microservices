@@ -9,7 +9,7 @@ public class AIChatSession : DomainEventContainer
     public DateTimeOffset CreatedDate { get; set; }
     public string Name { get; set; } = "Đoạn chat mới";
     public bool? IsActive { get; set; } = true;
-    public bool IsLegacy { get; set; } = true;
+    public bool IsLegacy { get; set; } = false;
 
     // Thêm cho mục đích tóm tắt
     public string? Summarization { get; set; }  
