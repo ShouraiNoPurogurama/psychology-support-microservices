@@ -2,6 +2,7 @@
 using Profile.API.Domains.Public.PatientProfiles.Dtos;
 using Profile.API.Extensions;
 using Profile.API.Models.Public;
+using Translation.API.Protos;
 
 namespace Profile.API.Domains.Public.PatientProfiles.Features.GetJobByIndustryId
 {
@@ -11,9 +12,9 @@ namespace Profile.API.Domains.Public.PatientProfiles.Features.GetJobByIndustryId
     public class GetJobByIndustryIdHandler : IQueryHandler<GetJobByIndustryIdQuery, GetJobByIndustryIdResult>
     {
         private readonly ProfileDbContext _context;
-        private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
+        private readonly TranslationService.TranslationServiceClient _translationClient;
 
-        public GetJobByIndustryIdHandler(ProfileDbContext context, IRequestClient<GetTranslatedDataRequest> translationClient)
+        public GetJobByIndustryIdHandler(ProfileDbContext context, TranslationService.TranslationServiceClient translationClient)
         {
             _context = context;
             _translationClient = translationClient;

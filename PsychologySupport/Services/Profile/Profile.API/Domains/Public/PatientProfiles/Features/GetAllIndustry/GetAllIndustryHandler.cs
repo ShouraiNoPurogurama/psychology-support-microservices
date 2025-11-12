@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Profile.API.Domains.Public.PatientProfiles.Dtos;
 using Profile.API.Extensions;
 using Profile.API.Models.Public;
+using Translation.API.Protos;
 
 namespace Profile.API.Domains.Public.PatientProfiles.Features.GetAllIndustry
 {
@@ -19,9 +20,9 @@ namespace Profile.API.Domains.Public.PatientProfiles.Features.GetAllIndustry
     public class GetAllIndustryHandler : IRequestHandler<GetAllIndustryQuery, GetAllIndustryResult>
     {
         private readonly ProfileDbContext _context;
-        private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
+        private readonly TranslationService.TranslationServiceClient _translationClient;
 
-        public GetAllIndustryHandler(ProfileDbContext context, IRequestClient<GetTranslatedDataRequest> translationClient)
+        public GetAllIndustryHandler(ProfileDbContext context, TranslationService.TranslationServiceClient translationClient)
         {
             _context = context;
             _translationClient = translationClient;

@@ -58,5 +58,10 @@
 			<Link>Protos\notification.proto</Link>
 		</Protobuf>
 	</ItemGroup>
+	<ItemGroup>
+		<Protobuf Include="..\..\Translation\Translation.API\Protos\translation.proto" GrpcServices="Client">
+			<Link>Protos\translation.proto</Link>
+		</Protobuf>
+	</ItemGroup>
 
 </Project>

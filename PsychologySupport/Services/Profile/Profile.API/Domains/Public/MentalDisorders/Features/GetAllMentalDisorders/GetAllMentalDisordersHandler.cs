@@ -3,6 +3,7 @@ using BuildingBlocks.Pagination;
 using Profile.API.Domains.Public.MentalDisorders.Dtos;
 using Profile.API.Extensions;
 using Profile.API.Models.Public;
+using Translation.API.Protos;
 
 namespace Profile.API.Domains.Public.MentalDisorders.Features.GetAllMentalDisorders
 {
@@ -13,9 +14,9 @@ namespace Profile.API.Domains.Public.MentalDisorders.Features.GetAllMentalDisord
     public class GetAllMentalDisordersHandler : IQueryHandler<GetAllMentalDisordersQuery, GetAllMentalDisordersResult>
     {
         private readonly ProfileDbContext _context;
-        private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
+        private readonly TranslationService.TranslationServiceClient _translationClient;
 
-        public GetAllMentalDisordersHandler(ProfileDbContext context, IRequestClient<GetTranslatedDataRequest> translationClient)
+        public GetAllMentalDisordersHandler(ProfileDbContext context, TranslationService.TranslationServiceClient translationClient)
         {
             _context = context;
             _translationClient = translationClient;

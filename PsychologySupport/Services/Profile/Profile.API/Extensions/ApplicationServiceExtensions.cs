@@ -7,6 +7,7 @@ using Profile.API.Domains.Pii.Services;
 using Profile.API.Domains.Public.DoctorProfiles.Validators;
 using Profile.API.Domains.Public.PatientProfiles.Services;
 using Profile.API.Domains.Public.PatientProfiles.Validators;
+using Translation.API.Protos;
 
 namespace Profile.API.Extensions;
 
@@ -98,15 +99,15 @@ public static class ApplicationServiceExtensions
                 Version = "v1"
             });
 
-            var url = env.IsProduction() 
-                ? "/profile-service" 
+            var url = env.IsProduction()
+                ? "/profile-service"
                 : "https://localhost:5510/profile-service";
-            
+
             options.AddServer(new OpenApiServer
             {
                 Url = url
             });
-            
+
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\n\nEnter: **Bearer &lt;your token&gt;**",
@@ -176,5 +177,14 @@ public static class ApplicationServiceExtensions
         {
             EnableMultipleHttp2Connections = true
         });
+
+        services.AddGrpcClient<TranslationService.TranslationServiceClient>(options =>
+        {
+            options.Address = new Uri(config["GrpcSettings:TranslationUrl"]!);
+        })
+           .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+           {
+               EnableMultipleHttp2Connections = true
+           });
     }
 }

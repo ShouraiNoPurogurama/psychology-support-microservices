@@ -3,6 +3,7 @@ using BuildingBlocks.Pagination;
 using Profile.API.Domains.Public.MentalDisorders.Dtos;
 using Profile.API.Extensions;
 using Profile.API.Models.Public;
+using Translation.API.Protos;
 
 namespace Profile.API.Domains.Public.MentalDisorders.Features.GetAllSpecificMentalDisorders
 {
@@ -16,11 +17,11 @@ namespace Profile.API.Domains.Public.MentalDisorders.Features.GetAllSpecificMent
         GetAllSpecificMentalDisordersResult>
     {
         private readonly ProfileDbContext _context;
-        private readonly IRequestClient<GetTranslatedDataRequest> _translationClient;
+        private readonly TranslationService.TranslationServiceClient _translationClient;
 
 
         public GetAllSpecificMentalDisordersHandler(ProfileDbContext context,
-            IRequestClient<GetTranslatedDataRequest> translationClient)
+            TranslationService.TranslationServiceClient translationClient)
         {
             _context = context;
             _translationClient = translationClient;
