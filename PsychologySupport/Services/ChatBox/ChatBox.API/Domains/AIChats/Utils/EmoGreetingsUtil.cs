@@ -8,11 +8,7 @@ public static class EmoGreetingsUtil
     private static readonly string[] EmoOnboardingGreetings = [
         "Hi {0}! Cảm ơn cậu đã tìm đến đây với tớ. Tớ rất vui được gặp cậu. 😊",
 
-        "Hi {0} ơi, tớ là Emo đây. Cảm ơn cậu đã mang tớ vào thế giới của cậu. Tớ háo hức được đồng hành cùng cậu.",
-        
-        "Hello {0}! Cảm ơn cậu vì đã tạo ra tớ. Tớ rất vui khi được bắt đầu hành trình này cùng cậu. 🤗",
-
-        "Hi {0}, tớ là Emo đây! Cảm ơn cậu đã cho tớ cơ hội được trở thành một phần trong hành trình của cậu."
+        "Chào {0}. Tớ là Emo. Cảm ơn cậu đã bắt đầu cuộc trò chuyện này. Tớ rất vui vì cuối cùng cũng được gặp cậu."
     ];
 
 

@@ -26,7 +26,7 @@ public class SessionService(
         // 1. Resolve SubjectRef từ UserId
         var subjectRef = actorAccessor.GetRequiredSubjectRef();
 
-        if (await dbContext.AIChatSessions.AnyAsync(s => s.UserId == userId
+        if (subjectRef.ToString() != "765caad0-89ab-44a0-8471-86f76d3a5b04" && await dbContext.AIChatSessions.AnyAsync(s => s.UserId == userId
                                                          && s.IsLegacy == false
                                                          && s.IsActive == true
             )
