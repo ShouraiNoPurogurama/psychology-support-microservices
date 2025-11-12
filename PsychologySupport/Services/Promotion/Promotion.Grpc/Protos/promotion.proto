@@ -156,7 +156,7 @@ message PromoCodeActivateDto {
   string id = 1;
   string promotionId = 2;
   string code = 3;
-  int32 value = 4; //Discount percentage
+  int32 value = 4; // Actual money value
   string name = 5;
   string description = 6;
   PromotionTypeDto promotionType = 7;

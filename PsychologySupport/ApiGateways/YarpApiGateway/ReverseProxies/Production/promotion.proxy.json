@@ -41,7 +41,7 @@
       "promotion-cluster": {
         "Destinations": {
           "destination1": {
-            "Address": "http://promotion.api:8080/"
+            "Address": "http://promotion.grpc:8080/"
           }
         }
       }
