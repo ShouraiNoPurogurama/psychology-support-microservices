@@ -9,6 +9,8 @@ using Wellness.Application.Features.Challenges.Dtos;
 using Wellness.Domain.Aggregates.Challenges;
 using Wellness.Domain.Aggregates.Challenges.Enums;
 using Wellness.Domain.Enums;
+using BuildingBlocks.Messaging.Events.Queries.Media;
+using MassTransit;
 
 namespace Wellness.Application.Features.Challenges.Queries;
 
@@ -26,13 +28,16 @@ public class GetChallengesHandler : IQueryHandler<GetChallengesQuery, GetChallen
 {
     private readonly IWellnessDbContext _context;
     private readonly TranslationService.TranslationServiceClient _translationClient;
+    private readonly IRequestClient<GetMediaUrlRequest> _getMediaUrlClient;
 
     public GetChallengesHandler(
         IWellnessDbContext context,
-        TranslationService.TranslationServiceClient translationClient)
+        TranslationService.TranslationServiceClient translationClient,
+        IRequestClient<GetMediaUrlRequest> getMediaUrlClient)
     {
         _context = context;
         _translationClient = translationClient;
+        _getMediaUrlClient = getMediaUrlClient;
     }
 
     public async Task<GetChallengesResult> Handle(GetChallengesQuery request, CancellationToken cancellationToken)
@@ -69,9 +74,8 @@ public class GetChallengesHandler : IQueryHandler<GetChallengesQuery, GetChallen
             return new GetChallengesResult(empty);
         }
 
-        // --- Apply Translation using Extension ---
+        // --- Translation ---
         List<Challenge> translatedChallenges = challenges;
-
         if (!string.IsNullOrEmpty(request.TargetLang))
         {
             try
@@ -121,6 +125,31 @@ public class GetChallengesHandler : IQueryHandler<GetChallengesQuery, GetChallen
             }
         }
 
+        // --- Resolve MediaUrl ---
+        var mediaIds = challenges
+            .Where(c => c.MediaId.HasValue)
+            .Select(c => c.MediaId!.Value)
+            .Distinct()
+            .ToList();
+
+        Dictionary<Guid, string> mediaUrls = new();
+        if (mediaIds.Any())
+        {
+            try
+            {
+                var response = await _getMediaUrlClient.GetResponse<GetMediaUrlResponse>(
+                    new GetMediaUrlRequest { MediaIds = mediaIds },
+                    cancellationToken
+                );
+
+                mediaUrls = response.Message.Urls;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[MediaError] {ex.Message}");
+            }
+        }
+
         // --- Map to DTO ---
         var challengeDtos = challenges.Select(c => new ChallengeDto(
              Id: c.Id,
@@ -130,9 +159,9 @@ public class GetChallengesHandler : IQueryHandler<GetChallengesQuery, GetChallen
              DurationActivity: c.ChallengeSteps.Sum(s => s.Activity?.Duration ?? 0),
              DurationDate: c.ChallengeSteps.Count,
              Steps: c.ChallengeSteps.Adapt<List<ChallengeStepDto>>(),
+             MediaUrl: c.MediaId.HasValue && mediaUrls.TryGetValue(c.MediaId.Value, out var url) ? url : string.Empty,
              HasAccess: !request.isFreeTier || c.Scope == TagScope.Free
         )).ToList();
-
 
         var paginated = new PaginatedResult<ChallengeDto>(
             request.PaginationRequest.PageIndex,

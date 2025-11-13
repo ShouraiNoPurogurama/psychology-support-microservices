@@ -15,6 +15,7 @@ namespace Wellness.Application.Features.Challenges.Dtos
        int DurationActivity,
        int DurationDate,
        List<ChallengeStepDto> Steps,
+       string MediaUrl,
        bool HasAccess
    );
 }

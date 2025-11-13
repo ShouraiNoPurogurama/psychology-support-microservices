@@ -33,7 +33,6 @@
     <ItemGroup>
         <Folder Include="ServicePackages\Features\" />
         <Folder Include="UserSubscriptions\Features\v1\" />
-        <Folder Include="UserSubscriptions\Features\v2\" />
     </ItemGroup>
 	<ItemGroup>
 		<Protobuf Include="..\..\Promotion\Promotion.Grpc\Protos\promotion.proto" GrpcServices="Client">
