@@ -1,4 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Auth.API.Common.Authentication;
 using Auth.API.Data;
 using Auth.API.Features.Authentication.Dtos.Requests;
@@ -137,8 +138,23 @@ public class SessionService(
                         ?? throw new BadRequestException("Access token không hợp lệ");
 
         var oldJwt = request.Token;
-
+        
         var jti = principal.Claims.First(c => c.Type == JwtRegisteredClaimNames.Jti).Value;
+
+        var subjectRef = principal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        
+        var userIdResponse = await piiClient.ResolveUserIdBySubjectRefAsync(new ResolveUserIdBySubjectRefRequest()
+        {
+            SubjectRef = subjectRef
+        });
+
+        var userId = Guid.Parse(userIdResponse.UserId);
+        
+        var currentPlanName = await dbContext.Users
+            .Where(u => u.Id == userId)
+            .Select(u => u.SubscriptionPlanName)
+            .FirstOrDefaultAsync();
+        
 
         // 1) Tìm device theo clientDeviceId 
         var device = await authDbContext.Devices
@@ -157,7 +173,7 @@ public class SessionService(
             throw new BadRequestException("Session hoặc Refresh token không hợp lệ");
 
         // 4) Phát access token mới
-        (string newJwtToken, string newJti, string newRefreshToken) = tokenService.RefreshToken(oldJwt);
+        (string newJwtToken, string newJti, string newRefreshToken) = tokenService.RefreshToken(oldJwt, currentPlanName);
 
         session.AccessTokenId = newJti;
         session.RefreshToken = newRefreshToken;

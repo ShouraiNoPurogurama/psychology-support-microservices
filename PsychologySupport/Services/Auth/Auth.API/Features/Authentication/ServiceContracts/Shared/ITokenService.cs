@@ -5,7 +5,7 @@ namespace Auth.API.Features.Authentication.ServiceContracts.Shared;
 public interface ITokenService
 {
     // ReSharper disable once InconsistentNaming
-    (string Token, string Jti)  GenerateJWTFromOldToken(string oldToken);
+    (string Token, string Jti)  GenerateJWTFromOldToken(string oldToken, string? subscriptionPlanNameOverride = null);
     
     Task<(string Token, string Jti)> GenerateJWTToken(User user);
     
@@ -15,7 +15,7 @@ public interface ITokenService
 
     string GenerateRefreshToken();
     
-    (string newJwtToken, string jti, string newRefreshToken) RefreshToken(string oldJwt);
+    (string newJwtToken, string jti, string newRefreshToken) RefreshToken(string oldJwt, string? subscriptionPlanNameOverride = null);
 
     Task<(string AccessToken, string Jti, string RefreshToken)> GenerateTokensAsync(User user);
 

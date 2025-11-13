@@ -20,26 +20,54 @@ public class TokenService(
     private readonly PasswordHasher<User> _passwordHasher = new();
     private static RsaSecurityKey? _cachedKey;
 
-    public (string Token, string Jti) GenerateJWTFromOldToken(string oldToken)
+    public (string Token, string Jti) GenerateJWTFromOldToken(
+        string oldToken,
+        string? subscriptionPlanNameOverride = null
+    )
     {
         var principal = GetPrincipalFromExpiredToken(oldToken);
 
-        var sub = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var sub = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                  ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        if (!Guid.TryParse(sub, out var _) || string.IsNullOrWhiteSpace(sub))
+        if (string.IsNullOrWhiteSpace(sub) || !Guid.TryParse(sub, out _))
             throw new UnauthorizedException();
 
         var roles = principal.FindAll(ClaimTypes.Role).Select(c => c.Value);
-        var onboarding = principal.FindFirst(ClaimTypes.Authentication)?.Value ?? nameof(UserOnboardingStatus.Pending);
-        var subscriptionPlanName = principal.FindFirst("SubscriptionPlanName")?.Value;
+        var onboarding = principal.FindFirst(ClaimTypes.Authentication)?.Value
+                         ?? nameof(UserOnboardingStatus.Pending);
 
+        var oldPlan = principal.FindFirst("SubscriptionPlanName")?.Value;
+        var planToUse = subscriptionPlanNameOverride ?? oldPlan;
+
+        return GenerateJwtCore(sub, onboarding, roles, planToUse);
+    }
+
+    public async Task<(string Token, string Jti)> GenerateJWTToken(User user)
+    {
+        var roles = user.UserRoles.Select(r => r.Role.Name!).ToList();
+        var subjectRef = await ResolveSubjectRef(user);
+        var onboardingStatus = user.OnboardingStatus.ToString();
+        var planName = user.SubscriptionPlanName ?? string.Empty;
+
+        return GenerateJwtCore(subjectRef, onboardingStatus, roles, planName);
+    }
+
+
+    private (string Token, string Jti) GenerateJwtCore(
+        string subjectRef,
+        string onboardingStatus,
+        IEnumerable<string> roles,
+        string? subscriptionPlanName
+    )
+    {
         var jti = Guid.NewGuid().ToString();
 
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Jti, jti),
-            new Claim(JwtRegisteredClaimNames.Sub, sub),
-            new Claim(ClaimTypes.Authentication, onboarding)
+            new Claim(JwtRegisteredClaimNames.Sub, subjectRef),
+            new Claim(ClaimTypes.Authentication, onboardingStatus)
         };
 
         if (!string.IsNullOrEmpty(subscriptionPlanName))
@@ -50,7 +78,6 @@ public class TokenService(
         claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
         var rsaSecurityKey = GetRsaSecurityKey();
-
         var signingCredential = new SigningCredentials(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
 
         var token = new JwtSecurityToken(
@@ -62,47 +89,6 @@ public class TokenService(
         );
 
         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-
-        return (tokenString, jti);
-    }
-
-    public async Task<(string Token, string Jti)> GenerateJWTToken(User user)
-    {
-        var roles = user.UserRoles.Select(r => r.Role.Name).ToList();
-
-        var subjectRef = await ResolveSubjectRef(user);
-
-        var onboardingStatus = user.OnboardingStatus.ToString();
-
-        var jti = Guid.NewGuid().ToString();
-
-        var claims = new List<Claim>
-        {
-            new Claim(JwtRegisteredClaimNames.Jti, jti),
-            new Claim(JwtRegisteredClaimNames.Sub, subjectRef),
-            new Claim(ClaimTypes.Authentication, onboardingStatus),
-            new Claim("SubscriptionPlanName", user.SubscriptionPlanName ?? string.Empty)
-        };
-
-        foreach (var role in roles)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, role!));
-        }
-
-        var rsaSecurityKey = GetRsaSecurityKey();
-
-        var signingCredential = new SigningCredentials(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
-
-        var token = new JwtSecurityToken(
-            configuration["Jwt:Issuer"],
-            configuration["Jwt:Audience"],
-            claims,
-            expires: DateTimeOffset.Now.AddHours(1).DateTime,
-            signingCredentials: signingCredential
-        );
-
-        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-
         return (tokenString, jti);
     }
 
@@ -159,7 +145,7 @@ public class TokenService(
         if (_cachedKey != null) return _cachedKey;
         var rsa = RSA.Create();
         rsa.FromXmlString(File.ReadAllText(configuration["Jwt:PrivateKeyPath"]!));
-        
+
         //Cache key để tránh việc đọc file và parse XML nhiều lần.
         _cachedKey = new RsaSecurityKey(rsa);
         return _cachedKey;
@@ -169,7 +155,7 @@ public class TokenService(
     public bool VerifyPassword(string providedPassword, string hashedPassword, User user)
     {
         var result = _passwordHasher.VerifyHashedPassword(user, hashedPassword, providedPassword);
-        
+
         return result == PasswordVerificationResult.Success;
     }
 
@@ -193,12 +179,15 @@ public class TokenService(
         return Base64UrlEncoder.Encode(randomNumber);
     }
 
-    public (string newJwtToken, string jti, string newRefreshToken) RefreshToken(string oldJwt)
+    public (string newJwtToken, string jti, string newRefreshToken) RefreshToken(
+        string oldJwt,
+        string? subscriptionPlanNameOverride = null
+    )
     {
-        (string token, string jti) =  GenerateJWTFromOldToken(oldJwt);
-
+        (string token, string jti) = GenerateJWTFromOldToken(oldJwt, subscriptionPlanNameOverride);
+        
         var newRefreshToken = GenerateRefreshToken();
-
+        
         return (token, jti, newRefreshToken);
     }
 
@@ -219,16 +208,16 @@ public class TokenService(
         var tokenValidationParameters = new TokenValidationParameters
         {
             ValidateActor = false,
-            
+
             ValidateAudience = true,
-            ValidAudience = configuration["Jwt:Audience"], 
-            
+            ValidAudience = configuration["Jwt:Audience"],
+
             ValidateIssuer = true,
             ValidIssuer = configuration["Jwt:Issuer"],
-            
+
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = securityKey,
-            
+
             ValidateLifetime = false,
             ClockSkew = TimeSpan.Zero,
         };
