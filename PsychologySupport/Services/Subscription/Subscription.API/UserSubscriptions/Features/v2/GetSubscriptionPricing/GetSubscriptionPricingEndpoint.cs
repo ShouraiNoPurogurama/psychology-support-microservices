@@ -3,6 +3,7 @@ using Carter;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Subscription.API.UserSubscriptions.Dtos;
 
 namespace Subscription.API.UserSubscriptions.Features.v2.GetSubscriptionPricing
 {
@@ -11,11 +12,9 @@ namespace Subscription.API.UserSubscriptions.Features.v2.GetSubscriptionPricing
        string? PromoCode,
        Guid? GiftId
    );
-    public record GetSubscriptionPricingResponse(
-        decimal OriginalPrice,
-        decimal DiscountAmount,
-        decimal FinalPrice
-    );
+
+    public record GetSubscriptionPricingResponse(GetSubscriptionPricingResponseDto Response);
+
     public class GetSubscriptionPricingEndpoint : ICarterModule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
@@ -25,17 +24,13 @@ namespace Subscription.API.UserSubscriptions.Features.v2.GetSubscriptionPricing
                 ISender sender,
                 HttpContext httpContext) =>
             {
-                // Lấy patientId từ claim, tương tự như endpoint tạo subscription
                 var patientId = httpContext.User.FindFirst("patientId")?.Value;
                 if (string.IsNullOrEmpty(patientId))
                     throw new ForbiddenException("No patientId claim found in token.");
                 if (!Guid.TryParse(patientId, out var patientGuid))
                     throw new ForbiddenException("Invalid patientId claim format.");
 
-                // Adapt từ request sang DTO, set PatientId từ token
-                var dto = request.Adapt<GetSubscriptionPricingDto>();
-                dto = dto with { PatientId = patientGuid };
-
+                var dto = request.Adapt<GetSubscriptionPricingDto>() with { PatientId = patientGuid };
                 var command = new GetSubscriptionPricingCommand(dto);
                 var result = await sender.Send(command);
 
@@ -48,8 +43,8 @@ namespace Subscription.API.UserSubscriptions.Features.v2.GetSubscriptionPricing
             .Produces<GetSubscriptionPricingResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .WithDescription("Tính toán giá subscription với promo code và gift (giá gốc, số tiền giảm, giá cuối)")
-            .WithSummary("Get original price, discount amount, and final price for subscription");
+            .WithDescription("Tính toán giá subscription với promo code và gift (giá gốc, số tiền giảm, giá cuối, trạng thái áp dụng).")
+            .WithSummary("Get original price, discount amount, final price, and apply status for subscription");
         }
     }
 }

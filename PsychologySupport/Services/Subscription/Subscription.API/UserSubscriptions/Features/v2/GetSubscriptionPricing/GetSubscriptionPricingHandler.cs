@@ -5,19 +5,14 @@ using MassTransit;
 using Promotion.Grpc;
 using Subscription.API.Data;
 using Subscription.API.ServicePackages.Models;
+using Subscription.API.UserSubscriptions.Dtos;
 
 namespace Subscription.API.UserSubscriptions.Features.v2.GetSubscriptionPricing
 {
-    public record GetSubscriptionPricingCommand(GetSubscriptionPricingDto PricingDto) : ICommand<GetSubscriptionPricingResult>;
+    public record GetSubscriptionPricingCommand(GetSubscriptionPricingDto PricingDto)
+        : ICommand<GetSubscriptionPricingResult>;
 
-    public record GetSubscriptionPricingResult(decimal OriginalPrice, decimal DiscountAmount, decimal FinalPrice);
-
-    public record GetSubscriptionPricingDto(
-        Guid PatientId,
-        Guid ServicePackageId,
-        string? PromoCode,
-        Guid? GiftId
-    );
+    public record GetSubscriptionPricingResult(GetSubscriptionPricingResponseDto Response);
 
     public class GetSubscriptionPricingHandler(
         SubscriptionDbContext context,
@@ -28,26 +23,35 @@ namespace Subscription.API.UserSubscriptions.Features.v2.GetSubscriptionPricing
         public async Task<GetSubscriptionPricingResult> Handle(GetSubscriptionPricingCommand request, CancellationToken cancellationToken)
         {
             var dto = request.PricingDto;
+            string status = "Áp dụng thành công"; // Mặc định là OK
 
             // Lấy ServicePackage để có giá gốc
-            ServicePackage servicePackage = await context.ServicePackages
+            var servicePackage = await context.ServicePackages
                 .FindAsync([dto.ServicePackageId], cancellationToken)
                 ?? throw new NotFoundException(nameof(ServicePackage), dto.ServicePackageId);
 
             var originalPrice = servicePackage.Price;
             var discountAmount = 0m;
-            var finalPrice = originalPrice;
 
             // Áp dụng Promo Code nếu có
             if (!string.IsNullOrEmpty(dto.PromoCode))
             {
-                var promotion = (await promotionService.GetPromotionByCodeAsync(new GetPromotionByCodeRequest()
-                {
-                    Code = dto.PromoCode,
-                    IgnoreExpired = false
-                }, cancellationToken: cancellationToken)).PromoCode;
+                var promotionResponse = await promotionService.GetPromotionByCodeAsync(
+                    new GetPromotionByCodeRequest
+                    {
+                        Code = dto.PromoCode,
+                        IgnoreExpired = false
+                    },
+                    cancellationToken: cancellationToken
+                );
 
-                if (promotion is not null)
+                var promotion = promotionResponse.PromoCode;
+
+                if (promotion is null)
+                {
+                    status = "Khuyến mãi không tồn tại hoặc đã hết hạn.";
+                }
+                else
                 {
                     discountAmount += promotion.Value;
                 }
@@ -56,22 +60,37 @@ namespace Subscription.API.UserSubscriptions.Features.v2.GetSubscriptionPricing
             // Áp dụng Gift nếu có
             if (dto.GiftId.HasValue)
             {
-                var giftCode = (await promotionService.GetGiftCodeByPatientIdAsync(new GetGiftCodeByPatientIdRequest()
-                {
-                    Id = dto.PatientId.ToString()
-                }, cancellationToken: cancellationToken))
-                .GiftCode
-                .FirstOrDefault(g => g.Id == dto.GiftId.ToString());
+                var giftResponse = await promotionService.GetGiftCodeByPatientIdAsync(
+                    new GetGiftCodeByPatientIdRequest
+                    {
+                        Id = dto.PatientId.ToString()
+                    },
+                    cancellationToken: cancellationToken
+                );
 
-                if (giftCode is not null)
+                var giftCode = giftResponse.GiftCode
+                    .FirstOrDefault(g => g.Id == dto.GiftId.ToString());
+
+                if (giftCode is null)
+                {
+                    status = "Mã quà tặng không hợp lệ hoặc đã được sử dụng.";
+                }
+                else
                 {
                     discountAmount += (decimal)giftCode.MoneyValue;
                 }
             }
 
-            finalPrice = Math.Max(originalPrice - discountAmount, 0);
+            var finalPrice = Math.Max(originalPrice - discountAmount, 0);
 
-            return new GetSubscriptionPricingResult(originalPrice, discountAmount, finalPrice);
+            var response = new GetSubscriptionPricingResponseDto(
+                OriginalPrice: originalPrice,
+                DiscountAmount: discountAmount,
+                FinalPrice: finalPrice,
+                Status: status
+            );
+
+            return new GetSubscriptionPricingResult(response);
         }
     }
 }
