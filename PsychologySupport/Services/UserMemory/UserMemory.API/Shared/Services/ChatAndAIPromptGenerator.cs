@@ -64,7 +64,6 @@ public class ChatAndAiPromptGenerator(
                                                           DATA:
                                                           {
                                                             "age": %AGE%,
-                                                            "gender": "%GENDER%",
                                                             "job": "%JOB%",
                                                             "scene_cue": "%SCENE_CUE%"
                                                           }
@@ -79,16 +78,13 @@ public class ChatAndAiPromptGenerator(
 
                                                           OUTPUT FORMAT (strictly follow):
 
-                                                          The subject is a {age}-year-old {gender}{optional_job_if_not_empty}.
+                                                          The subject is a {age}-year-old mascot as attached image,{optional_job_if_not_empty}.
                                                           ACTION/SETTING: [Describe the subject’s action and physical setting concisely.]
                                                           EXPRESSION: [Describe visible emotion on the face or posture.]
                                                           SCENE: [Describe the surrounding environment and its tone.]
                                                           DETAILS: [List 2–4 small props or contextual objects relevant to their job or setting.]
                                                           LIGHTING: [Describe the type, source, and mood of lighting.]
 
-                                                          End with:
-                                                          [SPEECH_BUBBLE]
-                                                          (Auto by image agent)
 
                                                           NOW WRITE THE COMPLETE OUTPUT.
                                                           """;
@@ -115,7 +111,7 @@ public class ChatAndAiPromptGenerator(
 
         var fillerPrompt = FillerGenerationPromptTemplate
             .Replace("%AGE%", TimeUtils.GetAgeFromDateTimeOffsetStr(chatData.Persona.BirthDate).ToString())
-            .Replace("%GENDER%", chatData.Persona.Gender ?? "")
+            // .Replace("%GENDER%", chatData.Persona.Gender ?? "")
             .Replace("%JOB%", chatData.Persona.JobTitle ?? "")
             .Replace("%SCENE_CUE%", sceneCue);
 
