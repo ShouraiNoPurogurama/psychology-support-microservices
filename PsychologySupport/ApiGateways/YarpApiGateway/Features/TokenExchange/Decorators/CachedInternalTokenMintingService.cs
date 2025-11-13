@@ -30,7 +30,7 @@ public class CachedInternalTokenMintingService : IInternalTokenMintingService
     {
         var cacheKey = BuildCacheKey(originalPrincipal, additionalClaims, audience);
 
-        if (_cache.TryGetValue(cacheKey, out string? token))
+        if (false && _cache.TryGetValue(cacheKey, out string? token))
         {
             // _logger.LogInformation("[Cache HIT] for key {CacheKey} with value {Value}", cacheKey, token);
             return token!;
