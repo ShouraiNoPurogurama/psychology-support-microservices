@@ -63,7 +63,7 @@ public class SummarizationService
 
         var newMessagesCount = messagesCount - (lastIndex + 1);
 
-        if (newMessagesCount > 10)
+        if (newMessagesCount > 8)
         {
             var newMessages = await _dbContext.AIChatMessages
                 .Where(m => m.SessionId == sessionId)
