@@ -79,6 +79,11 @@ public partial class WellnessDbContext : DbContext, IWellnessDbContext
               .HasConversion(new EnumToStringConverter<TagScope>())
               .HasColumnType("VARCHAR(20)")
               .HasColumnName("scope");
+
+            entity.Property(e => e.MediaId)
+               .HasColumnName("media_id")
+               .HasColumnType("uuid")
+               .IsRequired(false);
         });
 
         modelBuilder.Entity<ChallengeProgress>(entity =>

@@ -7,7 +7,6 @@ namespace Wellness.Domain.Aggregates.Challenges;
 
 public partial class Challenge : AuditableEntity<Guid>
 {
-
     public string Title { get; set; } = null!;
 
     public string? Description { get; set; }
@@ -21,6 +20,8 @@ public partial class Challenge : AuditableEntity<Guid>
     public ImprovementTag ImprovementTag { get; set; }
 
     public TagScope Scope { get; set; }
+
+    public Guid? MediaId { get; set; } 
 
     //public Guid? ModuleId { get; set; }
 
