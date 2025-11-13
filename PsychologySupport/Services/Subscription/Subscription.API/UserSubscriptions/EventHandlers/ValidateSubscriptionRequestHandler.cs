@@ -2,6 +2,7 @@
 using MassTransit;
 using Promotion.Grpc;
 using Subscription.API.Data;
+using System.Data;
 
 namespace Subscription.API.UserSubscriptions.EventHandlers;
 
@@ -16,74 +17,63 @@ public class ValidateSubscriptionRequestHandler(
         //Validate Promotion Code
         //Validate Gift
         //Validate Final Price
-
         GetPromotionByCodeResponse? promoResponse = null;
         GiftCodeActivateDto? appliedGift = null;
         List<string> errors = [];
-
         var servicePackage = await dbContext.ServicePackages.FindAsync(request.ServicePackageId);
-
         if (servicePackage is null)
         {
             errors.Add("Service package not found");
             await context.RespondAsync(ValidateSubscriptionResponse.Failed(errors));
             return;
         }
-        
+
         if (request.DurationDays != servicePackage.DurationDays)
         {
             errors.Add("Invalid duration days");
         }
-
         if (!string.IsNullOrWhiteSpace(request.PromoCode))
         {
             promoResponse = await promotionService.GetPromotionByCodeAsync(new GetPromotionByCodeRequest
             {
                 Code = request.PromoCode,
-                IgnoreExpired = true
+                IgnoreExpired = false
             });
-
             if (promoResponse.PromoCode is null)
             {
                 errors.Add("Promotion code is not valid");
             }
         }
-
-        if (!string.IsNullOrWhiteSpace(request.GiftId.ToString()))
+        if (request.GiftId.HasValue && !string.IsNullOrWhiteSpace(request.GiftId.Value.ToString()))
         {
             var giftResponse = await promotionService.GetGiftCodeByPatientIdAsync(new GetGiftCodeByPatientIdRequest()
             {
                 Id = request.PatientId.ToString()
             });
-
             appliedGift = giftResponse.GiftCode
-                .FirstOrDefault(g => g.Id != request.GiftId.ToString());
-
+                .FirstOrDefault(g => g.Id == request.GiftId.Value.ToString());
             if (appliedGift is null)
             {
                 errors.Add("Gift code is not valid");
             }
         }
-
-        var calculatedFinalPrice = servicePackage.Price
-                         - (promoResponse?.PromoCode != null ? 0.01m * promoResponse.PromoCode.Value * servicePackage.Price : 0)
-                         - (appliedGift != null ? (decimal)appliedGift.MoneyValue : 0);
-
+        var promoDeduction = (decimal?)(promoResponse?.PromoCode?.Value) ?? 0m;
+        var giftDeduction = (decimal?)(appliedGift?.MoneyValue) ?? 0m;
+        var calculatedFinalPrice = servicePackage.Price - promoDeduction - giftDeduction;
+        calculatedFinalPrice = Math.Max(calculatedFinalPrice, 0);
         calculatedFinalPrice -= request.OldSubscriptionPrice;
-        
+
         if (calculatedFinalPrice != request.FinalPrice - request.OldSubscriptionPrice)
         {
             errors.Add("Final price is not valid");
         }
-
-        switch (errors.Count == 0)
+        if (errors.Count == 0)
         {
-            case true:
-                await context.RespondAsync(ValidateSubscriptionResponse.Success());
-                break;
-            case false:
-                await context.RespondAsync(ValidateSubscriptionResponse.Failed(errors));
-                break;
+            await context.RespondAsync(ValidateSubscriptionResponse.Success());
+        }
+        else
+        {
+            await context.RespondAsync(ValidateSubscriptionResponse.Failed(errors));
         }
     }
 }

@@ -153,6 +153,11 @@ public class CreateUserSubscriptionHandler(
             IgnoreExpired = false
         }, cancellationToken: cancellationToken)).PromoCode;
 
+        if (promotion is null && !string.IsNullOrEmpty(dto.PromoCode))
+        {
+            throw new BadRequestException($"Invalid or expired promo code: {dto.PromoCode}");
+        }
+
         if (promotion is not null)
         {
             finalPrice -= promotion.Value;
