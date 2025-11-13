@@ -145,7 +145,9 @@ public class GetAllTestQuestionsHandler : IQueryHandler<GetAllTestQuestionsQuery
         var translatedQuestions = sortedQuestions.Select(q =>
         {
             var translatedQuestion = translations.MapTranslatedProperties(q, nameof(TestQuestion), id: q.Id.ToString(), q => q.Content);
-            var translatedOptions = translations.MapTranslatedPropertiesForCollection(q.Options, nameof(QuestionOption), o => o.Content);
+            var translatedOptions = translations.MapTranslatedPropertiesForCollection(q.Options, nameof(QuestionOption), o => o.Content)
+                .OrderByDescending(o => o.OptionValue)
+                .ToList();
 
             return new TestQuestionDto(q.Id, q.Order, translatedQuestion.Content, translatedOptions.ToList());
         }).ToList();
