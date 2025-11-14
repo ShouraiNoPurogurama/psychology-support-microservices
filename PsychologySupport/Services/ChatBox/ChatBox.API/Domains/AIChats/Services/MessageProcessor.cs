@@ -158,9 +158,9 @@ public class MessageProcessor(
         var decision = await routerClient.RouteAsync(userMessageWithDateTime, history, CancellationToken.None);
 
         var intent = decision?.Route.Intent ?? RouterIntent.CONVERSATION;
-        var instruction = decision?.Guidance.EmoInstruction.Trim() ?? string.Empty;
+        // var instruction = decision?.Guidance.EmoInstruction.Trim() ?? string.Empty;
         
-        // var instruction =  string.Empty;
+        var instruction =  string.Empty;
 
         var retrievalNeeded = decision?.Retrieval.Needed == true;
         var scopes = decision?.Retrieval.Scopes;
