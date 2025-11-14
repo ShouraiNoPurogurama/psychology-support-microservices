@@ -15,6 +15,7 @@ namespace Media.Domain.Enums
         WellnessModule,
         ModuleSection,
         SectionArticle,
-        Reward
+        Reward,
+        Challenge
     }
 }
