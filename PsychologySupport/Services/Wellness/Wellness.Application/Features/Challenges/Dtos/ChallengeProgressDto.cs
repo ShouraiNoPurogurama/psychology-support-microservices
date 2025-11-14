@@ -20,7 +20,11 @@ namespace Wellness.Application.Features.Challenges.Dtos
         public DateTimeOffset StartDate { get; init; }
         public DateTimeOffset? EndDate { get; init; }
 
+        public string ChallengeMediaUrl { get; init; } = string.Empty;
+
         public List<ChallengeStepProgressDto> Steps { get; init; } = new();
+
+
     }
 
     public record ChallengeStepProgressDto

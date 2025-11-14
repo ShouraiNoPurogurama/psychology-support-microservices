@@ -1,6 +1,8 @@
 ﻿using BuildingBlocks.CQRS;
+using BuildingBlocks.Messaging.Events.Queries.Media;
 using BuildingBlocks.Pagination;
 using Mapster;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Translation.API.Protos;
 using Wellness.Application.Data;
@@ -26,13 +28,16 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
 {
     private readonly IWellnessDbContext _context;
     private readonly TranslationService.TranslationServiceClient _translationClient;
+    private readonly IRequestClient<GetMediaUrlRequest> _mediaClient;
 
     public GetChallengeProgressHandler(
         IWellnessDbContext context,
-        TranslationService.TranslationServiceClient translationClient)
+        TranslationService.TranslationServiceClient translationClient,
+        IRequestClient<GetMediaUrlRequest> mediaClient)
     {
         _context = context;
         _translationClient = translationClient;
+        _mediaClient = mediaClient;
     }
 
     public async Task<GetChallengeProgressResult> Handle(GetChallengeProgressQuery request, CancellationToken cancellationToken)
@@ -43,7 +48,6 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
             .AsNoTracking()
             .AsQueryable();
 
-        // Apply filters
         query = query.Where(cp => cp.SubjectRef == request.SubjectRef);
 
         if (request.ProcessStatus.HasValue)
@@ -52,7 +56,6 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
         if (request.ChallengeType.HasValue)
             query = query.Where(cp => cp.Challenge!.ChallengeType == request.ChallengeType.Value);
 
-        // Sorting
         query = query.OrderByDescending(cp => cp.StartDate)
                      .ThenBy(cp => cp.Challenge!.ChallengeType);
 
@@ -74,21 +77,32 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
             return new GetChallengeProgressResult(empty);
         }
 
-        // Khởi tạo danh sách uniqueActivities trước
+        var mediaIds = rawProgresses
+            .Select(cp => cp.Challenge.MediaId!.Value)
+            .Distinct()
+            .ToList();
+
+        // Gọi Media Service để lấy URL
+        var mediaResponse = await _mediaClient.GetResponse<GetMediaUrlResponse>(
+            new GetMediaUrlRequest { MediaIds = mediaIds },
+            cancellationToken
+        );
+
+        var mediaUrls = mediaResponse.Message.Urls;
+
         List<Activity> uniqueActivities = new();
 
+        // Dịch tiếng Việt
         if (!string.IsNullOrEmpty(request.TargetLang) && request.TargetLang == "vi")
         {
             try
             {
-                // Unique challenges
                 var uniqueChallenges = rawProgresses
                     .Select(cp => cp.Challenge!)
                     .GroupBy(c => c.Id)
                     .Select(g => g.First())
                     .ToList();
 
-                // Dịch Challenge Title & Description
                 await uniqueChallenges.TranslateEntitiesAsync(
                     nameof(Challenge),
                     _translationClient,
@@ -98,7 +112,6 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
                     c => c.Description
                 );
 
-                // Unique activities
                 uniqueActivities = rawProgresses
                     .SelectMany(cp => cp.Challenge!.ChallengeSteps
                         .Where(cs => cs.Activity != null)
@@ -110,7 +123,6 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
                     .Select(g => g.First())
                     .ToList();
 
-                // Dịch Activity Name & Description
                 if (uniqueActivities.Any())
                 {
                     await uniqueActivities.TranslateEntitiesAsync(
@@ -122,8 +134,8 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
                         a => a.Description
                     );
 
-                    // Gán bản dịch vào entity gốc
                     var activityDict = uniqueActivities.ToDictionary(a => a.Id, a => a);
+
                     foreach (var cp in rawProgresses)
                     {
                         foreach (var step in cp.Challenge!.ChallengeSteps)
@@ -147,7 +159,7 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
             }
         }
 
-        // --- Map to DTO ---
+        // Map DTO
         var items = rawProgresses.Select(cp =>
         {
             var challenge = cp.Challenge!;
@@ -179,11 +191,14 @@ public class GetChallengeProgressHandler : IQueryHandler<GetChallengeProgressQue
                 ProgressPercent = cp.ProgressPercent,
                 StartDate = cp.StartDate,
                 EndDate = cp.EndDate,
-                Steps = steps
+                Steps = steps,
+                ChallengeMediaUrl =
+                    mediaUrls.TryGetValue(challenge.MediaId!.Value, out var url)
+                    ? url
+                    : string.Empty
             };
         }).ToList();
 
-        // --- Pagination result ---
         var paginated = new PaginatedResult<ChallengeProgressDto>(
             request.PaginationRequest.PageIndex,
             request.PaginationRequest.PageSize,
