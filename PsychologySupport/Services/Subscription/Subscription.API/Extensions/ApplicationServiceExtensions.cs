@@ -10,6 +10,7 @@ using Microsoft.OpenApi.Models;
 using Promotion.Grpc;
 using Subscription.API.Common.Authentication;
 using Subscription.API.Data;
+using Subscription.API.UserSubscriptions.BackgroundServices;
 using Translation.API.Protos;
 
 namespace Subscription.API.Extensions;
@@ -43,7 +44,9 @@ public static class ApplicationServiceExtensions
         AddServiceDependencies(services);
 
         AddGrpcServiceDependencies(services, config);
-        
+
+        services.AddHostedService<SubscriptionExpirationService>();
+
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "subscription");
         
         return services;

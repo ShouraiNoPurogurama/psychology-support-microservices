@@ -58,6 +58,7 @@ public static class ApplicationServiceExtensions
         services.AddMessageBroker(config, typeof(IAssemblyMarker).Assembly, null, "auth");
 
         services.AddHostedService<RevokeSessionCleanupService>();
+        services.AddHostedService<UserSubscriptionCleanupService>();
 
         services.AddHttpContextAccessor();
 
