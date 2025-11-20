@@ -562,7 +562,7 @@ public class MessageProcessor(
     private async Task<List<HistoryMessage>> GetHistoryMessagesAsync(Guid sessionId)
     {
         const int maxHistory = 10;
-        const int reserved = 4;
+        // const int reserved = 4;
 
         var session = await dbContext.AIChatSessions
             .AsNoTracking()
@@ -570,16 +570,29 @@ public class MessageProcessor(
 
         var lastSummaryIdx = session.LastSummarizedIndex ?? 0;
 
-        var skip = lastSummaryIdx + 1 - reserved;
-        if (skip < 0) skip = 0;
+        // var skip = lastSummaryIdx + 1 - reserved;
+        // if (skip < 0) skip = 0;
 
-        return await dbContext.AIChatMessages
+        var messages = await dbContext.AIChatMessages
+            .AsNoTracking()
             .Where(m => m.SessionId == sessionId)
-            .OrderBy(m => m.CreatedDate)
-            .Skip(skip)
-            .Take(maxHistory)
-            .Select(m => new HistoryMessage(m.Content + " \nGửi vào lúc:" + m.CreatedDate.ToOffset(TimeSpan.FromHours(7)), m.SenderIsEmo))
+            .OrderByDescending(m => m.CreatedDate) // Quan trọng: Đảo chiều để lấy đuôi
+            .Take(maxHistory)                        
+            .Select(m => new 
+            {
+                m.Content,
+                m.CreatedDate,
+                m.SenderIsEmo
+            })
             .ToListAsync();
+        
+        return messages
+            .OrderBy(m => m.CreatedDate) 
+            .Select(m => new HistoryMessage(
+                $"{m.Content} \n[Gửi vào lúc: {m.CreatedDate.ToOffset(TimeSpan.FromHours(7))}]", 
+                m.SenderIsEmo
+            ))
+            .ToList();
     }
 
     private static List<AIMessage> SplitAIResponse(Guid sessionId, string text)

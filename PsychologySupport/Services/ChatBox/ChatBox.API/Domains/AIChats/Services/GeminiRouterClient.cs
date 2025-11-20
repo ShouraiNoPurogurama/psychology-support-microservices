@@ -71,7 +71,7 @@ public class GeminiRouterClient : IRouterClient
             contextParts.Add(sb.ToString().Trim());
         }
 
-        contextParts.Add($"\n\n[USER MESSAGE]: \n {userMessage} + \nGửi vào lúc {DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7))}");
+        contextParts.Add($"\n\n[USER MESSAGE]: \n{userMessage} + \n[Gửi vào lúc {DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7))}]");
 
         var fullContext = string.Join("\n\n", contextParts);
 
