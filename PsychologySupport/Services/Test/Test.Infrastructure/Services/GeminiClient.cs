@@ -80,7 +80,7 @@ public class GeminiClient(
 
         var apiKey = config["GeminiConfig:ApiKey"];
         var url =
-            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent?key={apiKey}";
+            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={apiKey}";
 
         var settings = new JsonSerializerSettings
         {
