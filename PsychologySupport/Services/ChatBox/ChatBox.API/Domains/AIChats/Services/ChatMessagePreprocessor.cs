@@ -14,7 +14,7 @@ public class ChatMessagePreprocessor()
     
     private string TrimUserMessageIfExceedsLength(string userMessage)
     {
-        const int MaxUserInputLength = 1000;
+        const int MaxUserInputLength = 2000;
         
         if (userMessage.Length <= MaxUserInputLength)
             return userMessage;
