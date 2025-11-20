@@ -578,7 +578,7 @@ public class MessageProcessor(
             .OrderBy(m => m.CreatedDate)
             .Skip(skip)
             .Take(maxHistory)
-            .Select(m => new HistoryMessage(m.Content, m.SenderIsEmo))
+            .Select(m => new HistoryMessage(m.Content + " \nGửi vào lúc:" + m.CreatedDate.ToOffset(TimeSpan.FromHours(7)), m.SenderIsEmo))
             .ToListAsync();
     }
 

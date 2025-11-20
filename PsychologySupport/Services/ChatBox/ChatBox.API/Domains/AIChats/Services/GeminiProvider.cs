@@ -33,7 +33,7 @@ public class GeminiProvider(
     {
         var request = ToGeminiRequest(payload, systemInstruction: systemInstruction);
 
-        return await CallGeminiFlashLiteInternalAsync(request, "Gemini Flash Lite", ct);
+        return await CallGeminiFlashInternalAsync(request, "Gemini Flash Lite", ct);
     }
 
     public async Task<string> CallGeminiStructuredOutputAPIAsync(GeminiStructuredOutputRequestDto payload, CancellationToken ct = default)
@@ -90,6 +90,38 @@ public class GeminiProvider(
 
         var apiKey = cfg["GeminiConfig:ApiKey"];
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={apiKey}";
+
+        var serializedPayload = JsonConvert.SerializeObject(payload);
+        logger.LogInformation("{Context} Payload: {Payload}", logContext, serializedPayload);
+
+        var content = new StringContent(serializedPayload, Encoding.UTF8, "application/json");
+        var resp = await http.PostAsync(url, content, ct);
+        var body = await resp.Content.ReadAsStringAsync(ct);
+
+        if (!resp.IsSuccessStatusCode)
+        {
+            logger.LogError("{Context} call failed: {StatusCode} - {Body}", logContext, resp.StatusCode, body);
+            return string.Empty;
+        }
+
+        // Log thêm response cho đồng bộ
+        logger.LogInformation("{Context} Response: {Body}", logContext, body);
+
+        var jo = JObject.Parse(body);
+        var text = jo["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString() ?? "";
+        return text.Trim();
+    }
+    
+    
+    private async Task<string> CallGeminiFlashInternalAsync<TRequest>(
+        TRequest payload,
+        string logContext,
+        CancellationToken ct)
+    {
+        using var http = new HttpClient();
+
+        var apiKey = cfg["GeminiConfig:ApiKey"];
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={apiKey}";
 
         var serializedPayload = JsonConvert.SerializeObject(payload);
         logger.LogInformation("{Context} Payload: {Payload}", logContext, serializedPayload);
