@@ -1,16 +1,15 @@
 using BuildingBlocks.Constants;
 using BuildingBlocks.Exceptions;
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Chatbox;
 using BuildingBlocks.Pagination;
-using BuildingBlocks.Utils;
 using ChatBox.API.Data;
-using ChatBox.API.Data.Options;
 using ChatBox.API.Domains.AIChats.Dtos.AI;
 using ChatBox.API.Domains.AIChats.Dtos.Sessions;
 using ChatBox.API.Domains.AIChats.Utils;
 using ChatBox.API.Models;
 using ChatBox.API.Shared.Authentication;
-using ChatBox.API.Shared.Subscription;
 using Mapster;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Profile.API.Protos;
 
@@ -19,13 +18,15 @@ namespace ChatBox.API.Domains.AIChats.Services;
 public class SessionService(
     ChatBoxDbContext dbContext,
     ICurrentActorAccessor actorAccessor,
-    ICurrentUserSubscriptionAccessor subscriptionAccessor,
+    ILogger<SessionService> logger,
+    IPublishEndpoint publishEndpoint,
     PersonaOrchestratorService.PersonaOrchestratorServiceClient client)
 {
     public async Task<CreateSessionResponseDto> CreateSessionAsync(string sessionName, Guid userId)
     {
         // 1. Resolve SubjectRef từ UserId
         var subjectRef = actorAccessor.GetRequiredSubjectRef();
+        var aliasId = actorAccessor.GetRequiredAliasId();
 
         if (DevConfigs.IsDeveloperAccount(subjectRef) && await dbContext.AIChatSessions.AnyAsync(s => s.UserId == userId
                                                          && s.IsLegacy == false
@@ -33,34 +34,6 @@ public class SessionService(
             )
            )
             throw new ForbiddenException("Bạn đã có phiên trò chuyện chính. Không thể tạo phiên trò chuyện mới.", "SESSION_LIMIT_REACHED");
-
-        // if (subscriptionAccessor.IsFreeTier())
-        // {
-        //     var vnTz = TimeUtils.Instance;
-        //     var nowVn = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, vnTz);
-        //
-        //     // [00:00, 24:00) theo giờ VN
-        //     var startOfDayVn = new DateTimeOffset(nowVn.Year, nowVn.Month, nowVn.Day, 0, 0, 0, nowVn.Offset);
-        //     var endOfDayVn = startOfDayVn.AddDays(1);
-        //
-        //     var startUtc = startOfDayVn.ToUniversalTime();
-        //     var endUtc = endOfDayVn.ToUniversalTime();
-        //
-        //     var createdTodayCount = await dbContext.AIChatSessions
-        //         .Where(s => s.UserId == userId
-        //                     && s.IsActive == true
-        //                     && s.CreatedDate >= startUtc
-        //                     && s.CreatedDate < endUtc)
-        //         .CountAsync();
-        //
-        //     if (createdTodayCount >= QuotaOptions.SessionCreationFreeTier)
-        //     {
-        //         throw new ForbiddenException(
-        //             $"Gói miễn phí đã đạt giới hạn tạo phiên trong ngày {nowVn:yyyy-MM-dd} (GMT+7). " +
-        //             "Nâng cấp gói hoặc quay lại vào ngày mai nhé."
-        //         );
-        //     }
-        // }
 
         // 3. Gọi AggregatePatientProfileRequest với PatientId
         var profile = await client.GetPersonaSnapshotAsync(new GetPersonaSnapshotRequest()
@@ -114,7 +87,18 @@ public class SessionService(
         dbContext.AIChatSessions.Add(session);
         var initialGreeting = AddInitialGreeting(session);
 
-        await dbContext.SaveChangesAsync();
+        try
+        {
+            await dbContext.SaveChangesAsync();
+            var sessionCreatedIntegrationEvent = new SessionCreatedIntegrationEvent(SessionId: session.Id, AliasId: aliasId, UserId: userId);
+
+            await publishEndpoint.Publish(sessionCreatedIntegrationEvent);
+        }
+        catch (Exception e)
+        {
+            logger.LogCritical("Failed initializing new session with exception stack trace: {ex}", e);
+            throw;
+        }
 
         return new CreateSessionResponseDto(
             session.Id,
