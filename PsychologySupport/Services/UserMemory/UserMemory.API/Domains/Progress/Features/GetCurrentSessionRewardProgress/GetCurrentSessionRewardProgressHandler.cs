@@ -43,7 +43,15 @@ public class GetCurrentSessionRewardProgressHandler(
             .FirstOrDefaultAsync(cancellationToken);
 
         if (progressRow is null)
-            throw new NotFoundException("Không tìm thấy tiến trình phần thưởng cho phiên chat hiện tại.");
+        {
+            return new GetCurrentSessionRewardProgressResult(
+                request.SessionId,
+                0,
+                0,
+                StickerGenerationQuotaOptions.REWARD_COST,
+                DateOnly.FromDateTime(DateTime.Now)
+            );
+        }
         
         return new GetCurrentSessionRewardProgressResult(
             progressRow.SessionId,
