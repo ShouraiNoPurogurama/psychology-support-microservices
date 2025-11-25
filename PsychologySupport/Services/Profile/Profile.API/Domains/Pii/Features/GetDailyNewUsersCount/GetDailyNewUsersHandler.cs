@@ -1,12 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Profile.API.Data.Pii;
+﻿using Profile.API.Data.Pii;
 using Profile.API.Domains.Pii.Dtos;
 
-namespace Profile.API.Domains.Pii.Features.GetDailyNewUsers;
+namespace Profile.API.Domains.Pii.Features.GetDailyNewUsersCount;
 
 public record GetDailyNewUsersQuery(
-    int Year,
-    int Month
+    int? Year,
+    int? Month
 ) : IQuery<GetDailyNewUsersResult>;
 
 public record GetDailyNewUsersResult(DailyNewUserStatsDto? DailyNewUserStats);
@@ -20,7 +19,12 @@ public class GetDailyNewUsersHandler(
         GetDailyNewUsersQuery request,
         CancellationToken cancellationToken)
     {
-        var start = new DateOnly(request.Year, request.Month, 1);
+        var currentLocalDate = DateTimeOffset.Now.ToOffset(TimeSpan.FromHours(7));
+        
+        var year = request.Year ?? currentLocalDate.Year;
+        var month = request.Month ?? currentLocalDate.Month;
+        
+        var start = new DateOnly(year, month, 1);
         var end = start.AddMonths(1);
 
         var startDateTimeUtc = DateTime.SpecifyKind(
@@ -35,7 +39,6 @@ public class GetDailyNewUsersHandler(
         var startOffset = new DateTimeOffset(startDateTimeUtc);
         var endOffset = new DateTimeOffset(endDateTimeUtc);
 
-        // Query trong DB: chỉ lấy những ngày có user
         var rawPoints = await dbContext.PersonProfiles
             .Where(u => u.CreatedAt >= startOffset && u.CreatedAt < endOffset)
             .GroupBy(u => new
@@ -50,10 +53,8 @@ public class GetDailyNewUsersHandler(
             ))
             .ToListAsync(cancellationToken);
 
-        // Map về dictionary cho dễ lookup
         var dict = rawPoints.ToDictionary(x => x.Date, x => x.NewUserCount);
 
-        // Generate full list ngày trong tháng (LEFT JOIN bằng não)
         var allDays = Enumerable
             .Range(0, end.DayNumber - start.DayNumber)
             .Select(offset => start.AddDays(offset));
