@@ -1,6 +1,7 @@
 ﻿using ChatBox.API.Data;
 using ChatBox.API.Domains.AIChats.Dtos.Dashboard;
 using ChatBox.API.Domains.AIChats.Services.Contracts;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChatBox.API.Domains.AIChats.Services;
@@ -139,5 +140,40 @@ public class DashboardService(ChatBoxDbContext dbContext) : IDashboardService
             .ToList();
 
         return new ChatCohortResponseDto(series);
+    }
+
+    public async Task<UserOnscreenStatsDto> GetUsersChatOnscreenStatsAsync(
+        DateOnly startDate, 
+        int maxWeeks = 7, 
+        CancellationToken ct = default)
+    {
+        if (maxWeeks < 0) maxWeeks = 0;
+
+        // Today theo giờ VN
+        var todayLocal = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, Tz).Date);
+
+        // Giới hạn dữ liệu cần đọc (UTC)
+        var startUtc = new DateTimeOffset(startDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+        var endUtcInclusive = new DateTimeOffset(todayLocal.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
+
+        var userOnscreenPointDtos = await dbContext.UserOnScreenStats
+            .Where(s => s.ActivityDate >= startUtc && s.ActivityDate <= endUtcInclusive)
+            .OrderByDescending(s => s.ActivityDate)
+            .ProjectToType<UserOnscreenPointDto>()
+            .ToListAsync(cancellationToken: ct);
+
+        var allTimeStats = userOnscreenPointDtos
+            .GroupBy(x => 1) // Trick: Group tất cả vào 1 key (số 1)
+            .Select(g => new
+            {
+                TotalSystemOnscreenSeconds = g.Sum(x => x.TotalSystemOnscreenSeconds),
+                AvgOnscreenSecondsPerUser = g.Average(x => x.AvgOnscreenSecondsPerUser),
+                TotalActiveUsers = g.Sum(x => x.TotalActiveUsers)
+            })
+            .First();
+        
+        var usersOnscreenStats = new UserOnscreenStatsDto(userOnscreenPointDtos, allTimeStats.TotalActiveUsers, allTimeStats.TotalSystemOnscreenSeconds, allTimeStats.AvgOnscreenSecondsPerUser);
+        
+        return usersOnscreenStats;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ChatBox.API.Models;
+using ChatBox.API.Models.Views;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChatBox.API.Data;
@@ -9,8 +10,8 @@ public class ChatBoxDbContext : DbContext
     public DbSet<DoctorPatientBooking> DoctorPatients => Set<DoctorPatientBooking>();
     public DbSet<AIMessage> AIChatMessages => Set<AIMessage>();
     public DbSet<AIChatSession> AIChatSessions => Set<AIChatSession>();
-    
     public DbSet<PendingStickerReward> PendingStickerRewards => Set<PendingStickerReward>();
+    public DbSet<UserOnScreenStat> UserOnScreenStats => Set<UserOnScreenStat>();
     
     public ChatBoxDbContext(DbContextOptions<ChatBoxDbContext> options) : base(options)
     {
@@ -39,5 +40,12 @@ public class ChatBoxDbContext : DbContext
         
         builder.Entity<PendingStickerReward>() 
             .HasKey(e => e.RewardId);
+
+        builder.Entity<UserOnScreenStat>(entity =>
+        {
+            entity.HasNoKey();
+
+            entity.ToView("view_user_onscreen_stats");
+        });
     }
 }

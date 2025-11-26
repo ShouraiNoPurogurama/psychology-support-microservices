@@ -138,4 +138,20 @@ public class AIChatController(
 
         return Ok(result);
     }
+    
+    [HttpGet("dashboard/onscreen-stats")]
+    public async Task<IActionResult> GetUsersChatOnscreenStats([FromQuery] DateOnly? startDate, [FromQuery] int maxWeeks = 7,
+        CancellationToken ct = default)
+    {
+        var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+        if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out _))
+        {
+            throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
+        }
+
+        var start = startDate ?? DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-56)); // mặc định 8 tuần gần đây
+        var result = await dashboardService.GetUsersChatOnscreenStatsAsync(start, maxWeeks, ct);
+
+        return Ok(result);
+    }
 }

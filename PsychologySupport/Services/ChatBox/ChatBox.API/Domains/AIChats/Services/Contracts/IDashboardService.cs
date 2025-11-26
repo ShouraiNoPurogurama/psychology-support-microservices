@@ -8,4 +8,9 @@ public interface IDashboardService
         DateOnly startDate,
         int maxWeeks,
         CancellationToken ct = default);
+
+    Task<UserOnscreenStatsDto> GetUsersChatOnscreenStatsAsync(
+        DateOnly startDate, 
+        int maxWeeks = 7,
+        CancellationToken ct = default);
 }
