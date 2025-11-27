@@ -172,4 +172,12 @@ public class AIChatController(
 
         return Ok(result);
     }
+    
+    
+    [HttpGet("dashboard/retention-curve")]
+    public async Task<IActionResult> GetRetentionCurve([FromQuery] int weeks = 12, CancellationToken ct = default)
+    {
+        var stats = await dashboardService.GetWeeklyRetentionCurveAsync(weeks, ct);
+        return Ok(stats);
+    }
 }

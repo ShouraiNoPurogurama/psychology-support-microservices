@@ -1,4 +1,5 @@
 ﻿using ChatBox.API.Domains.AIChats.Dtos.Dashboard;
+using ChatBox.API.Models.Views;
 
 namespace ChatBox.API.Domains.AIChats.Services.Contracts;
 
@@ -10,7 +11,7 @@ public interface IDashboardService
         CancellationToken ct = default);
 
     Task<UserOnscreenStatsDto> GetUsersChatOnscreenStatsAsync(
-        DateOnly startDate, 
+        DateOnly startDate,
         int maxWeeks = 7,
         CancellationToken ct = default);
 
@@ -18,4 +19,6 @@ public interface IDashboardService
         DateOnly startDate,
         int maxWeeks = 7,
         CancellationToken ct = default);
+
+    Task<List<WeeklyRetentionStat>> GetWeeklyRetentionCurveAsync(int limitWeeks = 12, CancellationToken ct = default);
 }

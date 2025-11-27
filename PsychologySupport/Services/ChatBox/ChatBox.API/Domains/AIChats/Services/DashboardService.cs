@@ -212,4 +212,18 @@ public class DashboardService(ChatBoxDbContext dbContext) : IDashboardService
             Math.Round(avgRetention, 2)
         );
     }
+    
+    public async Task<List<WeeklyRetentionStat>> GetWeeklyRetentionCurveAsync(int limitWeeks = 12, CancellationToken ct = default)
+    {
+        var query = dbContext.WeeklyRetentionStats
+            .OrderBy(x => x.WeekNumber)
+            .AsQueryable();
+
+        if (limitWeeks > 0)
+        {
+            query = query.Where(x => x.WeekNumber <= limitWeeks);
+        }
+
+        return await query.ToListAsync(ct);
+    }
 }

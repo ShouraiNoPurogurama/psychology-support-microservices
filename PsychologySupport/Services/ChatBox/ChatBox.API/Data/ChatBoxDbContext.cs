@@ -13,6 +13,7 @@ public class ChatBoxDbContext : DbContext
     public DbSet<PendingStickerReward> PendingStickerRewards => Set<PendingStickerReward>();
     public DbSet<UserOnScreenStat> UserOnScreenStats => Set<UserOnScreenStat>();
     public DbSet<DailyUserRetentionStat> DailyUserRetentionStats => Set<DailyUserRetentionStat>();
+    public DbSet<WeeklyRetentionStat> WeeklyRetentionStats => Set<WeeklyRetentionStat>();
     
     public ChatBoxDbContext(DbContextOptions<ChatBoxDbContext> options) : base(options)
     {
@@ -54,6 +55,12 @@ public class ChatBoxDbContext : DbContext
             entity.HasNoKey();
 
             entity.ToView("view_daily_user_retention_stats");
+        });
+        
+        builder.Entity<WeeklyRetentionStat>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("view_weekly_system_retention");
         });
     }
 }
