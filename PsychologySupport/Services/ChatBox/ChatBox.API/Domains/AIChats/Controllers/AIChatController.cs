@@ -154,4 +154,22 @@ public class AIChatController(
 
         return Ok(result);
     }
+    
+    [HttpGet("dashboard/retention")]
+    public async Task<IActionResult> GetRetentionReport([FromQuery] DateOnly? startDate, [FromQuery] int maxWeeks = 7,
+        CancellationToken ct = default)
+    {
+        var userIdStr = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+        if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out _))
+        {
+            throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
+        }
+
+        // Mặc định lấy 8 tuần gần nhất (56 ngày)
+        var start = startDate ?? DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-56)); 
+        
+        var result = await dashboardService.GetRetentionReportAsync(start, maxWeeks, ct);
+
+        return Ok(result);
+    }
 }

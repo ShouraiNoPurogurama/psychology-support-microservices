@@ -1,6 +1,7 @@
 ﻿using ChatBox.API.Data;
 using ChatBox.API.Domains.AIChats.Dtos.Dashboard;
 using ChatBox.API.Domains.AIChats.Services.Contracts;
+using ChatBox.API.Models.Views;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
@@ -143,16 +144,14 @@ public class DashboardService(ChatBoxDbContext dbContext) : IDashboardService
     }
 
     public async Task<UserOnscreenStatsDto> GetUsersChatOnscreenStatsAsync(
-        DateOnly startDate, 
-        int maxWeeks = 7, 
+        DateOnly startDate,
+        int maxWeeks = 7,
         CancellationToken ct = default)
     {
         if (maxWeeks < 0) maxWeeks = 0;
 
-        // Today theo giờ VN
         var todayLocal = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, Tz).Date);
 
-        // Giới hạn dữ liệu cần đọc (UTC)
         var startUtc = new DateTimeOffset(startDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
         var endUtcInclusive = new DateTimeOffset(todayLocal.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
 
@@ -171,9 +170,46 @@ public class DashboardService(ChatBoxDbContext dbContext) : IDashboardService
                 TotalActiveUsers = g.Sum(x => x.TotalActiveUsers)
             })
             .First();
-        
-        var usersOnscreenStats = new UserOnscreenStatsDto(userOnscreenPointDtos, allTimeStats.TotalActiveUsers, allTimeStats.TotalSystemOnscreenSeconds, allTimeStats.AvgOnscreenSecondsPerUser);
-        
+
+        var usersOnscreenStats = new UserOnscreenStatsDto(userOnscreenPointDtos, allTimeStats.TotalActiveUsers,
+            allTimeStats.TotalSystemOnscreenSeconds, allTimeStats.AvgOnscreenSecondsPerUser);
+
         return usersOnscreenStats;
+    }
+
+    public async Task<DailyUserRetentionReportDto> GetRetentionReportAsync(
+        DateOnly startDate,
+        int maxWeeks = 7,
+        CancellationToken ct = default)
+    {
+        if (maxWeeks < 0) maxWeeks = 0;
+
+        var todayLocal = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, Tz).Date);
+
+        var startUtc = new DateTimeOffset(startDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+        var endUtcInclusive = new DateTimeOffset(todayLocal.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
+
+        var retentionPoints = await dbContext.DailyUserRetentionStats
+            .AsNoTracking()
+            .Where(s => s.ActivityDate >= startUtc && s.ActivityDate <= endUtcInclusive)
+            .OrderByDescending(s => s.ActivityDate)
+            .ProjectToType<DailyUserRetentionPointDto>() // Mapster
+            .ToListAsync(cancellationToken: ct);
+
+        decimal currentTotalUsers = 0;
+        decimal avgRetention = 0;
+
+        if (retentionPoints.Count > 0)
+        {
+            currentTotalUsers = retentionPoints.Max(x => x.TotalUsersToDate);
+
+            avgRetention = retentionPoints.Average(x => x.ReturningPercentage);
+        }
+
+        return new DailyUserRetentionReportDto(
+            retentionPoints,
+            currentTotalUsers,
+            Math.Round(avgRetention, 2)
+        );
     }
 }

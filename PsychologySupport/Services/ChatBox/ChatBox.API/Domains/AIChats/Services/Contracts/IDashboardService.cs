@@ -13,4 +13,9 @@ public interface IDashboardService
         DateOnly startDate, 
         int maxWeeks = 7,
         CancellationToken ct = default);
+
+    Task<DailyUserRetentionReportDto> GetRetentionReportAsync(
+        DateOnly startDate,
+        int maxWeeks = 7,
+        CancellationToken ct = default);
 }
