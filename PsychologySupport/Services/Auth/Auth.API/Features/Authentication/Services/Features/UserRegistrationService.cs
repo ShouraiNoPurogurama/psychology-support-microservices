@@ -26,7 +26,7 @@ public class UserRegistrationService(
     public async Task<bool> RegisterAsync(RegisterRequest registerRequest)
     {
         var existingUser = await userManager.Users.AnyAsync(u =>
-            u.PhoneNumber == registerRequest.PhoneNumber || u.Email == registerRequest.Email);
+            u.Email == registerRequest.Email);
 
         if (existingUser) throw new ConflictException("Email hoặc số điện thoại đã tồn tại trong hệ thống");
 
@@ -56,7 +56,7 @@ public class UserRegistrationService(
             var dto = new PendingSeedDto(
                 registerRequest.FullName,
                 Email: registerRequest.Email,
-                PhoneNumber: registerRequest.PhoneNumber);
+                PhoneNumber: null);
 
             pendingVerificationUser.PayloadProtected = payloadProtector.Protect(dto);
 
