@@ -21,11 +21,7 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
         RuleFor(rr => rr.Password)
             .Equal(rr => rr.ConfirmPassword)
             .WithMessage("Mật khẩu và Xác nhận mật khẩu không trùng khớp.");
-
-        RuleFor(rr => rr.PhoneNumber)
-            .NotEmpty().WithMessage("Số điện thoại không được để trống.")
-            .Matches(MyPatterns.PhoneNumber).WithMessage("Định dạng số điện thoại không hợp lệ.");
-
+        
         RuleFor(rr => rr.Email)
             .NotEmpty().WithMessage("Email không được để trống.")
             .EmailAddress().WithMessage("Định dạng email không hợp lệ");
