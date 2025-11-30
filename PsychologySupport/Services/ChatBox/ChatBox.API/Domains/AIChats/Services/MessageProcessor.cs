@@ -445,47 +445,75 @@ public class MessageProcessor(
     }
 
     public async Task<List<AIMessageResponseDto>> MarkMessagesAsReadAsync(Guid sessionId, Guid userId)
+{
+    var session = await ValidateSessionAsync(sessionId, userId);
+    
+    bool triggerWelcomeBack = false;
+    List<string> historyForAi = new(); 
+
+    using (var transaction = await dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
     {
-        var session = await ValidateSessionAsync(sessionId, userId);
-
-        var unread = await dbContext.AIChatMessages
-            .Where(m => m.SessionId == sessionId && !m.IsRead)
-            .ToListAsync();
-
-        unread.ForEach(m => m.IsRead = true);
-
-        var now = DateTimeOffset.UtcNow;
-
-        if (unread.Count > 0 && unread.Last().CreatedDate <= now.AddHours(-4))
+        try
         {
-            var systemInstruction = configuration["GeminiConfig:WelcomeBackInstruction"]!;
+            var unread = await dbContext.AIChatMessages
+                .Where(m => m.SessionId == sessionId && !m.IsRead)
+                .ToListAsync();
 
-            var history = await GetHistoryMessagesAsync(sessionId);
+            if (unread.Count == 0)
+            {
+                return []; 
+            }
 
-            var envelope = await aiRequestFactory.CreateAsync(history, session, string.Empty);
+            unread.ForEach(m => m.IsRead = true);
+            
+            await dbContext.SaveChangesAsync();
 
-            var responseText = await aiProvider.GenerateChatResponseAsync(
-                envelope,
-                systemInstruction,
-                CancellationToken.None
-            );
+            var now = DateTimeOffset.UtcNow;
+            if (unread.Last().CreatedDate <= now.AddHours(-4))
+            {
+                triggerWelcomeBack = true;
+            }
 
-            if (string.IsNullOrWhiteSpace(responseText))
-                throw new Exception("AI không trả về nội dung.");
-
-            var aiMessages = SplitAIResponse(sessionId, responseText);
-
-            await SaveMessagesAsync(sessionId, userId, null, now, aiMessages);
-
-            return aiMessages
-                .Select(m => new AIMessageResponseDto(m.SessionId, m.SenderIsEmo, m.Content, m.CreatedDate))
-                .ToList();
+            // Commit transaction: Lúc này DB đã xác nhận messages là "IsRead = true"
+            // Các request khác vào sau sẽ thấy unread.Count == 0 và dừng lại.
+            await transaction.CommitAsync();
         }
-
-        await dbContext.SaveChangesAsync();
-
-        return [];
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
+
+    if (triggerWelcomeBack)
+    {
+        var systemInstruction = configuration["GeminiConfig:WelcomeBackInstruction"]!;
+        
+        var history = await GetHistoryMessagesAsync(sessionId); 
+
+        var envelope = await aiRequestFactory.CreateAsync(history, session, string.Empty);
+
+        var responseText = await aiProvider.GenerateChatResponseAsync(
+            envelope,
+            systemInstruction,
+            CancellationToken.None
+        );
+
+        if (string.IsNullOrWhiteSpace(responseText))
+            throw new Exception("AI không trả về nội dung.");
+
+        var aiMessages = SplitAIResponse(sessionId, responseText);
+        
+        var now = DateTimeOffset.UtcNow;
+        await SaveMessagesAsync(sessionId, userId, null, now, aiMessages);
+
+        return aiMessages
+            .Select(m => new AIMessageResponseDto(m.SessionId, m.SenderIsEmo, m.Content, m.CreatedDate))
+            .ToList();
+    }
+
+    return [];
+}
 
     public async Task<PaginatedResult<AIMessageDto>> GetMessagesAsync(Guid sessionId, Guid userId,
         PaginationRequest paginationRequest)
