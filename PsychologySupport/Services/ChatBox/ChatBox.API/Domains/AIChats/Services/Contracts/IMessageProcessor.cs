@@ -10,5 +10,5 @@ public interface IMessageProcessor
     Task<PaginatedResult<AIMessageDto>> GetMessagesAsync(Guid sessionId, Guid userId,
         PaginationRequest paginationRequest);
 
-    Task MarkMessagesAsReadAsync(Guid sessionId, Guid userId);
+    Task<List<AIMessageResponseDto>> MarkMessagesAsReadAsync(Guid sessionId, Guid userId);
 }

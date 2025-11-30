@@ -444,7 +444,7 @@ public class MessageProcessor(
         return "Không thể tải kiến thức dự án.";
     }
 
-    public async Task MarkMessagesAsReadAsync(Guid sessionId, Guid userId)
+    public async Task<List<AIMessageResponseDto>> MarkMessagesAsReadAsync(Guid sessionId, Guid userId)
     {
         var session = await ValidateSessionAsync(sessionId, userId);
 
@@ -477,10 +477,14 @@ public class MessageProcessor(
 
             await SaveMessagesAsync(sessionId, userId, null, now, aiMessages);
 
-            return;
+            return aiMessages
+                .Select(m => new AIMessageResponseDto(m.SessionId, m.SenderIsEmo, m.Content, m.CreatedDate))
+                .ToList();
         }
 
         await dbContext.SaveChangesAsync();
+
+        return [];
     }
 
     public async Task<PaginatedResult<AIMessageDto>> GetMessagesAsync(Guid sessionId, Guid userId,

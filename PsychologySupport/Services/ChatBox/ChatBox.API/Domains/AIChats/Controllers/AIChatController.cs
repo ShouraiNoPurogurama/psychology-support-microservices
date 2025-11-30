@@ -105,8 +105,8 @@ public class AIChatController(
             throw new UnauthorizedException("Token không hợp lệ: Không tìm thấy userId.", "CLAIMS_MISSING");
         }
 
-        await messageProcessor.MarkMessagesAsReadAsync(id, userId);
-        return Ok();
+        var response = await messageProcessor.MarkMessagesAsReadAsync(id, userId);
+        return Ok(response);
     }
 
     [HttpPost("sticker/claim")]
