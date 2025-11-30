@@ -16,6 +16,7 @@ using Mapster;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using StackExchange.Redis;
 using UserMemory.API.Protos;
 
 namespace ChatBox.API.Domains.AIChats.Services;
@@ -83,22 +84,22 @@ public class MessageProcessor(
 
         // 1) chuẩn hoá input & history/context
         var userMessageWithDateTime = DatePromptHelper.PrependDateTimePrompt(request.UserMessage, 7);
-        
+
         var history = await GetHistoryMessagesAsync(request.SessionId);
-        
+
         var initialContext = messagePreprocessor.FormatUserMessageBlock(userMessageWithDateTime);
 
         // 2) gọi router + extract snapshot
         var router = await RouteAndExtractIntentsAsync(userMessageWithDateTime, history);
-        
+
         RouterToolType? selectedToolType = null;
         CtaBlock? ctaResult = null;
-        
+
         if (router.Intent == RouterIntent.TOOL_CALLING)
         {
             logger.LogInformation("Router intent is TOOL_CALLING, invoking ToolSelector...");
             var toolDecision = await toolSelectorClient.SelectToolAsync(userMessageWithDateTime, history);
-            
+
             if (toolDecision != null && toolDecision.ToolCall.Needed)
             {
                 selectedToolType = toolDecision.ToolCall.Type;
@@ -138,14 +139,14 @@ public class MessageProcessor(
             augmentedContext: augmentedContext,
             systemInstruction: finalSystemInstruction
         );
-        
+
         if (ctaResult != null && result.Count > 0)
         {
-            var firstMessage = result[0]; 
-    
+            var firstMessage = result[0];
+
             var messageWithCta = firstMessage with { Cta = ctaResult };
 
-            result[0] = messageWithCta; 
+            result[0] = messageWithCta;
         }
 
         return result;
@@ -159,8 +160,8 @@ public class MessageProcessor(
 
         var intent = decision?.Route.Intent ?? RouterIntent.CONVERSATION;
         // var instruction = decision?.Guidance.EmoInstruction.Trim() ?? string.Empty;
-        
-        var instruction =  string.Empty;
+
+        var instruction = string.Empty;
 
         var retrievalNeeded = decision?.Retrieval.Needed == true;
         var scopes = decision?.Retrieval.Scopes;
@@ -169,7 +170,7 @@ public class MessageProcessor(
 
         var saveNeeded = decision?.Memory.Save.Needed == true;
         var payload = decision?.Memory.Save.Payload;
-        
+
         RouterToolType? toolType = null;
 
         return new RouterSnapshot(
@@ -412,7 +413,7 @@ public class MessageProcessor(
         string systemInstruction)
     {
         var envelope = await aiRequestFactory.CreateAsync(history, session, augmentedContext);
-        
+
         var responseText = await aiProvider.GenerateChatResponseAsync(
             envelope,
             systemInstruction,
@@ -445,13 +446,40 @@ public class MessageProcessor(
 
     public async Task MarkMessagesAsReadAsync(Guid sessionId, Guid userId)
     {
-        await ValidateSessionAsync(sessionId, userId);
+        var session = await ValidateSessionAsync(sessionId, userId);
 
         var unread = await dbContext.AIChatMessages
-            .Where(m => m.SessionId == sessionId && !m.IsRead && !m.SenderIsEmo)
+            .Where(m => m.SessionId == sessionId && !m.IsRead)
             .ToListAsync();
 
         unread.ForEach(m => m.IsRead = true);
+
+        var now = DateTimeOffset.UtcNow;
+
+        if (unread.Count > 0 && unread.Last().CreatedDate <= now.AddHours(4))
+        {
+            var systemInstruction = configuration["GeminiConfig:WelcomeBackInstruction"]!;
+
+            var history = await GetHistoryMessagesAsync(sessionId);
+
+            var envelope = await aiRequestFactory.CreateAsync(history, session, string.Empty);
+
+            var responseText = await aiProvider.GenerateChatResponseAsync(
+                envelope,
+                systemInstruction,
+                CancellationToken.None
+            );
+
+            if (string.IsNullOrWhiteSpace(responseText))
+                throw new Exception("AI không trả về nội dung.");
+
+            var aiMessages = SplitAIResponse(sessionId, responseText);
+
+            await SaveMessagesAsync(sessionId, userId, null, now, aiMessages);
+
+            return;
+        }
+
         await dbContext.SaveChangesAsync();
     }
 
@@ -480,23 +508,24 @@ public class MessageProcessor(
         );
     }
 
-    private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string userMessage, DateTimeOffset sentAt,
+    private async Task SaveMessagesAsync(Guid sessionId, Guid userId, string? userMessage, DateTimeOffset sentAt,
         List<AIMessage> aiResponse)
     {
         var lastSeq = await GetLastMessageBlockIndex(sessionId);
         var nextSeq = lastSeq + 1;
 
-        dbContext.AIChatMessages.Add(new AIMessage
-        {
-            Id = Guid.NewGuid(),
-            SessionId = sessionId,
-            SenderUserId = userId,
-            SenderIsEmo = false,
-            Content = userMessage,
-            CreatedDate = sentAt,
-            IsRead = true,
-            BlockNumber = nextSeq
-        });
+        if (userMessage is not null)
+            dbContext.AIChatMessages.Add(new AIMessage
+            {
+                Id = Guid.NewGuid(),
+                SessionId = sessionId,
+                SenderUserId = userId,
+                SenderIsEmo = false,
+                Content = userMessage,
+                CreatedDate = sentAt,
+                IsRead = true,
+                BlockNumber = nextSeq
+            });
 
         foreach (var msg in aiResponse)
             msg.BlockNumber = nextSeq;
@@ -577,19 +606,19 @@ public class MessageProcessor(
             .AsNoTracking()
             .Where(m => m.SessionId == sessionId)
             .OrderByDescending(m => m.CreatedDate) // Quan trọng: Đảo chiều để lấy đuôi
-            .Take(maxHistory)                        
-            .Select(m => new 
+            .Take(maxHistory)
+            .Select(m => new
             {
                 m.Content,
                 m.CreatedDate,
                 m.SenderIsEmo
             })
             .ToListAsync();
-        
+
         return messages
-            .OrderBy(m => m.CreatedDate) 
+            .OrderBy(m => m.CreatedDate)
             .Select(m => new HistoryMessage(
-                $"{m.Content} \n[Gửi vào lúc: {m.CreatedDate.ToOffset(TimeSpan.FromHours(7))}]", 
+                $"{m.Content} \n[Gửi vào lúc: {m.CreatedDate.ToOffset(TimeSpan.FromHours(7))}]",
                 m.SenderIsEmo
             ))
             .ToList();
@@ -612,18 +641,21 @@ public class MessageProcessor(
             .ToList();
     }
 
-    private async Task ValidateSessionAsync(Guid sessionId, Guid userId)
+    private async Task<AIChatSession> ValidateSessionAsync(Guid sessionId, Guid userId)
     {
         var session = await dbContext.AIChatSessions
             .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.IsActive == true);
-        
+
         if (session == null)
             throw new ForbiddenException("Phiên trò chuyện không thuộc về bạn hoặc đã bị vô hiệu.");
 
         if (session.IsLegacy)
-            throw new ForbiddenException("Phiên trò chuyện này đã cũ. Để sử dụng các tính năng mới nhất, vui lòng tạo một phiên trò chuyện mới.");
+            throw new ForbiddenException(
+                "Phiên trò chuyện này đã cũ. Để sử dụng các tính năng mới nhất, vui lòng tạo một phiên trò chuyện mới.");
+
+        return session;
     }
-    
+
 
     private async Task<int> GetLastMessageBlockIndex(Guid sessionId)
     {
