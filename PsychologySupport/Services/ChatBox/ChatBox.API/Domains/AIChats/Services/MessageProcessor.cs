@@ -456,7 +456,7 @@ public class MessageProcessor(
 
         var now = DateTimeOffset.UtcNow;
 
-        if (unread.Count > 0 && unread.Last().CreatedDate <= now.AddHours(4))
+        if (unread.Count > 0 && unread.Last().CreatedDate <= now.AddHours(-4))
         {
             var systemInstruction = configuration["GeminiConfig:WelcomeBackInstruction"]!;
 
