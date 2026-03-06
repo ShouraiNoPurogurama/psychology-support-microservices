@@ -40,6 +40,7 @@ public sealed class AliasUnfollowedIntegrationEventConsumer : IConsumer<AliasUnf
         try
         {
             // Remove from both tables to maintain consistency
+            // AliasUnfollowedIntegrationEvent uses UnfollowedAliasId for the alias that was unfollowed
             var viewerTask = _viewerFollowingRepo.RemoveAsync(
                 message.FollowerAliasId,
                 message.UnfollowedAliasId,

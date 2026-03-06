@@ -1,10 +1,12 @@
-﻿using FluentValidation;
+﻿using Feed.Application.Abstractions.CursorService;
+using FluentValidation;
+using Microsoft.Extensions.Logging;
 
 namespace Feed.Application.Features.UserFeed.Queries.GetFeed;
 
 public sealed class GetFeedQueryValidator : AbstractValidator<GetFeedQuery>
 {
-    public GetFeedQueryValidator()
+    public GetFeedQueryValidator(ICursorService cursorService, ILogger<GetFeedQueryValidator> logger)
     {
         RuleFor(x => x.AliasId)
             .NotEmpty()
@@ -19,24 +21,23 @@ public sealed class GetFeedQueryValidator : AbstractValidator<GetFeedQuery>
             .WithMessage("PageSize must be between 1 and 100");
 
         RuleFor(x => x.Cursor)
-            .Must(BeValidCursor)
-            .WithMessage("Invalid cursor format")
+            .Must(cursor => BeValidSignedCursor(cursor, cursorService, logger))
+            .WithMessage("Invalid or tampered pagination cursor.")
             .When(x => !string.IsNullOrEmpty(x.Cursor));
     }
 
-    private static bool BeValidCursor(string? cursor)
+    private static bool BeValidSignedCursor(string? cursor, ICursorService cursorService, ILogger logger)
     {
         if (string.IsNullOrEmpty(cursor)) return true;
-        
-        try
+
+        var isValid = cursorService.ValidateCursor(cursor);
+
+        if (!isValid)
         {
-            // Basic base64 validation
-            Convert.FromBase64String(cursor);
-            return true;
+            logger.LogWarning("Invalid cursor detected. Cursor value (truncated): {Cursor}",
+                cursor.Length > 20 ? cursor[..20] + "…" : cursor);
         }
-        catch
-        {
-            return false;
-        }
+
+        return isValid;
     }
 }

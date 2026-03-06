@@ -111,16 +111,13 @@ public sealed class GetFeedQueryHandler(
 
     private (int Offset, DateTimeOffset Snapshot) DecodeOrInitCursor(string? cursor)
     {
-        if (!string.IsNullOrEmpty(cursor))
-        {
-            try
-            {
-                var (offset, snap) = cursorService.DecodeCursor(cursor);
-                return (offset, snap);
-            }
-            catch { /* ignore invalid cursor */ }
-        }
-        return (0, DateTimeOffset.UtcNow);
+        if (string.IsNullOrEmpty(cursor))
+            return (0, DateTimeOffset.UtcNow);
+
+        // At this point the cursor has already passed validator signature check.
+        // Decode must succeed; any failure here is unexpected and should surface as an error.
+        var (offset, snap) = cursorService.DecodeCursor(cursor);
+        return (offset, snap);
     }
 
     private async Task<GetFeedResult> GetVipFeedAsync(GetFeedQuery request, int offset, DateTimeOffset snapshot, CancellationToken cancellationToken)
