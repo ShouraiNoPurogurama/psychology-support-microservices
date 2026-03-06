@@ -1,6 +1,7 @@
 ﻿using Alias.API.Aliases.Models.Aliases;
 using Alias.API.Aliases.Models.Aliases.Enums;
 using Alias.API.Aliases.Models.Follows;
+using Alias.API.Aliases.Models.OutboxMessages;
 
 namespace Alias.API.Data.Public;
 
@@ -20,6 +21,8 @@ public partial class AliasDbContext : DbContext
     public virtual DbSet<AliasVersion> AliasVersions { get; set; }
 
     public virtual DbSet<Follow> Follows { get; set; }
+
+    public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -193,6 +196,18 @@ public partial class AliasDbContext : DbContext
                 .HasForeignKey(f => f.FollowedAliasId)
                 .HasConstraintName("fk_follows_followed_alias")
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<OutboxMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("outbox_messages_pkey");
+            entity.ToTable("outbox_messages");
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Type).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.Content).IsRequired().HasColumnType("jsonb");
+            entity.Property(e => e.OccurredOn);
+            entity.Property(e => e.ProcessedOn);
+            entity.HasIndex(e => e.ProcessedOn).HasDatabaseName("ix_outbox_messages_processed_on");
         });
 
         OnModelCreatingPartial(modelBuilder);

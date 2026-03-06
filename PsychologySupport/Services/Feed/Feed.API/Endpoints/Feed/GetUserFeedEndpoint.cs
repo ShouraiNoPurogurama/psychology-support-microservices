@@ -1,6 +1,7 @@
 ﻿using Carter;
 using Feed.API.Extensions;
 using Feed.Application.Features.UserFeed.Queries.GetFeed;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,6 +28,7 @@ public class GetUserFeedEndpoint : ICarterModule
             .RequireAuthorization()
             .WithTags("Feed")
             .Produces<GetUserFeedResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
             .WithName("GetUserFeed");
     }
 }

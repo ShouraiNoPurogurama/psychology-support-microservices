@@ -17,10 +17,11 @@ using Alias.API.Aliases.Exceptions.DomainExceptions;
 using Alias.API.Aliases.Models.Aliases.Enums;
 using Alias.API.Aliases.Models.Follows;
 using Alias.API.Common.Authentication;
+using Alias.API.Common.Outbox;
 using Alias.API.Data.Public;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Alias;
-using MassTransit;
+using Microsoft.Extensions.Logging;
 
 namespace Alias.API.Aliases.Features.FollowAlias;
 
@@ -30,7 +31,8 @@ namespace Alias.API.Aliases.Features.FollowAlias;
 public sealed class FollowAliasHandler(
     AliasDbContext dbContext,
     ICurrentActorAccessor currentActorAccessor,
-    IPublishEndpoint publishEndpoint) : ICommandHandler<FollowAliasCommand, FollowAliasResult>
+    IOutboxWriter outbox,
+    ILogger<FollowAliasHandler> logger) : ICommandHandler<FollowAliasCommand, FollowAliasResult>
 {
     public async Task<FollowAliasResult> Handle(FollowAliasCommand request, CancellationToken cancellationToken)
     {
@@ -84,16 +86,19 @@ public sealed class FollowAliasHandler(
 
         // Persist changes to database
         dbContext.Follows.Add(follow);
-        await dbContext.SaveChangesAsync(cancellationToken);
 
-        // Publish integration event for other services
-        var integrationEvent = new AliasFollowedIntegrationEvent(
+        // Queue integration event to outbox before saving — ensures atomicity with the follow record
+        await outbox.WriteAsync(new AliasFollowedIntegrationEvent(
             followerAliasId,
             request.FollowedAliasId,
             followerAlias.CurrentVersion?.DisplayName ?? "Anonymous User",
-            follow.FollowedAt);
+            follow.FollowedAt), cancellationToken);
 
-        await publishEndpoint.Publish(integrationEvent, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation(
+            "AliasFollowedIntegrationEvent queued to outbox: {Follower} followed {Followed} at {FollowedAt}",
+            followerAliasId, request.FollowedAliasId, follow.FollowedAt);
 
         return new FollowAliasResult(
             follow.Id,

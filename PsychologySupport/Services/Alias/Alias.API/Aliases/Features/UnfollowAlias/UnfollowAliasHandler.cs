@@ -19,6 +19,7 @@ using Alias.API.Data.Public;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Alias;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Alias.API.Aliases.Features.UnfollowAlias;
 
@@ -28,7 +29,8 @@ namespace Alias.API.Aliases.Features.UnfollowAlias;
 public sealed class UnfollowAliasHandler(
     AliasDbContext dbContext,
     ICurrentActorAccessor currentActorAccessor,
-    IOutboxWriter outbox) : ICommandHandler<UnfollowAliasCommand, UnfollowAliasResult>
+    IOutboxWriter outbox,
+    ILogger<UnfollowAliasHandler> logger) : ICommandHandler<UnfollowAliasCommand, UnfollowAliasResult>
 {
     public async Task<UnfollowAliasResult> Handle(UnfollowAliasCommand request, CancellationToken cancellationToken)
     {
@@ -62,15 +64,20 @@ public sealed class UnfollowAliasHandler(
         // Remove the follow relationship from database
         dbContext.Follows.Remove(follow);
 
-        // Outbox event before save
-        await outbox.WriteAsync(new UserUnfollowedIntegrationEvent(
+        // Outbox event before save — use canonical AliasUnfollowedIntegrationEvent so Feed consumers receive the correct contract
+        var unfollowedAt = DateTimeOffset.UtcNow;
+        await outbox.WriteAsync(new AliasUnfollowedIntegrationEvent(
             followerAliasId,
-            request.FollowedAliasId
+            request.FollowedAliasId,
+            unfollowedAt
         ), cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        var unfollowedAt = DateTimeOffset.UtcNow;
+        logger.LogInformation(
+            "AliasUnfollowedIntegrationEvent queued to outbox: {Follower} unfollowed {Followed} at {UnfollowedAt}",
+            followerAliasId, request.FollowedAliasId, unfollowedAt);
+
         return new UnfollowAliasResult(
             followerAliasId,
             request.FollowedAliasId,
