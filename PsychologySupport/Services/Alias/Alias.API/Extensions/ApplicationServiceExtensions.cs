@@ -78,7 +78,6 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAliasVersionAccessor, AliasVersionAccessor>();
         services.AddMemoryCache();
         services.AddScoped<IOutboxWriter, EfOutboxWriter>();
-        services.AddHostedService<Outbox.OutboxRelayService>();
     }
 
     private static void ConfigureMediatR(IServiceCollection services)

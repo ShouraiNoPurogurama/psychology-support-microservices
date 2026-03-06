@@ -191,40 +191,6 @@ namespace Alias.API.Data.Public.Migrations
                     b.ToTable("alias_versions", (string)null);
                 });
 
-            modelBuilder.Entity("Alias.API.Aliases.Models.OutboxMessages.OutboxMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("type");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("content");
-
-                    b.Property<DateTimeOffset>("OccurredOn")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("occurred_on");
-
-                    b.Property<DateTimeOffset?>("ProcessedOn")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("processed_on");
-
-                    b.HasKey("Id")
-                        .HasName("outbox_messages_pkey");
-
-                    b.HasIndex(new[] { "ProcessedOn" }, "ix_outbox_messages_processed_on")
-                        .HasDatabaseName("ix_outbox_messages_processed_on");
-
-                    b.ToTable("outbox_messages", (string)null);
-                });
-
             modelBuilder.Entity("Alias.API.Aliases.Models.Follows.Follow", b =>
                 {
                     b.Property<Guid>("Id")

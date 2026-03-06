@@ -17,11 +17,10 @@ using Alias.API.Aliases.Exceptions.DomainExceptions;
 using Alias.API.Aliases.Models.Aliases.Enums;
 using Alias.API.Aliases.Models.Follows;
 using Alias.API.Common.Authentication;
-using Alias.API.Common.Outbox;
 using Alias.API.Data.Public;
 using BuildingBlocks.CQRS;
 using BuildingBlocks.Messaging.Events.IntegrationEvents.Alias;
-using Microsoft.Extensions.Logging;
+using MassTransit;
 
 namespace Alias.API.Aliases.Features.FollowAlias;
 
@@ -31,8 +30,7 @@ namespace Alias.API.Aliases.Features.FollowAlias;
 public sealed class FollowAliasHandler(
     AliasDbContext dbContext,
     ICurrentActorAccessor currentActorAccessor,
-    IOutboxWriter outbox,
-    ILogger<FollowAliasHandler> logger) : ICommandHandler<FollowAliasCommand, FollowAliasResult>
+    IPublishEndpoint publishEndpoint) : ICommandHandler<FollowAliasCommand, FollowAliasResult>
 {
     public async Task<FollowAliasResult> Handle(FollowAliasCommand request, CancellationToken cancellationToken)
     {
@@ -86,19 +84,16 @@ public sealed class FollowAliasHandler(
 
         // Persist changes to database
         dbContext.Follows.Add(follow);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
-        // Queue integration event to outbox before saving — ensures atomicity with the follow record
-        await outbox.WriteAsync(new AliasFollowedIntegrationEvent(
+        // Publish integration event for other services
+        var integrationEvent = new AliasFollowedIntegrationEvent(
             followerAliasId,
             request.FollowedAliasId,
             followerAlias.CurrentVersion?.DisplayName ?? "Anonymous User",
-            follow.FollowedAt), cancellationToken);
+            follow.FollowedAt);
 
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        logger.LogInformation(
-            "AliasFollowedIntegrationEvent queued to outbox: {Follower} followed {Followed} at {FollowedAt}",
-            followerAliasId, request.FollowedAliasId, follow.FollowedAt);
+        await publishEndpoint.Publish(integrationEvent, cancellationToken);
 
         return new FollowAliasResult(
             follow.Id,
