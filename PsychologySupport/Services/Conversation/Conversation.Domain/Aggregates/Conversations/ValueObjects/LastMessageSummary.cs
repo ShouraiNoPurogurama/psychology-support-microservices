@@ -24,7 +24,7 @@ public sealed record LastMessageSummary
     public static LastMessageSummary Create(string content, Guid senderAliasId, string senderDisplayName, DateTimeOffset sentAt, long seq)
     {
         if (string.IsNullOrWhiteSpace(content))
-            throw new InvalidMessageContentException("Last message content cannot be empty.");
+            throw new InvalidMessageContentException("Nội dung tin nhắn không được để trống.");
 
         return new LastMessageSummary(
             content: content.Length > 100 ? content[..100] + "..." : content,

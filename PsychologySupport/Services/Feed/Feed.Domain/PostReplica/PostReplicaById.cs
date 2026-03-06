@@ -16,7 +16,7 @@ public sealed class PostReplicaById
         DateTimeOffset createdAt)
     {
         if (postId == Guid.Empty)
-            throw new ArgumentException("PostId is required", nameof(postId));
+            throw new ArgumentException("Thông tin bài viết không hợp lệ.", nameof(postId));
 
         PostId = postId;
         YmdBucket = ymdBucket;

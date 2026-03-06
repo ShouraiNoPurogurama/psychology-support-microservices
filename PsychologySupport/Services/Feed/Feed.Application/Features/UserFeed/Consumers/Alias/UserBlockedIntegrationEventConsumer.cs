@@ -4,7 +4,7 @@ using Feed.Domain.ViewerBlocking;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
-namespace Feed.Application.Features.Consumers.Alias;
+namespace Feed.Application.Features.UserFeed.Consumers.Alias;
 
 /// <summary>
 /// Consumes UserBlockedIntegrationEvent and updates the viewer blocking table.

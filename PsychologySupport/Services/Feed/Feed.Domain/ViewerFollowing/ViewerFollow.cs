@@ -9,11 +9,11 @@ public sealed class ViewerFollow
     private ViewerFollow(Guid aliasId, Guid followedAliasId, DateTimeOffset sinceUtc)
     {
         if (aliasId == Guid.Empty) 
-            throw new ArgumentException("AliasId is required", nameof(aliasId));
+            throw new ArgumentException("Thông tin người dùng không hợp lệ.", nameof(aliasId));
         if (followedAliasId == Guid.Empty) 
-            throw new ArgumentException("FollowedAliasId is required", nameof(followedAliasId));
+            throw new ArgumentException("Thông tin người dùng không hợp lệ.", nameof(followedAliasId));
         if (aliasId == followedAliasId)
-            throw new ArgumentException("Cannot follow yourself", nameof(followedAliasId));
+            throw new ArgumentException("Không thể theo dõi chính mình.", nameof(followedAliasId));
 
         AliasId = aliasId;
         FollowedAliasId = followedAliasId;

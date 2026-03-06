@@ -2,8 +2,10 @@ using System.Reflection;
 using BuildingBlocks.Behaviors;
 using BuildingBlocks.Messaging.MassTransit;
 using Feed.Application.Abstractions.FanOut;
+using Feed.Application.Abstractions.Redis;
 using Feed.Application.Extensions;
 using Feed.Application.Services;
+using Feed.Application.Services.Decorators;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
@@ -33,5 +35,12 @@ public static class DependencyInjection
     private static void RegisterServiceDependency(IServiceCollection services)
     {
         services.AddScoped<IFeedFanOutService, FeedFanOutService>();
+        
+        // Apply decorators in order (innermost to outermost)
+        // The order matters: KeyPrefix -> Retry -> Metrics -> Logging
+        services.Decorate<ITrendingProvider, TrendingKeyPrefixDecorator>();
+        services.Decorate<ITrendingProvider, TrendingRetryDecorator>();
+        services.Decorate<ITrendingProvider, TrendingMetricsDecorator>();
+        services.Decorate<ITrendingProvider, TrendingLoggingDecorator>();
     }
 }

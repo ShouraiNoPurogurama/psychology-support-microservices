@@ -3,7 +3,7 @@ using Feed.Application.Abstractions.PostRepository;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
-namespace Feed.Application.Features.Consumers.Post;
+namespace Feed.Application.Features.UserFeed.Consumers.Post;
 
 /// <summary>
 /// Consumes PostVisibilityUpdatedIntegrationEvent and updates the post in Cassandra replica tables.

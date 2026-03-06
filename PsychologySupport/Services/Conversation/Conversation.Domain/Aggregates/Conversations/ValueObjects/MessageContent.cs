@@ -23,13 +23,13 @@ public sealed record MessageContent
     public static MessageContent Create(string text, string? attachmentUrl = null, string? attachmentType = null)
     {
         if (string.IsNullOrWhiteSpace(text))
-            throw new InvalidMessageContentException("Message content cannot be empty.");
+            throw new InvalidMessageContentException("Nội dung tin nhắn không được để trống.");
 
         if (text.Length > 5000)
-            throw new InvalidMessageContentException("Message content cannot exceed 5000 characters.");
+            throw new InvalidMessageContentException("Nội dung tin nhắn không được vượt quá 5000 ký tự.");
 
         if (!string.IsNullOrEmpty(attachmentUrl) && string.IsNullOrEmpty(attachmentType))
-            throw new InvalidMessageContentException("Attachment type is required when attachment URL is provided.");
+            throw new InvalidMessageContentException("Loại đính kèm là bắt buộc khi có URL đính kèm.");
 
         var trimmedText = text.Trim();
 

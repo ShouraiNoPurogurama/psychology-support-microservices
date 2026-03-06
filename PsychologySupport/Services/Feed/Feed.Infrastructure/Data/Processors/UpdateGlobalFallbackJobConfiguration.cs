@@ -29,7 +29,8 @@
 public static class UpdateGlobalFallbackJobConfiguration
 {
     public const string JobName = "UpdateGlobalFallbackJob";
-    public const string CronExpression = "0 0/5 * * * ?";
+    //Bắt đầu từ phút 0, chạy mỗi 1 giờ
+    public const string CronExpression = "0 0 * * * ?";
     public static readonly TimeSpan LookbackPeriod = TimeSpan.FromHours(72);
     public const int TopPostsLimit = 500;
     public const int BatchSize = 750;
@@ -52,12 +53,12 @@ public static class UpdateGlobalFallbackJobConfiguration
     public static void Validate()
     {
         if (TopPostsLimit <= 0)
-            throw new InvalidOperationException($"{nameof(TopPostsLimit)} must be greater than 0");
+            throw new InvalidOperationException($"Cấu hình {nameof(TopPostsLimit)} phải lớn hơn 0.");
         
         if (LookbackPeriod.TotalHours <= 0)
-            throw new InvalidOperationException($"{nameof(LookbackPeriod)} must be greater than 0");
+            throw new InvalidOperationException($"Cấu hình {nameof(LookbackPeriod)} phải lớn hơn 0.");
         
         if (MaxLookbackDays <= 0)
-            throw new InvalidOperationException($"{nameof(MaxLookbackDays)} must be greater than 0");
+            throw new InvalidOperationException($"Cấu hình {nameof(MaxLookbackDays)} phải lớn hơn 0.");
     }
 }

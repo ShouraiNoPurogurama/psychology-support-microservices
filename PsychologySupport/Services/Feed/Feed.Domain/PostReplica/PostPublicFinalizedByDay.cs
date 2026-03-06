@@ -18,9 +18,9 @@ public sealed class PostPublicFinalizedByDay
         Guid authorAliasId)
     {
         if (postId == Guid.Empty)
-            throw new ArgumentException("PostId is required", nameof(postId));
+            throw new ArgumentException("Thông tin bài viết không hợp lệ.", nameof(postId));
         if (authorAliasId == Guid.Empty)
-            throw new ArgumentException("AuthorAliasId is required", nameof(authorAliasId));
+            throw new ArgumentException("Thông tin tác giả không hợp lệ.", nameof(authorAliasId));
 
         YmdBucket = ymdBucket;
         CreatedAt = createdAt;

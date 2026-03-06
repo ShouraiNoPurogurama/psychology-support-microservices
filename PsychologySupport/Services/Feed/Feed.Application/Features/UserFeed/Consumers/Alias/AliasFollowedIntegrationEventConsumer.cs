@@ -6,7 +6,7 @@ using Feed.Domain.ViewerFollowing;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
-namespace Feed.Application.Features.Consumers.Alias;
+namespace Feed.Application.Features.UserFeed.Consumers.Alias;
 
 /// <summary>
 /// Consumes AliasFollowedIntegrationEvent and updates the social graph.

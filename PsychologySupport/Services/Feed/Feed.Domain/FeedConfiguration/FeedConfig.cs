@@ -8,7 +8,7 @@ public sealed class FeedConfig
     private FeedConfig(string key, string? value)
     {
         if (string.IsNullOrWhiteSpace(key))
-            throw new ArgumentException("Key is required", nameof(key));
+            throw new ArgumentException("Khóa không được để trống.", nameof(key));
 
         Key = key.Trim();
         Value = value?.Trim();

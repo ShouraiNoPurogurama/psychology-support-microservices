@@ -29,7 +29,7 @@ public sealed class LockingIdempotencyService : IIdempotencyService
         var lockKey = IdempotencyRedisKeys.Lock(requestKey);
 
         var acquired = await db.StringSetAsync(lockKey, Environment.MachineName, _opt.LockTtl, When.NotExists);
-        if (!acquired) throw new InvalidOperationException("Idempotent request is being processed.");
+        if (!acquired) throw new InvalidOperationException("Yêu cầu đang được xử lý.");
 
         try { return await _inner.CreateRequestAsync(requestKey, cancellationToken); }
         finally { _ = db.KeyDeleteAsync(lockKey); } //best-effort (TTL bảo hiểm crash)

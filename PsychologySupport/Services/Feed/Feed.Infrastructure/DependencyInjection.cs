@@ -14,11 +14,9 @@ using Feed.Application.Abstractions.ViewerBlocking;
 using Feed.Application.Abstractions.ViewerFollowing;
 using Feed.Application.Abstractions.ViewerMuting;
 using Feed.Application.Abstractions.VipService;
+using Feed.Application.Services;
 using Feed.Infrastructure.Data.Processors;
-using Feed.Infrastructure.Data.Redis;
-using Feed.Infrastructure.Data.Redis.Decorators;
 using Feed.Infrastructure.Data.Redis.Providers;
-using Feed.Infrastructure.Data.Repository;
 using Feed.Infrastructure.Persistence.Cassandra;
 using Feed.Infrastructure.Persistence.Cassandra.Repositories;
 using Feed.Infrastructure.Resilience.Decorators;
@@ -47,17 +45,15 @@ public static class DependencyInjection
         
         services.AddQuartz(q =>
         {
-            var jobKey = new JobKey(UpdateGlobalFallbackJobConfiguration.JobName);
-            q.AddJob<UpdateGlobalFallbackJob>(opts => opts.WithIdentity(jobKey));
+            var updateGlobalFallbackJobKey = new JobKey(UpdateGlobalFallbackJobConfiguration.JobName);
+            
+            q.AddJob<UpdateGlobalFallbackJob>(opts => opts.WithIdentity(updateGlobalFallbackJobKey));
 
             q.AddTrigger(opts => opts
-                .ForJob(jobKey)
+                .ForJob(updateGlobalFallbackJobKey)
                 .WithIdentity($"{UpdateGlobalFallbackJobConfiguration.JobName}-trigger")
                 .StartNow()
-                // .WithCronSchedule(UpdateGlobalFallbackJobConfiguration.CronExpression));
-                .WithSimpleSchedule(s => s
-                    .WithIntervalInSeconds(30)
-                    .RepeatForever())); 
+                .WithCronSchedule(UpdateGlobalFallbackJobConfiguration.CronExpression));
         });
         
         services.AddQuartzHostedService(options =>
@@ -83,13 +79,6 @@ public static class DependencyInjection
         services.AddScoped<IIdempotencyService, CassandraIdempotencyService>();   // store gốc (Db)
         services.Decorate<IIdempotencyService, LockingIdempotencyService>();     // single-flight
         services.Decorate<IIdempotencyService, CachingIdempotencyService>();
-        
-        // Apply decorators in order (innermost to outermost)
-        // The order matters: KeyPrefix -> Retry -> Metrics -> Logging
-        services.Decorate<ITrendingProvider, TrendingKeyPrefixDecorator>();
-        services.Decorate<ITrendingProvider, TrendingRetryDecorator>();
-        services.Decorate<ITrendingProvider, TrendingMetricsDecorator>();
-        services.Decorate<ITrendingProvider, TrendingLoggingDecorator>();
         
         return services;
     }
@@ -138,7 +127,7 @@ public static class DependencyInjection
             var redisConnectionString = config.GetConnectionString("Redis");
             if (string.IsNullOrEmpty(redisConnectionString))
             {
-                throw new InvalidOperationException("Redis connection string is not configured.");
+                throw new InvalidOperationException("Chuỗi kết nối Redis chưa được cấu hình.");
             }
 
             var options = ConfigurationOptions.Parse(redisConnectionString);

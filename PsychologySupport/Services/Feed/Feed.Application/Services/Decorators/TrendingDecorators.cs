@@ -1,13 +1,13 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using Feed.Application.Abstractions.Redis;
 using Feed.Application.Configuration;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics.Metrics;
+using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Retry;
 
-namespace Feed.Infrastructure.Data.Redis.Decorators;
+namespace Feed.Application.Services.Decorators;
 
 // Key Prefix Decorator
 internal sealed class TrendingKeyPrefixDecorator : ITrendingProvider

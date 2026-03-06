@@ -15,14 +15,16 @@ public interface IRankingService
 
 
     // Helpers to support background rank updates and filtering
-    Task InitializePostRankAsync(Guid postId, DateTimeOffset createdAt, CancellationToken ct);
+    Task InitializePostRankAsync(Guid postId, DateTimeOffset createdAt, Guid authorAliasId, CancellationToken ct);    
     Task<PostRankData?> GetPostRankAsync(Guid postId);
     Task<IReadOnlyDictionary<Guid, PostRankData> > GetPostRanksAsync(IReadOnlyList<Guid> postIds);
     Task IncrementReactionsAsync(Guid postId, int delta, CancellationToken ct);
     Task IncrementCommentsAsync(Guid postId, int delta, CancellationToken ct);
+    Task IncrementClicksAsync(Guid postId, int delta, CancellationToken ct);
+    Task IncrementImpressionsAsync(Guid postId, int delta, CancellationToken ct);
+    Task IncrementViewDurationAsync(Guid postId, int delta, CancellationToken ct);
 
     // PostId -> AuthorAliasId mapping for filtering
-    Task SetPostAuthorAsync(Guid postId, Guid authorAliasId, CancellationToken ct);
     Task<Guid?> GetPostAuthorAsync(Guid postId, CancellationToken ct);
 
     /// <summary>
@@ -42,4 +44,16 @@ public interface IRankingService
     /// Used by background jobs to maintain stable fallback content.
     /// </summary>
     Task UpdateGlobalFallbackAsync(IReadOnlyList<(Guid PostId, double Score)> posts);
+    /// <summary>
+    /// Quét và xử lý các delta "bẩn" (dirty deltas) để gộp vào
+    /// bản ghi rank chính (rank:{postId}).
+    /// </summary>
+    /// <param name="scanBatchSize">Kích thước mỗi lần quét SCAN</param>
+    /// <param name="processBatchSize">Số lượng post xử lý song song</param>
+    /// <param name="ct">Cancellation Token</param>
+    /// <returns>Số lượng post đã được gộp</returns>
+    Task<int> MergeDirtyDeltasAsync(
+        int scanBatchSize, 
+        int processBatchSize, 
+        CancellationToken ct);
 }

@@ -3,7 +3,7 @@ using Feed.Application.Abstractions.RankingService;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
-namespace Feed.Application.Features.Consumers.Post;
+namespace Feed.Application.Features.UserFeed.Consumers.Post;
 
 /// <summary>
 /// Consumes CommentCreatedIntegrationEvent and updates post ranking.

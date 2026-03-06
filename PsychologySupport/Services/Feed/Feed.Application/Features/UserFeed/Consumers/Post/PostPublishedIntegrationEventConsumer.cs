@@ -8,7 +8,7 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Feed.Application.Features.Consumers.Post;
+namespace Feed.Application.Features.UserFeed.Consumers.Post;
 
 /// <summary>
 /// Consumes PostPublishedIntegrationEvent and fans out the post to all followers.

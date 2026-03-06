@@ -20,7 +20,7 @@ public static class BucketPartitionCalculator
     public static short CalculateShard(Guid postId, Guid followerId, int shardCount)
     {
         if (shardCount <= 0)
-            throw new ArgumentException("Shard count must be positive", nameof(shardCount));
+            throw new ArgumentException("Cấu hình không hợp lệ.", nameof(shardCount));
 
         var hash = HashCode.Combine(postId, followerId);
         var idx = Math.Abs(hash % shardCount);
@@ -33,7 +33,7 @@ public static class BucketPartitionCalculator
     public static short CalculateShardByFollower(Guid followerId, int shardCount)
     {
         if (shardCount <= 0)
-            throw new ArgumentException("Shard count must be positive", nameof(shardCount));
+            throw new ArgumentException("Cấu hình không hợp lệ.", nameof(shardCount));
 
         var hash = followerId.GetHashCode();
         var idx = Math.Abs(hash % shardCount);

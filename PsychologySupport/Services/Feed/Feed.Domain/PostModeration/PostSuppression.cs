@@ -10,7 +10,7 @@ public sealed class PostSuppression
     private PostSuppression(Guid postId, string? reason, DateTimeOffset suppressedAtUtc, DateTimeOffset? suppressedUntilUtc)
     {
         if (postId == Guid.Empty)
-            throw new ArgumentException("PostId is required", nameof(postId));
+            throw new ArgumentException("Thông tin bài viết không hợp lệ.", nameof(postId));
 
         PostId = postId;
         Reason = reason?.Trim();

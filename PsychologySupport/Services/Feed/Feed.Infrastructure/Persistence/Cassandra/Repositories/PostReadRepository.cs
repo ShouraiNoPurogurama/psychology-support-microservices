@@ -1,7 +1,7 @@
 using Feed.Application.Abstractions.PostRepository;
 using Feed.Application.Dtos;
 
-namespace Feed.Infrastructure.Data.Repository;
+namespace Feed.Infrastructure.Persistence.Cassandra.Repositories;
 
 /// <summary>
 /// Implementation for IPostReadRepository that delegates to Cassandra post replica repository.

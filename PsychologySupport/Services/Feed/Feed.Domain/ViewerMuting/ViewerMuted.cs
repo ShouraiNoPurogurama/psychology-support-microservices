@@ -9,11 +9,11 @@ public sealed class ViewerMuted
     private ViewerMuted(Guid aliasId, Guid mutedAliasId, DateTimeOffset mutedSinceUtc)
     {
         if (aliasId == Guid.Empty) 
-            throw new ArgumentException("AliasId is required", nameof(aliasId));
+            throw new ArgumentException("Thông tin người dùng không hợp lệ.", nameof(aliasId));
         if (mutedAliasId == Guid.Empty) 
-            throw new ArgumentException("MutedAliasId is required", nameof(mutedAliasId));
+            throw new ArgumentException("Thông tin người dùng không hợp lệ.", nameof(mutedAliasId));
         if (aliasId == mutedAliasId)
-            throw new ArgumentException("Cannot mute yourself", nameof(mutedAliasId));
+            throw new ArgumentException("Không thể tắt tiếng chính mình.", nameof(mutedAliasId));
 
         AliasId = aliasId;
         MutedAliasId = mutedAliasId;

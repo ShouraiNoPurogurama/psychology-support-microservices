@@ -4,7 +4,7 @@ using Feed.Application.Abstractions.RankingService;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
-namespace Feed.Application.Features.Consumers.Post;
+namespace Feed.Application.Features.UserFeed.Consumers.Post;
 
 /// <summary>
 /// Consumes PostCreatedIntegrationEvent and initializes post ranking data.
@@ -39,18 +39,12 @@ public sealed class PostCreatedIntegrationEventConsumer : IConsumer<PostCreatedI
 
         try
         {
-            // Initialize ranking data for the post
             await _rankingService.InitializePostRankAsync(
                 message.PostId,
                 message.CreatedAt,
-                context.CancellationToken);
-
-            // Store author ID for future filtering
-            await _rankingService.SetPostAuthorAsync(
-                message.PostId,
                 message.AuthorAliasId,
                 context.CancellationToken);
-
+            
             _logger.LogInformation(
                 "Successfully initialized ranking for post {PostId}",
                 message.PostId);

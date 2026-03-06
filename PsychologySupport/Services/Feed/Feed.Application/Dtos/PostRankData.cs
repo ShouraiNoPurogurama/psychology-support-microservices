@@ -9,7 +9,11 @@ public record PostRankData(
     double Ctr,
     DateTimeOffset UpdatedAt,
     DateTimeOffset CreatedAt,
-    Guid AuthorAliasId
+    Guid AuthorAliasId,
+    int Shares,
+    int Clicks,
+    int Impressions,
+    double ViewDurationSec 
 )
 {
     public PostRankPack ToPack() => new()
@@ -20,6 +24,10 @@ public record PostRankData(
         Ctr          = Ctr,
         UpdatedAtSec = UpdatedAt.ToUnixTimeSeconds(),
         CreatedAtSec = CreatedAt.ToUnixTimeSeconds(),
-        AuthorAliasId     = AuthorAliasId
+        AuthorAliasId     = AuthorAliasId,
+        Shares         = Shares,
+        Clicks        = Clicks,
+        Impressions  = Impressions,
+        ViewDurationSec = ViewDurationSec
     };
 }

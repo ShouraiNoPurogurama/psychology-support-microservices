@@ -3,7 +3,7 @@ using Feed.Application.Abstractions.ViewerBlocking;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
-namespace Feed.Application.Features.Consumers.Alias;
+namespace Feed.Application.Features.UserFeed.Consumers.Alias;
 
 /// <summary>
 /// Consumes UserUnblockedIntegrationEvent and removes the blocking relationship.

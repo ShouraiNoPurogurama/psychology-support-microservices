@@ -1,4 +1,4 @@
-﻿namespace Feed.Infrastructure.Data.Redis;
+﻿namespace Feed.Application.Services;
 
 public static class RedisKeyPatterns
 {

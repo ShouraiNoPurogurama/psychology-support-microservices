@@ -4,7 +4,7 @@ using Feed.Application.Abstractions.ViewerFollowing;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
-namespace Feed.Application.Features.Consumers.Alias;
+namespace Feed.Application.Features.UserFeed.Consumers.Alias;
 
 /// <summary>
 /// Consumes AliasUnfollowedIntegrationEvent and updates the social graph.

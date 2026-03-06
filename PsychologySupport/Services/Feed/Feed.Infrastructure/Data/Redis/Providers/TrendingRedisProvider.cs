@@ -2,6 +2,7 @@
 using Feed.Application.Abstractions.Redis;
 using Feed.Infrastructure.Data.Redis;
 using System.Text.Json;
+using Feed.Application.Services;
 
 namespace Feed.Infrastructure.Data.Redis.Providers;
 

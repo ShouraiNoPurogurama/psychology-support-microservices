@@ -1,9 +1,9 @@
-using BuildingBlocks.Messaging.Events.IntegrationEvents.Moderation; 
+using BuildingBlocks.Messaging.Events.IntegrationEvents.Moderation;
 using Feed.Application.Abstractions.PostRepository;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
-namespace Feed.Application.Features.Consumers.Post;
+namespace Feed.Application.Features.UserFeed.Consumers.Post;
 
 public sealed class PostModerationEvaluatedIntegrationEventConsumer 
     : IConsumer<PostModerationEvaluatedIntegrationEvent> 

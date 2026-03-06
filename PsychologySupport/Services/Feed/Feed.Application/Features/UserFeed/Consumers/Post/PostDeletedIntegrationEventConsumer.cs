@@ -5,7 +5,7 @@ using Feed.Domain.PostModeration;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
-namespace Feed.Application.Features.Consumers.Post;
+namespace Feed.Application.Features.UserFeed.Consumers.Post;
 
 /// <summary>
 /// Consumes PostDeletedIntegrationEvent and suppresses the post from all feeds.

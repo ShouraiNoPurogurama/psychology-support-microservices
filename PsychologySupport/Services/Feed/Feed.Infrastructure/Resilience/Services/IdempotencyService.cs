@@ -40,7 +40,7 @@ public sealed class CassandraIdempotencyService : IIdempotencyService
     // Điều này không ảnh hưởng vì pipeline behavior không thực sự dùng ID đó.
     public async Task<Guid> CreateRequestAsync(Guid requestKey, CancellationToken ct = default)
     {
-        var requestHash = _hashAccessor.RequestHash ?? throw new InvalidOperationException("Request hash is not available.");
+        var requestHash = _hashAccessor.RequestHash ?? throw new InvalidOperationException("Thông tin yêu cầu không khả dụng.");
         // TODO: Get current user's AliasId from a user context service
         var createdByAliasId = Guid.NewGuid(); // Placeholder
 
@@ -59,7 +59,7 @@ public sealed class CassandraIdempotencyService : IIdempotencyService
             var existingRequest = await _repository.GetAsync(requestKey, ct);
             if (existingRequest is not null && !string.Equals(existingRequest.RequestHash, requestHash, StringComparison.Ordinal))
             {
-                throw new InvalidOperationException("Idempotency-Key reused with different request payload.");
+                throw new InvalidOperationException("Khóa đã được sử dụng với yêu cầu khác.");
             }
         }
         
@@ -69,7 +69,7 @@ public sealed class CassandraIdempotencyService : IIdempotencyService
     public async Task SaveResponseAsync<T>(Guid requestKey, T response, CancellationToken ct = default)
     {
         var existingRequest = await _repository.GetAsync(requestKey, ct)
-                              ?? throw new KeyNotFoundException($"Idempotency key {requestKey} not found.");
+                              ?? throw new KeyNotFoundException($"Không tìm thấy khóa {requestKey}.");
 
         var payload = JsonSerializer.Serialize(response);
         existingRequest.SetResponse(payload);

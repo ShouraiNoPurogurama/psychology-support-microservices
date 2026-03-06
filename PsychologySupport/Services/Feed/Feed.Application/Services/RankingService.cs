@@ -1,11 +1,10 @@
-using StackExchange.Redis;
 using Feed.Application.Abstractions.RankingService;
 using Feed.Application.Dtos;
 using Feed.Application.MessagePacks;
-using Feed.Domain.ViewerFollowing;
 using MessagePack;
+using StackExchange.Redis;
 
-namespace Feed.Infrastructure.Data.Redis;
+namespace Feed.Application.Services;
 
 public sealed class RankingService(IConnectionMultiplexer redis) : IRankingService
 {
@@ -53,14 +52,14 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
                 (long)(score * 1_000_000),
                 rank?.CreatedAt ?? DateTimeOffset.UtcNow);
         });
-        
+
         var results = await Task.WhenAll(tasks);
         return results
             .OrderByDescending(p => p.RankI64)
             .Take(limit)
             .ToList();
     }
- 
+
     public async Task AddToTrendingAsync(Guid postId, double score, DateTimeOffset date, CancellationToken ct)
     {
         var key = GetTrendingKey(date);
@@ -68,7 +67,8 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
         await _database.KeyExpireAsync(key, TimeSpan.FromDays(1));
     }
 
-    public async Task InitializePostRankAsync(Guid postId, DateTimeOffset createdAt, CancellationToken ct)
+    // Trong RankingService.cs
+    public async Task InitializePostRankAsync(Guid postId, DateTimeOffset createdAt, Guid authorAliasId, CancellationToken ct)
     {
         var key = GetRankKey(postId);
         var pack = new PostRankPack
@@ -79,12 +79,16 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
             Ctr = 0.0,
             UpdatedAtSec = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             CreatedAtSec = createdAt.ToUnixTimeSeconds(),
-            AuthorAliasId = Guid.Empty
+            AuthorAliasId = authorAliasId,
+            Shares = 0,
+            Clicks = 0,
+            Impressions = 0,
+            ViewDurationSec = 0.0
         };
- 
+
         var bytes = MessagePackSerializer.Serialize(pack, MtOpts, ct);
 
-        await _database.StringSetAsync(key, bytes, TimeSpan.FromDays(7));
+        await _database.StringSetAsync(key, bytes, TimeSpan.FromDays(7), When.NotExists);
     }
 
     public async Task<PostRankData?> GetPostRankAsync(Guid postId)
@@ -123,54 +127,61 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
 
         return dict;
     }
-    
+
     public async Task IncrementReactionsAsync(Guid postId, int delta, CancellationToken ct)
     {
-        var dkey = GetDeltaKey(postId);
-        // ghi delta – nhanh, atomic theo field
-        await _database.HashIncrementAsync(dkey, "reactions", delta);
-        await _database.HashSetAsync(dkey, new[] { new HashEntry("updated_at", DateTimeOffset.UtcNow.ToUnixTimeSeconds()) });
-        await _database.KeyExpireAsync(dkey, TimeSpan.FromDays(7));
-        // job nền/luồng khác chịu trách nhiệm đọc base pack + delta để tính điểm và StringSet lại key base
+        var key = GetRankKey(postId);
+        await _database.HashIncrementAsync(key, "reactions", delta);
+        await _database.HashSetAsync(key, new[] { new HashEntry("updated_at", DateTimeOffset.UtcNow.ToUnixTimeSeconds()) });
+        await _database.KeyExpireAsync(key, TimeSpan.FromDays(7));
     }
 
     public async Task IncrementCommentsAsync(Guid postId, int delta, CancellationToken ct)
     {
-        var dkey = GetDeltaKey(postId);
-        await _database.HashIncrementAsync(dkey, "comments", delta);
-        await _database.HashSetAsync(dkey, new[] { new HashEntry("updated_at", DateTimeOffset.UtcNow.ToUnixTimeSeconds()) });
-        await _database.KeyExpireAsync(dkey, TimeSpan.FromDays(7));
+        var key = GetRankKey(postId);
+        await _database.HashIncrementAsync(key, "comments", delta);
+        await _database.HashSetAsync(key, new[] { new HashEntry("updated_at", DateTimeOffset.UtcNow.ToUnixTimeSeconds()) });
+        await _database.KeyExpireAsync(key, TimeSpan.FromDays(7));
     }
 
-    public async Task SetPostAuthorAsync(Guid postId, Guid authorAliasId, CancellationToken ct)
+    public async Task IncrementClicksAsync(Guid postId, int delta, CancellationToken ct)
     {
         var key = GetRankKey(postId);
-        var val = await _database.StringGetAsync(key);
-        if(val.IsNullOrEmpty) 
-            return;
-        
-        var pack = MessagePackSerializer.Deserialize<PostRankPack>(val, MtOpts);
-        pack.AuthorAliasId = authorAliasId;
-        pack.UpdatedAtSec = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        
-        var bytes = MessagePackSerializer.Serialize(pack, MtOpts, ct);
-        await _database.StringSetAsync(key, bytes, expiry: TimeSpan.FromDays(7));
+        await _database.HashIncrementAsync(key, "clicks", delta);
+        await _database.HashSetAsync(key, new[] { new HashEntry("updated_at", DateTimeOffset.UtcNow.ToUnixTimeSeconds()) });
+        await _database.KeyExpireAsync(key, TimeSpan.FromDays(7));
+    }
+
+    public async Task IncrementImpressionsAsync(Guid postId, int delta, CancellationToken ct)
+    {
+        var key = GetRankKey(postId);
+        await _database.HashIncrementAsync(key, "impressions", delta);
+        await _database.HashSetAsync(key, "updated_at", DateTimeOffset.UtcNow.ToUnixTimeSeconds());       
+        await _database.KeyExpireAsync(key, TimeSpan.FromDays(7));
+    }
+
+    public async Task IncrementViewDurationAsync(Guid postId, int delta, CancellationToken ct)
+    {
+        var dkey = GetRankKey(postId);
+        await _database.HashIncrementAsync(dkey, "view_duration", delta);
+        await _database.HashSetAsync(dkey, new[] { new HashEntry("updated_at", DateTimeOffset.UtcNow.ToUnixTimeSeconds()) });
+        await _database.KeyExpireAsync(dkey, TimeSpan.FromDays(7));
     }
 
     public async Task<Guid?> GetPostAuthorAsync(Guid postId, CancellationToken ct)
     {
         var key = GetRankKey(postId);
         var val = await _database.StringGetAsync(key, CommandFlags.PreferReplica);
-        if (val.IsNullOrEmpty) 
+        if (val.IsNullOrEmpty)
             return null;
-        
+
         var pack = MessagePackSerializer.Deserialize<PostRankPack>(val, MtOpts);
         return pack.AuthorAliasId == Guid.Empty ? null : pack.AuthorAliasId;
     }
 
     public async Task<IReadOnlyList<Guid>> GetGlobalFallbackPostsAsync(int limit)
     {
-        const string key = "trending:global_fallback";
+        string key = GetTrendingGlobalFallbackKey();
         var values = await _database.SortedSetRangeByRankAsync(key, 0, limit - 1, Order.Descending);
         return values
             .Where(v => v.HasValue && Guid.TryParse(v, out _))
@@ -194,7 +205,7 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
 
     public async Task UpdateGlobalFallbackAsync(IReadOnlyList<(Guid PostId, double Score)> posts)
     {
-        const string key = "trending:global_fallback";
+        string key = GetTrendingGlobalFallbackKey();
 
         if (posts.Count == 0)
             return;
@@ -213,8 +224,109 @@ public sealed class RankingService(IConnectionMultiplexer redis) : IRankingServi
         await transaction.ExecuteAsync();
     }
 
+    public async Task<int> MergeDirtyDeltasAsync(
+        int scanBatchSize,
+        int processBatchSize,
+        CancellationToken ct)
+    {
+        var processedCount = 0;
+        long cursor = 0;
+
+        var server = _database.Multiplexer.GetServer(
+            _database.Multiplexer.GetEndPoints().First()
+        );
+
+        var allDeltaKeys = new List<RedisKey>();
+
+        do
+        {
+            var keysPage = server.KeysAsync(
+                database: _database.Database,
+                pattern: "rank:delta:*",
+                pageSize: scanBatchSize,
+                cursor: cursor
+            );
+
+            // Vì hàm trên fetch keys theo từng trang => nên phải await từng trang, ko phải lấy tất cả keys trong server ra cùng lúc 
+            await foreach (var key in keysPage.WithCancellation(ct))
+            {
+                allDeltaKeys.Add(key);
+            }
+
+            cursor = ((IScanningCursor)keysPage).Cursor;
+        } while (cursor != 0 && !ct.IsCancellationRequested);
+
+        if (ct.IsCancellationRequested) return processedCount;
+
+        foreach (var chunk in allDeltaKeys.Chunk(processBatchSize))
+        {
+            var tasks = chunk.Select(deltaKey => ProcessSingleDeltaAsync(deltaKey, ct));
+            await Task.WhenAll(tasks);
+            processedCount += chunk.Length;
+        }
+
+        return processedCount;
+    }
+
+    /// <summary>
+    /// Hàm helper để xử lý gộp delta cho 1 post
+    /// (Đọc từ Primary, không dùng PreferReplica)
+    /// </summary>
+    private async Task ProcessSingleDeltaAsync(RedisKey deltaKey, CancellationToken ct)
+    {
+        // 1. Lấy PostId từ key "rank:delta:{postId}"
+        if (!Guid.TryParse(deltaKey.ToString().Split(':').LastOrDefault(), out var postId))
+        {
+            await _database.KeyDeleteAsync(deltaKey); // Xóa key rác
+            return;
+        }
+
+        var rankKey = GetRankKey(postId); // "rank:{postId}"
+
+        // 2. ĐỌC rank:delta:{postId} (HGETALL)
+        var deltaEntries = await _database.HashGetAllAsync(deltaKey);
+        var deltaMap = deltaEntries.ToDictionary(
+            x => x.Name.ToString(),
+            x => x.Value 
+        );
+
+        // 3. ĐỌC rank:{postId} (GET) - Đọc từ Primary (mặc định)
+        var rankVal = await _database.StringGetAsync(rankKey);
+        if (rankVal.IsNullOrEmpty)
+        {
+            // Rank chính không còn (đã hết hạn?) -> Xóa delta
+            await _database.KeyDeleteAsync(deltaKey);
+            return;
+        }
+
+        var pack = MessagePackSerializer.Deserialize<PostRankPack>(rankVal, MtOpts);
+
+        // 4. Gộp dữ liệu thô (Raw data)
+        pack.Reactions += (int)deltaMap.GetValueOrDefault("reactions", 0);
+        pack.Comments += (int)deltaMap.GetValueOrDefault("comments", 0);
+        pack.Clicks += (int)deltaMap.GetValueOrDefault("clicks", 0);
+        pack.Impressions += (int)deltaMap.GetValueOrDefault("impressions", 0);
+
+        // Dùng key "view_duration" như trong code Increment...
+        pack.ViewDurationSec += (long)deltaMap.GetValueOrDefault("view_duration", 0);
+
+        pack.UpdatedAtSec = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        // TUYỆT ĐỐI KHÔNG TÍNH `Score` Ở ĐÂY. Để cho RankPostsAsync làm.
+
+        // 5. Ghi đè và Xóa delta (dùng Transaction)
+        var newRankBytes = MessagePackSerializer.Serialize(pack, MtOpts, ct);
+        var tran = _database.CreateTransaction();
+
+        // Ghi đè rank chính
+        tran.StringSetAsync(rankKey, newRankBytes, TimeSpan.FromDays(7));
+        // Xóa key delta
+        tran.KeyDeleteAsync(deltaKey);
+
+        await tran.ExecuteAsync();
+    }
+
     private static string GetRankKey(Guid postId) => $"rank:{postId}";
     private static string GetTrendingKey(DateTimeOffset date) => $"trending:{date:yyyyMMdd}";
-    private static string GetDeltaKey(Guid postId) => $"rank:delta:{postId}";
-
+    private static string GetTrendingGlobalFallbackKey() => "trending:global_fallback";
 }

@@ -10,9 +10,9 @@ public sealed class FeedSeenEntry
     private FeedSeenEntry(Guid aliasId, DateOnly ymd, Guid seenAt, Guid postId)
     {
         if (aliasId == Guid.Empty)
-            throw new ArgumentException("AliasId is required", nameof(aliasId));
+            throw new ArgumentException("Thông tin người dùng không hợp lệ.", nameof(aliasId));
         if (postId == Guid.Empty)
-            throw new ArgumentException("PostId is required", nameof(postId));
+            throw new ArgumentException("Thông tin bài viết không hợp lệ.", nameof(postId));
 
         AliasId = aliasId;
         Ymd = ymd;

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Feed.Application.Abstractions.VipService;
 using StackExchange.Redis;
-using Feed.Application.Abstractions.VipService;
 
-namespace Feed.Infrastructure.Data.Redis;
+namespace Feed.Application.Services;
 
 public sealed class VipService(IConnectionMultiplexer redis) : IVipService
 {

@@ -9,11 +9,11 @@ public sealed class ViewerBlocked
     private ViewerBlocked(Guid aliasId, Guid blockedAliasId, DateTimeOffset blockedSinceUtc)
     {
         if (aliasId == Guid.Empty) 
-            throw new ArgumentException("AliasId is required", nameof(aliasId));
+            throw new ArgumentException("Thông tin người dùng không hợp lệ.", nameof(aliasId));
         if (blockedAliasId == Guid.Empty) 
-            throw new ArgumentException("BlockedAliasId is required", nameof(blockedAliasId));
+            throw new ArgumentException("Thông tin người dùng không hợp lệ.", nameof(blockedAliasId));
         if (aliasId == blockedAliasId)
-            throw new ArgumentException("Cannot block yourself", nameof(blockedAliasId));
+            throw new ArgumentException("Không thể chặn chính mình.", nameof(blockedAliasId));
 
         AliasId = aliasId;
         BlockedAliasId = blockedAliasId;

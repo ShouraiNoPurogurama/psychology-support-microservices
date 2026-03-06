@@ -4,7 +4,7 @@ using System.Text.Json;
 using Feed.Application.Abstractions.CursorService;
 using Microsoft.Extensions.Configuration;
 
-namespace Feed.Infrastructure.Data.Redis;
+namespace Feed.Application.Services;
 
 public sealed class CursorService : ICursorService
 {
@@ -32,21 +32,21 @@ public sealed class CursorService : ICursorService
         {
             var json = Encoding.UTF8.GetString(Convert.FromBase64String(cursor));
             var cursorWithHmac = JsonSerializer.Deserialize<CursorWithHmac>(json)
-                ?? throw new ArgumentException("Invalid cursor format");
+                ?? throw new ArgumentException("Định dạng con trỏ không hợp lệ.");
 
             // Validate HMAC
             var expectedHmac = GenerateHmac(cursorWithHmac.Data);
             if (cursorWithHmac.Hmac != expectedHmac)
-                throw new ArgumentException("Invalid cursor signature");
+                throw new ArgumentException("Chữ ký con trỏ không hợp lệ.");
 
             var cursorData = JsonSerializer.Deserialize<CursorData>(cursorWithHmac.Data)
-                ?? throw new ArgumentException("Invalid cursor data");
+                ?? throw new ArgumentException("Dữ liệu con trỏ không hợp lệ.");
 
             return (cursorData.Offset, cursorData.SnapshotTs);
         }
         catch (Exception ex) when (ex is JsonException or FormatException or ArgumentException)
         {
-            throw new ArgumentException("Invalid cursor format", ex);
+            throw new ArgumentException("Định dạng con trỏ không hợp lệ.", ex);
         }
     }
 

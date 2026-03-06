@@ -46,11 +46,11 @@ public class IdempotencyKey
     {
         // Enforce invariants (business rules)
         if (key == Guid.Empty)
-            throw new ArgumentException("Idempotency key cannot be empty.", nameof(key));
+            throw new ArgumentException("Khóa không được để trống.", nameof(key));
         if (string.IsNullOrWhiteSpace(requestHash))
-            throw new ArgumentException("Request hash cannot be empty.", nameof(requestHash));
+            throw new ArgumentException("Thông tin yêu cầu không hợp lệ.", nameof(requestHash));
         if (createdByAliasId == Guid.Empty)
-            throw new ArgumentException("Creator alias ID cannot be empty.", nameof(createdByAliasId));
+            throw new ArgumentException("Thông tin người dùng không hợp lệ.", nameof(createdByAliasId));
             
         Key = key;
         RequestHash = requestHash;

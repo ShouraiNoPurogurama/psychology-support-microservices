@@ -12,22 +12,12 @@ namespace Feed.Infrastructure.Data.Processors;
 /// Uses Quartz.NET or Hangfire for scheduling.
 /// </summary>
 [DisallowConcurrentExecution]
-public sealed class UpdateGlobalFallbackJob : IJob // 
+public sealed class UpdateGlobalFallbackJob(
+    IRankingService rankingService,
+    IPostReadRepository postReadRepository,
+    ILogger<UpdateGlobalFallbackJob> logger)
+    : IJob
 {
-    private readonly IRankingService _rankingService;
-    private readonly IPostReadRepository _postReadRepository;
-    private readonly ILogger<UpdateGlobalFallbackJob> _logger;
-
-    public UpdateGlobalFallbackJob(
-        IRankingService rankingService,
-        IPostReadRepository postReadRepository,
-        ILogger<UpdateGlobalFallbackJob> logger)
-    {
-        _rankingService = rankingService;
-        _postReadRepository = postReadRepository;
-        _logger = logger;
-    }
-
     /// <summary>
     /// Execute the job to update the global fallback list.
     /// Logic:
@@ -38,27 +28,27 @@ public sealed class UpdateGlobalFallbackJob : IJob //
     /// </summary>
     public async Task Execute(IJobExecutionContext context)
     {
-        _logger.LogInformation("Starting UpdateGlobalFallbackJob.");
+        logger.LogInformation("Starting UpdateGlobalFallbackJob.");
 
         try
         {
             var topPosts = await GetTopPostsByScanningBackwardsAsync(context.CancellationToken);
-            _logger.LogInformation("Fetched {Count} top posts to update global fallback.", topPosts.Count);
+            logger.LogInformation("Fetched {Count} top posts to update global fallback.", topPosts.Count);
 
 
             if (topPosts.Count > 0)
             {
-                await _rankingService.UpdateGlobalFallbackAsync(topPosts);
-                _logger.LogInformation("Successfully updated global fallback with {Count} posts.", topPosts.Count);
+                await rankingService.UpdateGlobalFallbackAsync(topPosts);
+                logger.LogInformation("Successfully updated global fallback with {Count} posts.", topPosts.Count);
             }
             else
             {
-                _logger.LogWarning("No posts found for global fallback update. The fallback list might be empty.");
+                logger.LogWarning("No posts found for global fallback update. The fallback list might be empty.");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred while updating global fallback.");
+            logger.LogError(ex, "An unhandled exception occurred while updating global fallback.");
             throw; // Rethrow to let Quartz handle the job failure
         }
     }
@@ -70,7 +60,7 @@ public sealed class UpdateGlobalFallbackJob : IJob //
     private async Task<IReadOnlyList<(Guid PostId, double Score)>> GetTopPostsByScanningBackwardsAsync(
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Scanning backwards to build global fallback (Top {K})",
+        logger.LogInformation("Scanning backwards to build global fallback (Top {K})",
             UpdateGlobalFallbackJobConfiguration.TopPostsLimit);
 
         var k = UpdateGlobalFallbackJobConfiguration.TopPostsLimit;
@@ -84,21 +74,19 @@ public sealed class UpdateGlobalFallbackJob : IJob //
         var processedCount = 0;
         var consecutiveEmptyWindows = 0;
 
-        const double lambdaPerHour = 0.015; // ~0.34 sau 72h
-        const double floorDecay = 0.25; // sàn để không “mất hút”
 
         while (heap.Count < k && currentDayOffset < maxLookbackDays)
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                _logger.LogWarning("Job cancellation requested. Stopping scan.");
+                logger.LogWarning("Job cancellation requested. Stopping scan.");
                 break;
             }
 
-            _logger.LogDebug("Fetching posts: window={WindowDays}d, startOffset={Offset}d",
+            logger.LogDebug("Fetching posts: window={WindowDays}d, startOffset={Offset}d",
                 windowDays, currentDayOffset);
 
-            IReadOnlyList<PostInfo> postInfos = await _postReadRepository.GetMostRecentPublicPostsAsync(
+            IReadOnlyList<PostInfo> postInfos = await postReadRepository.GetMostRecentPublicPostsAsync(
                 days: windowDays,
                 limit: UpdateGlobalFallbackJobConfiguration.BatchSize,
                 startDayOffset: currentDayOffset,
@@ -111,7 +99,7 @@ public sealed class UpdateGlobalFallbackJob : IJob //
                 // dừng sớm khi cửa sổ rỗng
                 if (consecutiveEmptyWindows >= 1)
                 {
-                    _logger.LogInformation("No posts found in window at offset {Offset}d. Stop scanning.", currentDayOffset);
+                    logger.LogInformation("No posts found in window at offset {Offset}d. Stop scanning.", currentDayOffset);
                     break;
                 }
 
@@ -133,7 +121,7 @@ public sealed class UpdateGlobalFallbackJob : IJob //
                 continue;
             }
 
-            var rankMap = await _rankingService.GetPostRanksAsync(ids);
+            var rankMap = await rankingService.GetPostRanksAsync(ids);
             var infoMap = postInfos.ToDictionary(p => p.PostId, p => p); 
 
             foreach (var postId in ids)
@@ -162,12 +150,12 @@ public sealed class UpdateGlobalFallbackJob : IJob //
             // Log gọn: kích thước heap + min score hiện tại
             if (heap.TryPeek(out _, out var minScoreNow))
             {
-                _logger.LogDebug("Heap={HeapCount}/{K}, minScore~{MinScore:F2}, processed={Processed}",
+                logger.LogDebug("Heap={HeapCount}/{K}, minScore~{MinScore:F2}, processed={Processed}",
                     heap.Count, k, minScoreNow, processedCount);
             }
             else
             {
-                _logger.LogDebug("Heap=0/{K}, processed={Processed}", k, processedCount);
+                logger.LogDebug("Heap=0/{K}, processed={Processed}", k, processedCount);
             }
 
             currentDayOffset += windowDays;
@@ -175,7 +163,7 @@ public sealed class UpdateGlobalFallbackJob : IJob //
 
         if (heap.Count == 0)
         {
-            _logger.LogWarning("No posts with rank data could be found.");
+            logger.LogWarning("No posts with rank data could be found.");
             return Array.Empty<(Guid, double)>();
         }
 
@@ -190,7 +178,7 @@ public sealed class UpdateGlobalFallbackJob : IJob //
         top.Reverse();
 
         //Nếu heap < k vì dữ liệu ít, vẫn trả về những gì có
-        _logger.LogInformation("Built global fallback: selected={Sel}, processed={Processed}, score range {Min:F2}..{Max:F2}",
+        logger.LogInformation("Built global fallback: selected={Sel}, processed={Processed}, score range {Min:F2}..{Max:F2}",
             top.Count, processedCount, top.Last().Score, top.First().Score);
 
         return top;

@@ -22,13 +22,13 @@ public sealed class PostReplica
         string status)
     {
         if (postId == Guid.Empty)
-            throw new ArgumentException("PostId is required", nameof(postId));
+            throw new ArgumentException("Thông tin bài viết không hợp lệ.", nameof(postId));
         if (authorAliasId == Guid.Empty)
-            throw new ArgumentException("AuthorAliasId is required", nameof(authorAliasId));
+            throw new ArgumentException("Thông tin tác giả không hợp lệ.", nameof(authorAliasId));
         if (string.IsNullOrWhiteSpace(visibility))
-            throw new ArgumentException("Visibility is required", nameof(visibility));
+            throw new ArgumentException("Thông tin hiển thị không hợp lệ.", nameof(visibility));
         if (string.IsNullOrWhiteSpace(status))
-            throw new ArgumentException("Status is required", nameof(status));
+            throw new ArgumentException("Trạng thái không hợp lệ.", nameof(status));
 
         YmdBucket = ymdBucket;
         CreatedAt = createdAt;

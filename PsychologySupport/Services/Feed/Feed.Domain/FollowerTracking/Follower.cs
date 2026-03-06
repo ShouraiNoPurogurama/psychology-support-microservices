@@ -9,11 +9,11 @@ public sealed class Follower
     private Follower(Guid FollowerAliasId, Guid aliasId, DateTimeOffset sinceUtc)
     {
         if (FollowerAliasId == Guid.Empty) 
-            throw new ArgumentException("FollowerAliasId is required", nameof(FollowerAliasId));
+            throw new ArgumentException("Thông tin người dùng không hợp lệ.", nameof(FollowerAliasId));
         if (aliasId == Guid.Empty) 
-            throw new ArgumentException("AliasId is required", nameof(aliasId));
+            throw new ArgumentException("Thông tin người dùng không hợp lệ.", nameof(aliasId));
         if (FollowerAliasId == aliasId)
-            throw new ArgumentException("Cannot follow yourself", nameof(aliasId));
+            throw new ArgumentException("Không thể theo dõi chính mình.", nameof(aliasId));
 
         AliasId = aliasId;
         Since = sinceUtc.ToUniversalTime() ;
